@@ -1,5 +1,5 @@
 <template>
-  <div ref="builderRootEl" class="builder" :class="{ 'builder--dark': chipTheme === 'black', 'builder--nospikes': !showSpikes }"
+  <div ref="builderRootEl" class="builder" :class="{ 'builder--nospikes': !showSpikes }"
     :style="V2_ROLE_CSS_VARS" @keydown="onBuilderKeydown">
     <!-- Drag-to-delete zone (oxjob #467 Phase 4): an overlay strip pinned to the top of
          the builder that appears only while a value chip is being dragged (shared
@@ -63,11 +63,8 @@
         <!-- (#575 filter-OR experiment concluded 2026-07-10: the spanning "either … or"
              block won; the layout toggle and the losing candidates were stripped.) -->
 
-        <!-- DEV toggles (r17, Jason — development only): chip-theme A/B (grey vs
-             white-on-black) and spike show/hide. Tiny quiet text buttons. -->
-        <button type="button" class="tb-dev-toggle" :class="{ 'tb-dev-toggle--on': chipTheme === 'black' }"
-          title="dev: white-on-black chip variant"
-          @click="chipTheme = chipTheme === 'black' ? 'grey' : 'black'">dark</button>
+        <!-- DEV toggle (r17; the r17 "dark" chip-variant A/B was killed in r18 —
+             Jason: "i hate it now"): spike show/hide. Tiny quiet text button. -->
         <button type="button" class="tb-dev-toggle" :class="{ 'tb-dev-toggle--on': showSpikes }"
           title="dev: show/hide spikes"
           @click="showSpikes = !showSpikes">spikes</button>
@@ -636,35 +633,28 @@ defineOptions({ name: "OqlQueryBuilderV2" });
 // value chip gets a BLACK BORDER instead (the :deep rules near .bl-body). V1/the
 // text editor keep the coloured palette — this map only reskins the V2 builder.
 const V2_INK = "#1a1a1a";
-// One chip colour (r14); r17 (Jason): the r16 #858585 was too dark — chips are
-// translucent black now, rgba(1,1,1,.2) (≈ #cbcbcb on white), hover one step
-// heavier at .3. A DEV-ONLY toolbar toggle ("dark") swaps in the alternate
-// white-text-on-black-chips variant for side-by-side evaluation; a second
-// toggle ("spikes") shows/hides the boundary spikes. Both persist locally.
-const chipVarsFor = (theme) => {
-  const bg = theme === "black" ? "#1a1a1a" : "rgba(1, 1, 1, 0.2)";
-  const hov = theme === "black" ? "#000" : "rgba(1, 1, 1, 0.3)";
-  const fg = theme === "black" ? "#fff" : V2_INK;
-  return {
-    ...OQL_ROLE_CSS_VARS,
-    "--prop-fg": fg, "--prop-bg": bg, "--prop-bg-hov": hov,
-    "--prop-fg-sel": fg, "--prop-bg-sel": bg,
-    "--conn-fg": fg, "--conn-bg": bg, "--conn-bg-hov": hov,
-    "--conn-fg-sel": fg, "--conn-bg-sel": bg,
-    "--rel-fg": fg, "--rel-bg": bg,
-    "--val-fg": fg, "--val-bg": bg, "--val-bg-hov": hov,
-    "--val-fg-sel": fg, "--val-bg-sel": bg,
-    "--vconn-fg": fg, "--vconn-bg": bg, "--vconn-bg-hov": hov,
-    "--vconn-fg-sel": fg, "--vconn-bg-sel": bg,
-    // the selected-value ring must read on the chip fill: black on grey, white on black
-    "--chip-ring": theme === "black" ? "#fff" : V2_INK,
-  };
+// One chip colour. r18 (Jason): the dark A/B variant is DEAD ("i hate it now") and
+// the grey steps down to opacity .1. NB the fill is the OPAQUE equivalent of
+// rgba(1,1,1,.1)-on-white (#e6e6e6, hover .2 = #cccccc) rather than a real rgba:
+// the ↳ wrap-marker tiles paint UNDER row-1's chips (the chips covering them IS
+// the only-show-on-wrapped-rows mechanism), so a translucent fill lets them show
+// through — that was r17's "arrows superimposed on every line" bug.
+const V2_CHIP_BG = "#e6e6e6";
+const V2_CHIP_BG_HOV = "#cccccc";
+const V2_ROLE_CSS_VARS = {
+  ...OQL_ROLE_CSS_VARS,
+  "--prop-fg": V2_INK, "--prop-bg": V2_CHIP_BG, "--prop-bg-hov": V2_CHIP_BG_HOV,
+  "--prop-fg-sel": V2_INK, "--prop-bg-sel": V2_CHIP_BG,
+  "--conn-fg": V2_INK, "--conn-bg": V2_CHIP_BG, "--conn-bg-hov": V2_CHIP_BG_HOV,
+  "--conn-fg-sel": V2_INK, "--conn-bg-sel": V2_CHIP_BG,
+  "--rel-fg": V2_INK, "--rel-bg": V2_CHIP_BG,
+  "--val-fg": V2_INK, "--val-bg": V2_CHIP_BG, "--val-bg-hov": V2_CHIP_BG_HOV,
+  "--val-fg-sel": V2_INK, "--val-bg-sel": V2_CHIP_BG,
+  "--vconn-fg": V2_INK, "--vconn-bg": V2_CHIP_BG, "--vconn-bg-hov": V2_CHIP_BG_HOV,
+  "--vconn-fg-sel": V2_INK, "--vconn-bg-sel": V2_CHIP_BG,
 };
-const chipTheme = ref(localStorage.getItem("oqlV2ChipTheme") === "black" ? "black" : "grey");
 const showSpikes = ref(localStorage.getItem("oqlV2Spikes") !== "off");
-watch(chipTheme, (t) => { try { localStorage.setItem("oqlV2ChipTheme", t); } catch (e) { /* noop */ } });
 watch(showSpikes, (v) => { try { localStorage.setItem("oqlV2Spikes", v ? "on" : "off"); } catch (e) { /* noop */ } });
-const V2_ROLE_CSS_VARS = computed(() => chipVarsFor(chipTheme.value));
 
 const props = defineProps({
   oql: { type: String, default: null },
@@ -3782,6 +3772,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
      remove-× — the gutter cell grew by this much so the × has its own column.
      Round 11: +10px breathing room between the × and the digits (18px icon + 10px gap). */
   --trash-w: 28px;
+  /* hanging wrap indent (r18, Jason: "one column, not two"): a single compact
+     icon-column; also the ↳ tile width, so the icon + chip sit snug. */
+  --wrap-ind: 20px;
   --paren-w: var(--chip-w);   /* open/close paren = the shared chip width */
   --indent: var(--chip-w);    /* one indent step = one chip width */
   --brick-fs: 0.8125rem;
@@ -4031,7 +4024,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .builder-lines :deep(.val-chip.selected:not(.conn-chip):hover),
 .builder-lines :deep(.val-chip.multi-selected:not(.conn-chip):hover),
 .builder-lines :deep(.val-chip:focus:not(.conn-chip):hover) {
-  box-shadow: inset 0 0 0 1.5px var(--chip-ring, #1a1a1a);
+  box-shadow: inset 0 0 0 1.5px #1a1a1a;
 }
 /* round 9 (Jason): hover a group-header line → "N subclauses:" after the turn chip.
    Round 10: styled like the line numbers (peach at half-opacity, NO italics, trailing
@@ -4171,14 +4164,14 @@ defineExpose({ rebuildFromOql: async (oql) => {
    `--marked` (body has value tokens) so empty bodies (value-AND headers, fresh drafts)
    never show a stray arrow. */
 .bl-body {
-  padding-left: calc(var(--pred-w, var(--chip-w)) + var(--gx));
+  padding-left: calc(var(--wrap-ind, 20px) + var(--gx));
 }
 .bl-body::before {
   content: "";
   flex: 0 0 0px;
   width: 0;
   height: 26px;
-  margin-left: calc(-1 * (var(--pred-w, var(--chip-w)) + 2 * var(--gx)));
+  margin-left: calc(-1 * (var(--wrap-ind, 20px) + 2 * var(--gx)));
 }
 .bl-body--marked {
   /* grey at low opacity (round 11, Jason: "lighter, they're too loud" + monochrome;
@@ -4186,7 +4179,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='28'%20viewBox='0%200%2026%2028'%3E%3Cpath%20d='M10%209V16H16M14%2013.5L16.5%2016L14%2018.5'%20fill='none'%20stroke='%231a1a1a'%20stroke-opacity='0.18'%20stroke-width='1.4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: repeat-y;
   background-position: 0 0;
-  background-size: var(--pred-w, var(--chip-w)) 28px;
+  background-size: var(--wrap-ind, 20px) 28px; /* tile = the indent column → icon scales down (r18) */
 }
 /* #575 round 5 (Jason): every COMMITTED field chip fills the full field column — equal
    widths, the longest field sets --field-w — so rows with short field names don't leave a
@@ -4251,12 +4244,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .builder--nospikes .bl-spike::after { display: none; }
 .builder--nospikes .bl-lead2.bl-spike { margin-right: var(--gx); }
 .builder--nospikes .bl-slot-pred.bl-spike { margin-right: 0; }
-/* dev black-chip variant (r17): numbers darker (Jason), ghost hovers readable */
-.builder--dark .bline::before,
-.builder--dark .bl-num1-digits,
-.builder--dark .bl-num2 > span { opacity: 0.8; }
-.builder--dark .builder-lines :deep(.line-plus:hover) { color: #fff; }
-.builder--dark .add-and-btn:hover { color: #fff; }
+/* (r18: the r17 dark-variant CSS is gone with the toggle) */
 .bl-spike::after {
   content: "";
   position: absolute;
