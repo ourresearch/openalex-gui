@@ -28,16 +28,15 @@
 //   _fieldCh/_predCh  per-sibling-group shared mini column widths (ch), 0 = inherit
 //               the global --field-w/--pred-w
 //   _disjunctDel  clause id for the per-disjunct trash (deletes ONE alternative)
-//   _tail       'filter' | null — round 3 (Jason): an EITHER-group header line ends
-//               with a connector chip (an SVG elbow: in at the left edge, out the
-//               bottom) showing the AND-flow turning down into the disjunct lines.
-//   _slotTail   true on a value-AND HEADER line (round 5): the same elbow renders IN
-//               the predicate slot (where the "has" chip was) — the predicate word
-//               itself moved down to be the first arm's lead chip ("has network").
-//   _leadSplit  'fork' | null on the FIRST disjunct line's blank lead chip: straight
-//               down to the next sibling + branch right into this line — the
-//               "highway exit" sign. (Round 5 removed the round-4 'turn' ⤷ on value
-//               arms — the swapped-down predicate word is the first arm's lead now.)
+//   _tail       'filter' | null — a group HEADER line ends with a TURN-marker chip
+//               showing the AND-flow turning 90° down into the subclause lines.
+//               Round 6 (Jason): the marker is chip SHAPE, not ink — a blank chip
+//               whose top-right corner is maximally rounded (no more SVG elbow).
+//   _slotTail   true on a value-AND HEADER line (round 5): the turn marker renders
+//               IN the predicate slot (where the "has" chip was) — the predicate
+//               word itself moved down to be the first arm's lead chip
+//               ("has network"). (Round 6 removed _leadSplit and every arrow SVG:
+//               the first either-disjunct now leads with the word "has" too.)
 //
 // Everything below the layoutLines rewrite is carried over from builderLayout.js.
 
@@ -315,10 +314,12 @@ export function layoutLines(tokens, opts = {}) {
     operands.forEach((op, i) => {
       const cl = renderOperand(op.nodes, level + 1);
       if (!cl.length) return;
-      cl[0]._lead = i === 0 ? "blank" : join;
+      // Round 6 (Jason): the first EITHER-disjunct leads with the word "has"
+      // ("and either ⌐ / has year = 2020 / or title/abs has warming") — the fork
+      // arrow is gone. An all-of group's first child keeps the blank chip.
+      cl[0]._lead = i === 0 ? (join === "or" ? "has" : "blank") : join;
       cl[0]._leadScope = "filter";
       cl[0]._indKind = "pred";
-      if (i === 0) cl[0]._leadSplit = "fork";
       // per-disjunct delete: a single-clause operand's trash removes just this
       // alternative (removeDisjunct dissolves the group down to one).
       if (join === "or") {

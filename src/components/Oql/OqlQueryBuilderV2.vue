@@ -141,24 +141,20 @@
             :draggable="rowDragIdFor(line) ? 'true' : undefined"
             @dragstart="onRowLeadDragstart(line, $event)" @dragend="onRowLeadDragend"
             aria-hidden="true">{{ leadWord(line) }}</span>
-          <!-- Round 3+4 (Jason): the FIRST subclause line's blank lead chip draws a
-               connector — 'fork' on either-group disjuncts (straight down to the next
-               sibling + branch right, the "highway exit" sign pointing down), 'turn' on
-               value-AND arms (round 4: just ⤷ — in at the top, curve right; the parent's
-               flow drops straight out of its predicate chip above). SVG (not unicode
-               ⤷/↓ — alignment too fussy), full-bleed, stroke = currentColor so the scope
-               colour (and the --sel white flip) applies.
-               Round 4: the line's decimal address moved OUT of the left gutter to sit
-               immediately left of the lead chip (right-aligned under the parent's
-               field-name chip) — .bl-num2 IS the indent cell now: its width is the old
+          <!-- Round 6 (Jason): NO arrows anywhere — a subclause line leads with a WORD
+               chip: the parent's predicate on the first value-AND arm ("has network",
+               round 5), "has" on the first either-disjunct (round 6), "and"/"or" on the
+               rest. Round 4: the line's decimal address moved OUT of the left gutter to
+               sit immediately left of the lead chip (right-aligned under the parent's
+               field-name chip) — .bl-num2 IS the indent cell: its width is the old
                lead2Style margin-left (same JS-computed global-grid expr; it stays at
                --brick-fs so the ch units in fieldColW/predColW resolve exactly as the
                cells they were measured against — the inner span shrinks the digits to
                gutter size). -->
           <template v-else>
             <span class="bl-num2" :style="num2Style(line)" aria-hidden="true"><span>{{ line.addr }}</span></span>
-            <span class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead, 'bl-lead2--conn': line._leadSplit }"
-              :style="lead2Style(line)" aria-hidden="true"><span v-if="line._leadSplit" class="bl-connsvg" v-html="SPLIT_SVG"></span><template v-else>{{ leadWord(line) }}</template></span>
+            <span class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead }"
+              :style="lead2Style(line)" aria-hidden="true">{{ leadWord(line) }}</span>
           </template>
 
           <!-- V2 group-header chip: "either" (or "all of") on the group's own line, the
@@ -169,17 +165,17 @@
           <template v-if="line._head">
             <div v-if="!line._level" class="bl-field bl-field--head">
               <span class="bl-headchip bl-headchip--fill" aria-hidden="true">{{ line._head }}</span>
-              <!-- Round 3 (Jason): the header line ends with a TAIL connector chip — an
-                   SVG elbow (in at the left edge, out the bottom, no arrowhead) showing
-                   the AND-flow turning down into the subclauses. It sits exactly where
-                   the ghost predicate spacer sat (the child lead column), so the elbow's
-                   exit lines up with the split chip on the first subclause line below. -->
-              <span v-if="line._tail" class="bl-tail" :style="tailStyle" aria-hidden="true" v-html="TAIL_SVG"></span>
+              <!-- Rounds 3–6 (Jason): the header line ends with the TURN-MARKER chip —
+                   blank, top-right corner maximally rounded (round 6 dropped the SVG
+                   elbow) — showing the AND-flow turning down into the subclauses. It
+                   sits where the ghost predicate spacer sat (the child lead column), so
+                   it lines up over the first subclause's lead-word chip below. -->
+              <span v-if="line._tail" class="bl-tail" :style="tailStyle" aria-hidden="true"></span>
               <span v-else class="bl-slot-ghost" aria-hidden="true"></span>
             </div>
             <template v-else>
               <span class="bl-headchip" aria-hidden="true">{{ line._head }}</span>
-              <span v-if="line._tail" class="bl-tail bl-tail--gap" :style="tailStyle" aria-hidden="true" v-html="TAIL_SVG"></span>
+              <span v-if="line._tail" class="bl-tail bl-tail--gap" :style="tailStyle" aria-hidden="true"></span>
             </template>
             <!-- flex filler so the row trash sits at the line's far right, same as
                  every other line (round 2, example 3) -->
@@ -234,13 +230,14 @@
             <!-- EDITABLE numeric predicate (#575 round 8, Jason): a range field's operator can be
                  switched, so the slot is DARKER + clickable and opens an operator menu. Equality
                  shows the `=` glyph (the fixed slot shows the folded `is`). -->
-            <!-- Round 5 (Jason): on a value-AND HEADER the predicate slot holds the TAIL
-                 elbow (down into the arms) — the predicate word swapped down to be the
-                 first arm's lead chip. min-width comes from the CSS --pred-w var (NOT
-                 tailStyle's global inline value) so a nested header's mini-slot override
-                 still applies. Takes precedence over _predEdit — the rare numeric
-                 value-AND header loses the slot operator menu (word's on the arm now). -->
-            <span v-if="line._slotTail" class="bl-tail bl-tail--slot" aria-hidden="true" v-html="TAIL_SVG"></span>
+            <!-- Rounds 5–6 (Jason): on a value-AND HEADER the predicate slot holds the
+                 TURN-MARKER chip (blank, top-right corner maximally rounded) — the
+                 predicate word swapped down to be the first arm's lead chip. min-width
+                 comes from the CSS --pred-w var (NOT tailStyle's global inline value) so
+                 a nested header's mini-slot override still applies. Takes precedence
+                 over _predEdit — the rare numeric value-AND header loses the slot
+                 operator menu (the word's on the arm now). -->
+            <span v-if="line._slotTail" class="bl-tail bl-tail--slot" aria-hidden="true"></span>
             <v-menu v-else-if="line._predEdit" location="bottom start" offset="2">
               <template #activator="{ props: mp }">
                 <button type="button" class="bl-slot-pred bl-slot-pred--edit" v-bind="mp"
@@ -259,9 +256,9 @@
           </div>
           <div v-if="!line._head" class="bl-body"
             :class="{ 'bl-body--marked': !!(line._valueToks && line._valueToks.length) }">
-            <!-- (Round 5: value-AND headers carry the TAIL elbow in their predicate SLOT
-                 — see .bl-tail--slot in the field cell above; the predicate word leads
-                 the first arm.) -->
+            <!-- (Rounds 5–6: value-AND headers carry the turn-marker chip in their
+                 predicate SLOT — see .bl-tail--slot in the field cell above; the
+                 predicate word leads the first arm.) -->
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
                  reorders tokens), everything else by index. NB: can't use a bare
@@ -1124,9 +1121,8 @@ const displayLines = computed(() => {
             _hasFieldMenu: false, _menu: null, _selectRow: out[fi]._selectRow || null,
             _tail: "filter" };
           for (let i = fi; i <= ti; i++) out[i]._level = (out[i]._level || 0) + 1;
-          out[fi]._lead = "blank";
+          out[fi]._lead = "has";
           out[fi]._indKind = "pred";
-          out[fi]._leadSplit = "fork";
           out.splice(fi, 0, headLn);
           dl._level = lvl + 1;
           at = ti + 2;
@@ -1162,9 +1158,8 @@ const displayLines = computed(() => {
         _hasFieldMenu: false, _menu: null, _tail: "filter" };
       out.push(headLn);
       dl._level = 1;
-      dl._lead = "blank";
+      dl._lead = "has";
       dl._indKind = "pred";
-      dl._leadSplit = "fork";
       out.push(dl);
       lastDraftIdx = out.length - 1;
       return;
@@ -1260,37 +1255,20 @@ const lead2Indent = (line) => {
 const lead2Style = () => ({ "--lead2-w": predColW.value });
 const num2Style = (line) => ({ width: lead2Indent(line) });
 
-// ---- V2 round 3+4 (Jason): flow-connector SVGs -------------------------------
-// The "AND juice" flows from a group's header line down into its subclause lines:
-//   TAIL  (either-group header line's last chip): elbow — in at the LEFT edge
-//         (mid-height), out the BOTTOM edge. No arrowhead (surplus — the flow
-//         continues below). Round 4: either-groups only; value-AND headers have none.
-//   SPLIT (first disjunct line's blank lead chip): in at the TOP edge, straight
-//         down to the bottom (on toward the next sibling) PLUS a branch curving
-//         right into this line's content — the "highway exit" sign, pointing down.
-//   (Round 5 removed round 4's TURN ⤷ on value arms: the value-AND header now puts
-//   the TAIL elbow in its predicate SLOT — `_slotTail`, class .bl-tail--slot — and
-//   the predicate word swaps down to lead the first arm.)
-// SVG, not the ⤵/⤷/↓ unicode chars (Jason: aligning glyphs is too fussy).
-// preserveAspectRatio="none" stretches the 100×100 geometry to the chip box so the
-// edge endpoints ALWAYS touch the edges; vector-effect keeps the stroke width true
-// under that non-uniform scale. stroke=currentColor → scope colour + --sel flip.
-// All verticals run at x=50 in same-width, same-column chips, so tail exit and
-// split/turn entry line up.
-const CONN_STROKE = 'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"';
-const TAIL_SVG =
-  `<svg viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0 50 H32 Q50 50 50 68 V100" ${CONN_STROKE}/></svg>`;
-const SPLIT_SVG =
-  `<svg viewBox="0 0 100 100" preserveAspectRatio="none">` +
-  `<path d="M50 0 V100" ${CONN_STROKE}/>` +
-  `<path d="M40 84 L50 97 L60 84" ${CONN_STROKE}/>` +
-  `<path d="M50 32 Q50 50 68 50 H100" ${CONN_STROKE}/>` +
-  `<path d="M87 40 L99 50 L87 60" ${CONN_STROKE}/>` +
-  `</svg>`;
-// The tail chip is CHILD-LEAD-COLUMN width — the GLOBAL predColW, same as the
-// split chip below it (whose --lead2-w lead2Style sets from predColW), never the
-// mini --pred-w a nested line's lineStyle may override. ch resolves at the chip
-// (mono at --brick-fs), same as everywhere else.
+// ---- V2 turn-marker chip (rounds 3–6, Jason) ---------------------------------
+// A group HEADER line ends with a TURN-MARKER chip showing the AND-flow turning 90°
+// down into the subclause lines. Rounds 3–5 drew SVG elbows/forks in these chips;
+// round 6 removed ALL on-chip lines and arrows — the marker is now pure chip SHAPE:
+// a blank chip whose TOP-RIGHT corner is maximally rounded (13px = half the 26px
+// chip height, a quarter-circle; other corners keep the standard 4px). See .bl-tail.
+// The first subclause line beneath it leads with a WORD instead of an arrow: the
+// parent's predicate on value-AND arms ("has network", round 5), the word "has" on
+// either-disjuncts (round 6).
+// The either-head tail chip is CHILD-LEAD-COLUMN width — the GLOBAL predColW, same
+// as the lead chips below it (whose --lead2-w lead2Style sets from predColW), never
+// the mini --pred-w a nested line's lineStyle may override. ch resolves at the chip
+// (mono at --brick-fs), same as everywhere else. (The value-AND SLOT tail instead
+// sizes off the CSS --pred-w var — .bl-tail--slot — so mini-slot overrides apply.)
 const tailStyle = computed(() => ({ minWidth: predColW.value }));
 
 // The brick stream for ONE draft clause MINUS its lead-in keyword (col · op ·
@@ -3774,21 +3752,17 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bl-lead2--val { background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
 .bline--sel .bl-lead2 { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 .bline--sel .bl-lead2--val { background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff); }
-/* ---- V2 round 3: flow-connector chips (Jason 2026-07-11 evening) --------------
-   TAIL chip = a group header line's last chip (child-lead-column width, inline
-   minWidth from the global predColW): SVG elbow, left edge → bottom edge, ZERO
-   padding so the line truly touches the edges. SPLIT chip = the first subclause
-   line's blank lead chip drawing the down+branch-right connector, entering at the
-   top edge (padding zeroed via --conn). The SVGs are v-html'd, so scoped rules
-   need :deep() to reach them. stroke=currentColor picks up the chip's scope
-   colour and the --sel white flip. */
+/* ---- V2 turn-marker chip (rounds 3–6, Jason) ----------------------------------
+   The chip ending a group header line, saying "the flow turns 90° down here".
+   Round 6: no more on-chip SVG lines/arrows — the marker is the chip's SHAPE: a
+   blank chip whose TOP-RIGHT corner is maximally rounded (13px = half the 26px
+   height, a quarter-circle) while the other corners keep the standard 4px. */
 .bl-tail {
-  position: relative;
   display: inline-flex;
   box-sizing: border-box;
   flex: 0 0 auto;
   height: 26px;
-  border-radius: 4px;
+  border-radius: 4px 13px 4px 4px;
   background: var(--conn-bg, #fae1d1);
   color: var(--conn-fg, #b25d06);
   font-family: "JetBrains Mono", monospace; /* ch in the inline minWidth resolves here */
@@ -3802,9 +3776,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
    header's per-line mini --pred-w override applies, unlike tailStyle's global inline. */
 .bl-tail--slot { min-width: var(--pred-w, var(--chip-w)); }
 .bline--sel .bl-tail { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
-.bl-lead2--conn { position: relative; padding: 0; }
-.bl-connsvg { position: absolute; inset: 0; }
-.bl-tail :deep(svg), .bl-connsvg :deep(svg) { display: block; width: 100%; height: 100%; }
 /* Round 4 (Jason): a SUBCLAUSE line's decimal address sits inline, immediately left
    of its lead chip (right-aligned under the parent's field-name chip) — .bl-num2 IS
    the line's indent cell (width = the old lead2 margin-left expr, set inline by
