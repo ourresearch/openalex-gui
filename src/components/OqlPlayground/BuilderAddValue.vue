@@ -84,16 +84,15 @@ const props = defineProps({
 });
 const emit = defineEmits(["add", "pick", "abandon", "set-negate"]);
 
-// The menu extends its chip's formatting (oxjob #561): same value-blue background + the
-// builder's monospace. Inline (not CSS vars) — the card teleports to <body>, outside the
-// .builder ancestor that carries the palette vars.
+// The menu matches the FIELD-chip picker's recipe (#603 round 10, Jason: the all-blue
+// card is gone) — default white background, with the chip family's tint only on the
+// hover/keyboard-highlighted row. Inline (not CSS vars) — the card teleports to <body>,
+// outside the .builder ancestor that carries the palette vars.
 const menuCardStyle = {
-  backgroundColor: OQL_ROLE_CSS_VARS["--val-bg"],
-  color: OQL_ROLE_CSS_VARS["--val-fg"],
-  // no monospace (Jason follow-up 2026-07-05) — only the chip colour extends into the menu.
-  // --menu-hl: hover/keyboard-highlight rows use the chip's own darker (hover) shade instead
-  // of Vuetify's grey on-surface overlay, so the highlight reads as part of the tinted menu.
-  "--menu-hl": OQL_ROLE_CSS_VARS["--val-bg-hov"],
+  backgroundColor: "#fff",
+  // --menu-hl: highlight rows in the value chips' own light periwinkle (the analogue of
+  // the field menu's light-peach --prop-bg highlight) instead of Vuetify's grey overlay.
+  "--menu-hl": OQL_ROLE_CSS_VARS["--val-bg"],
 };
 
 const isPicker = computed(() => props.valueKind === "entity");
@@ -176,10 +175,10 @@ defineExpose({
 .picker-anchor { display: inline-block; width: 0; height: 0; }
 .menu-card { overflow: hidden; }
 .menu-list { max-height: 320px; overflow-y: auto; }
-/* Chip COLOUR extends into the menu (oxjob #561; monospace dropped per Jason follow-up):
-   the card carries the chip's bg/fg inline; the Vuetify surfaces inside go transparent and
-   inherit it. Hover + keyboard-highlight rows use the chip family's darker hover shade
-   (--menu-hl, set inline on the card) instead of Vuetify's grey on-surface overlay. */
+/* White card (#603 round 10 — the #561 all-blue tint is gone); the chip family's colour
+   survives only as the highlight: hover + keyboard-highlight rows use the value chips'
+   light periwinkle (--menu-hl, set inline on the card) instead of Vuetify's grey
+   on-surface overlay — the value-chip analogue of the field picker's peach highlight. */
 .menu-card :deep(.v-list) { background: transparent; color: inherit; }
 .menu-card :deep(.v-list-item-title) { font-size: 0.8125rem; }
 .menu-card :deep(.v-list-item__overlay) { display: none; }

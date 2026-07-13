@@ -49,7 +49,7 @@
 defineOptions({ name: 'SerpModeTabs' });
 
 const props = defineProps({
-  // 'basic' | 'advanced' | 'advanced2' | 'oql'
+  // 'basic' | 'advanced' | 'oql'
   modelValue: { type: String, default: 'basic' },
   // True when the current query can't be represented as basic chips → Basic is
   // greyed out with a tooltip.
@@ -62,11 +62,9 @@ const emit = defineEmits(['update:modelValue']);
 
 const options = [
   { value: 'basic', label: 'Basic' },
+  // #603 round 10 (Jason): the V2 outline builder IS Advanced now — the experiment's
+  // side-by-side "Advanced v2" tab is gone and the V1 grid builder is unmounted.
   { value: 'advanced', label: 'Advanced' },
-  // The V2 outline-builder experiment (2026-07-11) — side-by-side with Advanced
-  // while the two approaches are compared. Since #603 round 7 it shares Advanced's
-  // representability gate (Jason: only 2 filter levels, level 2 OR-only).
-  { value: 'advanced2', label: 'Advanced v2' },
   { value: 'oql', label: 'OQL' },
 ];
 
@@ -76,7 +74,7 @@ function disabledTip(value) {
   if (value === 'basic' && props.basicDisabled) {
     return 'This query is too complex to show as basic filters.';
   }
-  if ((value === 'advanced' || value === 'advanced2') && props.advancedDisabled) {
+  if (value === 'advanced' && props.advancedDisabled) {
     return 'This query is too complex to edit visually — use OQL.';
   }
   return '';

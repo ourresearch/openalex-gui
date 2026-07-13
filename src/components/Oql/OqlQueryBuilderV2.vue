@@ -106,7 +106,7 @@
              reintroduced later once the render is solid.) -->
         <div class="bline-flow">
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
-          :class="{ 'bline--sel': isSelectedLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx), 'bline--sub': !!line._level }"
+          :class="{ 'bline--sel': isSelectedLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx), 'bline--sub': !!line._level, 'bline--num1': !line._level }"
           :data-addr="line.addr"
           :style="lineStyle(line)" tabindex="-1"
           @click.stop="onLineClick(lineIdx, $event)"
@@ -137,20 +137,22 @@
                leads land in the parent grid's PREDICATE column, value-arm leads in the
                VALUE column, so the whole outline stays on one grid. Scope colours the
                chip: filter = peach, value = periwinkle. -->
-          <!-- Round 9 (Jason): the row DELETE trash moved from the line's far end to
-               immediately BEFORE the line number (hover-reveal unchanged). Top-level
-               lines: absolutely positioned in the left lane just left of the gutter
-               number; subclause lines: inside the .bl-num2 cell, before the digits.
-               Disjunct lines delete ONE alternative (removeDisjunct), arm lines ONE
-               value arm (round 8), other lines the whole row. -->
-          <button v-if="!line._level && canDeleteLine(line)" type="button" class="row-trash row-trash--gutter"
-            aria-label="delete line" title="delete line"
-            @click.stop="onLineTrash(line)" @mousedown.stop @dblclick.stop>
-            <v-icon size="14">mdi-trash-can-outline</v-icon>
-          </button>
-          <span v-if="!line._level" class="bl-lead" :class="{ 'bl-lead--the': line._lead === 'arrow', 'bl-lead--spacer': !line._lead, 'bl-lead--grab': !!rowDragIdFor(line) }"
-            :draggable="rowDragIdFor(line) ? 'true' : undefined"
-            @dragstart="onRowLeadDragstart(line, $event)" @dragend="onRowLeadDragend"
+          <!-- Round 10 (Jason): the top-level gutter is a REAL cell now (.bl-num1 — the
+               ::before pseudo couldn't take drag handlers): [remove ×][digits]. The ×
+               sits in its own icon-size lane LEFT of the digits (the gutter grew by
+               --trash-w to make room); it's an mdi-close in the numbers' light peach,
+               not a trashcan ("less ink"). The DIGITS are the row's drag handle —
+               grab them to move the row (see onNumDragstart; the lead-chip handle is
+               gone). Disjunct lines delete ONE alternative (removeDisjunct), arm
+               lines ONE value arm (round 8), other lines the whole row. -->
+          <span v-if="!line._level" class="bl-num1"><button v-if="canDeleteLine(line)" type="button" class="row-trash row-trash--num"
+              aria-label="remove" title="remove"
+              @click.stop="onLineTrash(line)" @mousedown.stop @dblclick.stop><v-icon size="14">mdi-close</v-icon></button><span
+              class="bl-num1-digits" :class="{ 'num-grab': !!lineDragFor(line) }"
+              :draggable="lineDragFor(line) ? 'true' : undefined"
+              @dragstart="onNumDragstart(line, $event)" @dragend="onNumDragend"
+              aria-hidden="true">{{ line.addr }}</span></span>
+          <span v-if="!line._level" class="bl-lead" :class="{ 'bl-lead--the': line._lead === 'arrow', 'bl-lead--spacer': !line._lead }"
             aria-hidden="true">{{ leadWord(line) }}</span>
           <!-- Round 6 (Jason): NO arrows anywhere — a subclause line leads with a WORD
                chip: the parent's predicate on the first value-AND arm ("has network",
@@ -164,8 +166,12 @@
                gutter size). -->
           <template v-else>
             <span class="bl-num2" :style="num2Style(line)"><button v-if="canDeleteLine(line)" type="button" class="row-trash row-trash--num"
-                aria-label="delete line" title="delete line"
-                @click.stop="onLineTrash(line)" @mousedown.stop @dblclick.stop><v-icon size="14">mdi-trash-can-outline</v-icon></button><span aria-hidden="true">{{ line.addr }}</span></span>
+                aria-label="remove" title="remove"
+                @click.stop="onLineTrash(line)" @mousedown.stop @dblclick.stop><v-icon size="14">mdi-close</v-icon></button><span
+                :class="{ 'num-grab': !!lineDragFor(line) }"
+                :draggable="lineDragFor(line) ? 'true' : undefined"
+                @dragstart="onNumDragstart(line, $event)" @dragend="onNumDragend"
+                aria-hidden="true">{{ line.addr }}</span></span>
             <span class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead, 'bl-lead2--end': line._leadEnd }"
               :style="lead2Style(line)" aria-hidden="true">{{ leadWord(line) }}</span>
           </template>
@@ -192,7 +198,7 @@
             </template>
             <!-- Round 9 (Jason): hover shows "N subclauses" (italic, peach) right after
                  the turn chip — left-aligned over the subclause content below. -->
-            <span v-if="line._subCount" class="bl-subcount" aria-hidden="true">{{ line._subCount }} subclause{{ line._subCount === 1 ? '' : 's' }}</span>
+            <span v-if="line._subCount" class="bl-subcount" aria-hidden="true">{{ line._subCount }} subclause{{ line._subCount === 1 ? '' : 's' }}:</span>
             <span class="bl-headfill" aria-hidden="true"></span>
           </template>
 
@@ -270,7 +276,7 @@
                  first body element, so it sits at the value column, over the arm
                  content below (the body ::before pull-back puts row 1 at the true
                  column). -->
-            <span v-if="line._subCount" class="bl-subcount" aria-hidden="true">{{ line._subCount }} subclause{{ line._subCount === 1 ? '' : 's' }}</span>
+            <span v-if="line._subCount" class="bl-subcount" aria-hidden="true">{{ line._subCount }} subclause{{ line._subCount === 1 ? '' : 's' }}:</span>
             <!-- key VALUE bricks by their stable token id (so #467's per-chip UI
                  state — open menu / inline-edit — follows the value when a negate
                  reorders tokens), everything else by index. NB: can't use a bare
@@ -529,8 +535,11 @@
            humanized ancestor path of the hovered node (selection as a resting fallback,
            else the entity root). Pure display; driven by the `footer` computed —
            bold + black on a selection, "N chips selected" on a multi-selection. -->
-      <OqlBuilderFooter v-if="hasQuery" :segments="footer.segments"
-        :bold="footer.bold" :count-label="footer.countLabel" />
+      <!-- Round 10 (Jason): breadcrumbs OFF — "the structure makes it clear enough now".
+           Commented out (not deleted) in case we want them back; the `footer` computed
+           + hover tracking stay wired (a computed no one reads costs nothing). -->
+      <!-- <OqlBuilderFooter v-if="hasQuery" :segments="footer.segments"
+        :bold="footer.bold" :count-label="footer.countLabel" /> -->
 
       <!-- embedded (SERP): foot is a real card footer — a full-width white strip
            with a top border, clearly separated from the card body. -->
@@ -592,7 +601,8 @@ import { parseValueExpr } from "@/components/Oql/valueExpr";
 import { parseNumericExpr } from "@/components/Oql/numericExpr";
 import { treeToTokens } from "@/components/Oql/treeToTokens";
 import { buildAddrIndex, buildAddrById, pathForAddr } from "@/components/Oql/oqlBreadcrumb";
-import OqlBuilderFooter from "@/components/Oql/OqlBuilderFooter.vue";
+// Round 10: breadcrumbs commented out (see the template) — restore this import with them.
+// import OqlBuilderFooter from "@/components/Oql/OqlBuilderFooter.vue";
 import { reconcileTreeIds } from "@/components/Oql/reconcileIds";
 import { oqlForUrl } from "@/oqlSerialize";
 import { fieldKeys, popularFieldKeys, fieldIcon, fieldDisplayName } from "@/components/OqlPlayground/builderFieldMeta";
@@ -2192,7 +2202,10 @@ const onFieldMenuOpen = (tok, open) => {
 // ---- values -----------------------------------------------------------------
 const onValueInput = (tok, e) => {
   edit.setValue(v2.value, tok.id, e.target.value, { numeric: tok._numeric }, drafts.value);
-  debouncedRender();
+  // Round 10 (Jason): NO per-keystroke server render — typing a text value used to fire
+  // debouncedRender() here (a renderOqo API call per pause). The chip display renders
+  // from the LOCAL tree (#490) so it never needed the round-trip; the OQL string /
+  // validation refresh on the commit render when the draft is submitted.
 };
 // COMMIT a typed text value, parsing a leading `not ` into REAL negation (#523 round 3 — typing
 // `not foo` is the only way to negate a text chip; it must store value=`foo` + negated, NOT the
@@ -2515,51 +2528,131 @@ const subtreeIdSet = (nodeId) => {
   return set;
 };
 
-// ---- row drag-to-reorder via the lead `and` chip (#595 round 2, Jason) --------
-// Grab a committed top-level row's leading `and` chip and drag it up/down; the drop
-// target is a HORIZONTAL bar on a boundary between rows. Vertical only — a row can't
-// move into another row. Only `and`-led rows drag (the first row's `the` stays put —
-// dropping another row above it makes THAT row first; the server re-canonicalizes the
-// leads on the swap render). Reuses moveNode (same-parent reorder w/ index fix) +
-// applyMoveWithRevert. (#523 round 10 removed the old row drag; this is its return in
-// lead-chip-handle form.)
-const rowDragId = ref(null);       // the dragged top-level row's node id
-const rowDropSlots = ref([]);      // { index, y } — root-children insertion boundaries
+// ---- line drag-to-reorder via the LINE NUMBERS (round 10, Jason) --------------
+// The drag handle is the line's number (grab cursor on hover) — the round-2 lead-`and`-
+// chip handle is gone. EVERY committed line drags, including the first and last:
+//   • a TOP-LEVEL row (plain filter, value-AND clause, or a whole either-group) —
+//     filter scope;
+//   • an either-DISJUNCT line — filter scope: it can drop at any root boundary, into
+//     another either-group, or back out to the root;
+//   • a value-ARM line — value scope: it can only reorder WITHIN its own value block.
+// Scope rules ride the slot list (filterLineSlots/valueLineSlots below): a filter drag
+// offers root boundaries + every either-group's internal boundaries (a GROUP node only
+// offers root ones — nesting a group in a group is outside the round-7 landscape cap);
+// a value drag offers only its own block's boundaries. The drop target is a HORIZONTAL
+// bar on the nearest boundary. Reuses moveNode/moveValues + applyMoveWithRevert (the
+// server re-canonicalizes joins/leads on the swap render; an invalid result reverts).
+const lineDrag = ref(null);        // { id, kind: 'filter'|'value', isGroup, parentId } | null
+const rowDropSlots = ref([]);      // { parentId, index, y } — insertion boundaries
 const activeRowSlot = ref(null);   // slot nearest the cursor → the horizontal bar
 
-const rowDragIdFor = (line) =>
-  // V2: only a TOP-LEVEL `and` lead is a row drag handle — a subclause line's `and`
-  // lead is a join word inside its group, not a root-row handle.
-  (line && line._lead === "and" && !line._level && line._topRow != null) ? line._topRow : null;
+// The drag identity of a line's number handle, or null when the line doesn't drag
+// (chrome / draft / loose-continuation lines).
+const lineDragFor = (line) => {
+  if (!line) return null;
+  if (!line._level) {
+    // top-level row: its root-child node (clause or group). Excludes drafts (their
+    // _topRow is the draft id, never a root child) and chrome lines (_topRow null).
+    const w = v2.value && v2.value.where;
+    if (!w || w.node !== "group" || !w.implicit || line._topRow == null) return null;
+    const node = w.children.find((c) => c.id === line._topRow);
+    if (!node) return null;
+    return { id: node.id, kind: "filter", isGroup: node.node === "group" };
+  }
+  if (line._disjunctDel) return { id: line._disjunctDel, kind: "filter", isGroup: false };
+  if (line._armDel) {
+    const clauseId = treeIndex.value.tokenClause[line._armDel];
+    const vg = clauseId != null ? treeIndex.value.clauseTopVgroup[clauseId] : null;
+    if (vg == null) return null;
+    return { id: line._armDel, kind: "value", parentId: vg, clauseId };
+  }
+  return null;
+};
 
-const onRowLeadDragstart = (line, e) => {
-  const id = rowDragIdFor(line);
-  const host = linesEl.value;
+// `.bline-flow > .bline` ↔ displayLines are 1:1 in order (the addfilter/sort lines are
+// SIBLINGS of .bline-flow, not children).
+const lineEls = () => Array.from(linesEl.value.querySelectorAll(".bline-flow > .bline"));
+
+// FILTER-scope slots: every root-children boundary (before each top-level row's first
+// line + after the last row's last line), plus — for CLAUSE drags — every either-group's
+// internal boundaries (before each disjunct's first line + after the group's last line).
+// Slots flanking the dragged line are kept: dropping back where you picked up cancels.
+const filterLineSlots = (drag) => {
+  const lines = displayLines.value;
+  const els = lineEls();
   const w = v2.value && v2.value.where;
-  if (!id || !host || !w || w.node !== "group" || !w.implicit) return;
+  const slots = [];
+  const draggedSub = subtreeIdSet(drag.id);
+  const top = (el) => el.getBoundingClientRect().top - dragHostRect.top;
+  const bottom = (el) => el.getBoundingClientRect().bottom - dragHostRect.top;
+  if (w && w.node === "group" && w.implicit) {
+    let prevTop = null, lastEl = null, count = 0;
+    lines.forEach((ln, i) => {
+      if (!ln._topRow || !els[i]) return;
+      if (!w.children.some((c) => c.id === ln._topRow)) return; // draft rows don't bound
+      if (ln._topRow !== prevTop) {
+        slots.push({ parentId: w.id, index: count, y: top(els[i]) - 1 });
+        prevTop = ln._topRow; count += 1;
+      }
+      lastEl = els[i];
+    });
+    if (lastEl) slots.push({ parentId: w.id, index: count, y: bottom(lastEl) + 1 });
+  }
+  if (!drag.isGroup) {
+    lines.forEach((ln, i) => {
+      if (ln._head !== "either" || !els[i]) return;
+      // the group's node id rides the header's open-paren token; the root-OR header has
+      // no tokens — its group IS the (non-implicit) where root.
+      const gid = (ln.tokens && ln.tokens[0] && ln.tokens[0].id != null) ? ln.tokens[0].id
+        : ((w && !w.implicit && w.node === "group") ? w.id : null);
+      if (gid == null || draggedSub.has(gid)) return;
+      const L = ln._level || 0;
+      let k = 0, lastEl = null;
+      for (let j = i + 1; j < lines.length; j++) {
+        const lj = lines[j]._level || 0;
+        if (lj <= L) break;
+        if (!els[j]) continue;
+        if (lj === L + 1) { slots.push({ parentId: gid, index: k, y: top(els[j]) - 1 }); k += 1; }
+        lastEl = els[j];
+      }
+      if (lastEl && k) slots.push({ parentId: gid, index: k, y: bottom(lastEl) + 1 });
+    });
+  }
+  return slots;
+};
+
+// VALUE-scope slots: only the dragged arm's own value block — one slot before each
+// sibling arm line + one after the last. Arm lines ↔ the AND vgroup's children 1:1 in
+// order (renderClause walks the operands in order), so the k-th arm line is index k.
+const valueLineSlots = (drag) => {
+  const lines = displayLines.value;
+  const els = lineEls();
+  const slots = [];
+  const top = (el) => el.getBoundingClientRect().top - dragHostRect.top;
+  const bottom = (el) => el.getBoundingClientRect().bottom - dragHostRect.top;
+  let k = 0, lastEl = null;
+  lines.forEach((ln, i) => {
+    if (!ln._armDel || !els[i]) return;
+    if (treeIndex.value.tokenClause[ln._armDel] !== drag.clauseId) return;
+    slots.push({ parentId: drag.parentId, index: k, y: top(els[i]) - 1 });
+    k += 1; lastEl = els[i];
+  });
+  if (lastEl) slots.push({ parentId: drag.parentId, index: k, y: bottom(lastEl) + 1 });
+  return slots;
+};
+
+const onNumDragstart = (line, e) => {
+  const drag = lineDragFor(line);
+  const host = linesEl.value;
+  if (!drag || !host) return;
   clearSelection();
-  rowDragId.value = id;
+  lineDrag.value = drag;
   if (e.dataTransfer) { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", "row"); }
   dragHostRect = host.getBoundingClientRect();
-  // One slot per root-children boundary: before each top-level row's FIRST line, plus one
-  // after the last row's last line. `.bline-flow > .bline` ↔ displayLines are 1:1 in order
-  // (the addfilter/sort lines are SIBLINGS of .bline-flow, not children).
-  const els = Array.from(host.querySelectorAll(".bline-flow > .bline"));
-  const slots = [];
-  let prevTop = null, lastEl = null, count = 0;
-  displayLines.value.forEach((ln, i) => {
-    if (!ln._topRow || !els[i]) return;
-    if (ln._topRow !== prevTop) {
-      slots.push({ index: count, y: els[i].getBoundingClientRect().top - dragHostRect.top - 1 });
-      prevTop = ln._topRow; count += 1;
-    }
-    lastEl = els[i];
-  });
-  if (lastEl) slots.push({ index: count, y: lastEl.getBoundingClientRect().bottom - dragHostRect.top + 1 });
-  rowDropSlots.value = slots;
+  rowDropSlots.value = drag.kind === "value" ? valueLineSlots(drag) : filterLineSlots(drag);
 };
-const onRowLeadDragend = () => {
-  rowDragId.value = null; rowDropSlots.value = []; activeRowSlot.value = null; dragHostRect = null;
+const onNumDragend = () => {
+  lineDrag.value = null; rowDropSlots.value = []; activeRowSlot.value = null; dragHostRect = null;
 };
 const onRowDragover = (e) => {
   if (!rowDropSlots.value.length) return;
@@ -2574,11 +2667,19 @@ const onRowDragover = (e) => {
   activeRowSlot.value = best;
 };
 const onRowDrop = () => {
-  const s = activeRowSlot.value, id = rowDragId.value;
-  onRowLeadDragend(); // clear drag state before the swap render
-  const w = v2.value && v2.value.where;
-  if (!s || !id || !w || w.node !== "group") return;
-  applyMoveWithRevert(() => edit.moveNode(v2.value, id, w.id, s.index, drafts.value));
+  const s = activeRowSlot.value, drag = lineDrag.value;
+  onNumDragend(); // clear drag state before the swap render
+  if (!s || !drag) return;
+  applyMoveWithRevert(() => {
+    if (drag.kind === "value") {
+      // an arm root is a vgroup (`(foo or bar)`) or a lone vleaf (`baz`) — moveNode
+      // handles the former, moveValues the latter (vleaf moves are chip-level there).
+      const hit = edit.locate(v2.value, drag.id, drafts.value);
+      if (hit && hit.node && hit.node.node === "vleaf")
+        return edit.moveValues(v2.value, [drag.id], s.parentId, s.index, drafts.value);
+    }
+    return edit.moveNode(v2.value, drag.id, s.parentId, s.index, drafts.value);
+  });
 };
 
 // While dragging value chips over the lines area, light up the slot nearest the cursor
@@ -2586,7 +2687,7 @@ const onRowDrop = () => {
 // what makes the lines a valid drop target — so the cursor shows "move".
 // Row drags (the lead `and` handle) route to their own slot logic first.
 const onLinesDragover = (e) => {
-  if (rowDragId.value) { onRowDragover(e); return; }
+  if (lineDrag.value) { onRowDragover(e); return; }
   if (chipDrag.draggingKind.value !== "value" || !valueDropSlots.value.length) return;
   const hostRect = dragHostRect || { left: 0, top: 0 };
   e.preventDefault();
@@ -2619,7 +2720,7 @@ const applyMoveWithRevert = (mutate) => {
 };
 
 const onLinesDrop = () => {
-  if (rowDragId.value) { onRowDrop(); return; }
+  if (lineDrag.value) { onRowDrop(); return; }
   if (chipDrag.draggingKind.value === "value") onValueDrop();
 };
 
@@ -3250,6 +3351,9 @@ const hasSelection = computed(() =>
 //       2+ value chips → "N values selected"; otherwise the selected node's path.
 //   • else HOVER → the hovered node's path, muted (a transient preview).
 //   • else → the entity root, muted.
+// (Round 10: the breadcrumb strip is commented out in the template; this computed is
+// lazy — unread, it never evaluates — and stays wired for a cheap re-enable.)
+// eslint-disable-next-line no-unused-vars
 const footer = computed(() => {
   if (hasSelection.value) {
     const n = selectedIds.value.size;
@@ -3279,9 +3383,9 @@ const gutterW = computed(() => {
     // addresses live in the gutter now, so only they size it.
     if (l.addr && !l._level) chars = Math.max(chars, l.addr.length);
   }
-  // +18px = the ::before cell's 10px left + 8px right padding (round 5 tightened
-  // the right gap from 20px to match the inline numbers).
-  return `calc(${chars} * 1ch + 18px)`;
+  // +36px = the gutter cell's paddings: 10px lane + 18px remove-× lane (round 10)
+  // on the left, 8px on the right (round 5 tightened it from 20px).
+  return `calc(${chars} * 1ch + 36px)`;
 });
 
 // Shared FIELD-column width (#575 two-column table) — the gutterW trick: hug the widest
@@ -3607,6 +3711,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
      left / 20px right) — puts the numbers at (roughly) the results checkbox column.
      Carried by .bline::before / .bl-orrow::before padding-left and the row-drag bar. */
   --lane-w: 10px;
+  /* Round 10 (Jason): an icon-size lane LEFT of the gutter digits, home of the hover
+     remove-× — the gutter cell grew by this much so the × has its own column. */
+  --trash-w: 18px;
   --paren-w: var(--chip-w);   /* open/close paren = the shared chip width */
   --indent: var(--chip-w);    /* one indent step = one chip width */
   --brick-fs: 0.8125rem;
@@ -3766,12 +3873,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
    foo") — a natural-language flow marker matching the "and" on subsequent rows. Same peach
    lead metrics; no size bump (it's a word now, not a glyph). Rendered in normal (non-italic)
    type, same as "and" (Jason, 2026-07-09) — .bl-lead--the stays as a styling hook. */
-/* #595 round 2 (Jason): an `and` lead on a committed top-level row is the row's DRAG
-   HANDLE (vertical reorder). Grab cursor is the affordance; the chip keeps its light
-   fill (it's a handle, not a click action — flagged as a wrinkle in the light=inert
-   convention). */
-.bl-lead--grab { cursor: grab; }
-.bl-lead--grab:active { cursor: grabbing; }
+/* (Round 10: the lead-`and`-chip drag handle (#595 r2) is gone — rows drag by their
+   LINE NUMBER now, `.num-grab` below.) */
 /* on a selected row the lead chip darkens with the rest of the row's chips. */
 .bline--sel .bl-lead { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* #575: a row with no lead (value-continuation rows) keeps an EMPTY transparent spacer in the
@@ -3808,23 +3911,25 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* round 9 (Jason): the inline value `or` connector is natural-width — it never
    column-aligns (unlike the pred-column and/or lead chips), so no --chip-w floor. */
 .bl-body :deep(.val-chip.conn-chip) { width: auto; min-width: 0; padding: 0 6px; }
-/* round 9 (Jason): hover a group-header line → italic peach "N subclauses" after the
-   turn chip, left-aligned over the subclause content below. */
+/* round 9 (Jason): hover a group-header line → "N subclauses:" after the turn chip.
+   Round 10: styled like the line numbers (peach at half-opacity, NO italics, trailing
+   colon in the template), and inset as though it were a chip in the value column —
+   the 10px padding matches a value chip's own text inset, so the phrase's left edge
+   lines up with the value text above (e.g. "climate"). */
 .bl-subcount {
   display: inline-flex;
   align-items: center;
   flex: 0 0 auto;
   height: 26px;
-  margin-left: var(--gx);
+  padding: 0 10px;
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs, 0.8125rem);
-  font-style: italic;
   color: var(--conn-fg, #b25d06);
   opacity: 0;
   pointer-events: none;
   user-select: none;
 }
-.bline:hover .bl-subcount { opacity: 1; }
+.bline:hover .bl-subcount { opacity: 0.5; }
 .bline--sel .bl-lead2 { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 .bline--sel .bl-lead2--val { background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff); }
 /* ---- V2 turn-marker chip (rounds 3–6, Jason) ----------------------------------
@@ -4019,26 +4124,33 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bline--addfilter { cursor: pointer; }
 /* (#595 round 6: the dimmed `.bline--addfilter-off` open-draft state is gone — the line
    now HIDES entirely while any draft is open, v-if in the template.) */
-/* "and" — the trailing add-another-filter button. Orange text at rest, peach fill on hover
-   (matches the peach filter-scope lead column it sits under). Monospace at NORMAL weight —
-   same as the lead chips — so it reads as the next `and` in the list of filters (Jason,
-   2026-07-09: no bold). Left padding = the lead chips' centered-text inset ((lead-w − 3ch)/2,
-   same font so ch matches) so this "and" starts at the same x as the row leads' "and". */
+/* "and…" — the trailing add-another-filter button. Round 10 (Jason): it acts and looks
+   like the END-OF-LINE ghost `and` buttons (OqlLineTailControls .line-and), with one
+   exception — it's permanently in the "line is hovered" state (faint peach text at
+   0.55; hovering its line changes nothing). Its own hover goes solid like the ghosts
+   (opacity 1 + peach fill). Width = the lead column (--lead-w), text centered, so it
+   sits flush with the `where`/`and` lead chips above it (was a bit too wide). */
 .add-and-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
   height: 26px;
-  padding: 0 10px 0 calc((var(--lead-w, 34px) - 3ch) / 2);
+  width: var(--lead-w, 34px);
+  min-width: var(--lead-w, 34px);
+  padding: 0;
   border: none;
   border-radius: 4px;
   background: transparent;
   color: var(--conn-fg, #b25d06);
+  opacity: 0.55;
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs, 0.8125rem);
   font-weight: 400;
   cursor: pointer;
+  transition: opacity 0.1s ease, background 0.1s ease;
 }
-.add-and-btn:hover { background: var(--conn-bg, #fdf6f0); }
+.add-and-btn:hover { opacity: 1; background: var(--conn-bg, #fdf6f0); }
 /* (V2 round 2: the trailing `or` button + its CSS are gone — filter-OR creation
    lives in the field menu's "Either…" option.) */
 /* "select filter" — the empty-state call to action (#595 round 4, Jason: the no-filter
@@ -4087,24 +4199,18 @@ defineExpose({ rebuildFromOql: async (oql) => {
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: rgba(0, 0, 0, 0.32);
+  /* round 10 (Jason): the remove control is an × in the numbers' light peach
+     (was a grey trashcan) — same colour + half-opacity as the digits beside it. */
+  color: var(--conn-fg, #b25d06);
+  opacity: 0.5;
   cursor: pointer;
   visibility: hidden;
 }
 .bline:hover .row-trash { visibility: visible; }
-.row-trash:hover { color: #b3261e; background: rgba(179, 38, 30, 0.1); }
-/* Round 9 (Jason): the trash sits immediately BEFORE the line number now. Top-level
-   lines: absolutely parked in the left lane, just left of the gutter digits (the
-   .bline bleeds -16px, so the lane has room). Sub lines: inside the .bl-num2 cell,
-   right before the digits. */
-.row-trash--gutter {
-  position: absolute;
-  left: -11px;
-  top: 3px;
-  width: 18px;
-  height: 20px;
-  margin: 0;
-}
+.row-trash:hover { color: #b3261e; opacity: 1; background: rgba(179, 38, 30, 0.1); }
+/* Round 9 (Jason): the remove-× sits immediately BEFORE the line number. Round 10:
+   top-level lines park it in the .bl-num1 cell's own × lane (rule above); sub lines
+   keep it inline in the .bl-num2 cell, right before the digits. */
 .row-trash--num {
   width: 18px;
   height: 20px;
@@ -4175,10 +4281,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
   white-space: nowrap;
   /* center the number against the 26px chip row (no .bline vertical padding now) */
   margin-top: 6px;
-  /* the number's breathing room: 10px left (#595); right gap tightened 20px → 8px
-     (round 5, Jason) to match the inline .bl-num2 numbers' distance from their chip.
-     gutterW's +18px = these two paddings. */
-  padding-left: var(--lane-w, 10px);
+  /* the number's breathing room: 10px left (#595) + the round-10 remove-× lane;
+     right gap tightened 20px → 8px (round 5, Jason) to match the inline .bl-num2
+     numbers' distance from their chip. gutterW's +36px = these paddings. */
+  padding-left: calc(var(--lane-w, 10px) + var(--trash-w, 18px));
   padding-right: 8px;
   /* LEFT-aligned (Jason 2026-06-20): the leading integer (and so the first dot) line up
      down the gutter — `1`, `1.2`, `1.2.1` all start at the same column — instead of the
@@ -4192,6 +4298,35 @@ defineExpose({ rebuildFromOql: async (oql) => {
   user-select: none;
 }
 .bline--sel::before { font-weight: 700; color: #1a1a1a; opacity: 1; }
+/* Round 10: TOP-LEVEL query lines carry a REAL gutter cell (.bl-num1 — the ::before
+   pseudo can't take drag handlers), so their ::before hides entirely. Chrome lines
+   (sort / return / the trailing add-filter) keep the pseudo cell + its number. The
+   real cell mirrors the pseudo's geometry: [--lane-w pad][remove-× lane][digits]. */
+.bline.bline--num1::before { display: none; }
+.bl-num1 {
+  box-sizing: border-box;
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  width: var(--num-w);
+  height: 26px;
+  padding-left: calc(var(--lane-w, 10px) + var(--trash-w, 18px));
+  padding-right: 8px;
+  white-space: nowrap;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  color: var(--conn-fg, #b25d06);
+  user-select: none;
+}
+/* the × pins to its own lane so the digits' x never moves (the button is v-if'd) */
+.bl-num1 > .row-trash--num { position: absolute; left: var(--lane-w, 10px); top: 3px; margin: 0; }
+/* digits sit at a fixed x (the × lane is always reserved, hover or not) */
+.bl-num1-digits { display: inline-block; opacity: 0.5; }
+.bline--sel .bl-num1-digits { font-weight: 700; color: #1a1a1a; opacity: 1; }
+/* the line-number drag handle (round 10): grab cursor on the digits */
+.num-grab { cursor: grab; }
+.num-grab:active { cursor: grabbing; }
 /* Token wrapper for the footer's address delegation (#487): display:contents so it
    generates NO box — the chip inside stays the direct flex child of `.bl-body`, leaving
    the spacing/wrap/indent layout untouched, while `closest('[data-addr]')` still finds

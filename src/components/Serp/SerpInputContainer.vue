@@ -40,26 +40,11 @@
 
     <!-- ADVANCED: the builder's own card IS the card. No Run button — the query
          auto-runs as the user edits (#428); the toolbar's "edit code" button jumps
-         to the OQL tab (which replaced the old view-code dialog, #441). -->
+         to the OQL tab (which replaced the old view-code dialog, #441).
+         #603 round 10 (Jason): Advanced IS the V2 outline builder now — the V1 grid
+         builder (oql-query-builder) is unmounted and its "Advanced v2" twin tab is
+         gone. Same host contract as before. -->
     <template v-else-if="mode === 'advanced'">
-      <oql-query-builder
-        :key="oqlComponentKey"
-        :oql="seedOql"
-        :entity="entityType"
-        :show-header="false"
-        :show-foot="false"
-        :inline-run="false"
-        show-toolbar
-        embedded
-        @update:oqo="onBuilderOqo"
-      />
-      <search-error-alert v-if="searchError" :message="searchError" class="mb-4 mt-4" />
-    </template>
-
-    <!-- ADVANCED V2: the outline-builder experiment (2026-07-11) — decimal-numbered
-         AND-tree lines, subclauses on their own indented lines, two chip colours.
-         Mounted side-by-side with Advanced for comparison; same host contract. -->
-    <template v-else-if="mode === 'advanced2'">
       <oql-query-builder-v2
         :key="oqlComponentKey"
         :oql="seedOql"
@@ -270,7 +255,8 @@ import SerpModeTabs from '@/components/Serp/SerpModeTabs.vue';
 import SerpResultsKebab from '@/components/Serp/SerpResultsKebab.vue';
 import SerpHeaderKebab from '@/components/Serp/SerpHeaderKebab.vue';
 import SerpDownloadButton from '@/components/Serp/SerpDownloadButton.vue';
-import OqlQueryBuilder from '@/components/Oql/OqlQueryBuilder.vue';
+// (#603 round 10: the V1 grid builder import is gone — Advanced mounts the V2
+// outline builder. OqlQueryBuilder.vue stays on disk for reference/playground.)
 import OqlQueryBuilderV2 from '@/components/Oql/OqlQueryBuilderV2.vue';
 import OqlEditor from '@/components/OqlPlayground/OqlEditor.vue';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
@@ -300,7 +286,7 @@ const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 // old view-as-table/list toggle is gone. List/table is recipient-local chrome
 // kept off the URL (#492): the `mode` watcher below mirrors it into the reactive
 // store so per-page + the API fetch key (url.isTableView) agree with the mode.
-const isTableView = computed(() => mode.value === 'advanced' || mode.value === 'advanced2');
+const isTableView = computed(() => mode.value === 'advanced');
 
 // ---- mode ('basic' | 'advanced') ------------------------------------------
 // mode is recipient-local CHROME, no longer on the URL (#492, charter decision 33).
@@ -308,14 +294,18 @@ const isTableView = computed(() => mode.value === 'advanced' || mode.value === '
 // override (the user's active choice this visit, in store.state.serpModeOverride,
 // seeded from a legacy ?mode= link in Serp.vue) → the durable per-device `serpMode`
 // pref → Basic. Nothing here writes ?mode=, so a shared link never forces a mode.
-const MODES = ['basic', 'advanced', 'advanced2', 'oql'];
+const MODES = ['basic', 'advanced', 'oql'];
+// #603 round 10: 'advanced2' is retired — the V2 outline builder IS Advanced now. A
+// stored pref / session override / legacy ?mode= link that still says 'advanced2'
+// (every device that used the experiment tab) folds into 'advanced'.
+const normalizeMode = (m) => (m === 'advanced2' ? 'advanced' : m);
 // The durable per-device sticky default (oxjob #440 round 4). Written ONLY on an
 // explicit mode switch (applyMode) — never seeded from an inbound link, so a shared
 // ?mode= can't silently rewrite a recipient's preference.
 const STORED_MODE_KEY = 'serpMode';
 function loadStoredMode() {
   try {
-    const m = localStorage.getItem(STORED_MODE_KEY);
+    const m = normalizeMode(localStorage.getItem(STORED_MODE_KEY));
     return MODES.includes(m) ? m : null;
   } catch (e) {
     return null;
@@ -337,25 +327,24 @@ function loadStoredMode() {
 // The legacy `?mode=` seed (into serpModeOverride) + strip happens in Serp.vue,
 // combined with the `?view=` strip so the two don't race on router.replace.
 const mode = computed(() => {
-  const override = store.state.serpModeOverride || loadStoredMode();
-  // #523: the 2D grid builder (Advanced) can only show a restricted query shape.
-  // When the current query is too complex for the grid, Advanced is unavailable —
-  // the user edits in OQL instead. (OQL can represent anything.)
+  const override = normalizeMode(store.state.serpModeOverride) || loadStoredMode();
+  // #523: the builder (Advanced) can only show a restricted query shape. When the
+  // current query is too complex for it, Advanced is unavailable — the user edits
+  // in OQL instead. (OQL can represent anything.)
   const canBuilder = builderRepresentable.value;
   // A query too complex for basic chips can't render as basic. Honor an explicit
-  // non-basic choice (Advanced or OQL), else fall to Advanced — UNLESS the grid
+  // non-basic choice (Advanced or OQL), else fall to Advanced — UNLESS the builder
   // can't show it, in which case fall to OQL. This is the force-bump that keeps a
   // stored 'basic' from stranding an unrepresentable query.
   if (!basicRepresentable.value) {
     if (!canBuilder) return 'oql';
     return override && override !== 'basic' ? override : 'advanced';
   }
-  // Basic-representable: honor the override, but if the user prefers a builder tab and
-  // the grid can't show this query, that tab is disabled → fall to OQL. (#603 round 7:
-  // Advanced v2 shares the SAME gate — Jason capped the supported query landscape at
-  // AND-of-(filter | flat filter-OR); no "all of", no 3rd nesting level — which is
-  // exactly the canRepresentAsGrid shape.)
-  if ((override === 'advanced' || override === 'advanced2') && !canBuilder) return 'oql';
+  // Basic-representable: honor the override, but if the user prefers the builder tab
+  // and it can't show this query, that tab is disabled → fall to OQL. (#603 round 7:
+  // Jason capped the supported query landscape at AND-of-(filter | flat filter-OR);
+  // no "all of", no 3rd nesting level — exactly the canRepresentAsGrid shape.)
+  if (override === 'advanced' && !canBuilder) return 'oql';
   return override || 'basic';
 });
 // Basic is available only when the query can be shown as basic chips: not a
@@ -367,9 +356,9 @@ const canUseBasic = computed(() => !isComplexQuery.value && basicRepresentable.v
 function onModeSelect(newMode) {
   if (newMode === mode.value) return;
   // The builder tabs are disabled when the query is too complex for the builder
-  // shape (#523; advanced2 joined the same gate in #603 round 7) — ignore a click
-  // on them (the tabs are also visually disabled).
-  if ((newMode === 'advanced' || newMode === 'advanced2') && !builderRepresentable.value) return;
+  // shape (#523; the V2 builder joined the same gate in #603 round 7) — ignore a
+  // click on it (the tab is also visually disabled).
+  if (newMode === 'advanced' && !builderRepresentable.value) return;
   // Warn before a lossy switch: leaving an advanced (?oql=, non-URL-expressible)
   // query for Basic, which can't represent it.
   const lossy = newMode === 'basic'
@@ -682,7 +671,7 @@ const builderRepresentable = computed(() => gridProbe.value.ok !== false);
 // relocated to the OQL tab (Test 10). Shown until the user leaves OQL or simplifies.
 const gridOverflowNote = ref(false);
 watch(mode, (now, was) => {
-  if ((was === 'advanced' || was === 'advanced2') && now === 'oql' && !builderRepresentable.value) {
+  if (was === 'advanced' && now === 'oql' && !builderRepresentable.value) {
     gridOverflowNote.value = true;
   } else if (now !== 'oql' || builderRepresentable.value) {
     gridOverflowNote.value = false;
@@ -697,7 +686,7 @@ watch(mode, (now, was) => {
 // after basicRepresentable because `mode` reads it, and this fires immediately.
 watch(mode, (m) => {
   store.commit('setSerpResultsView', {
-    value: (m === 'advanced' || m === 'advanced2') ? 'table' : 'list',
+    value: m === 'advanced' ? 'table' : 'list',
     persist: false,
   });
 }, { immediate: true });
