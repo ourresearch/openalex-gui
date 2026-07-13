@@ -171,7 +171,11 @@ defineExpose({
    ghost-variant reset forces button opacity to 1 !important) */
 .add-val-btn :deep(.v-icon) { opacity: 0.55; }
 .add-val-btn:hover :deep(.v-icon) { opacity: 1; }
-.picker-anchor { display: inline-block; width: 0; height: 0; }
+/* display:none (#603 r17, Jason): even at 0x0 the span was a FLEX ITEM in the value
+   row, so it contributed an extra 2px flex-gap after some entity chips ("increase in
+   the right margin... only sometimes"). It's kept (not deleted) because it is the
+   v-menu's activator mount; positioning comes from anchorTarget, so hiding is safe. */
+.picker-anchor { display: none; }
 .menu-card { overflow: hidden; }
 .menu-list { max-height: 320px; overflow-y: auto; }
 /* White card (#603 round 10 — the #561 all-blue tint is gone); the chip family's colour

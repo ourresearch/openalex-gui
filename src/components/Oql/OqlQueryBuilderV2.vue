@@ -1,5 +1,6 @@
 <template>
-  <div ref="builderRootEl" class="builder" :style="V2_ROLE_CSS_VARS" @keydown="onBuilderKeydown">
+  <div ref="builderRootEl" class="builder" :class="{ 'builder--dark': chipTheme === 'black', 'builder--nospikes': !showSpikes }"
+    :style="V2_ROLE_CSS_VARS" @keydown="onBuilderKeydown">
     <!-- Drag-to-delete zone (oxjob #467 Phase 4): an overlay strip pinned to the top of
          the builder that appears only while a value chip is being dragged (shared
          useChipDrag state). Dashed + muted "Drag here to delete" while armed; turns solid
@@ -61,6 +62,15 @@
 
         <!-- (#575 filter-OR experiment concluded 2026-07-10: the spanning "either … or"
              block won; the layout toggle and the losing candidates were stripped.) -->
+
+        <!-- DEV toggles (r17, Jason — development only): chip-theme A/B (grey vs
+             white-on-black) and spike show/hide. Tiny quiet text buttons. -->
+        <button type="button" class="tb-dev-toggle" :class="{ 'tb-dev-toggle--on': chipTheme === 'black' }"
+          title="dev: white-on-black chip variant"
+          @click="chipTheme = chipTheme === 'black' ? 'grey' : 'black'">dark</button>
+        <button type="button" class="tb-dev-toggle" :class="{ 'tb-dev-toggle--on': showSpikes }"
+          title="dev: show/hide spikes"
+          @click="showSpikes = !showSpikes">spikes</button>
 
         <!-- EDITOR controls (right, icon buttons + native tooltips): copy · clear.
              Edit-code (`</>`) and Settings (gear) icons removed per Jason 2026-06-24 (#507).
@@ -626,28 +636,35 @@ defineOptions({ name: "OqlQueryBuilderV2" });
 // value chip gets a BLACK BORDER instead (the :deep rules near .bl-body). V1/the
 // text editor keep the coloured palette — this map only reskins the V2 builder.
 const V2_INK = "#1a1a1a";
-// r16 (Jason: "darkest grey we can get away with"): the darkest grey that keeps
-// WCAG AA 4.5:1 contrast with the #1a1a1a ink is #828282 (4.53:1); #858585 gives
-// 4.72:1 — a little safety margin. Hover goes LIGHTER (#949494, 5.74:1): with a
-// dark resting fill there is no darker AA-compliant step left.
-const V2_CHIP_GREY = "#858585";      // every chip (r14: one colour)
-const V2_CHIP_GREY_HOV = "#949494";
-const V2_CHIP_DARK = V2_CHIP_GREY;      // r14: structure = the same grey as values
-const V2_CHIP_DARK_HOV = V2_CHIP_GREY_HOV;
-const V2_ROLE_CSS_VARS = {
-  ...OQL_ROLE_CSS_VARS,
-  // structure (filter scope): dark-grey chips, black text
-  "--prop-fg": V2_INK, "--prop-bg": V2_CHIP_DARK, "--prop-bg-hov": V2_CHIP_DARK_HOV,
-  "--prop-fg-sel": V2_INK, "--prop-bg-sel": V2_CHIP_DARK,
-  "--conn-fg": V2_INK, "--conn-bg": V2_CHIP_DARK, "--conn-bg-hov": V2_CHIP_DARK_HOV,
-  "--conn-fg-sel": V2_INK, "--conn-bg-sel": V2_CHIP_DARK,
-  "--rel-fg": V2_INK, "--rel-bg": V2_CHIP_DARK,
-  // values: black-on-grey; selection = border, background unchanged
-  "--val-fg": V2_INK, "--val-bg": V2_CHIP_GREY, "--val-bg-hov": V2_CHIP_GREY_HOV,
-  "--val-fg-sel": V2_INK, "--val-bg-sel": V2_CHIP_GREY,
-  "--vconn-fg": V2_INK, "--vconn-bg": V2_CHIP_GREY, "--vconn-bg-hov": V2_CHIP_GREY_HOV,
-  "--vconn-fg-sel": V2_INK, "--vconn-bg-sel": V2_CHIP_GREY,
+// One chip colour (r14); r17 (Jason): the r16 #858585 was too dark — chips are
+// translucent black now, rgba(1,1,1,.2) (≈ #cbcbcb on white), hover one step
+// heavier at .3. A DEV-ONLY toolbar toggle ("dark") swaps in the alternate
+// white-text-on-black-chips variant for side-by-side evaluation; a second
+// toggle ("spikes") shows/hides the boundary spikes. Both persist locally.
+const chipVarsFor = (theme) => {
+  const bg = theme === "black" ? "#1a1a1a" : "rgba(1, 1, 1, 0.2)";
+  const hov = theme === "black" ? "#000" : "rgba(1, 1, 1, 0.3)";
+  const fg = theme === "black" ? "#fff" : V2_INK;
+  return {
+    ...OQL_ROLE_CSS_VARS,
+    "--prop-fg": fg, "--prop-bg": bg, "--prop-bg-hov": hov,
+    "--prop-fg-sel": fg, "--prop-bg-sel": bg,
+    "--conn-fg": fg, "--conn-bg": bg, "--conn-bg-hov": hov,
+    "--conn-fg-sel": fg, "--conn-bg-sel": bg,
+    "--rel-fg": fg, "--rel-bg": bg,
+    "--val-fg": fg, "--val-bg": bg, "--val-bg-hov": hov,
+    "--val-fg-sel": fg, "--val-bg-sel": bg,
+    "--vconn-fg": fg, "--vconn-bg": bg, "--vconn-bg-hov": hov,
+    "--vconn-fg-sel": fg, "--vconn-bg-sel": bg,
+    // the selected-value ring must read on the chip fill: black on grey, white on black
+    "--chip-ring": theme === "black" ? "#fff" : V2_INK,
+  };
 };
+const chipTheme = ref(localStorage.getItem("oqlV2ChipTheme") === "black" ? "black" : "grey");
+const showSpikes = ref(localStorage.getItem("oqlV2Spikes") !== "off");
+watch(chipTheme, (t) => { try { localStorage.setItem("oqlV2ChipTheme", t); } catch (e) { /* noop */ } });
+watch(showSpikes, (v) => { try { localStorage.setItem("oqlV2Spikes", v ? "on" : "off"); } catch (e) { /* noop */ } });
+const V2_ROLE_CSS_VARS = computed(() => chipVarsFor(chipTheme.value));
 
 const props = defineProps({
   oql: { type: String, default: null },
@@ -3846,6 +3863,18 @@ defineExpose({ rebuildFromOql: async (oql) => {
   color: #1a1a1a;
   user-select: none;
 }
+/* dev toggles (r17): tiny quiet text buttons; underline marks the ON state */
+.tb-dev-toggle {
+  padding: 2px 6px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+.tb-dev-toggle:hover { background: rgba(0, 0, 0, 0.05); }
+.tb-dev-toggle--on { color: #1a1a1a; text-decoration: underline; }
 /* The entity selector is NOT a chip (Jason 2026-06-24, #507): it's the toolbar's primary
    control and lives in the toolbar "environment", not on the chip canvas, so it reads as a
    plain Linear-style toolbar button — NO colour fill, NO monospace, just quiet text + caret
@@ -4002,7 +4031,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .builder-lines :deep(.val-chip.selected:not(.conn-chip):hover),
 .builder-lines :deep(.val-chip.multi-selected:not(.conn-chip):hover),
 .builder-lines :deep(.val-chip:focus:not(.conn-chip):hover) {
-  box-shadow: inset 0 0 0 1.5px #1a1a1a;
+  box-shadow: inset 0 0 0 1.5px var(--chip-ring, #1a1a1a);
 }
 /* round 9 (Jason): hover a group-header line → "N subclauses:" after the turn chip.
    Round 10: styled like the line numbers (peach at half-opacity, NO italics, trailing
@@ -4206,7 +4235,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   background: var(--prop-bg, #fae1d1);
 }
 .bl-slot-pred--edit:hover,
-.bl-slot-pred--edit[aria-expanded="true"] { background: #949494; color: #1a1a1a; } /* r16: lighter = lit up */
+.bl-slot-pred--edit[aria-expanded="true"] { background: var(--prop-bg-hov, #dcdcdc); color: var(--prop-fg, #1a1a1a); }
 /* ---- round 14 (Jason): one chip colour — the structure/value boundary is SHAPE ----
    SPIKE: a small (10×5px) nub pointing right off the chip immediately left of the
    line's first value chip (predicates, value-arm and/blank leads, the either-head
@@ -4218,6 +4247,16 @@ defineExpose({ rebuildFromOql: async (oql) => {
    spike insets from its right-aligned cell edge so the nub lands in the cell gap. */
 .bl-lead2.bl-spike { margin-right: calc(var(--gx) + 5px); }
 .bl-slot-pred.bl-spike { margin-right: 5px; }
+/* dev toggle (r17): hide the spikes AND their extra whitespace */
+.builder--nospikes .bl-spike::after { display: none; }
+.builder--nospikes .bl-lead2.bl-spike { margin-right: var(--gx); }
+.builder--nospikes .bl-slot-pred.bl-spike { margin-right: 0; }
+/* dev black-chip variant (r17): numbers darker (Jason), ghost hovers readable */
+.builder--dark .bline::before,
+.builder--dark .bl-num1-digits,
+.builder--dark .bl-num2 > span { opacity: 0.8; }
+.builder--dark .builder-lines :deep(.line-plus:hover) { color: #fff; }
+.builder--dark .add-and-btn:hover { color: #fff; }
 .bl-spike::after {
   content: "";
   position: absolute;
@@ -4410,8 +4449,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
   /* never let a multi-part address (`1.1`) wrap across two lines — the width is the
      exact `n * 1ch`, so nowrap guarantees it stays on one row. */
   white-space: nowrap;
-  /* center the number against the 26px chip row (no .bline vertical padding now) */
-  margin-top: 6px;
+  /* center the number against the 26px chip row: fixed line-height instead of the
+     old 6px top-margin (r17 — at 13px type the margin sat the addfilter line's
+     number ~3px low vs its "&…" button; committed lines center via .bl-num1). */
+  margin-top: 0;
+  line-height: 26px;
   /* the number's breathing room: 10px left (#595) + the round-10 remove-× lane;
      right gap tightened 20px → 8px (round 5, Jason) to match the inline .bl-num2
      numbers' distance from their chip. gutterW's +36px = these paddings. */
