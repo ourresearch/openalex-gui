@@ -347,12 +347,15 @@ const mode = computed(() => {
   // can't show it, in which case fall to OQL. This is the force-bump that keeps a
   // stored 'basic' from stranding an unrepresentable query.
   if (!basicRepresentable.value) {
-    if (!canBuilder) return override === 'advanced2' ? 'advanced2' : 'oql';
+    if (!canBuilder) return 'oql';
     return override && override !== 'basic' ? override : 'advanced';
   }
-  // Basic-representable: honor the override, but if the user prefers Advanced and the
-  // grid can't show this query, the Advanced tab is disabled → fall to OQL.
-  if (override === 'advanced' && !canBuilder) return 'oql';
+  // Basic-representable: honor the override, but if the user prefers a builder tab and
+  // the grid can't show this query, that tab is disabled → fall to OQL. (#603 round 7:
+  // Advanced v2 shares the SAME gate — Jason capped the supported query landscape at
+  // AND-of-(filter | flat filter-OR); no "all of", no 3rd nesting level — which is
+  // exactly the canRepresentAsGrid shape.)
+  if ((override === 'advanced' || override === 'advanced2') && !canBuilder) return 'oql';
   return override || 'basic';
 });
 // Basic is available only when the query can be shown as basic chips: not a
@@ -363,9 +366,10 @@ const canUseBasic = computed(() => !isComplexQuery.value && basicRepresentable.v
 
 function onModeSelect(newMode) {
   if (newMode === mode.value) return;
-  // The Advanced tab is disabled when the query is too complex for the 2D grid
-  // (#523) — ignore a click on it (the tab is also visually disabled).
-  if (newMode === 'advanced' && !builderRepresentable.value) return;
+  // The builder tabs are disabled when the query is too complex for the builder
+  // shape (#523; advanced2 joined the same gate in #603 round 7) — ignore a click
+  // on them (the tabs are also visually disabled).
+  if ((newMode === 'advanced' || newMode === 'advanced2') && !builderRepresentable.value) return;
   // Warn before a lossy switch: leaving an advanced (?oql=, non-URL-expressible)
   // query for Basic, which can't represent it.
   const lossy = newMode === 'basic'
@@ -678,7 +682,7 @@ const builderRepresentable = computed(() => gridProbe.value.ok !== false);
 // relocated to the OQL tab (Test 10). Shown until the user leaves OQL or simplifies.
 const gridOverflowNote = ref(false);
 watch(mode, (now, was) => {
-  if (was === 'advanced' && now === 'oql' && !builderRepresentable.value) {
+  if ((was === 'advanced' || was === 'advanced2') && now === 'oql' && !builderRepresentable.value) {
     gridOverflowNote.value = true;
   } else if (now !== 'oql' || builderRepresentable.value) {
     gridOverflowNote.value = false;

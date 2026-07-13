@@ -303,6 +303,11 @@ export function layoutLines(tokens, opts = {}) {
 
   // A group of whole FILTERS (or / and) → an "either"/"all of" header line + one
   // (indented, numbered) block per operand. Recurses for arbitrary depth.
+  // NB (#603 round 7, Jason): the supported query landscape is now capped at TWO
+  // filter levels with level 2 OR-only — SerpInputContainer gates advanced2 behind
+  // canRepresentAsGrid, so the "all of" (join=and) branch and any deeper recursion
+  // are UNREACHABLE from the tab. Kept as a defensive fallback: if an out-of-shape
+  // tree ever slips past the gate, rendering something beats breaking.
   const renderGroup = (groupNode, join, operands, level) => {
     const open = groupNode.open || null;
     const headTokens = (open && open.t === "paren") ? [open] : [];

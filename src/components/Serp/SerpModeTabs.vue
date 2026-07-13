@@ -64,8 +64,8 @@ const options = [
   { value: 'basic', label: 'Basic' },
   { value: 'advanced', label: 'Advanced' },
   // The V2 outline-builder experiment (2026-07-11) — side-by-side with Advanced
-  // while the two approaches are compared. Never disabled: the outline renders
-  // arbitrary nesting.
+  // while the two approaches are compared. Since #603 round 7 it shares Advanced's
+  // representability gate (Jason: only 2 filter levels, level 2 OR-only).
   { value: 'advanced2', label: 'Advanced v2' },
   { value: 'oql', label: 'OQL' },
 ];
@@ -76,7 +76,7 @@ function disabledTip(value) {
   if (value === 'basic' && props.basicDisabled) {
     return 'This query is too complex to show as basic filters.';
   }
-  if (value === 'advanced' && props.advancedDisabled) {
+  if ((value === 'advanced' || value === 'advanced2') && props.advancedDisabled) {
     return 'This query is too complex to edit visually — use OQL.';
   }
   return '';
