@@ -342,8 +342,12 @@ export function layoutLines(tokens, opts = {}) {
       groupChildHeads.push(cl[0]);
       out.push(...cl);
     });
-    // shared mini field/pred column widths across the group's direct clause lines
-    let fw = 0, pw = 2;
+    // shared mini field/pred column widths across the group's direct clause lines.
+    // pw floors at 3 ("and" — #603 round 12): a nested clause's value-ARM lead chips
+    // ("and"/blank) size to the GLOBAL pred column (3ch "and" floor), so the mini
+    // pred chips ("is") beside/above them must share that floor or the column
+    // renders two widths (Jason's round-12 screenshot, column 5).
+    let fw = 0, pw = 3;
     for (const l of groupChildHeads) {
       if (l._noField || !(l._fieldToks || []).length) continue;
       let w = 0;

@@ -50,6 +50,9 @@
         <EntitySelectorButton class="tb-entity" :model-value="getRows"
           :corpus="corpus"
           @update:model-value="getRows = $event" @update:corpus="corpus = $event" />
+        <!-- round 12 (Jason): the "where" lives up HERE now — "get works (core) where…"
+             reads as one monospace phrase; the canvas's first row leads with a blank box. -->
+        <span class="tb-where-label">where&#8230;</span>
 
         <!-- (#575 round 8, Jason: the toolbar "filter-plus" icon is gone — adding a filter now
              lives entirely on the canvas: the trailing "and…" button, the empty-state "Add a
@@ -147,7 +150,7 @@
                lines ONE value arm (round 8), other lines the whole row. -->
           <span v-if="!line._level" class="bl-num1"><button v-if="canDeleteLine(line)" type="button" class="row-trash row-trash--num"
               aria-label="remove" title="remove"
-              @click.stop="onLineTrash(line)" @mousedown.stop @dblclick.stop><v-icon size="14">mdi-close</v-icon></button><span
+              @click.stop="onLineTrash(line)" @mousedown.stop @dblclick.stop><v-icon size="12">mdi-close</v-icon></button><span
               class="bl-num1-digits" :class="{ 'num-grab': !!lineDragFor(line) }"
               :draggable="lineDragFor(line) ? 'true' : undefined"
               @dragstart="onNumDragstart(line, $event)" @dragend="onNumDragend"
@@ -167,7 +170,7 @@
           <template v-else>
             <span class="bl-num2" :style="num2Style(line)"><button v-if="canDeleteLine(line)" type="button" class="row-trash row-trash--num"
                 aria-label="remove" title="remove"
-                @click.stop="onLineTrash(line)" @mousedown.stop @dblclick.stop><v-icon size="14">mdi-close</v-icon></button><span
+                @click.stop="onLineTrash(line)" @mousedown.stop @dblclick.stop><v-icon size="12">mdi-close</v-icon></button><span
                 :class="{ 'num-grab': !!lineDragFor(line) }"
                 :draggable="lineDragFor(line) ? 'true' : undefined"
                 @dragstart="onNumDragstart(line, $event)" @dragend="onNumDragend"
@@ -421,7 +424,8 @@
           <button v-if="hasCommittedWhere" type="button" class="add-and-btn"
             @click.stop="addRootFilter()">and&#8230;</button>
           <template v-if="!hasCommittedWhere">
-            <span class="bl-lead bl-lead--the" aria-hidden="true">where</span>
+            <!-- round 12: blank lead box (the "where" moved to the toolbar) -->
+            <span class="bl-lead bl-lead--the" aria-hidden="true"></span>
             <button type="button" class="select-filter-btn" @click.stop="addRootFilter()">select filter</button>
           </template>
         </div>
@@ -891,7 +895,12 @@ const placeholderLabelFor = (p) =>
 
 // ---- enrich a raw token with edit metadata ---------------------------------
 // Short display aliases for field-chip labels (#575 round 5) — see enrichToken.
-const FIELD_LABEL_ALIASES = { "title/abstract": "title/abs" };
+// "title and abstract" (round 12, Jason): the SAME logical field has two catalog
+// spellings — `title_and_abstract.search` says "title/abstract" but the `.exact`
+// surface (which a clause silently re-routes to when a quoted/wildcard value joins
+// it, e.g. after a drag-reorder) says "title and abstract". The builder must ALWAYS
+// show "title/abs", so both spellings alias.
+const FIELD_LABEL_ALIASES = { "title/abstract": "title/abs", "title and abstract": "title/abs" };
 
 function enrichToken(tok) {
   const t = { ...tok };
@@ -1280,9 +1289,10 @@ const lineStyle = (line) => {
 
 // The lead chip's word. 'blank' is the deliberate empty head chip (V2 — the group
 // head word is gone; a blank placeholder marks the first subclause line).
+// Round 12 (Jason): the first row's "where" is GONE too — a blank box, like the
+// first-subclause leads ("where…" moved up to the toolbar, after the entity).
 const leadWord = (line) => {
-  if (line._lead === "arrow") return "where";
-  if (line._lead === "blank" || !line._lead) return "";
+  if (line._lead === "blank" || line._lead === "arrow" || !line._lead) return "";
   return line._lead;
 };
 
@@ -3797,8 +3807,19 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* "search" as plain toolbar text (#595 round 2, Jason): the verb belongs to the toolbar,
    not the button — only the entity is the choice, so only the entity is the control.
    Type matches the entity button's quiet toolbar look. */
+/* Round 12 (Jason): the toolbar phrase is MONOSPACE now — "get works (core) where…" —
+   with the entity name bold; "where…" trails the entity selector (the canvas's leading
+   "where" chip became a blank box). */
 .tb-search-label {
   padding: 0 2px 0 6px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.6);
+  user-select: none;
+}
+.tb-where-label {
+  padding: 0 2px;
+  font-family: "JetBrains Mono", monospace;
   font-size: 0.875rem;
   color: rgba(0, 0, 0, 0.6);
   user-select: none;
@@ -3815,8 +3836,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .builder-toolbar :deep(.entity-chip) {
   background: transparent !important;
   color: rgba(0, 0, 0, 0.72) !important;
-  font-family: inherit !important;
-  font-weight: 500;
+  /* round 12 (Jason): monospace + BOLD entity name — the toolbar phrase
+     "get works (core) where…" reads as the query's first line */
+  font-family: "JetBrains Mono", monospace !important;
+  font-weight: 700;
   letter-spacing: 0;
   border-radius: 6px;
   box-shadow: none;
@@ -3942,7 +3965,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
       inert conn chips, which never read as selected. Covers .selected,
       .multi-selected, and :focus — every path oqlChip.css used to paint black. */
 .builder-lines :deep(.line-plus) { color: #1a1a1a; margin-left: 0; }
-.builder-lines :deep(.line-plus:hover) { color: #1a1a1a; background: rgba(0, 0, 0, 0.06); }
+/* round 12 (Jason): ghost hover fill = the value chips' own grey, text black */
+.builder-lines :deep(.line-plus:hover) { color: #1a1a1a; background: var(--val-bg, #ececec); }
 /* round 11 (Jason: "margins around value OR chips are inconsistent — left too wide"):
    the only measured asymmetry was the GHOST or (4px left gap = its 2px margin-left on
    top of the tail unit's 2px flex gap, vs the committed ors' uniform 2px) — margin
@@ -4197,7 +4221,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   cursor: pointer;
   transition: opacity 0.1s ease, background 0.1s ease;
 }
-.add-and-btn:hover { opacity: 1; background: rgba(0, 0, 0, 0.06); }
+.add-and-btn:hover { opacity: 1; background: var(--val-bg, #ececec); } /* value-chip grey (r12) */
 /* (V2 round 2: the trailing `or` button + its CSS are gone — filter-OR creation
    lives in the field menu's "Either…" option.) */
 /* "select filter" — the empty-state call to action (#595 round 4, Jason: the no-filter
@@ -4256,6 +4280,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 .bline:hover .row-trash { visibility: visible; }
 .row-trash:hover { opacity: 1; background: rgba(0, 0, 0, 0.07); }
+/* round 12 (Jason): smaller × — the template's size prop has never applied here
+   (App.vue's global `.v-icon { font-size: 18px !important }` house rule wins over
+   the inline style), so out-specify it. */
+.row-trash :deep(.v-icon) { font-size: 12px !important; width: 12px !important; height: 12px !important; }
 /* Round 9 (Jason): the remove-× sits immediately BEFORE the line number. Round 10:
    top-level lines park it in the .bl-num1 cell's own × lane (rule above); sub lines
    keep it inline in the .bl-num2 cell, right before the digits (round 11: 12px gap,
