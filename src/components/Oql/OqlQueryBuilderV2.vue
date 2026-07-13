@@ -155,7 +155,7 @@
               :draggable="lineDragFor(line) ? 'true' : undefined"
               @dragstart="onNumDragstart(line, $event)" @dragend="onNumDragend"
               aria-hidden="true">{{ line.addr }}</span></span>
-          <span v-if="!line._level" class="bl-lead" :class="{ 'bl-lead--the': line._lead === 'arrow', 'bl-lead--spacer': !line._lead, 'bl-spike': line._spikeLead }"
+          <span v-if="!line._level" class="bl-lead" :class="{ 'bl-lead--the': line._lead === 'arrow', 'bl-lead--spacer': !line._lead }"
             aria-hidden="true">{{ leadWord(line) }}</span>
           <!-- Round 6 (Jason): NO arrows anywhere — a subclause line leads with a WORD
                chip: the parent's predicate on the first value-AND arm ("has network",
@@ -626,8 +626,12 @@ defineOptions({ name: "OqlQueryBuilderV2" });
 // value chip gets a BLACK BORDER instead (the :deep rules near .bl-body). V1/the
 // text editor keep the coloured palette — this map only reskins the V2 builder.
 const V2_INK = "#1a1a1a";
-const V2_CHIP_GREY = "#ececec";      // every chip (r14: one colour)
-const V2_CHIP_GREY_HOV = "#dcdcdc";
+// r16 (Jason: "darkest grey we can get away with"): the darkest grey that keeps
+// WCAG AA 4.5:1 contrast with the #1a1a1a ink is #828282 (4.53:1); #858585 gives
+// 4.72:1 — a little safety margin. Hover goes LIGHTER (#949494, 5.74:1): with a
+// dark resting fill there is no darker AA-compliant step left.
+const V2_CHIP_GREY = "#858585";      // every chip (r14: one colour)
+const V2_CHIP_GREY_HOV = "#949494";
 const V2_CHIP_DARK = V2_CHIP_GREY;      // r14: structure = the same grey as values
 const V2_CHIP_DARK_HOV = V2_CHIP_GREY_HOV;
 const V2_ROLE_CSS_VARS = {
@@ -1265,17 +1269,17 @@ const displayLines = computed(() => {
     }
     line._subCount = n;
   });
-  // Round 14/15 (Jason): with ONE chip colour, SPIKES mark structure on lines that
-  // hold a value — "no value, no spike" (r15 clarification: header lines, incl. the
-  // either-head turn chip and the value-AND header's turn pred, get NONE — there is
-  // no value on their line for the spike to point to). On a value-bearing line BOTH
-  // structural chips spike: the LEAD chip (top-level &/blank, sub or/and/blank — the
-  // or-leads and their column-holder blanks per the r15 note) AND the PRED chip.
+  // Round 16 (Jason, final spike semantics): the spike says "everything after this
+  // is leaf chips — no more AND/blank/predicate chips". So AT MOST ONE spike per
+  // logical line, on the LAST structural chip, and only when a value actually
+  // follows it on that line: the pred when the line has a field run, else the
+  // sub-line lead (arm lines, where the and/blank sits right before the leaf).
+  // Header lines (no values) and top-level leads (a field always follows) never spike.
   out.forEach((line) => {
     const hasVals = !line._head
       && (line._valueToks || []).some((t) => BRICK_TYPES.has(t.t) || t.t === "textblock");
-    line._spikeLead = hasVals && line._lead != null;
     line._spikePred = hasVals && !!(line._fieldToks || []).length && !line._fieldConn;
+    line._spikeLead = hasVals && !line._spikePred && line._lead != null && !!line._level;
   });
   return out;
 });
@@ -1327,8 +1331,7 @@ const leadWord = (line) => {
 const lead2Indent = (line) => {
   const fw = fieldColW.value || "0px";
   const pw = predColW.value;
-  // the lead chip's margin is gx+5 since r15 (spike room), so the indent adds the 5
-  const parts = ["var(--lead-w)", "var(--gx)", "5px", fw, "var(--gx)"];
+  const parts = ["var(--lead-w)", "var(--gx)", fw, "var(--gx)"];
   if (line._indKind === "value") { parts.push(pw, "var(--gx)"); } // (unused since round 4 — arms are 'pred' now)
   let expr = parts.join(" + ");
   if (line._indCh) expr += ` + ${line._indCh}ch`;
@@ -3750,10 +3753,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
      #575 round 4: bumped 26px → 34px so the connector chips fit a THREE-LETTER WORD —
      the `and`/`or`/predicate chips show words now, no more `&` glyph (Jason). */
   --chip-w: 34px;
-  /* Lead-column width. Round 14 (Jason): top-level leads are "&" / blank now (the
-     5-letter "where" left in r12, "and" became "&"), so the column narrows to the
-     shared chip width — the point of the & swap was saving this space. */
-  --lead-w: var(--chip-w);
+  /* Lead-column width. Round 16 (Jason): just big enough for the one-char "&" —
+     1ch + the chip's side padding. The trailing "&…" button needs two chars and
+     simply OVERFLOWS into the next column (visible only on its rare hover). */
+  --lead-w: calc(1ch + 10px);
   /* The line-number cell's LEFT padding (#595 r4-r6, Jason: number padding = 10px
      left / 20px right) — puts the numbers at (roughly) the results checkbox column.
      Carried by .bline::before / .bl-orrow::before padding-left and the row-drag bar. */
@@ -3923,9 +3926,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   height: 26px;
   width: var(--lead-w, var(--chip-w, 26px));
   min-width: var(--lead-w, var(--chip-w, 26px));
-  /* +5px (r15): room for the lead chip's .bl-spike — uniform on every line so the
-     field column stays one shared x (header lines just carry a wider gap). */
-  margin-right: calc(var(--gx) + 5px);
+  margin-right: var(--gx);
   margin-top: 0;
   border-radius: 4px;
   background: var(--conn-bg, #fdf6f0);
@@ -3961,7 +3962,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   min-width: var(--lead2-w, var(--chip-w, 26px));
   padding: 0 4px;
   border-radius: 4px;
-  margin-right: calc(var(--gx) + 5px); /* +5px: lead-spike room (r15, matches .bl-lead) */
+  margin-right: var(--gx);
   background: var(--conn-bg, #fae1d1);
   color: var(--conn-fg, #b25d06);
   font-family: "JetBrains Mono", monospace;
@@ -4141,9 +4142,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
    `--marked` (body has value tokens) so empty bodies (value-AND headers, fresh drafts)
    never show a stray arrow. */
 .bl-body {
-  /* +5px (round 14): room for the boundary chip's .bl-spike nub — every line's value
-     zone starts one spike past the structure zone, so the columns stay aligned. */
-  padding-left: calc(var(--pred-w, var(--chip-w)) + var(--gx) + 5px);
+  padding-left: calc(var(--pred-w, var(--chip-w)) + var(--gx));
 }
 .bl-body::before {
   content: "";
@@ -4207,12 +4206,18 @@ defineExpose({ rebuildFromOql: async (oql) => {
   background: var(--prop-bg, #fae1d1);
 }
 .bl-slot-pred--edit:hover,
-.bl-slot-pred--edit[aria-expanded="true"] { background: #dcdcdc; color: #1a1a1a; } /* r13/14: grey chips */
+.bl-slot-pred--edit[aria-expanded="true"] { background: #949494; color: #1a1a1a; } /* r16: lighter = lit up */
 /* ---- round 14 (Jason): one chip colour — the structure/value boundary is SHAPE ----
    SPIKE: a small (10×5px) nub pointing right off the chip immediately left of the
    line's first value chip (predicates, value-arm and/blank leads, the either-head
    turn chips). Same fill as the chip; the .bl-body +5px shift keeps it in whitespace. */
 .bl-spike { position: relative; }
+/* r16: the spiked chip carries its own whitespace (the r14/15 uniform column shifts
+   are undone — Jason: sub-lines play by gridless value-chip rules, inconsistent
+   gutters between line families are fine). Lead spikes push their margin; the pred
+   spike insets from its right-aligned cell edge so the nub lands in the cell gap. */
+.bl-lead2.bl-spike { margin-right: calc(var(--gx) + 5px); }
+.bl-slot-pred.bl-spike { margin-right: 5px; }
 .bl-spike::after {
   content: "";
   position: absolute;
@@ -4256,9 +4261,9 @@ defineExpose({ rebuildFromOql: async (oql) => {
   justify-content: center;
   box-sizing: border-box;
   height: 26px;
-  width: var(--lead-w, 34px);
+  width: auto;               /* r16: "&…" is 2ch — overflow the 1ch lead column */
   min-width: var(--lead-w, 34px);
-  padding: 0;
+  padding: 0 4px;
   border: none;
   border-radius: 4px;
   background: transparent;
