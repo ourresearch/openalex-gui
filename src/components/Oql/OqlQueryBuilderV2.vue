@@ -616,25 +616,27 @@ import { useChipDrag } from "@/components/Oql/useChipDrag";
 defineOptions({ name: "OqlQueryBuilderV2" });
 
 // V2 palette — MONOCHROME (round 11, Jason: "keep to black/white/grey, we're more
-// on brand"). The two-family colour scheme (peach structure / periwinkle values,
-// rounds 1–10) is gone:
-//   structure (fields, predicates, leads, "either", turn chips)  BLACK, white text
-//   values + their connectors                                    black-on-GREY
+// on brand"; round 13: "too cute with the black chips" — structure steps down to a
+// DARKER GREY, specifically the value chips' hover shade, with black text):
+//   structure (fields, predicates, leads, "either", turn chips)  dark grey #dcdcdc
+//   values + their connectors                                    light grey #ececec
 //   ink on the canvas (numbers, subcount, ×, ghosts)             grey/black (CSS below)
 // Selection no longer recolours chips: the -sel vars equal the base, and a selected
 // value chip gets a BLACK BORDER instead (the :deep rules near .bl-body). V1/the
 // text editor keep the coloured palette — this map only reskins the V2 builder.
 const V2_INK = "#1a1a1a";
-const V2_CHIP_GREY = "#ececec";
-const V2_CHIP_GREY_HOV = "#dcdcdc";
+const V2_CHIP_GREY = "#ececec";      // value chips
+const V2_CHIP_GREY_HOV = "#dcdcdc";  // value-chip hover — AND the structure chips' fill (r13)
+const V2_CHIP_DARK = V2_CHIP_GREY_HOV;
+const V2_CHIP_DARK_HOV = "#cccccc";  // one step darker, for the interactive structure chips
 const V2_ROLE_CSS_VARS = {
   ...OQL_ROLE_CSS_VARS,
-  // structure (filter scope): black chips, white text
-  "--prop-fg": "#fff", "--prop-bg": V2_INK, "--prop-bg-hov": "#000",
-  "--prop-fg-sel": "#fff", "--prop-bg-sel": V2_INK,
-  "--conn-fg": "#fff", "--conn-bg": V2_INK, "--conn-bg-hov": "#000",
-  "--conn-fg-sel": "#fff", "--conn-bg-sel": V2_INK,
-  "--rel-fg": "#fff", "--rel-bg": V2_INK,
+  // structure (filter scope): dark-grey chips, black text
+  "--prop-fg": V2_INK, "--prop-bg": V2_CHIP_DARK, "--prop-bg-hov": V2_CHIP_DARK_HOV,
+  "--prop-fg-sel": V2_INK, "--prop-bg-sel": V2_CHIP_DARK,
+  "--conn-fg": V2_INK, "--conn-bg": V2_CHIP_DARK, "--conn-bg-hov": V2_CHIP_DARK_HOV,
+  "--conn-fg-sel": V2_INK, "--conn-bg-sel": V2_CHIP_DARK,
+  "--rel-fg": V2_INK, "--rel-bg": V2_CHIP_DARK,
   // values: black-on-grey; selection = border, background unchanged
   "--val-fg": V2_INK, "--val-bg": V2_CHIP_GREY, "--val-bg-hov": V2_CHIP_GREY_HOV,
   "--val-fg-sel": V2_INK, "--val-bg-sel": V2_CHIP_GREY,
@@ -4183,7 +4185,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   background: var(--prop-bg, #fae1d1);
 }
 .bl-slot-pred--edit:hover,
-.bl-slot-pred--edit[aria-expanded="true"] { background: #000; color: #fff; }
+.bl-slot-pred--edit[aria-expanded="true"] { background: #cccccc; color: #1a1a1a; } /* r13: grey chips */
 .bline--sel .bl-slot-pred--edit { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* the continuation `and` conn chip fills the same slot column width, so the two stay flush. */
 .bl-field--conn :deep(.conn-chip) { width: auto; min-width: var(--pred-w, var(--chip-w)); }
