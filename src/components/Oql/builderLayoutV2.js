@@ -28,6 +28,8 @@
 //   _fieldCh/_predCh  per-sibling-group shared mini column widths (ch), 0 = inherit
 //               the global --field-w/--pred-w
 //   _disjunctDel  clause id for the per-disjunct trash (deletes ONE alternative)
+//   _armDel     value-node id for a value-ARM line's trash (round 8 — deletes ONE
+//               AND-ed arm; the render round-trip dissolves a 1-arm AND)
 //   _tail       'filter' | null — a group HEADER line ends with a TURN-marker chip
 //               showing the AND-flow turning 90° down into the subclause lines.
 //               Round 6 (Jason): the marker is chip SHAPE, not ink — a blank chip
@@ -289,6 +291,13 @@ export function layoutLines(tokens, opts = {}) {
         const arm = mkLine({ level: level + 1, lead: i === 0 ? predWord : join,
           leadScope: "filter", noField: true, indKind: "pred",
           valueToks, tokens: valueToks });
+        // per-arm delete (round 8, Jason): the arm's root value node — the vgroup id
+        // rides on its paren token, a lone leaf's id on its vbrick. removeNode +
+        // the render round-trip dissolve the AND when one arm remains.
+        for (const nd of op.nodes) {
+          if (nd.group) { if (nd.open && nd.open.id != null) arm._armDel = nd.open.id; break; }
+          if (nd.tok && nd.tok.id != null && nd.tok.t === "vbrick") { arm._armDel = nd.tok.id; break; }
+        }
         out.push(arm);
       });
       return out;

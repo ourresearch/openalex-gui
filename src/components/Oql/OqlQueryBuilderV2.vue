@@ -153,7 +153,7 @@
                gutter size). -->
           <template v-else>
             <span class="bl-num2" :style="num2Style(line)" aria-hidden="true"><span>{{ line.addr }}</span></span>
-            <span class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead }"
+            <span class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead, 'bl-lead2--end': line._leadEnd }"
               :style="lead2Style(line)" aria-hidden="true">{{ leadWord(line) }}</span>
           </template>
 
@@ -388,9 +388,11 @@
                is fine). -->
           <!-- V2: a DISJUNCT line's trash deletes just that alternative (removeDisjunct
                dissolves the group when one remains); any other line keeps the row delete. -->
-          <button v-if="line._disjunctDel || (line._menu && line._menu.deleteId)" type="button" class="row-trash"
+          <!-- Round 8 (Jason): value-ARM lines (1.1, 1.2 …) get a trash too — it
+               deletes just that arm (_armDel, the arm's root value node). -->
+          <button v-if="line._disjunctDel || line._armDel || (line._menu && line._menu.deleteId)" type="button" class="row-trash"
             aria-label="delete line" title="delete line"
-            @click.stop="line._disjunctDel ? removeDisjunctRow(line._disjunctDel) : onMenuDeleteLine(line)"
+            @click.stop="line._disjunctDel ? removeDisjunctRow(line._disjunctDel) : line._armDel ? removeArmRow(line._armDel) : onMenuDeleteLine(line)"
             @mousedown.stop @dblclick.stop>
             <v-icon size="16">mdi-trash-can-outline</v-icon>
           </button>
@@ -1031,6 +1033,10 @@ const displayLines = computed(() => {
     line._selectRow = rowTargetForLine(line);
     line._rowNode = rowNodeForLine(line);     // the node this row represents (delete target), or null
     line._plus = plusContextForLine(line);    // the per-line "+" insert context, or null (#507)
+    // Round 8 (Jason): a value-AND HEADER line (turn-marker chip, values live on the
+    // arm lines) gets NO ghost `or` — you can't OR a value onto an AND-of-values
+    // clause. Hover shows only the trash.
+    if (line._slotTail) line._plus = null;
     line._predEdit = predEditForLine(line);   // editable numeric operator menu, or null (#575 r8)
     // Left-gutter kebab context (#523 round 4 as the end-of-line dropdown; moved to the kebab in
     // round 10): clauseId = the owning filter (for "AND clause"); deleteId = the node this row
@@ -1195,6 +1201,22 @@ const displayLines = computed(() => {
     counters.length = L + 1;
     counters[L] = (counters[L] || 0) + 1;
     line.addr = counters.map((c) => c || 1).join(".");
+  });
+  // Round 8 (Jason): the LAST subclause line in its column ends the pipe — its lead
+  // chip turns from south to east (max-rounded bottom-left corner, .bl-lead2--end).
+  // "Last in its column" = no later line at the SAME level before one at a shallower
+  // level (deeper lines — the line's own children — don't extend the column).
+  // Computed after draft splicing so an open or-draft (the true last line) takes the
+  // rounding from the committed line above it.
+  out.forEach((line, i) => {
+    const L = line._level || 0;
+    if (!L || !line._lead) return;
+    for (let j = i + 1; j < out.length; j++) {
+      const lj = out[j]._level || 0;
+      if (lj < L) break;
+      if (lj === L) return;
+    }
+    line._leadEnd = true;
   });
   return out;
 });
@@ -3114,6 +3136,16 @@ const removeDisjunctRow = (clauseId) => {
   renderQuery({ swap: true });
 };
 
+// Delete ONE value arm of a value-AND clause (round 8): remove the arm's root value
+// node; the render round-trip dissolves the AND (and the subclause lines) when a
+// single arm remains.
+const removeArmRow = (armId) => {
+  if (armId == null) return;
+  clearSelection();
+  edit.removeNode(v2.value, armId, drafts.value);
+  renderQuery({ swap: true });
+};
+
 // ---- toolbar: copy / clear --------------------------------------------------
 const copied = ref(false);
 let copiedTimer = null;
@@ -3750,6 +3782,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
   user-select: none;
 }
 .bl-lead2--val { background: var(--vconn-bg, #dbe7ff); color: var(--vconn-fg, #1f6feb); }
+/* round 8 (Jason): the LAST and/or chip in a subclause column finishes the pipe —
+   it turns from south to east: max-rounded bottom-left corner (13px = half the
+   26px chip, mirroring the header turn-marker's top-right). */
+.bl-lead2--end { border-bottom-left-radius: 13px; }
 .bline--sel .bl-lead2 { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 .bline--sel .bl-lead2--val { background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff); }
 /* ---- V2 turn-marker chip (rounds 3–6, Jason) ----------------------------------
