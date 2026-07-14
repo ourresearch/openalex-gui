@@ -3,8 +3,37 @@
     <!-- Page-top search-level actions (#440 r5 → #611). Was one ⋮ kebab holding
          save/alert/copy-API/QR; #611 splits it into two purposeful icon menus and
          retires the QR code entirely:
-           - SHARE (export icon): Copy API URL / Copy OQL / Copy OQO.
-           - STAR: Save search / Create alert (works only, like the old kebab). -->
+           - STAR: Save search / Create alert (works only, like the old kebab).
+           - SHARE: the "Copy query as…" picker (OQL / API URL / OQO).
+         Share sits at the FAR RIGHT of the header row (r3, Jason). -->
+    <!-- Star: save/alert. Works-only, matching the old kebab's gate (saved searches
+         and alerts are a works feature). Filled amber star = this search is saved. -->
+    <v-menu v-if="isWorks" location="bottom end" v-model="isStarMenuOpen">
+      <template #activator="{ props }">
+        <v-btn icon variant="text" size="small" v-bind="props" aria-label="Save search or create alert">
+          <v-icon :color="activeSearchObj ? 'amber-darken-2' : 'grey-darken-1'">
+            {{ activeSearchObj ? 'mdi-star' : 'mdi-star-outline' }}
+          </v-icon>
+          <v-tooltip activator="parent" location="bottom" content-class="linear-tooltip">
+            {{ activeSearchObj ? 'Saved' : 'Save' }}
+          </v-tooltip>
+        </v-btn>
+      </template>
+      <v-list min-width="240">
+        <v-list-item @click="handleSaveToggle">
+          <template #prepend>
+            <v-icon>{{ activeSearchObj ? 'mdi-star' : 'mdi-star-outline' }}</v-icon>
+          </template>
+          <v-list-item-title>{{ activeSearchObj ? 'Search is saved' : 'Save search' }}</v-list-item-title>
+        </v-list-item>
+        <v-list-item @click="handleAlertToggle">
+          <template #prepend>
+            <v-icon>{{ activeSearchObj?.has_alert ? 'mdi-bell' : 'mdi-bell-outline' }}</v-icon>
+          </template>
+          <v-list-item-title>{{ activeSearchObj?.has_alert ? 'Alert is active' : 'Create alert' }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
     <!-- r2 (Jason): arrow-style share icon; menu is a "Copy query as…" picker — bare
          format names (no "Copy" verb) ordered OQL → API URL → OQO, each with a
          plain-words subtitle saying what the format is for. -->
@@ -39,35 +68,6 @@
           </template>
           <v-list-item-title>OQO</v-list-item-title>
           <v-list-item-subtitle>JSON object (for agents)</v-list-item-subtitle>
-        </v-list-item>
-      </v-list>
-    </v-menu>
-
-    <!-- Star: save/alert. Works-only, matching the old kebab's gate (saved searches
-         and alerts are a works feature). Filled amber star = this search is saved. -->
-    <v-menu v-if="isWorks" location="bottom end" v-model="isStarMenuOpen">
-      <template #activator="{ props }">
-        <v-btn icon variant="text" size="small" v-bind="props" aria-label="Save search or create alert">
-          <v-icon :color="activeSearchObj ? 'amber-darken-2' : 'grey-darken-1'">
-            {{ activeSearchObj ? 'mdi-star' : 'mdi-star-outline' }}
-          </v-icon>
-          <v-tooltip activator="parent" location="bottom" content-class="linear-tooltip">
-            {{ activeSearchObj ? 'Saved' : 'Save' }}
-          </v-tooltip>
-        </v-btn>
-      </template>
-      <v-list min-width="240">
-        <v-list-item @click="handleSaveToggle">
-          <template #prepend>
-            <v-icon>{{ activeSearchObj ? 'mdi-star' : 'mdi-star-outline' }}</v-icon>
-          </template>
-          <v-list-item-title>{{ activeSearchObj ? 'Search is saved' : 'Save search' }}</v-list-item-title>
-        </v-list-item>
-        <v-list-item @click="handleAlertToggle">
-          <template #prepend>
-            <v-icon>{{ activeSearchObj?.has_alert ? 'mdi-bell' : 'mdi-bell-outline' }}</v-icon>
-          </template>
-          <v-list-item-title>{{ activeSearchObj?.has_alert ? 'Alert is active' : 'Create alert' }}</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>
