@@ -5,33 +5,40 @@
          retires the QR code entirely:
            - SHARE (export icon): Copy API URL / Copy OQL / Copy OQO.
            - STAR: Save search / Create alert (works only, like the old kebab). -->
+    <!-- r2 (Jason): arrow-style share icon; menu is a "Copy query as…" picker — bare
+         format names (no "Copy" verb) ordered OQL → API URL → OQO, each with a
+         plain-words subtitle saying what the format is for. -->
     <v-menu location="bottom end" v-model="isShareMenuOpen">
       <template #activator="{ props }">
         <v-btn icon variant="text" size="small" v-bind="props" aria-label="Share search">
-          <v-icon color="grey-darken-1">mdi-share-variant-outline</v-icon>
+          <v-icon color="grey-darken-1">mdi-share-outline</v-icon>
           <v-tooltip activator="parent" location="bottom" content-class="linear-tooltip">
             Share
           </v-tooltip>
         </v-btn>
       </template>
-      <v-list min-width="240">
+      <v-list min-width="270">
+        <v-list-subheader>Copy query as…</v-list-subheader>
+        <v-list-item :disabled="!canonicalOql" @click="copyOql">
+          <template #prepend>
+            <v-icon>mdi-code-parentheses</v-icon>
+          </template>
+          <v-list-item-title>OQL</v-list-item-title>
+          <v-list-item-subtitle>structured sentence (for humans)</v-list-item-subtitle>
+        </v-list-item>
         <v-list-item @click="copyApiUrl">
           <template #prepend>
             <v-icon>mdi-api</v-icon>
           </template>
-          <v-list-item-title>Copy API URL</v-list-item-title>
-        </v-list-item>
-        <v-list-item :disabled="!canonicalOql" @click="copyOql">
-          <template #prepend>
-            <v-icon>mdi-code-string</v-icon>
-          </template>
-          <v-list-item-title>Copy OQL</v-list-item-title>
+          <v-list-item-title>API URL</v-list-item-title>
+          <v-list-item-subtitle>REST syntax (legacy)</v-list-item-subtitle>
         </v-list-item>
         <v-list-item :disabled="!canonicalOqo" @click="copyOqo">
           <template #prepend>
             <v-icon>mdi-code-json</v-icon>
           </template>
-          <v-list-item-title>Copy OQO</v-list-item-title>
+          <v-list-item-title>OQO</v-list-item-title>
+          <v-list-item-subtitle>JSON object (for agents)</v-list-item-subtitle>
         </v-list-item>
       </v-list>
     </v-menu>
