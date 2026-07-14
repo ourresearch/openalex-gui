@@ -1,6 +1,5 @@
 <template>
-  <div ref="builderRootEl" class="builder" :class="{ 'builder--nospikes': !showSpikes }"
-    :style="V2_ROLE_CSS_VARS" @keydown="onBuilderKeydown">
+  <div ref="builderRootEl" class="builder" :style="V2_ROLE_CSS_VARS" @keydown="onBuilderKeydown">
     <!-- Drag-to-delete zone (oxjob #467 Phase 4): an overlay strip pinned to the top of
          the builder that appears only while a value chip is being dragged (shared
          useChipDrag state). Dashed + muted "Drag here to delete" while armed; turns solid
@@ -62,12 +61,6 @@
 
         <!-- (#575 filter-OR experiment concluded 2026-07-10: the spanning "either … or"
              block won; the layout toggle and the losing candidates were stripped.) -->
-
-        <!-- DEV toggle (r17; the r17 "dark" chip-variant A/B was killed in r18 —
-             Jason: "i hate it now"): spike show/hide. Tiny quiet text button. -->
-        <button type="button" class="tb-dev-toggle" :class="{ 'tb-dev-toggle--on': showSpikes }"
-          title="dev: show/hide spikes"
-          @click="showSpikes = !showSpikes">spikes</button>
 
         <!-- EDITOR controls (right, icon buttons + native tooltips): copy · clear.
              Edit-code (`</>`) and Settings (gear) icons removed per Jason 2026-06-24 (#507).
@@ -351,7 +344,6 @@
                    `or`, `not`) BOLD. Double-click edits the whole thing as raw text; on commit it
                    re-parses (a pure-OR list unpacks back into blocks, anything else stays a block). -->
               <OqlTextBlockChip v-else-if="tok.t === 'textblock'" :tok="tok"
-                :class="{ 'val-tail': ti === line._tailIdx && !line._tailBrick }"
                 @commit="(text) => onTextBlockCommit(tok, text)" />
 
               <!-- (#575: the `addplus` chip for OR-of-filters rows is gone — filter-scope OR
@@ -653,8 +645,6 @@ const V2_ROLE_CSS_VARS = {
   "--vconn-fg": V2_INK, "--vconn-bg": V2_CHIP_BG, "--vconn-bg-hov": V2_CHIP_BG_HOV,
   "--vconn-fg-sel": V2_INK, "--vconn-bg-sel": V2_CHIP_BG,
 };
-const showSpikes = ref(localStorage.getItem("oqlV2Spikes") !== "off");
-watch(showSpikes, (v) => { try { localStorage.setItem("oqlV2Spikes", v ? "on" : "off"); } catch (e) { /* noop */ } });
 
 const props = defineProps({
   oql: { type: String, default: null },
@@ -3772,9 +3762,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
      remove-× — the gutter cell grew by this much so the × has its own column.
      Round 11: +10px breathing room between the × and the digits (18px icon + 10px gap). */
   --trash-w: 28px;
-  /* hanging wrap indent (r18, Jason: "one column, not two"): a single compact
-     icon-column; also the ↳ tile width, so the icon + chip sit snug. */
-  --wrap-ind: 20px;
   --paren-w: var(--chip-w);   /* open/close paren = the shared chip width */
   --indent: var(--chip-w);    /* one indent step = one chip width */
   --brick-fs: 0.8125rem;
@@ -3856,18 +3843,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
   color: #1a1a1a;
   user-select: none;
 }
-/* dev toggles (r17): tiny quiet text buttons; underline marks the ON state */
-.tb-dev-toggle {
-  padding: 2px 6px;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  color: rgba(0, 0, 0, 0.4);
-  font-size: 0.72rem;
-  cursor: pointer;
-}
-.tb-dev-toggle:hover { background: rgba(0, 0, 0, 0.05); }
-.tb-dev-toggle--on { color: #1a1a1a; text-decoration: underline; }
 /* The entity selector is NOT a chip (Jason 2026-06-24, #507): it's the toolbar's primary
    control and lives in the toolbar "environment", not on the chip canvas, so it reads as a
    plain Linear-style toolbar button — NO colour fill, NO monospace, just quiet text + caret
@@ -4092,7 +4067,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* Numbers: grey ink at half-opacity (round 11 — the round-5 peach went with the
    monochrome pass), full text size (was 0.72rem; the outer cell is already mono at
    --brick-fs, so the inner span just inherits). */
-.bl-num2 > span { color: #1a1a1a; opacity: 0.5; }
+.bl-num2 > span { color: #1a1a1a; opacity: 0.3; } /* r19: .5 -> .3 */
 .bline--sel .bl-num2 > span { font-weight: 700; color: #1a1a1a; opacity: 1; }
 /* …and the gutter cell goes BLANK on those lines (the ::before box keeps its --num-w
    width so every row's content shares one origin). Doubled class = out-specify the
@@ -4153,33 +4128,19 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs);
 }
-/* Line-continuation ↳ marker + hanging indent (round 5, Jason: "line continuations
-   indent by one has block"). Wrapped rows of one logical line indent one predicate-chip
-   width past the line's first row: .bl-body carries padding-left of one slot column
-   (+gap) and its ::before — a zero-width first flex item with a negative margin —
-   pulls row 1 back to the true column, so ONLY wrapped rows sit indented. The ↳ tile
-   (was on .bl-field--marked in the slot column, #575 r6) paints down that indent zone
-   at the 28px row pitch; row 1's chips are pulled over tile 1 and cover it, so the ↳
-   shows only on wrapped rows, sitting immediately left of their first chip. Gated on
-   `--marked` (body has value tokens) so empty bodies (value-AND headers, fresh drafts)
-   never show a stray arrow. */
-.bl-body {
-  padding-left: calc(var(--wrap-ind, 20px) + var(--gx));
-}
-.bl-body::before {
-  content: "";
-  flex: 0 0 0px;
-  width: 0;
-  height: 26px;
-  margin-left: calc(-1 * (var(--wrap-ind, 20px) + 2 * var(--gx)));
-}
-.bl-body--marked {
-  /* grey at low opacity (round 11, Jason: "lighter, they're too loud" + monochrome;
-     was the value blue at 0.35 in round 9) */
+/* Line-continuation ↳ marker (r19, Jason: the r5 hanging indent is GONE — wrapped
+   rows align with the line's first value). The ↳ tile lives back in the FIELD cell's
+   slot column (its pre-r5 home): the cell stretches the full line height, tiles
+   repeat at the 28px row pitch right-aligned under the pred chip — row 1's (opaque)
+   pred chip covers tile 1, so the arrow shows only beside WRAPPED rows, pointing
+   into their first chip. 26×28 tile = the SVG viewBox drawn 1:1 (the r18 20px-wide
+   tile squished the arrow x-only and ate the arrowhead). Arm lines (no field cell)
+   wrap without a marker. */
+.bl-field--marked {
   background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='28'%20viewBox='0%200%2026%2028'%3E%3Cpath%20d='M10%209V16H16M14%2013.5L16.5%2016L14%2018.5'%20fill='none'%20stroke='%231a1a1a'%20stroke-opacity='0.18'%20stroke-width='1.4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: repeat-y;
-  background-position: 0 0;
-  background-size: var(--wrap-ind, 20px) 28px; /* tile = the indent column → icon scales down (r18) */
+  background-position: 100% 0;
+  background-size: 26px 28px;
 }
 /* #575 round 5 (Jason): every COMMITTED field chip fills the full field column — equal
    widths, the longest field sets --field-w — so rows with short field names don't leave a
@@ -4240,10 +4201,6 @@ defineExpose({ rebuildFromOql: async (oql) => {
    spike insets from its right-aligned cell edge so the nub lands in the cell gap. */
 .bl-lead2.bl-spike { margin-right: calc(var(--gx) + 5px); }
 .bl-slot-pred.bl-spike { margin-right: 5px; }
-/* dev toggle (r17): hide the spikes AND their extra whitespace */
-.builder--nospikes .bl-spike::after { display: none; }
-.builder--nospikes .bl-lead2.bl-spike { margin-right: var(--gx); }
-.builder--nospikes .bl-slot-pred.bl-spike { margin-right: 0; }
 /* (r18: the r17 dark-variant CSS is gone with the toggle) */
 .bl-spike::after {
   content: "";
@@ -4257,14 +4214,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
   border-bottom: 5px solid transparent;
   border-left: 5px solid var(--conn-bg, #ececec);
 }
-/* LEAF: the line's TERMINAL value chip ends its branch of the tree — pill-round
-   right edge (13px = half the 26px chip). Marked by the tail wrapper (brick tails)
-   or .val-tail (the text-block fallback tail). */
-.builder-lines :deep(.bl-tok--tail .val-chip),
-.builder-lines :deep(.val-tail) {
-  border-top-right-radius: 13px;
-  border-bottom-right-radius: 13px;
-}
+/* (r19: the r14 leaf-pill right edge is gone — "not working for me"; terminal value
+   chips wear the standard 4px corners like every other chip.) */
 .bline--sel .bl-slot-pred--edit { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* the continuation `and` conn chip fills the same slot column width, so the two stay flush. */
 .bl-field--conn :deep(.conn-chip) { width: auto; min-width: var(--pred-w, var(--chip-w)); }
@@ -4455,7 +4406,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
   /* round 11 (Jason): full text size + grey ink (was 0.72rem peach); half-opacity (r9) */
   font-size: var(--brick-fs, 0.8125rem);
   color: #1a1a1a;
-  opacity: 0.5;
+  opacity: 0.3; /* r19: .5 -> .3 */
   user-select: none;
 }
 .bline--sel::before { font-weight: 700; color: #1a1a1a; opacity: 1; }
@@ -4484,7 +4435,7 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* the × pins to its own lane so the digits' x never moves (the button is v-if'd) */
 .bl-num1 > .row-trash--num { position: absolute; left: var(--lane-w, 10px); top: 3px; margin: 0; }
 /* digits sit at a fixed x (the × lane is always reserved, hover or not) */
-.bl-num1-digits { display: inline-block; opacity: 0.5; }
+.bl-num1-digits { display: inline-block; opacity: 0.3; } /* r19: .5 -> .3 */
 .bline--sel .bl-num1-digits { font-weight: 700; color: #1a1a1a; opacity: 1; }
 /* the line-number drag handle (round 10): grab cursor on the digits */
 .num-grab { cursor: grab; }
