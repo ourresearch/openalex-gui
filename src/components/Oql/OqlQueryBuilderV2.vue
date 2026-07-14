@@ -381,7 +381,7 @@
                 :ref="(el) => registerPicker(tok.id, el)"
                 :value-kind="tok._kind" :negated="tok.negated"
                 :anchor-target="`[data-vid='${tok.id}']`"
-                :external-search="tok._placeholder || tok.id === editingEntityId ? typeOnQuery : null"
+                :external-search="typeOnQuery"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
                 :slug-values="tok._slugValues"
                 @pick="(p) => onPickEntityValue(tok, p)"
@@ -2070,7 +2070,10 @@ const onDateEditorPick = (iso) => {
 // Edit a VALUE by its kind: entity re-picks, date opens the calendar, text/number edits inline.
 const editValue = (tok) => {
   if (!tok) return;
-  if (tok._kind === "entity") { selection.value = { kind: "value", id: tok.id }; onEditEntity(tok); return; }
+  // r22: no selection set on entity edit — chips are never "selected" (the r20 model);
+  // the old {kind:'value'} assignment painted the black ring and was never cleared on
+  // abandon (Jason's "selected-state atavism"). editingEntityId alone drives the re-pick.
+  if (tok._kind === "entity") { onEditEntity(tok); return; }
   if (tok._kind === "date") { openDateEditor(tok); return; }
   editTextId.value = tok.id;
 };
@@ -3091,7 +3094,11 @@ const onEditEntity = (tok) => {
 //     explicit remove since nothing else clears it). `gapEntityFillId` flags exactly that value.
 //   - a re-pick of an EXISTING value (editingEntityId) → just close; the value stays.
 const onAbandonEntityValue = (tok) => {
-  editingEntityId.value = null;
+  // r22: a v-menu close's abandon arrives ASYNC — clicking chip B while chip A's menu
+  // is closing lands A's abandon AFTER B's edit began, and an unconditional null here
+  // wiped B's editingEntityId mid-open (the picker then fell back to its legacy
+  // search-box mode — Jason's "sometimes a menu with a search field"). Only clear our own.
+  if (editingEntityId.value === tok.id) editingEntityId.value = null;
   if (gapEntityFillId.value === tok.id) {
     gapEntityFillId.value = null;
     edit.removeNode(v2.value, tok.id, drafts.value);
@@ -4019,12 +4026,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
    zeroed above so every or sits at the one --gx rhythm. */
 .bl-field :deep(.prop-chip-leaf:not(.prop-typeon)) { cursor: default; }
 .bl-field :deep(.prop-chip-leaf:not(.prop-typeon):hover) { background: var(--prop-bg, #1a1a1a); }
-.builder-lines :deep(.val-chip.selected:not(.conn-chip)),
+/* r22 (Jason): the ring paints ONLY for Cmd-multi — the .selected and :focus
+   variants are gone (chips are never selected since r20; the :focus ring lingered
+   on any clicked chip and read as a phantom "selected" state). */
 .builder-lines :deep(.val-chip.multi-selected:not(.conn-chip)),
-.builder-lines :deep(.val-chip:focus:not(.conn-chip)),
-.builder-lines :deep(.val-chip.selected:not(.conn-chip):hover),
-.builder-lines :deep(.val-chip.multi-selected:not(.conn-chip):hover),
-.builder-lines :deep(.val-chip:focus:not(.conn-chip):hover) {
+.builder-lines :deep(.val-chip.multi-selected:not(.conn-chip):hover) {
   box-shadow: inset 0 0 0 1.5px #1a1a1a;
 }
 /* round 9 (Jason): hover a group-header line → "N subclauses:" after the turn chip.

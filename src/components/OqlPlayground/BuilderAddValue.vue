@@ -9,9 +9,14 @@
        chip input is also the menu's ACTIVATOR (with open-on-click off) so Vuetify's
        click-outside dismiss ignores clicks/typing on the input; clicking anywhere else still
        closes the menu (→ abandon), same as before. -->
+  <!-- #603 r22: the anchor is re-resolved to a LIVE element on every open (liveTarget) —
+       a selector string handed straight to Vuetify gets resolved ONCE and cached, and the
+       chip element it found is REPLACED when the chip flips display↔type-on-input
+       (editingEntityId), so every open after the first positioned against a detached node
+       at viewport (0,0). -->
   <v-menu v-if="isPicker" v-model="open" location="bottom start" offset="4" :close-on-content-click="false"
-    :activator="ext ? (anchorTarget || undefined) : undefined" :open-on-click="!ext"
-    :target="anchorTarget || undefined">
+    :activator="ext ? (liveTarget || undefined) : undefined" :open-on-click="!ext"
+    :target="liveTarget || undefined">
     <template #activator="{ props: mp }">
       <!-- anchor-only (block mode): a zero-size attach point, opened from the paren
            menu's "Add value"; otherwise a visible + button (inline value lists) -->
@@ -99,6 +104,14 @@ const menuCardStyle = {
 };
 
 const isPicker = computed(() => props.valueKind === "entity");
+// Live anchor element (#603 r22): re-resolved from the anchorTarget selector at every
+// open, so the menu always positions against the chip element CURRENTLY in the DOM
+// (the chip is replaced when it flips into its type-on input and back).
+const liveTarget = ref(null);
+const resolveTarget = () => {
+  const t = props.anchorTarget;
+  liveTarget.value = (typeof t === "string" ? document.querySelector(t) : t) || null;
+};
 const ext = computed(() => props.externalSearch != null); // type-on-chip mode (#561)
 const open = ref(false);
 const search = ref("");
@@ -146,6 +159,7 @@ watch(() => props.externalSearch, (q) => {
 watch(results, () => { if (hl.value >= results.value.length) hl.value = 0; });
 watch(open, (o) => {
   if (o) {
+    if (!liveTarget.value || !liveTarget.value.isConnected) resolveTarget();
     negate.value = !!props.negated; hl.value = 0;
     if (isPicker.value && ext.value) run(props.externalSearch || "");
     else if (isPicker.value && !results.value.length) run("");
@@ -158,7 +172,7 @@ watch(open, (o) => {
 // oxjob #428 entity edit). moveHl/pickHl: remote keyboard nav for type-on-chip mode (#561) —
 // the chip input keeps focus, so Arrow/Enter keydowns are forwarded here by the builder.
 defineExpose({
-  openPicker: () => { open.value = true; },
+  openPicker: () => { resolveTarget(); open.value = true; },
   closePicker: () => { open.value = false; },
   moveHl: (d) => {
     const n = results.value.length;
