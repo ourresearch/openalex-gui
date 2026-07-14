@@ -1340,7 +1340,9 @@ const lead2Indent = (line) => {
   let expr = parts.join(" + ");
   if (line._indCh) expr += ` + ${line._indCh}ch`;
   if (line._indPx) expr += ` + ${line._indPx}px`;
-  return `calc(${expr})`;
+  // r21: the parent's boundary chip (pred / turn pred / either-head tail) is
+  // inset 5px from its cell edge now — child leads follow it left.
+  return `calc(${expr} - 5px)`;
 };
 // Round 4 (Jason): the indent space left of the lead chip is no longer a margin —
 // it's the .bl-num2 number cell (the line's decimal address, right-aligned against
@@ -4057,6 +4059,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
   display: inline-flex;
   box-sizing: border-box;
   flex: 0 0 auto;
+  /* r21: the same 5px right-inset every pred chip carries now (spike rule /
+     --turn rule) — ALL structural cell content shares one right edge, and the
+     child-line indent (lead2Indent's −5px) lands on it for every parent kind. */
+  margin-right: 5px;
   height: 26px;
   border-radius: 4px 13px 4px 4px;
   background: var(--conn-bg, #fae1d1);
@@ -4159,16 +4165,14 @@ defineExpose({ rebuildFromOql: async (oql) => {
    mechanism was: field cell stretches full line height, 26×28 tiles repeat-y
    right-aligned under the pred chip, row 1's OPAQUE pred covers tile 1 — which is
    why chips must stay opaque; see the r18 gotcha.) */
-/* Round 20 (Jason: "col 2, row 2 is too wide" — the `year` chip): committed field
-   chips are NATURAL width now, right-aligned in the cell (right edges stay flush at
-   the field|pred boundary; the whitespace lands on the invisible left side). This
-   UNDOES the #575-r5 fill-the-column rule (`flex: 1 1 auto` on every field chip made
-   a short field like `year` as wide as the longest field in the query). The UNSET
-   type-on draft keeps its fill (it's an input — see .prop-typeon above); the
-   picked-draft v-chip goes natural like committed chips. */
-.bl-field :deep(.prop-chip-leaf:not(.prop-typeon)) { flex: 0 1 auto; justify-content: flex-end; }
+/* Round 21 (Jason): the #575-r5 FILL rule is RESTORED — every committed field chip
+   fills the full field column ("column 2 chips must fill column 2"; r20 briefly made
+   them natural-width, misreading the round-20 report — the real bug was the 5px
+   right-edge spill fixed at .bl-slot-pred--turn below). Label right-aligned inside,
+   hugging its predicate; the unset type-on draft keeps its own fill rule above. */
+.bl-field :deep(.prop-chip-leaf:not(.prop-typeon)) { flex: 1 1 auto; justify-content: flex-end; }
 .bl-field :deep(.bl-tok > div) { display: contents; }
-.bl-field :deep(.prop-chip) { flex: 0 1 auto; justify-content: flex-end; }
+.bl-field :deep(.prop-chip) { flex: 1 1 auto; justify-content: flex-end; }
 /* a filter row's connector slot holds the inert PREDICATE chip (#575 round 4 — was the
    round-3 `→`): peach, and sized to the shared slot column (--pred-w = the query's widest
    predicate, min one chip) so it stacks with the `and` conn chips on the AND-arm rows. */
@@ -4216,6 +4220,14 @@ defineExpose({ rebuildFromOql: async (oql) => {
    spike insets from its right-aligned cell edge so the nub lands in the cell gap. */
 .bl-lead2.bl-spike { margin-right: calc(var(--gx) + 5px); }
 .bl-slot-pred.bl-spike { margin-right: 5px; }
+/* Round 21 (Jason: "title/abs spills past column 2's right edge"): a value-AND
+   HEADER's turn pred has no spike, so its right-aligned cell content sat 5px right
+   of every spiked row's — the header's FIELD chip broke the shared right edge
+   (visible only when >1 subclauses, since that's when the header line exists).
+   Give the unspiked turn pred the same 5px inset so every field cell's content
+   right-aligns identically. (Spiked turn preds already carry it via the rule above;
+   builderLayoutV2's arm `_indPx` subtracts the same 5 to keep arms on the pred column.) */
+.bl-slot-pred--turn:not(.bl-spike) { margin-right: 5px; }
 /* (r18: the r17 dark-variant CSS is gone with the toggle) */
 .bl-spike::after {
   content: "";
