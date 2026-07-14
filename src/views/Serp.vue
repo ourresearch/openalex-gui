@@ -162,6 +162,14 @@ watch(
       route.query.oql &&
       route.query.oql === store.state.query.lastExecutedOql
     ) {
+      // The query is unchanged, but this echo CAN carry a new saved-search id:
+      // createSearch (Save search / Create alert on an unsaved query) appends
+      // ?id=… after the results are already live, then relies on this watcher to
+      // reflect it. Since we're about to skip the refetch below, sync the active
+      // id here or the toolbar star wouldn't fill until a manual refresh (#611 r4).
+      if (userId.value) {
+        store.commit('user/setActiveSearchId', route.query.id);
+      }
       // A true projection echo has this instance's results already live — skip.
       if (resultsObject.value) return;
       // Fresh mount into an already-executed query (the browser back button from
