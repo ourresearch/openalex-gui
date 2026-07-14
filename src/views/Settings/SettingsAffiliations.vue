@@ -180,12 +180,65 @@ async function fetchOrganization() {
   }
 }
 
+// Max ids per lineage: filter. The API rejects an over-long filter, and a big
+// parent such as Inserm has 300+ children, so the OR-list has to be chunked.
+const LINEAGE_CHUNK_SIZE = 50;
+
+// Every institution whose lineage includes any of rootIds. Cursor-paged: Inserm
+// alone has 405 descendants, so a single per_page=200 call would drop the tail.
+async function fetchByLineage(rootIds) {
+  const results = [];
+  for (let i = 0; i < rootIds.length; i += LINEAGE_CHUNK_SIZE) {
+    const roots = rootIds.slice(i, i + LINEAGE_CHUNK_SIZE).join('|');
+    let cursor = '*';
+    while (cursor) {
+      const res = await axios.get(
+        `https://api.openalex.org/institutions?filter=lineage:${roots}` +
+        `&select=id,display_name,status&per_page=200&cursor=${cursor}`
+      );
+      results.push(...(res.data.results || []));
+      cursor = res.data.meta?.next_cursor || null;
+    }
+  }
+  return results;
+}
+
+async function fetchChildIds(institutionId) {
+  const res = await axios.get(
+    `https://api.openalex.org/institutions/${institutionId}?select=id,associated_institutions`
+  );
+  return (res.data.associated_institutions || [])
+    .filter(assoc => assoc.relationship === 'child')
+    .map(assoc => normalizeInstitutionId(assoc.id));
+}
+
 async function fetchDescendants(institutionId) {
   try {
-    const res = await axios.get(
-      `https://api.openalex.org/institutions?filter=lineage:${institutionId}&select=id,display_name,status&per_page=200`
-    );
-    const mapped = (res.data.results || []).map(inst => ({
+    const found = await fetchByLineage([institutionId]);
+    const seen = new Set(found.map(inst => normalizeInstitutionId(inst.id)));
+
+    // A university system (UC, UT, CSU, UNC...) lists its campuses as `child`,
+    // but OpenAlex deliberately keeps the system out of those campuses' lineage
+    // -- so the query above returns the system alone and the org can curate
+    // nothing beneath it. Re-seed with any child lineage missed, which pulls in
+    // the campuses and their own descendants.
+    //
+    // Only the *uncovered* children are re-seeded. Under an ordinary parent the
+    // children are already in its lineage (Inserm: 314 of 314), so this adds no
+    // ids, leaves the filter short, and keeps those orgs exactly as they were.
+    const uncoveredChildren = (await fetchChildIds(institutionId))
+      .filter(id => !seen.has(id));
+    if (uncoveredChildren.length) {
+      for (const inst of await fetchByLineage(uncoveredChildren)) {
+        const id = normalizeInstitutionId(inst.id);
+        if (!seen.has(id)) {
+          seen.add(id);
+          found.push(inst);
+        }
+      }
+    }
+
+    const mapped = found.map(inst => ({
       id: inst.id,
       display_name: inst.display_name,
       status: inst.status || 'active',
