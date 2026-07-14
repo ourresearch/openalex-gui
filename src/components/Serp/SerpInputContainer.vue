@@ -1,9 +1,10 @@
 <template>
   <div class="serp-input-container" :class="`serp-input-container--${mode}`">
     <!-- Header row: left-aligned pill tabs (Basic / Advanced) + the admin dice and
-         the page-top ⋮ (search-level actions: save/alert/copy-API/QR, #440 r5) on
-         the right. The search equipment ALWAYS lives below this row, never inside
-         it — consistent across modes (oxjob #440 round 2). -->
+         the page-top search-level actions (share menu + save/alert star, #611 —
+         formerly one ⋮ kebab, #440 r5) on the right. The search equipment ALWAYS
+         lives below this row, never inside it — consistent across modes (oxjob
+         #440 round 2). -->
     <div class="serp-input-header d-flex align-center">
       <serp-mode-tabs
         :model-value="mode"
@@ -13,7 +14,7 @@
       /><!-- modes: basic | advanced | oql (OQL is its own top-level tab, #441) -->
       <v-spacer />
       <serp-dice-button size="small" />
-      <serp-header-kebab class="ml-1" />
+      <serp-header-actions class="ml-1" />
     </div>
 
     <!-- The search card. Each mode presents exactly ONE self-contained card: a white
@@ -79,18 +80,26 @@
           <!-- ⌘/Ctrl+Enter arrives as @submit: the editor must own that binding
                (CodeMirror's defaultKeymap binds Mod-Enter to insert-blank-line, so a
                host keydown listener never gets a clean shot at it). -->
+          <!-- #611: real toolbar strip (builder-style) instead of floating icons; the
+               validity state moved OUT of the editor into the footer chip below. -->
           <oql-editor
             v-model="oqlTabText"
             min-height="200px"
             max-height="60vh"
             :status="oqlTabStatus"
+            toolbar
+            :show-badge="false"
             @validation="onOqlTabValidation"
             @submit="submitOqlTab"
           />
-          <!-- Never disabled (#600 r2, Jason): tying enabled-ness to per-keystroke
-               validity made the button strobe while typing. Clicking with invalid
-               text is a quiet no-op — the red badge already tells that story. -->
-          <div class="d-flex justify-end mt-3">
+          <!-- Card footer (#611): status chip far LEFT (chip-style, balancing the
+               Search button on the right). Search is never disabled (#600 r2, Jason):
+               tying enabled-ness to per-keystroke validity made the button strobe
+               while typing. Clicking with invalid text is a quiet no-op — the red
+               chip already tells that story. -->
+          <div class="d-flex align-center mt-3">
+            <oql-status-chip :status="oqlTabStatus" :validation="oqlTabValidation" />
+            <v-spacer />
             <v-btn
               color="primary"
               variant="flat"
@@ -253,12 +262,13 @@ import SearchErrorAlert from '@/components/SearchErrorAlert.vue';
 import SerpDiceButton from '@/components/SerpDiceButton.vue';
 import SerpModeTabs from '@/components/Serp/SerpModeTabs.vue';
 import SerpResultsKebab from '@/components/Serp/SerpResultsKebab.vue';
-import SerpHeaderKebab from '@/components/Serp/SerpHeaderKebab.vue';
+import SerpHeaderActions from '@/components/Serp/SerpHeaderActions.vue';
 import SerpDownloadButton from '@/components/Serp/SerpDownloadButton.vue';
 // (#603 round 10: the V1 grid builder import is gone — Advanced mounts the V2
 // outline builder. OqlQueryBuilder.vue stays on disk for reference/playground.)
 import OqlQueryBuilderV2 from '@/components/Oql/OqlQueryBuilderV2.vue';
 import OqlEditor from '@/components/OqlPlayground/OqlEditor.vue';
+import OqlStatusChip from '@/components/OqlPlayground/OqlStatusChip.vue';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import { api } from '@/api';
 import { treeRepresentable } from '@/components/Oql/representableShape';
@@ -515,9 +525,22 @@ function seedOqlTab(s) {
   // wrote the pretty canonical in, and the post-run URL reseed echoes it back collapsed
   // to one line), keep the text byte-stable and only re-baseline. Without this the
   // buffer flashed pretty → collapsed → pretty while the results loaded.
+  // #611: the guard is DIRECTIONAL. It exists to stop pretty→collapsed downgrades; it
+  // must not ALSO swallow collapsed→pretty upgrades — on a direct boot into OQL mode
+  // the initial seed races ahead of the pretty prefetch, the buffer starts collapsed,
+  // and every later prettify attempt (the editor's own @validation pass, the prefetch
+  // landing) arrives canonical-equal and was kept out by this guard: the tab stayed
+  // one giant wrapped line forever. Same-query AND the incoming form isn't prettier
+  // than what's shown → keep; same-query but incoming is multi-line while the buffer
+  // is the collapsed single line → fall through and adopt the pretty form.
   if (raw && url.oqlForUrl((oqlTabText.value || '').trim()) === url.oqlForUrl(raw)) {
-    oqlSeedBaseline.value = oqlTabText.value;
-    return;
+    const incomingPretty = raw !== url.oqlForUrl(raw);
+    const shownText = (oqlTabText.value || '').trim();
+    const shownCollapsed = shownText === url.oqlForUrl(shownText);
+    if (!(incomingPretty && shownCollapsed)) {
+      oqlSeedBaseline.value = oqlTabText.value;
+      return;
+    }
   }
   // prefer the pre-fetched pretty form when it matches this exact seed; else seed raw
   // and let onOqlTabValidation prettify in place once the editor validates (fallback).
@@ -703,6 +726,17 @@ watch(mode, (m, prev) => {
 // collapse) only as long as the user hasn't diverged from the last seed.
 watch(seedOql, (s) => {
   if (mode.value === 'oql' && !oqlTabDirty.value) seedOqlTab(s);
+});
+// #611: when the pretty prefetch lands AFTER the tab was already seeded (the direct-
+// boot-into-OQL race: onMounted seeds the collapsed ?oql= before validateOql returns),
+// re-seed with the pretty form. seedOqlTab's directional echo guard makes this a no-op
+// unless the buffer is still the un-edited collapsed seed, and oqlTabDirty protects
+// in-progress edits — so this can never reformat under the user's fingers.
+watch(prettySeed, (p) => {
+  if (
+    mode.value === 'oql' && !oqlTabDirty.value && p.oql
+    && p.raw === (seedOql.value || '').trim()
+  ) seedOqlTab(p.oql);
 });
 onMounted(() => {
   if (mode.value === 'oql') seedOqlTab(seedOql.value);

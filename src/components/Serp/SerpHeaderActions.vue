@@ -1,43 +1,66 @@
 <template>
   <div class="d-inline-flex align-center">
-    <!-- Page-top ⋮ (next to the dice, #440 r5): search-level actions — save
-         search, create alert, copy API call, QR code. Moved up from the
-         results-header kebab (SerpResultsKebab), which now holds only
-         results-level display options (page size). Logic ported verbatim. -->
-    <v-menu location="bottom end" v-model="isMenuOpen">
+    <!-- Page-top search-level actions (#440 r5 → #611). Was one ⋮ kebab holding
+         save/alert/copy-API/QR; #611 splits it into two purposeful icon menus and
+         retires the QR code entirely:
+           - SHARE (export icon): Copy API URL / Copy OQL / Copy OQO.
+           - STAR: Save search / Create alert (works only, like the old kebab). -->
+    <v-menu location="bottom end" v-model="isShareMenuOpen">
       <template #activator="{ props }">
-        <v-btn icon variant="text" size="small" v-bind="props" aria-label="Search options">
-          <v-icon color="grey-darken-1">mdi-dots-vertical</v-icon>
+        <v-btn icon variant="text" size="small" v-bind="props" aria-label="Share search">
+          <v-icon color="grey-darken-1">mdi-share-variant-outline</v-icon>
+          <v-tooltip activator="parent" location="bottom" content-class="linear-tooltip">
+            Share
+          </v-tooltip>
         </v-btn>
       </template>
       <v-list min-width="240">
-        <template v-if="isWorks">
-          <v-list-item @click="handleSaveToggle">
-            <template #prepend>
-              <v-icon>{{ activeSearchObj ? 'mdi-star' : 'mdi-star-outline' }}</v-icon>
-            </template>
-            <v-list-item-title>{{ activeSearchObj ? 'Search is saved' : 'Save search' }}</v-list-item-title>
-          </v-list-item>
-          <v-list-item @click="handleAlertToggle">
-            <template #prepend>
-              <v-icon>{{ activeSearchObj?.has_alert ? 'mdi-bell' : 'mdi-bell-outline' }}</v-icon>
-            </template>
-            <v-list-item-title>{{ activeSearchObj?.has_alert ? 'Alert is active' : 'Create alert' }}</v-list-item-title>
-          </v-list-item>
-          <v-divider />
-        </template>
-
-        <v-list-item @click="copyApiCall">
+        <v-list-item @click="copyApiUrl">
           <template #prepend>
             <v-icon>mdi-api</v-icon>
           </template>
-          <v-list-item-title>Copy API call</v-list-item-title>
+          <v-list-item-title>Copy API URL</v-list-item-title>
         </v-list-item>
-        <v-list-item @click="openQrCode">
+        <v-list-item :disabled="!canonicalOql" @click="copyOql">
           <template #prepend>
-            <v-icon>mdi-qrcode</v-icon>
+            <v-icon>mdi-code-string</v-icon>
           </template>
-          <v-list-item-title>Get QR code</v-list-item-title>
+          <v-list-item-title>Copy OQL</v-list-item-title>
+        </v-list-item>
+        <v-list-item :disabled="!canonicalOqo" @click="copyOqo">
+          <template #prepend>
+            <v-icon>mdi-code-json</v-icon>
+          </template>
+          <v-list-item-title>Copy OQO</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+
+    <!-- Star: save/alert. Works-only, matching the old kebab's gate (saved searches
+         and alerts are a works feature). Filled amber star = this search is saved. -->
+    <v-menu v-if="isWorks" location="bottom end" v-model="isStarMenuOpen">
+      <template #activator="{ props }">
+        <v-btn icon variant="text" size="small" v-bind="props" aria-label="Save search or create alert">
+          <v-icon :color="activeSearchObj ? 'amber-darken-2' : 'grey-darken-1'">
+            {{ activeSearchObj ? 'mdi-star' : 'mdi-star-outline' }}
+          </v-icon>
+          <v-tooltip activator="parent" location="bottom" content-class="linear-tooltip">
+            {{ activeSearchObj ? 'Saved' : 'Save' }}
+          </v-tooltip>
+        </v-btn>
+      </template>
+      <v-list min-width="240">
+        <v-list-item @click="handleSaveToggle">
+          <template #prepend>
+            <v-icon>{{ activeSearchObj ? 'mdi-star' : 'mdi-star-outline' }}</v-icon>
+          </template>
+          <v-list-item-title>{{ activeSearchObj ? 'Search is saved' : 'Save search' }}</v-list-item-title>
+        </v-list-item>
+        <v-list-item @click="handleAlertToggle">
+          <template #prepend>
+            <v-icon>{{ activeSearchObj?.has_alert ? 'mdi-bell' : 'mdi-bell-outline' }}</v-icon>
+          </template>
+          <v-list-item-title>{{ activeSearchObj?.has_alert ? 'Alert is active' : 'Create alert' }}</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>
@@ -86,26 +109,6 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-    <!-- QR Code dialog -->
-    <v-dialog :width="qrCodeSize" v-model="isDialogOpen.qrCode">
-      <v-card rounded>
-        <v-toolbar flat>
-          <v-toolbar-title>QR code for this page:</v-toolbar-title>
-          <v-spacer/>
-        </v-toolbar>
-        <v-card-text v-if="isUrlTooBigForQR">
-          <v-alert type="warning" text>
-            Your current URL is too long to create a QR code.
-          </v-alert>
-        </v-card-text>
-        <qrcode-vue v-else :value="urlToShare" :size="qrCodeSize" />
-        <v-card-actions>
-          <v-spacer/>
-          <v-btn color="primary" rounded @click="isDialogOpen.qrCode = false">Dismiss</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </div>
 </template>
 
@@ -113,22 +116,21 @@
 import { ref, computed, reactive } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
-import { useDisplay } from 'vuetify';
-import QrcodeVue from 'qrcode.vue';
 
-defineOptions({ name: 'SerpHeaderKebab' });
+import { oqlForUrl } from '@/oqlSerialize';
+
+defineOptions({ name: 'SerpHeaderActions' });
 
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
-const { mdAndUp } = useDisplay();
 
-const isMenuOpen = ref(false);
+const isShareMenuOpen = ref(false);
+const isStarMenuOpen = ref(false);
 const isDialogOpen = reactive({
   unsaveConfirm: false,
   removeAlertConfirm: false,
   loginRequired: false,
-  qrCode: false,
 });
 
 const entityType = computed(() => store.getters.entityType);
@@ -136,11 +138,30 @@ const isWorks = computed(() => entityType.value === 'works');
 const activeSearchObj = computed(() => store.getters['user/activeSearchObj']);
 const userId = computed(() => store.getters['user/userId']);
 
-const urlToShare = computed(() => `https://openalex.org${route.fullPath}`);
-const isUrlTooBigForQR = computed(() => urlToShare.value.length > 3000);
-const qrCodeSize = computed(() => mdAndUp.value ? 400 : 300);
+// ---- share targets (#611) ---------------------------------------------------
+// The server-canonical query triple {oql, oqo, url} rides on every executed
+// response as meta.x_query (see api.js executeOql/executeOqo). It's the source of
+// truth for all three copy targets; the route params are only a fallback for the
+// legacy GET path, whose responses don't carry x_query.
+const xQuery = computed(() => store.state.resultsObject?.meta?.x_query);
+const canonicalOql = computed(() => xQuery.value?.oql || route.query.oql || null);
+const canonicalOqo = computed(() => xQuery.value?.oqo || null);
 
-const apiCallUrl = computed(() => {
+// The API URL to copy: the flat oxurl format when the query can be expressed that
+// way (x_query.url is exactly that rendering, e.g. "/works?filter=…&sort=…"), else
+// — too complicated for oxurl — the OQL form of the same call on the API root
+// (GET /?oql=…, the execute surface). Legacy fallback: build from route params,
+// verbatim from the old kebab. Always the public host — a copied URL is for
+// sharing, never the dev-port base.
+const apiUrl = computed(() => {
+  const xq = xQuery.value;
+  if (xq?.url) return `https://api.openalex.org${xq.url}`;
+  if (canonicalOql.value) {
+    return `https://api.openalex.org/?${new URLSearchParams({ oql: oqlForUrl(canonicalOql.value) })}`;
+  }
+  return legacyApiUrl.value;
+});
+const legacyApiUrl = computed(() => {
   const params = new URLSearchParams();
   if (route.query.filter) params.set('filter', route.query.filter);
   if (route.query.search) params.set('search', route.query.search);
@@ -157,6 +178,27 @@ const apiCallUrl = computed(() => {
 
 const snackbar = (val) => store.commit('snackbar', val);
 
+async function copyApiUrl() {
+  isShareMenuOpen.value = false;
+  await navigator.clipboard.writeText(apiUrl.value);
+  snackbar('API URL copied to clipboard.');
+}
+
+async function copyOql() {
+  isShareMenuOpen.value = false;
+  if (!canonicalOql.value) return;
+  await navigator.clipboard.writeText(canonicalOql.value);
+  snackbar('OQL copied to clipboard.');
+}
+
+async function copyOqo() {
+  isShareMenuOpen.value = false;
+  if (!canonicalOqo.value) return;
+  await navigator.clipboard.writeText(JSON.stringify(canonicalOqo.value, null, 2));
+  snackbar('OQO copied to clipboard.');
+}
+
+// ---- save / alert (unchanged from the kebab) ---------------------------------
 function generateAutoName() {
   const searchQuery = route.query.search
     || route.query['search.exact']
@@ -178,7 +220,7 @@ function generateAutoName() {
 }
 
 async function handleSaveToggle() {
-  isMenuOpen.value = false;
+  isStarMenuOpen.value = false;
   if (!userId.value) {
     isDialogOpen.loginRequired = true;
     return;
@@ -194,7 +236,7 @@ async function handleSaveToggle() {
 }
 
 async function handleAlertToggle() {
-  isMenuOpen.value = false;
+  isStarMenuOpen.value = false;
   if (!userId.value) {
     isDialogOpen.loginRequired = true;
     return;
@@ -230,17 +272,6 @@ async function confirmRemoveAlert() {
       has_alert: false,
     });
   }
-}
-
-async function copyApiCall() {
-  isMenuOpen.value = false;
-  await navigator.clipboard.writeText(apiCallUrl.value);
-  snackbar('API URL copied to clipboard.');
-}
-
-function openQrCode() {
-  isMenuOpen.value = false;
-  isDialogOpen.qrCode = true;
 }
 
 function clickLogin() {

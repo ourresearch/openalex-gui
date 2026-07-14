@@ -1,5 +1,25 @@
 <template>
   <div ref="rootEl" class="oql-editor" :class="{ 'oql-editor--invalid': isInvalid }">
+    <!-- Real toolbar (#611): a host opts in via `toolbar`, which REPLACES the floating
+         top-right tools with a builder-style strip (same geometry + icon-button recipe
+         as OqlQueryBuilderV2's .builder-toolbar, so the two modes' cards rhyme). -->
+    <div v-if="toolbar" class="oql-editor__toolbar">
+      <v-spacer />
+      <v-btn size="small" variant="text" icon :disabled="!canTidy" @click="tidy">
+        <v-icon color="grey-darken-1">mdi-broom</v-icon>
+        <v-tooltip activator="parent" location="bottom">{{ tidyTitle }}</v-tooltip>
+      </v-btn>
+      <v-btn size="small" variant="text" icon
+        :color="copied ? 'success' : undefined" @click="copy">
+        <v-icon :color="copied ? undefined : 'grey-darken-1'">{{ copied ? 'mdi-check' : 'mdi-content-copy' }}</v-icon>
+        <v-tooltip activator="parent" location="bottom">{{ copied ? 'Copied' : 'Copy' }}</v-tooltip>
+      </v-btn>
+      <v-btn size="small" variant="text" icon :disabled="!hasText" @click="clearDoc">
+        <v-icon color="grey-darken-1">mdi-trash-can-outline</v-icon>
+        <v-tooltip activator="parent" location="bottom">Clear</v-tooltip>
+      </v-btn>
+    </div>
+
     <!-- the CodeMirror surface -->
     <div ref="host" class="oql-editor__cm" />
 
@@ -22,8 +42,9 @@
       <div v-for="n in phantom.count" :key="n">{{ phantom.start + n - 1 }}</div>
     </div>
 
-    <!-- floating tools, top-right (over the text, IDE-style) -->
-    <div class="oql-editor__tools">
+    <!-- floating tools, top-right (over the text, IDE-style) — the pre-toolbar
+         presentation, kept for hosts that haven't opted into `toolbar` -->
+    <div v-if="!toolbar" class="oql-editor__tools">
       <v-btn
         icon="mdi-broom"
         size="x-small"
@@ -55,10 +76,10 @@
     <!-- All states share ONE plain-text style — no icons, no pill chrome; the
          color alone carries the state (grey activity, green/amber/red validity).
          (#530 QA r3, Jason.) -->
-    <div v-if="status" class="oql-editor__badge">
+    <div v-if="showBadge && status" class="oql-editor__badge">
       <span class="oql-badge oql-badge--busy">{{ status }}…</span>
     </div>
-    <div v-else-if="validation" class="oql-editor__badge">
+    <div v-else-if="showBadge && validation" class="oql-editor__badge">
       <!-- clean valid: no errors, no warnings -->
       <span v-if="!isInvalid && !hasWarnings" class="oql-badge oql-badge--ok" title="Valid OQL">
         valid
@@ -177,6 +198,12 @@ const props = defineProps({
   // exclusive). The editor doesn't compute this — only the host knows when it's
   // buffering edits vs running a query (#530 QA auto-run).
   status: { type: String, default: null },
+  // #611: opt into the real toolbar strip (replaces the floating top-right tools).
+  toolbar: { type: Boolean, default: false },
+  // #611: hosts that render the validity state themselves (the SERP OQL tab puts a
+  // chip in its card footer) turn the built-in bottom-right badge off. The
+  // @validation payload carries everything such a host needs.
+  showBadge: { type: Boolean, default: true },
 });
 const emit = defineEmits(["update:modelValue", "valid", "validation", "submit"]);
 
@@ -296,6 +323,13 @@ function tidy() {
   if (!view || !canTidy.value) return;
   const text = validation.value.oql;
   setDoc(text, { external: false }); // a tidy IS a user-visible edit → emit
+}
+
+// Clear (toolbar only, #611) — empty the buffer, mirroring the builder toolbar's
+// trashcan. Reads the v-model (not the live doc) so the disabled state is reactive.
+const hasText = computed(() => !!(props.modelValue || "").trim());
+function clearDoc() {
+  setDoc("", { external: false }); // a clear IS a user edit → emit
 }
 
 // --- doc plumbing ------------------------------------------------------------
@@ -423,6 +457,16 @@ defineExpose({ focus: () => view && view.focus() });
 }
 .oql-editor__phantom-nums > div {
   padding: 0 8px 0 10px;
+}
+
+/* real toolbar (#611): same strip geometry as the builder's .builder-toolbar —
+   thin row, quiet stock icon buttons, a hairline bottom rule. */
+.oql-editor__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 /* floating tools, top-right */
