@@ -166,7 +166,7 @@
               </v-btn>
             </template>
           </add-column>
-          <serp-results-kebab class="ml-1" :show-column-views="isTableView" />
+          <serp-results-kebab class="ml-1" />
         </div>
         <v-divider />
 

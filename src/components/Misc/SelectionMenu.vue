@@ -104,7 +104,7 @@
               @mousedown="onOptionMousedown"
             >
               <template #prepend>
-                <v-icon>mdi-dots-horizontal</v-icon>
+                <v-icon>{{ moreIcon }}</v-icon>
               </template>
               <v-list-item-title class="font-weight-bold">
                 {{ moreLabel }}
@@ -223,6 +223,11 @@ const props = defineProps({
   moreLabel: {
     type: String,
     default: 'More'
+  },
+  // Icon for the "More" row (#602: the column picker uses the circled ellipsis).
+  moreIcon: {
+    type: String,
+    default: 'mdi-dots-horizontal'
   },
   location: {
     type: String,

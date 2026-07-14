@@ -148,6 +148,10 @@ const myStuffItems = computed(() => {
     { title: 'Exports', route: '/settings/exports', icon: 'mdi-download-outline' },
   ];
   items.splice(2, 0, { title: 'Alerts', route: '/settings/alerts', icon: 'mdi-bell-outline' });
+  // Column views (#602) are an OQL-mode feature — hide the page until launch.
+  if (store.getters.featureFlags['oql']) {
+    items.push({ title: 'Appearance', route: '/settings/appearance', icon: 'mdi-palette-outline' });
+  }
   return items;
 });
 

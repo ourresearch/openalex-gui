@@ -35,6 +35,7 @@ import MeExports from "@/views/Me/MeExports.vue";
 import MePlan from "@/views/Me/MePlan.vue";
 import MeApiKey from "@/views/Me/MeApiKey.vue";
 import MeCollections from "@/views/Me/MeCollections.vue";
+import MeAppearance from "@/views/Me/MeAppearance.vue";
 
 import SettingsBase from "@/views/Settings/SettingsBase.vue";
 import SettingsLabs from "@/views/Settings/SettingsLabs.vue";
@@ -252,6 +253,11 @@ const routes = [
                 path: 'collections',
                 name: 'settings-collections',
                 component: MeCollections,
+            },
+            {
+                path: 'appearance',
+                name: 'settings-appearance',
+                component: MeAppearance,
             },
             {
                 path: 'curations',
