@@ -233,7 +233,7 @@
                       :ref="(el) => registerPicker(tok._targetId, el)"
                       :value-kind="tok._kind"
                       :anchor-target="`[data-vid='${tok._targetId}_ph']`"
-                      :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
+                      :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab" :slug-values="tok._slugValues"
                       :external-search="typeOnQuery"
                       @pick="(p) => onPickEntityValueTo(tok._targetId, p, tok._draft)"
                       @set-negate="(neg) => onDraftSetNegate(tok._targetId, neg)"
@@ -243,7 +243,7 @@
                       :value-kind="tok._kind" :negated="tok.negated"
                       :anchor-target="`[data-vid='${tok.id}']`"
                       :external-search="tok._placeholder || tok.id === editingEntityId ? typeOnQuery : null"
-                      :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
+                      :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab" :slug-values="tok._slugValues"
                       @pick="(p) => onPickEntityValue(tok, p)"
                       @set-negate="(neg) => onEntitySetNegate(tok, neg)"
                       @abandon="onAbandonEntityValue(tok)" />
@@ -401,7 +401,7 @@
                 :ref="(el) => registerPicker(tok._targetId, el)"
                 :value-kind="tok._kind"
                 :anchor-target="`[data-vid='${tok._targetId}_ph']`"
-                :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
+                :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab" :slug-values="tok._slugValues"
                 :external-search="typeOnQuery"
                 @pick="(p) => onPickEntityValueTo(tok._targetId, p, tok._draft)"
                 @set-negate="(neg) => onDraftSetNegate(tok._targetId, neg)"
@@ -421,7 +421,7 @@
                 :value-kind="tok._kind" :negated="tok.negated"
                 :anchor-target="`[data-vid='${tok.id}']`"
                 :external-search="tok._placeholder || tok.id === editingEntityId ? typeOnQuery : null"
-                :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
+                :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab" :slug-values="tok._slugValues"
                 @pick="(p) => onPickEntityValue(tok, p)"
                 @set-negate="(neg) => onEntitySetNegate(tok, neg)"
                 @abandon="onAbandonEntityValue(tok)" />
@@ -651,7 +651,7 @@ import { useColumnsState } from "@/composables/useColumnsState";
 import { useLocalColumns } from "@/composables/useLocalColumns";
 import { facetConfigs } from "@/facetConfigs";
 import {
-  valueKindForProperty, autocompleteEntityFor, isListVocabEntity,
+  valueKindForProperty, autocompleteEntityFor, isListVocabEntity, isSlugAutocompleteEntity,
   uiOperatorsForProperty,
 } from "@/components/OqlPlayground/oqoTree";
 import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
@@ -951,6 +951,7 @@ function enrichToken(tok) {
     t._numeric = t._kind === "number";
     t._autocompleteEntity = autocompleteEntityFor(p);
     t._listVocab = isListVocabEntity(p);
+    t._slugValues = isSlugAutocompleteEntity(p); // keywords: autocomplete + bare-slug values (#603 r20)
     t._sole = !!idx.sole[tok.id];
     // (oxjob #494: no more inline trailing "+" add-value chip — values are added by clicking the
     // gap in the value list, so `_addChip` / the `addvaluechip` token are gone.)
@@ -1340,7 +1341,7 @@ function draftBodyTokens(d) {
       }
       tokens.push({ t: "addvalue", _targetId: d.id, _kind: kind,
         _autocompleteEntity: autocompleteEntityFor(p),
-        _listVocab: isListVocabEntity(p), _draft: true });
+        _listVocab: isListVocabEntity(p), _slugValues: isSlugAutocompleteEntity(p), _draft: true });
     }
   } else if (d.column_id && d.unary) {
     tokens.push(enrichToken({ t: "op", id: d.id, column_id: d.column_id, text: ` ${d.operator} `, _draft: true }));

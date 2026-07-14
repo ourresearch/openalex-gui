@@ -66,6 +66,10 @@ const props = defineProps({
   valueKind: { type: String, default: "text" },
   autocompleteEntity: { type: String, default: null },
   listVocab: { type: Boolean, default: false },
+  // slug-id entity on the AUTOCOMPLETE path (keywords, #603 r20): results carry
+  // prefixed short_ids ("keywords/machine-learning") but the OQO value is the bare
+  // slug — tail-ify on pick.
+  slugValues: { type: Boolean, default: false },
   // render only a zero-size picker anchor (block mode); opened via openPicker()
   anchorOnly: { type: Boolean, default: false },
   // optional positioning anchor for the dropdown (a CSS selector / element). When set, the
@@ -110,7 +114,8 @@ const negate = ref(false); // "not" footer toggle (oxjob #507): negate picked va
 const onToggleNegate = () => { negate.value = !negate.value; emit("set-negate", negate.value); };
 
 const pick = (r) => {
-  const id = props.listVocab ? r.value : (r.short_id || r.id || r.value);
+  const raw = props.listVocab ? r.value : (r.short_id || r.id || r.value);
+  const id = props.slugValues ? String(raw).split("/").pop() : raw;
   emit("pick", { value: id, label: r.display_name || id, negate: negate.value });
   search.value = ""; results.value = [];
 };

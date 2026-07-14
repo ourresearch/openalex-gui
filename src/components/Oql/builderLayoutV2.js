@@ -369,7 +369,12 @@ export function layoutLines(tokens, opts = {}) {
     for (const l of out) {
       if ((l._level || 0) >= level + 2) {
         l._indCh += Math.min(fw, 36) + Math.min(pw, 14);
-        l._indPx += 24 + 10 + 6; // field-cell pad + pred pad + gaps (r19: the stray r15 +5 sat level-3 lines 5px right)
+        // px model of one intermediate mini-grid: lead2 chip pad (10) + lead2
+        // margin (gx 2) + field-cell pad (24) + in-cell gap (gx 2) = 38.
+        // (r19 removed the stray r15 +5; r20 fixed the residual +2 — the old "+6
+        // gaps" term counted three gx gaps where the geometry only has two, so
+        // level-3 arm leads sat 2px right of the parent's pred column.)
+        l._indPx += 24 + 10 + 4;
       }
     }
     return out;

@@ -108,10 +108,14 @@
              stable-key invariant from reconcileIds still holds; a TransitionGroup can be
              reintroduced later once the render is solid.) -->
         <div class="bline-flow">
+        <!-- Round 20 (Jason): FAMILY hover — hovering a PARENT line highlights its whole
+             family (the parent via plain :hover, the descendants via .bline--famhov,
+             computed from the hovered line's key + the _level sequence). -->
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
-          :class="{ 'bline--sel': isSelectedLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx), 'bline--sub': !!line._level, 'bline--num1': !line._level }"
+          :class="{ 'bline--sel': isSelectedLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx), 'bline--sub': !!line._level, 'bline--num1': !line._level, 'bline--famhov': famHovKeys.has(line.key) }"
           :data-addr="line.addr"
           :style="lineStyle(line)" tabindex="-1"
+          @mouseenter="hoverLineKey = line.key" @mouseleave="hoverLineKey = null"
           @click.stop="onLineClick(lineIdx, $event)"
           @dblclick.stop="onLineDblclick(lineIdx, $event)">
           <!-- (#595 round 4, Jason: the row DELETE trash moved from the left gutter to the END
@@ -214,8 +218,9 @@
                value-continuation row (right-aligned at the field|value boundary via
                `bl-field--conn`, so sibling AND-arms' VALUES align at one shared x-edge).
                Same OqlBrick dispatch + event set as the value cell — keep the two in sync. -->
-          <div v-if="!line._head && !line._noField" class="bl-field" :class="{ 'bl-field--conn': line._fieldConn,
-            'bl-field--marked': !!(line._fieldToks && line._fieldToks.length) }">
+          <!-- (Round 20, Jason: the ↳ wrap-marker tiles are gone "for now" — the
+               .bl-field--marked binding + its background-image rule were removed.) -->
+          <div v-if="!line._head && !line._noField" class="bl-field" :class="{ 'bl-field--conn': line._fieldConn }">
             <template v-for="(tok, ti) in (line._fieldToks || [])" :key="tok.t === 'vbrick' && tok.id ? tok.id : 'f' + ti">
               <span v-if="isBrick(tok)" class="bl-tok" :data-addr="tok.addr">
                 <OqlBrick :tok="tok" :ctx="brickCtx"
@@ -273,8 +278,7 @@
             <span v-else-if="!line._fieldConn && line._fieldToks && line._fieldToks.length"
               class="bl-slot-pred" :class="{ 'bl-slot-pred--turn': line._slotTail, 'bl-spike': line._spikePred }" aria-hidden="true">{{ line._slotPred || '→' }}</span>
           </div>
-          <div v-if="!line._head" class="bl-body"
-            :class="{ 'bl-body--marked': !!(line._valueToks && line._valueToks.length) }">
+          <div v-if="!line._head" class="bl-body">
             <!-- Round 9 (Jason): hover shows "N subclauses" on a value-AND header —
                  first body element, so it sits at the value column, over the arm
                  content below (the body ::before pull-back puts row 1 at the true
@@ -358,6 +362,7 @@
                 :value-kind="tok._kind"
                 :anchor-target="`[data-vid='${tok._targetId}_ph']`"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
+                :slug-values="tok._slugValues"
                 :external-search="typeOnQuery"
                 @pick="(p) => onPickEntityValueTo(tok._targetId, p, tok._draft)"
                 @set-negate="(neg) => onDraftSetNegate(tok._targetId, neg)"
@@ -378,6 +383,7 @@
                 :anchor-target="`[data-vid='${tok.id}']`"
                 :external-search="tok._placeholder || tok.id === editingEntityId ? typeOnQuery : null"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
+                :slug-values="tok._slugValues"
                 @pick="(p) => onPickEntityValue(tok, p)"
                 @set-negate="(neg) => onEntitySetNegate(tok, neg)"
                 @abandon="onAbandonEntityValue(tok)" />
@@ -595,7 +601,7 @@ import { useColumnsState } from "@/composables/useColumnsState";
 import { useLocalColumns } from "@/composables/useLocalColumns";
 import { facetConfigs } from "@/facetConfigs";
 import {
-  valueKindForProperty, autocompleteEntityFor, isListVocabEntity,
+  valueKindForProperty, autocompleteEntityFor, isListVocabEntity, isSlugAutocompleteEntity,
   uiOperatorsForProperty,
 } from "@/components/OqlPlayground/oqoTree";
 import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
@@ -935,6 +941,7 @@ function enrichToken(tok) {
     t._numeric = t._kind === "number";
     t._autocompleteEntity = autocompleteEntityFor(p);
     t._listVocab = isListVocabEntity(p);
+    t._slugValues = isSlugAutocompleteEntity(p); // keywords: autocomplete + bare-slug values (r20)
     t._sole = !!idx.sole[tok.id];
     // (oxjob #494: no more inline trailing "+" add-value chip — values are added by clicking the
     // gap in the value list, so `_addChip` / the `addvaluechip` token are gone.)
@@ -1415,7 +1422,7 @@ function draftBodyTokens(d) {
       }
       tokens.push({ t: "addvalue", _targetId: d.id, _kind: kind,
         _autocompleteEntity: autocompleteEntityFor(p),
-        _listVocab: isListVocabEntity(p), _draft: true });
+        _listVocab: isListVocabEntity(p), _slugValues: isSlugAutocompleteEntity(p), _draft: true });
     }
   } else if (d.column_id && d.unary) {
     tokens.push(enrichToken({ t: "op", id: d.id, column_id: d.column_id, text: ` ${d.operator} `, _draft: true }));
@@ -1963,26 +1970,19 @@ const pruneSelectionToLiveTree = () => {
 // a fresh Set so the reactive `.has()`/`.size` reads update.
 const onChipSelect = ({ id, mode }) => {
   if (mode === "single") {
-    // NO chip menus anymore (Jason 2026-06-24, #507): a single click just SELECTS the value
-    // (paints it black). Re-clicking the already-selected value toggles it OFF. Deletion is ⌫
-    // or drag-to-tray; negation is typing `not`; editing is double-click. No popup.
+    // Round 20 (Jason): chips are NOT selectable anymore — a single click goes straight
+    // to EDIT/draft mode (text/number: the in-place input; entity: the re-pick picker;
+    // date: the calendar) — the same routing as Enter/double-click. A sole boolean-
+    // phrase chip has nothing to edit (booleans toggle on click in OqlBoolChip; a
+    // phrase chip's only actions are the row × / typing `not`), so it's a no-op.
+    // (The r11-era "click paints a selection ring" model is gone; Cmd/Shift multi-
+    // select below is kept — it feeds batch-delete / wrap-as-subclause, not selection.)
     const vt = findValueTok(id);
-    // A sole BOOLEAN-PHRASE value IS its whole filter — select the whole one-chip filter (row).
-    if (vt && vt._boolPhrase && treeIndex.value.sole[id]) {
-      const cid = treeIndex.value.tokenClause[id];
-      if (selectedChip.value && selectedChip.value.id === id) { clearSelection(); return; } // re-click → off
-      selectRowTarget({ groupId: clauseValueGroupId(cid), clauseId: cid, withProperty: true }, vt);
-      return;
-    }
-    // re-click the already-selected value → deselect.
-    if (selection.value?.kind === "value" && selection.value.id === id) { clearActive(); return; }
+    if (!vt || (vt._boolPhrase && treeIndex.value.sole[id])) return;
     lastSingleId.value = id;
-    selectedChip.value = null;
-    selection.value = { kind: "value", id };
-    editTextId.value = null;
-    editingEntityId.value = null;
-    if (selectedIds.value.size) selectedIds.value = new Set(); // single replaces any multi
+    if (selectedIds.value.size) selectedIds.value = new Set();
     selectionAnchorId.value = null;
+    editValue(vt);
     return;
   }
   if (!id) return;
@@ -2045,19 +2045,10 @@ const onChipMenu = (tok, el, ev) => {
   }
   // Round 11 (Jason): filtername chips are NOT selectable — a plain click on a locked
   // field chip does nothing ("there's nothing we would select them for"; deletes live on
-  // the ×, moves on the line number). Cmd-multi above is kept — it feeds the wrap-as-
-  // subclause / batch-delete power path, not chip selection.
-  if (tok.t === "col") return;
-  // NO menus (Jason 2026-06-24, #507): clicking a committed structural chip just SELECTS
-  // its whole row; re-clicking the same chip deselects. (Reachable for paren/join leaders.)
-  if (selectedChip.value && selectedChip.value.id === tok.id && selectedChip.value.t === tok.t) {
-    clearSelection();
-    return;
-  }
-  const r = rowForToken(tok);
-  if (r) selectRowTarget(r, tok); else clearSelection();
-  // Seed a later Cmd-click extension with this leader's expr id (selectRowTarget cleared it).
-  lastSingleId.value = exprId;
+  // the ×, moves on the line number). Round 20 extends that to EVERY structural chip
+  // (paren/join leaders): chips are never selectable — a plain structural click is a
+  // no-op. Cmd-multi above is kept — it feeds the wrap-as-subclause / batch-delete
+  // power path, not chip selection.
 };
 
 // Open the date calendar overlay for a date value, anchored just below the chip.
@@ -3364,6 +3355,27 @@ function onAddrHover(e) {
   }
   hoveredAddr.value = addr || null;
 }
+
+// ---- FAMILY hover (round 20, Jason) ------------------------------------------
+// Hovering a PARENT line highlights its whole family: the hovered line itself via
+// plain CSS :hover, its DESCENDANTS via .bline--famhov. A descendant = the run of
+// lines immediately after the hovered one with a deeper _level (the same walk the
+// decimal numbering uses). Leaf lines have no run → no extra work. Cheap enough
+// per line-crossing: one findIndex + a short scan over displayLines.
+const hoverLineKey = ref(null);
+const EMPTY_KEY_SET = new Set();
+const famHovKeys = computed(() => {
+  const k = hoverLineKey.value;
+  if (k == null) return EMPTY_KEY_SET;
+  const lines = displayLines.value;
+  const i = lines.findIndex((l) => l.key === k);
+  if (i < 0) return EMPTY_KEY_SET;
+  const lvl = lines[i]._level || 0;
+  const out = new Set();
+  for (let j = i + 1; j < lines.length && (lines[j]._level || 0) > lvl; j++) out.add(lines[j].key);
+  return out;
+});
+
 // The friendly field label for a clause, mirroring the chip's own label (enrichToken
 // `_label`): the /properties display name, falling back to the raw column. Used by the
 // breadcrumb so its segment labels never drift from the chips. (#487 D4.)
@@ -3765,6 +3777,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
   --paren-w: var(--chip-w);   /* open/close paren = the shared chip width */
   --indent: var(--chip-w);    /* one indent step = one chip width */
   --brick-fs: 0.8125rem;
+  /* Round 20 (Jason): ONE ink for all canvas numbering — line numbers (gutter,
+     inline, chrome ::before) AND the hover "N subclauses:" phrase read this pair,
+     so they can never drift apart again. */
+  --num-ink: #1a1a1a;
+  --num-op: 0.3;
   position: relative; /* positioning context for the drag-to-delete overlay */
 }
 .builder :deep(.v-chip.v-chip--size-small) { font-size: var(--brick-fs); font-family: "JetBrains Mono", monospace; }
@@ -3985,8 +4002,15 @@ defineExpose({ rebuildFromOql: async (oql) => {
       inert conn chips, which never read as selected. Covers .selected,
       .multi-selected, and :focus — every path oqlChip.css used to paint black. */
 .builder-lines :deep(.line-plus) { color: #1a1a1a; margin-left: 0; }
-/* round 12 (Jason): ghost hover fill = the value chips' own grey, text black */
-.builder-lines :deep(.line-plus:hover) { color: #1a1a1a; background: var(--val-bg, #ececec); }
+/* Round 20 (Jason): the row-hover reveal shows the EOL ghost buttons at FULL black
+   (the component's 0.55 fade read as grey ink); button-hover fill = the CHIPS' own
+   background var — one var (--val-bg = the V2 chip grey) so they can't drift. The
+   .line-and variants are spelled out to out-specify the component's own scoped
+   `.line-plus.line-and:hover` peach rule. */
+.builder-lines :deep(.bline:hover .line-plus) { opacity: 1; }
+.builder-lines :deep(.line-plus:hover),
+.builder-lines :deep(.line-plus.line-and:hover) { color: #1a1a1a; background: var(--val-bg, #ececec); }
+.builder-lines :deep(.line-plus.line-and) { color: #1a1a1a; }
 /* round 11 (Jason: "margins around value OR chips are inconsistent — left too wide"):
    the only measured asymmetry was the GHOST or (4px left gap = its 2px margin-left on
    top of the tail unit's 2px flex gap, vs the committed ors' uniform 2px) — margin
@@ -4014,12 +4038,14 @@ defineExpose({ rebuildFromOql: async (oql) => {
   padding: 0 10px;
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs, 0.8125rem);
-  color: #1a1a1a; /* grey ink at the reveal opacity — same as the line numbers (r11) */
+  /* r20 (Jason): ALWAYS the line numbers' exact ink — shared --num-ink/--num-op,
+     so the two can't drift (they had: numbers went to 0.3 in r19, this stayed 0.5). */
+  color: var(--num-ink);
   opacity: 0;
   pointer-events: none;
   user-select: none;
 }
-.bline:hover .bl-subcount { opacity: 0.5; }
+.bline:hover .bl-subcount { opacity: var(--num-op); }
 .bline--sel .bl-lead2 { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 .bline--sel .bl-lead2--val { background: var(--vconn-bg-sel, #1f6feb); color: var(--vconn-fg-sel, #fff); }
 /* ---- V2 turn-marker chip (rounds 3–6, Jason) ----------------------------------
@@ -4067,8 +4093,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* Numbers: grey ink at half-opacity (round 11 — the round-5 peach went with the
    monochrome pass), full text size (was 0.72rem; the outer cell is already mono at
    --brick-fs, so the inner span just inherits). */
-.bl-num2 > span { color: #1a1a1a; opacity: 0.3; } /* r19: .5 -> .3 */
-.bline--sel .bl-num2 > span { font-weight: 700; color: #1a1a1a; opacity: 1; }
+.bl-num2 > span { color: var(--num-ink); opacity: var(--num-op); } /* r20: shared --num-ink/--num-op */
+.bline--sel .bl-num2 > span { font-weight: 700; color: var(--num-ink); opacity: 1; }
 /* …and the gutter cell goes BLANK on those lines (the ::before box keeps its --num-w
    width so every row's content shares one origin). Doubled class = out-specify the
    later `.bline::before { content: attr(data-addr) }` rule. */
@@ -4128,32 +4154,21 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs);
 }
-/* Line-continuation ↳ marker (r19, Jason: the r5 hanging indent is GONE — wrapped
-   rows align with the line's first value). The ↳ tile lives back in the FIELD cell's
-   slot column (its pre-r5 home): the cell stretches the full line height, tiles
-   repeat at the 28px row pitch right-aligned under the pred chip — row 1's (opaque)
-   pred chip covers tile 1, so the arrow shows only beside WRAPPED rows, pointing
-   into their first chip. 26×28 tile = the SVG viewBox drawn 1:1 (the r18 20px-wide
-   tile squished the arrow x-only and ate the arrowhead). Arm lines (no field cell)
-   wrap without a marker. */
-.bl-field--marked {
-  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='28'%20viewBox='0%200%2026%2028'%3E%3Cpath%20d='M10%209V16H16M14%2013.5L16.5%2016L14%2018.5'%20fill='none'%20stroke='%231a1a1a'%20stroke-opacity='0.18'%20stroke-width='1.4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: repeat-y;
-  background-position: 100% 0;
-  background-size: 26px 28px;
-}
-/* #575 round 5 (Jason): every COMMITTED field chip fills the full field column — equal
-   widths, the longest field sets --field-w — so rows with short field names don't leave a
-   hard-to-parse whitespace chunk between the gutter and the chip. The label stays
-   right-aligned inside, hugging its predicate. #595 round 5 (Jason): DRAFT chips too —
-   "the draft chip should look just like a regular chip, in every way possible". The
-   picker-mode chip sits inside SelectionMenu, whose root <div> was the actual flex item
-   (block, no grow) — the chip couldn't fill and floated 8px in from the cell edge. Make
-   that wrapper display:contents so the chip IS the flex item, and give the picked-draft
-   v-chip (.prop-chip) the same fill treatment. */
-.bl-field :deep(.prop-chip-leaf) { flex: 1 1 auto; justify-content: flex-end; }
+/* (Round 20, Jason: the r19 ↳ line-continuation marker is REMOVED "for now" — the
+   .bl-field--marked tile rule + its class binding are gone. If it comes back, the
+   mechanism was: field cell stretches full line height, 26×28 tiles repeat-y
+   right-aligned under the pred chip, row 1's OPAQUE pred covers tile 1 — which is
+   why chips must stay opaque; see the r18 gotcha.) */
+/* Round 20 (Jason: "col 2, row 2 is too wide" — the `year` chip): committed field
+   chips are NATURAL width now, right-aligned in the cell (right edges stay flush at
+   the field|pred boundary; the whitespace lands on the invisible left side). This
+   UNDOES the #575-r5 fill-the-column rule (`flex: 1 1 auto` on every field chip made
+   a short field like `year` as wide as the longest field in the query). The UNSET
+   type-on draft keeps its fill (it's an input — see .prop-typeon above); the
+   picked-draft v-chip goes natural like committed chips. */
+.bl-field :deep(.prop-chip-leaf:not(.prop-typeon)) { flex: 0 1 auto; justify-content: flex-end; }
 .bl-field :deep(.bl-tok > div) { display: contents; }
-.bl-field :deep(.prop-chip) { flex: 1 1 auto; justify-content: flex-end; }
+.bl-field :deep(.prop-chip) { flex: 0 1 auto; justify-content: flex-end; }
 /* a filter row's connector slot holds the inert PREDICATE chip (#575 round 4 — was the
    round-3 `→`): peach, and sized to the shared slot column (--pred-w = the query's widest
    predicate, min one chip) so it stacks with the `and` conn chips on the AND-arm rows. */
@@ -4245,15 +4260,15 @@ defineExpose({ rebuildFromOql: async (oql) => {
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: #1a1a1a; /* grey ink (r11 monochrome — --conn-fg is chip-text white now) */
-  opacity: 0.55;
+  color: #1a1a1a;
+  opacity: 1; /* r20 (Jason): EOL buttons read BLACK — the 0.55 fade looked grey */
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs, 0.8125rem);
   font-weight: 400;
   cursor: pointer;
-  transition: opacity 0.1s ease, background 0.1s ease;
+  transition: background 0.1s ease;
 }
-.add-and-btn:hover { opacity: 1; background: var(--val-bg, #ececec); } /* value-chip grey (r12) */
+.add-and-btn:hover { background: var(--val-bg, #ececec); } /* the chips' own bg var (r20) */
 /* (V2 round 2: the trailing `or` button + its CSS are gone — filter-OR creation
    lives in the field menu's "Either…" option.) */
 /* "select filter" — the empty-state call to action (#595 round 4, Jason: the no-filter
@@ -4363,6 +4378,13 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bline-flow > .bline:hover:not(.bline--sel) {
   background: rgba(0, 0, 0, 0.025);
 }
+/* Round 20 (Jason): FAMILY hover — hovering a PARENT line highlights its descendants
+   too (hover line 3 → 3, 3.1, 3.2 all banded). The parent keeps the pure-CSS :hover
+   above; descendants get .bline--famhov from the builder (hoverLineKey + the _level
+   walk in famHovKeys). Same band as :hover so the family reads as ONE hover. */
+.bline-flow > .bline--famhov:not(.bline--sel) {
+  background: rgba(0, 0, 0, 0.025);
+}
 /* selected-scope row (oxjob #475, Jason 2026-06-19 review #3): clicking a leader chip selects
    only that chip; the clause it acts on shows its "blast radius" here — the SAME light-grey band
    as hover PLUS a bold black line number. (Earlier the band was hover-only; Jason now wants the
@@ -4405,11 +4427,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-family: "JetBrains Mono", monospace;
   /* round 11 (Jason): full text size + grey ink (was 0.72rem peach); half-opacity (r9) */
   font-size: var(--brick-fs, 0.8125rem);
-  color: #1a1a1a;
-  opacity: 0.3; /* r19: .5 -> .3 */
+  color: var(--num-ink); /* r20: shared --num-ink/--num-op */
+  opacity: var(--num-op);
   user-select: none;
 }
-.bline--sel::before { font-weight: 700; color: #1a1a1a; opacity: 1; }
+.bline--sel::before { font-weight: 700; color: var(--num-ink); opacity: 1; }
 /* Round 10: TOP-LEVEL query lines carry a REAL gutter cell (.bl-num1 — the ::before
    pseudo can't take drag handlers), so their ::before hides entirely. Chrome lines
    (sort / return / the trailing add-filter) keep the pseudo cell + its number. The
@@ -4429,14 +4451,14 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-family: "JetBrains Mono", monospace;
   /* round 11 (Jason): numbers at the same size as the rest of the text; grey ink */
   font-size: var(--brick-fs, 0.8125rem);
-  color: #1a1a1a;
+  color: var(--num-ink); /* r20: shared --num-ink/--num-op */
   user-select: none;
 }
 /* the × pins to its own lane so the digits' x never moves (the button is v-if'd) */
 .bl-num1 > .row-trash--num { position: absolute; left: var(--lane-w, 10px); top: 3px; margin: 0; }
 /* digits sit at a fixed x (the × lane is always reserved, hover or not) */
-.bl-num1-digits { display: inline-block; opacity: 0.3; } /* r19: .5 -> .3 */
-.bline--sel .bl-num1-digits { font-weight: 700; color: #1a1a1a; opacity: 1; }
+.bl-num1-digits { display: inline-block; opacity: var(--num-op); }
+.bline--sel .bl-num1-digits { font-weight: 700; color: var(--num-ink); opacity: 1; }
 /* the line-number drag handle (round 10): grab cursor on the digits */
 .num-grab { cursor: grab; }
 .num-grab:active { cursor: grabbing; }

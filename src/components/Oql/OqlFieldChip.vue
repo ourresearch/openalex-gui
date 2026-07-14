@@ -45,6 +45,7 @@
     location="bottom start"
     :offset="[4, 0]"
     search-placeholder="Search all fields"
+    more-label="More filters"
     custom-more
     :external-search="typeOn ? fieldQuery : null"
     :card-style="menuCardStyle"
@@ -65,20 +66,19 @@
     <!-- (#575 round 8, Jason: the "Delete filter" footer is gone — a not-yet-committed DRAFT
          has nothing to delete; abandon it by clicking away / Escape. Committed filters delete
          via the row's left-gutter trash button.) -->
-    <!-- "and either" (advanced-v2 only — ctx.subclauseOption): instead of a plain filter,
-         start a SUBCLAUSE — a group of OR-ed filters that gets ANDed to the filter list.
-         Hidden on drafts already inside a subclause flow (_orDraft / _thenOr). Styled
-         exactly like the main options (round 2, Jason) — a real list item with an icon;
-         SelectionMenu supplies the divider above. -->
+    <!-- "Either/or filter" (advanced-v2 only — ctx.subclauseOption): instead of a plain
+         filter, start a SUBCLAUSE — a group of OR-ed filters that gets ANDed to the
+         filter list. Hidden on drafts already inside a subclause flow (_orDraft /
+         _thenOr). Styled exactly like the main options (round 2, Jason) — a real list
+         item with an icon; SelectionMenu supplies the divider above. (#603 r20: the
+         grey "a set of filters…" hint is gone; the label carries the meaning.) -->
     <template v-if="ctx.subclauseOption && tok._draft && !tok._orDraft && !tok._thenOr" #footer>
-      <v-list class="pt-0">
+      <v-list>
         <v-list-item @mousedown.prevent @click.stop="$emit('make-subclause')">
           <template #prepend>
             <v-icon>mdi-call-split</v-icon>
           </template>
-          <v-list-item-title>Either&#8230;
-            <span class="subclause-hint">a set of filters, any of which can match</span>
-          </v-list-item-title>
+          <v-list-item-title>Either/or filter</v-list-item-title>
         </v-list-item>
       </v-list>
     </template>
@@ -185,7 +185,4 @@ const onFieldKeydown = (e) => {
 .prop-typeon { cursor: text; }
 .prop-typeon:hover { background: var(--prop-bg, #fae1d1); filter: none; }
 .prop-typeon .typeon-input { min-width: 0; }
-
-/* "and either" footer option (advanced-v2 only) */
-.subclause-hint { color: rgba(0, 0, 0, 0.45); font-size: 0.75rem; margin-left: 6px; }
 </style>

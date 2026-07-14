@@ -71,10 +71,7 @@
           </template>
         </v-list>
 
-        <!-- when a footer follows, drop this list's bottom padding so the divider
-             hugs the "More" row like the in-list divider above it (the footer list
-             brings its own bottom padding). -->
-        <v-list v-if="!effSearch" :class="{ 'pb-0': !!$slots.footer }">
+        <v-list v-if="!effSearch">
           <v-list-item
             v-for="(key, i) in popularKeys"
             :key="key"
@@ -93,20 +90,28 @@
               <v-icon>mdi-check</v-icon>
             </template>
           </v-list-item>
-          <v-divider/>
-          <v-list-item
-            key="more-options"
-            @click="openMoreDialog"
-            @mousedown="onOptionMousedown"
-          >
-            <template #prepend>
-              <v-icon>mdi-dots-horizontal</v-icon>
-            </template>
-            <v-list-item-title class="font-weight-bold">
-              More
-            </v-list-item-title>
-          </v-list-item>
         </v-list>
+        <!-- "More" gets its own section: the divider sits OUTSIDE the v-list so it
+             spans the full card width (inside, the list's 8px padding inset it while
+             the footer divider below ran edge-to-edge — mismatched, #603 r20), and
+             the two lists' symmetric padding gives the row even breathing room. -->
+        <template v-if="!effSearch">
+          <v-divider/>
+          <v-list>
+            <v-list-item
+              key="more-options"
+              @click="openMoreDialog"
+              @mousedown="onOptionMousedown"
+            >
+              <template #prepend>
+                <v-icon>mdi-dots-horizontal</v-icon>
+              </template>
+              <v-list-item-title class="font-weight-bold">
+                {{ moreLabel }}
+              </v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </template>
 
         <!-- optional footer (e.g. a "Delete" action) — backwards-compatible: only
              renders when the caller provides the slot. (oxjob #428.) -->
@@ -213,6 +218,11 @@ const props = defineProps({
   moreDialogTitle: {
     type: String,
     default: 'More Options'
+  },
+  // Label for the "More" row (#603 r20: the OQL field picker says "More filters").
+  moreLabel: {
+    type: String,
+    default: 'More'
   },
   location: {
     type: String,

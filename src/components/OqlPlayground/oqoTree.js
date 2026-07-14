@@ -29,8 +29,20 @@ export function valueKindForProperty(prop) {
 // An entity whose values come from a fixed `/{entity-type}` list rather than the
 // `/autocomplete/{entity}` search — the only thing that distinguishes the old
 // "enum" kind. Used by the value picker to pick its data source.
+// NB keywords is EXCLUDED (#603 round 20): it's slug-id like the enums, but an
+// OPEN ~30k vocabulary — getEnumValues paged the whole /keywords index while the
+// picker sat empty (Jason: "the keyword-is autocomplete isn't working"). It has
+// real /autocomplete/keywords support; see isSlugAutocompleteEntity below.
 export function isListVocabEntity(prop) {
-  return !!(prop && prop.type !== "openalex_id" && prop.entity_type);
+  return !!(prop && prop.type !== "openalex_id" && prop.entity_type && prop.entity_type !== "keywords");
+}
+
+// A slug-id entity served by /autocomplete rather than a list fetch (keywords).
+// Its autocomplete results carry prefixed short_ids ("keywords/machine-learning")
+// but the OQO value is the bare slug ("machine-learning") — the picker must
+// tail-ify on pick (BuilderAddValue's `slugValues` prop).
+export function isSlugAutocompleteEntity(prop) {
+  return !!(prop && prop.type !== "openalex_id" && prop.entity_type === "keywords");
 }
 
 export function autocompleteEntityFor(prop) {
