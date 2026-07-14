@@ -370,12 +370,13 @@ export function layoutLines(tokens, opts = {}) {
       if ((l._level || 0) >= level + 2) {
         l._indCh += Math.min(fw, 36) + Math.min(pw, 14);
         // px model of one intermediate mini-grid: lead2 chip pad (10) + lead2
-        // margin (gx 2) + field-cell pad (24) + in-cell gap (gx 2) − the r21
-        // 5px pred-inset this grid's own boundary chip carries = 33. The line's
-        // FINAL boundary inset is lead2Indent's trailing −5px; each intermediate
-        // grid contributes its own −5 here. (History: r19 removed the stray r15
-        // +5; r20 fixed a +2 gx miscount; r21 added the insets.)
-        l._indPx += 24 + 10 + 4 - 5;
+        // margin (gx 2) + field-cell pad (24) + in-cell gap (gx 2) − the
+        // pred-inset this grid's own boundary chip carries (r23: 13) = 25. The
+        // line's FINAL boundary inset is lead2Indent's trailing −13px; each
+        // intermediate grid contributes its own −13 here. (History: r19 removed
+        // the stray r15 +5; r20 fixed a +2 gx miscount; r21 added the 5px insets;
+        // r23 bumped 5→13 with the full-height spike.)
+        l._indPx += 24 + 10 + 4 - 13;
       }
     }
     return out;

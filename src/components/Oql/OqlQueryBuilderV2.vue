@@ -500,26 +500,10 @@
           </div>
         </div>
 
-        <!-- return — which columns come back (OQL `return …`) -->
-        <div v-if="returnShown" class="bline" :style="{ '--depth': 0 }">
-          <div class="bl-body">
-            <v-chip class="kw-chip" size="small" label variant="flat">return</v-chip>
-            <v-chip v-for="c in returnColumns" :key="c.key" class="return-chip" label size="small" variant="flat"
-              :closable="returnColumns.length > 1" @click:close="removeColumn(c.key)">{{ c.label }}</v-chip>
-            <AddColumn :entity-type="getRows">
-              <template #activator="{ props: mp }">
-                <v-btn v-bind="mp" class="add-sort-btn hover-reveal" icon size="x-small" variant="text" density="comfortable">
-                  <v-icon size="16">mdi-plus</v-icon>
-                  <v-tooltip activator="parent" location="top">Add a column</v-tooltip>
-                </v-btn>
-              </template>
-            </AddColumn>
-            <v-btn class="sort-remove" icon size="x-small" variant="text" density="comfortable" @click="resetReturn">
-              <v-icon size="13">mdi-close</v-icon>
-              <v-tooltip activator="parent" location="top">Back to default columns</v-tooltip>
-            </v-btn>
-          </div>
-        </div>
+        <!-- (Round 23, Jason: the `return` columns line is GONE — no column affordances
+             in the Advanced builder. Which columns come back is driven entirely by the
+             results table's own column controls now; the OQL `return` clause still
+             round-trips through the shared column state, it just isn't editable here.) -->
 
         <!-- root add line — the main thing to do next. Hidden when the toolbar is
              shown (its "add filter / columns / sort" live up there instead). -->
@@ -534,7 +518,7 @@
                 <v-list-item prepend-icon="mdi-plus" title="Add a filter" @click="addRootFilter()" />
                 <v-divider />
                 <v-list-item prepend-icon="mdi-sort" title="Add sort" @click="startSortPending" />
-                <v-list-item v-if="!returnShown" prepend-icon="mdi-table-column-plus-after" title="Add return columns" @click="returnForced = true" />
+                <!-- (Round 23: "Add return columns" removed — columns are the table's job now.) -->
               </v-list>
             </v-menu>
           </div>
@@ -595,7 +579,6 @@ import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
 import OqlDatePicker from "@/components/Oql/OqlDatePicker.vue";
 import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vue";
 import BuilderAddValue from "@/components/OqlPlayground/BuilderAddValue.vue";
-import AddColumn from "@/components/Results/Table/AddColumn.vue";
 import { resolveColumns } from "@/components/Results/Table/columnConfig";
 import { useColumnsState } from "@/composables/useColumnsState";
 import { useLocalColumns } from "@/composables/useLocalColumns";
@@ -1340,9 +1323,10 @@ const lead2Indent = (line) => {
   let expr = parts.join(" + ");
   if (line._indCh) expr += ` + ${line._indCh}ch`;
   if (line._indPx) expr += ` + ${line._indPx}px`;
-  // r21: the parent's boundary chip (pred / turn pred / either-head tail) is
-  // inset 5px from its cell edge now — child leads follow it left.
-  return `calc(${expr} - 5px)`;
+  // r21/r23: the parent's boundary chip (pred / turn pred / either-head tail) is
+  // inset 13px from its cell edge now (the full-height spike's whitespace) — child
+  // leads follow it left. (r23: 5→13 with the bigger spike.)
+  return `calc(${expr} - 13px)`;
 };
 // Round 4 (Jason): the indent space left of the lead chip is no longer a margin —
 // it's the .bl-num2 number cell (the line's decimal address, right-aligned against
@@ -3332,7 +3316,6 @@ const hasQuery = computed(() =>
 const clearQuery = () => {
   drafts.value = [];
   sortBy.value = [];
-  returnForced.value = false;
   if (!columnsAreDefault.value) setColumns(defaultColumnKeys.value);
   v2.value = null;            // wipe the committed where-tree…
   renderQuery({ swap: true }); // …then re-render the empty starting query
@@ -3536,16 +3519,14 @@ const removeSort = (i) => { sortBy.value.splice(i, 1); onSortChange(); };
 const onSortChange = () => renderQuery({ swap: true });
 
 // ---- return columns ---------------------------------------------------------
-const { columnKeys, defaultColumnKeys, removeColumn, setColumns } =
+// Round 23 (Jason): the builder no longer EDITS the return columns (the `return`
+// line + "Add return columns" menu item are gone — that's the results table's job).
+// The column STATE stays wired: it still renders the OQL `return` clause (buildReturn
+// below), feeds `hasQuery`, resets on clear, and stays in sync with the table's own
+// column picker via useColumnsState.
+const { columnKeys, defaultColumnKeys, setColumns } =
   props.standalone ? useLocalColumns(getRows) : useColumnsState(getRows);
-const returnForced = ref(false);
 const columnsAreDefault = computed(() => JSON.stringify(columnKeys.value) === JSON.stringify(defaultColumnKeys.value));
-const returnShown = computed(() => !columnsAreDefault.value || returnForced.value);
-const returnColumns = computed(() => resolveColumns(getRows.value, columnKeys.value));
-const resetReturn = () => {
-  returnForced.value = false;
-  if (!columnsAreDefault.value) setColumns(defaultColumnKeys.value);
-};
 const selectNameForKey = (k) => {
   const base = String(k).split(":")[0];
   for (const cand of [base, base.split(".")[0]]) {
@@ -4065,10 +4046,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
   display: inline-flex;
   box-sizing: border-box;
   flex: 0 0 auto;
-  /* r21: the same 5px right-inset every pred chip carries now (spike rule /
+  /* r21/r23: the same right-inset every boundary chip carries now (spike rule /
      --turn rule) — ALL structural cell content shares one right edge, and the
-     child-line indent (lead2Indent's −5px) lands on it for every parent kind. */
-  margin-right: 5px;
+     child-line indent (lead2Indent's −13px) lands on it for every parent kind.
+     (r23: 5→13 with the full-height spike.) */
+  margin-right: 13px;
   height: 26px;
   border-radius: 4px 13px 4px 4px;
   background: var(--conn-bg, #fae1d1);
@@ -4216,36 +4198,50 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .bl-slot-pred--edit:hover,
 .bl-slot-pred--edit[aria-expanded="true"] { background: var(--prop-bg-hov, #dcdcdc); color: var(--prop-fg, #1a1a1a); }
 /* ---- round 14 (Jason): one chip colour — the structure/value boundary is SHAPE ----
-   SPIKE: a small (10×5px) nub pointing right off the chip immediately left of the
-   line's first value chip (predicates, value-arm and/blank leads, the either-head
-   turn chips). Same fill as the chip; the .bl-body +5px shift keeps it in whitespace. */
-.bl-spike { position: relative; }
-/* r16: the spiked chip carries its own whitespace (the r14/15 uniform column shifts
-   are undone — Jason: sub-lines play by gridless value-chip rules, inconsistent
+   SPIKE: a right-pointing arrow off the chip immediately left of the line's first
+   value chip (predicates, value-arm and/blank leads, the either-head turn chips).
+   Round 23 (Jason): the spike is now as tall as the WHOLE chip — the chip becomes a
+   five-sided "one way" street sign (rounded-rect left, two edges meeting at a 90°
+   point on the right). Full-height 26px means the ::after triangle is 13px on each
+   half (26px tall) and 13px wide (a right angle at the tip). The right corners of the
+   chip square off so the triangle base meets flush. Same fill as the chip; the wider
+   13px boundary inset (below) keeps the whole arrow in the field→value gutter, so the
+   VALUE column doesn't move (the field cell is fixed-width — the inset only slides the
+   field+pred group left within it). */
+.bl-spike {
+  position: relative;
+  /* squared right side — the triangle base is the chip's right edge */
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+/* r16/r23: the spiked chip carries its own whitespace (the r14/15 uniform column
+   shifts are undone — Jason: sub-lines play by gridless value-chip rules, inconsistent
    gutters between line families are fine). Lead spikes push their margin; the pred
-   spike insets from its right-aligned cell edge so the nub lands in the cell gap. */
-.bl-lead2.bl-spike { margin-right: calc(var(--gx) + 5px); }
-.bl-slot-pred.bl-spike { margin-right: 5px; }
+   spike insets from its right-aligned cell edge so the 13px arrow lands in the cell
+   gap ahead of the value chip. (r14: 5px nub → r23: 13px full-height point.) */
+.bl-lead2.bl-spike { margin-right: calc(var(--gx) + 13px); }
+.bl-slot-pred.bl-spike { margin-right: 13px; }
 /* Round 21 (Jason: "title/abs spills past column 2's right edge"): a value-AND
-   HEADER's turn pred has no spike, so its right-aligned cell content sat 5px right
-   of every spiked row's — the header's FIELD chip broke the shared right edge
-   (visible only when >1 subclauses, since that's when the header line exists).
-   Give the unspiked turn pred the same 5px inset so every field cell's content
-   right-aligns identically. (Spiked turn preds already carry it via the rule above;
-   builderLayoutV2's arm `_indPx` subtracts the same 5 to keep arms on the pred column.) */
-.bl-slot-pred--turn:not(.bl-spike) { margin-right: 5px; }
+   HEADER's turn pred has no spike, so its right-aligned cell content sat right of
+   every spiked row's — the header's FIELD chip broke the shared right edge (visible
+   only when >1 subclauses, since that's when the header line exists). Give the
+   unspiked turn pred the SAME inset as the spiked preds so every field cell's content
+   right-aligns identically. (r23: bumped 5→13 with the full-height spike; spiked turn
+   preds carry it via the rule above; builderLayoutV2's arm `_indPx` subtracts the same
+   13 to keep arms on the pred column.) */
+.bl-slot-pred--turn:not(.bl-spike) { margin-right: 13px; }
 /* (r18: the r17 dark-variant CSS is gone with the toggle) */
 .bl-spike::after {
   content: "";
   position: absolute;
-  right: -5px;
+  right: -13px;
   top: 50%;
   transform: translateY(-50%);
   width: 0;
   height: 0;
-  border-top: 5px solid transparent;
-  border-bottom: 5px solid transparent;
-  border-left: 5px solid var(--conn-bg, #ececec);
+  border-top: 13px solid transparent;
+  border-bottom: 13px solid transparent;
+  border-left: 13px solid var(--conn-bg, #ececec);
 }
 /* (r19: the r14 leaf-pill right edge is gone — "not working for me"; terminal value
    chips wear the standard 4px corners like every other chip.) */
@@ -4519,14 +4515,14 @@ defineExpose({ rebuildFromOql: async (oql) => {
    .kw-chip (the inert sort by / return keyword bricks) stays here. (oxjob #467/#428.) */
 /* Value-brick styles (.bool-chip / .value-chip / .notpfx) moved to OqlValueChip.vue
    (oxjob #467); the scalar/search text-chip styles live in OqlTextChip.vue. */
-/* "+" affordances on the sort / return lines: revealed only while hovering that
-   line (oxjob #428 — keep them, just unclutter). App.vue's ghost reset forces btn
-   opacity 1, so hide via visibility. */
+/* "+" affordances on the sort line: revealed only while hovering that line
+   (oxjob #428 — keep them, just unclutter). App.vue's ghost reset forces btn
+   opacity 1, so hide via visibility. (round 23: the return line is gone.) */
 .hover-reveal { visibility: hidden; }
 .bline:hover .hover-reveal { visibility: visible; }
 .sort-chip { cursor: pointer; background: var(--val-bg) !important; color: var(--val-fg) !important; }
 .sort-chip.pending { background: transparent !important; color: rgba(0, 0, 0, 0.55) !important; }
-.return-chip { background: var(--val-bg) !important; color: var(--val-fg) !important; }
+/* (round 23: .return-chip removed with the return-columns line.) */
 .sort-sep { color: rgba(0, 0, 0, 0.4); margin: 0 2px; }
 .sort-remove { opacity: 0.4; }
 .sort-remove:hover { opacity: 1; }
