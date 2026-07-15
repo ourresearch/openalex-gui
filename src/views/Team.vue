@@ -119,7 +119,18 @@
           categories: ["staff"],
           bio: "Steve co-founded VA Partners and has over 25 years of professional sales, marketing, and business development experience in Canada and the USA. He has dramatically increased sales at growing companies in a range of industries from business software, IT, telecom, clean-tech, fintech and industrial sectors. Steve loves selling and the thrill of the close!"
         },
-  
+
+        {
+          name: "Rohan Mantena",
+          img: require("@/assets/team/rohan-mantena.jpg"),
+          title: "Software & Data Engineer",
+          fte: "full-time",
+          categories: ["staff"],
+          links: [
+          ],
+          bio: "Rohan is a software and data engineer working on OpenAlex's data pipeline. He holds a BA in Data Science from the University of California, Berkeley. In his free time he enjoys anything outdoors."
+        },
+
         {
           name: "Heather Joseph",
           img: require("@/assets/team/heather-joseph.png"),
