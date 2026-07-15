@@ -222,6 +222,7 @@ const supportingMembers = ref([
   'Geneva Graduate Institute',
   'Georgia Institute of Technology',
   'Hong Kong University of Science and Technology',
+  'Howard Hughes Medical Institute',
   'IESE Business School',
   'Imperial College London',
   'Indiana University',
