@@ -34,7 +34,10 @@
       <!-- OQL grouping parens (#523 round 9): rendered INSIDE the chip fill, faded + low-key, as
            pure pedagogical scaffolding. They show only on the COMMITTED chip (this !showInput
            display branch) — never in the EDIT input below — so they're never part of editable text. -->
-      <span v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span
+      <!-- #603 round 27 (Jason): a value joined by `or` carries the conjunction INSIDE
+           the chip as a faded non-editable prefix — the connector chip is gone. -->
+      <span v-if="tok._connPrefix" class="orpfx">{{ tok._connPrefix }}</span
+      ><span v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span
       ><span v-if="tok.negated" class="notpfx">not</span>{{ valueText }}<span
       v-if="tok._pClose" class="val-paren">{{ ')'.repeat(tok._pClose) }}</span>
     </span>
@@ -43,8 +46,12 @@
          Enter/⇧Enter term-chaining is gone — Enter commits & ends the draft — so the #523
          hover-title hint went with it. Multi-term values are typed as `foo or bar`.) -->
     <span v-else class="val-wrap" :class="{ numeric: tok._numeric }">
+      <span v-if="tok._connPrefix" class="orpfx">{{ tok._connPrefix }}</span>
       <span v-if="tok.negated" class="notpfx">not</span>
-      <input ref="inputEl" class="val-input" :type="tok._numeric ? 'number' : 'text'"
+      <!-- #603 round 27 (Jason): numeric inputs are PLAIN TEXT now — the type="number"
+           spinner chrome confused users, and it silently blocked the #527 expression
+           syntax (`>2020`, `2000-2020`, `2020, 2021`) the commit path already parses. -->
+      <input ref="inputEl" class="val-input" type="text"
         :value="valueText" :data-vid="tok.id"
         :placeholder="tok._numeric ? 'number' : 'text'" spellcheck="false"
         @input="$emit('value-input', $event)"

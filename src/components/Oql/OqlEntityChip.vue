@@ -28,7 +28,11 @@
        Enter on a committed chip flips it into this input, prefilled with the current name and
        selected, so the chip itself is the search bar (editOpen, driven by the builder's
        editingEntityId). Escape / click-away / pick all restore the display chip. -->
-  <span v-if="tok._placeholder || editOpen" class="val-chip val-typeon">
+  <!-- #603 round 27 (Jason): entity chips are PILLS (val-pill — a picked-from-a-list
+       value reads as a stadium; typed values stay rectangles), and an or-joined value
+       carries its `or` inside the chip as a faded prefix (orpfx). -->
+  <span v-if="tok._placeholder || editOpen" class="val-chip val-typeon val-pill">
+    <span v-if="tok._connPrefix" class="orpfx">{{ tok._connPrefix }}</span>
     <span v-if="tok.negated" class="notpfx">not</span>
     <input ref="typeonEl" class="typeon-input" :data-vid="tok.id" :placeholder="typeHint"
       spellcheck="false" autocomplete="off"
@@ -37,11 +41,12 @@
       @click.stop @mousedown.stop />
   </span>
 
-  <span v-else class="val-chip" :class="{ selected: active, 'multi-selected': selected, dragging }"
+  <span v-else class="val-chip val-pill" :class="{ selected: active, 'multi-selected': selected, dragging }"
     tabindex="0" :data-vid="tok.id" draggable="true"
     @click="onClick" @dblclick="onDblclick" @keydown="onKeydown" @dragstart="onDragstart" @dragend="onDragend">
     <!-- OQL grouping parens (#523 round 9): faded, low-key, inside the chip fill — pedagogical only. -->
-    <span v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span
+    <span v-if="tok._connPrefix" class="orpfx">{{ tok._connPrefix }}</span
+    ><span v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span
     ><span v-if="tok.negated" class="notpfx">not</span>{{ entityName }}<span
     v-if="tok._pClose" class="val-paren">{{ ')'.repeat(tok._pClose) }}</span>
   </span>

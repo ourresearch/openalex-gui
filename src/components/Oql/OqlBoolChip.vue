@@ -22,12 +22,16 @@
     emit  select / select-clear — selection gestures (#472).
 -->
 <template>
-  <span class="val-chip" :class="{ selected: active, 'multi-selected': selected, negated: tok.negated, dragging }"
+  <!-- #603 round 27 (Jason): boolean chips are PILLS (val-pill), like entity chips —
+       picked/toggled values read as stadiums, typed values stay rectangles. An
+       or-joined value carries its `or` inside the chip as a faded prefix (orpfx). -->
+  <span class="val-chip val-pill" :class="{ selected: active, 'multi-selected': selected, negated: tok.negated, dragging }"
     tabindex="0" :data-vid="tok.id" draggable="true"
     @click="onBoolClick" @keydown="onKeydown"
     @dragstart="onDragstart" @dragend="onDragend">
     <!-- value-block parens, INSIDE the chip fill like every other value chip (#560 Phase 2) -->
-    <span v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span
+    <span v-if="tok._connPrefix" class="orpfx">{{ tok._connPrefix }}</span
+    ><span v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span
     >{{ label }}<span
     v-if="tok._pClose" class="val-paren">{{ ')'.repeat(tok._pClose) }}</span>
   </span>

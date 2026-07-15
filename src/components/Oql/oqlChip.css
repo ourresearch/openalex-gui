@@ -79,6 +79,17 @@
    for everything else). */
 .notpfx { margin-right: 4px; font-weight: 700; }
 
+/* `or` conjunction prefix (#603 round 27, Jason): an or-joined value carries its `or`
+   INSIDE the chip — faded (half-opacity), non-editable — instead of a separate connector
+   chip. Renders in both display and edit/draft modes (the builder stamps _connPrefix). */
+.orpfx { margin-right: 1ch; opacity: 0.5; user-select: none; }
+
+/* PILL shape (#603 round 27, Jason): values PICKED from a finite set — entity, enum,
+   boolean — are stadiums (radius = half the 26px chip height); typed values (text,
+   number, date) keep the rounded-rect. A touch more side padding so text clears the
+   rounded ends. */
+.val-chip.val-pill { border-radius: 13px; padding: 0 12px; }
+
 /* OQL grouping parens rendered INSIDE a value chip — HIDDEN in the advanced builder (#575
    round 8, Jason): "the parentheses are important for OQL, but needless complexity for the
    advanced view." The table-style indentation (AND = rows) conveys the outer grouping and the

@@ -159,8 +159,9 @@
               :draggable="lineDragFor(line) ? 'true' : undefined"
               @dragstart="onNumDragstart(line, $event)" @dragend="onNumDragend"
               aria-hidden="true">{{ line.addr }}</span></span>
-          <span v-if="!line._level" class="bl-lead" :class="{ 'bl-lead--the': line._lead === 'arrow', 'bl-lead--spacer': !line._lead }"
-            aria-hidden="true">{{ leadWord(line) }}</span>
+          <!-- (Round 27, Jason: the top-level lead CHIP is gone — the `&` merges into the
+               row's SUPER-CHIP below, and row 1's blank spacer is removed outright. The
+               field cell absorbs the lead column's width via .bl-field--lvl0.) -->
           <!-- Round 6 (Jason): NO arrows anywhere — a subclause line leads with a WORD
                chip: the parent's predicate on the first value-AND arm ("has network",
                round 5), "has" on the first either-disjunct (round 6), "and"/"or" on the
@@ -189,19 +190,22 @@
                a column") — a ghost predicate-width spacer keeps its right edge at the
                field|predicate boundary, exactly like a field chip. -->
           <template v-if="line._head">
-            <div v-if="!line._level" class="bl-field bl-field--head">
-              <span class="bl-headchip bl-headchip--fill" aria-hidden="true">{{ line._head }}</span>
-              <!-- Rounds 3–6 (Jason): the header line ends with the TURN-MARKER chip —
-                   blank, top-right corner maximally rounded (round 6 dropped the SVG
-                   elbow) — showing the AND-flow turning down into the subclauses. It
-                   sits where the ghost predicate spacer sat (the child lead column), so
-                   it lines up over the first subclause's lead-word chip below. -->
-              <span v-if="line._tail" class="bl-tail" :style="tailStyle" aria-hidden="true"></span>
-              <span v-else class="bl-slot-ghost" aria-hidden="true"></span>
+            <!-- Round 27 (Jason): the top-level either-HEAD is ONE merged chip — the `&`
+                 lead + "either" in a single box filling the (lead+field+pred) columns,
+                 the turn marker carried as the box's own max-rounded top-right corner
+                 (the separate .bl-tail chip is gone at this level). -->
+            <div v-if="!line._level" class="bl-field bl-field--head bl-field--lvl0">
+              <span class="bl-super bl-super--turn" aria-hidden="true">
+                <span v-if="leadWord(line)" class="bl-super-lead">{{ leadWord(line) }}</span>
+                <span class="bl-super-head">{{ line._head }}</span>
+              </span>
             </div>
+            <!-- Nested heads (unreachable since the r7 landscape cap; defensive): the
+                 natural-width head chip fuses with its turn tail — no gap, squared
+                 adjoining corners — so it reads as one chip too. -->
             <template v-else>
-              <span class="bl-headchip" aria-hidden="true">{{ line._head }}</span>
-              <span v-if="line._tail" class="bl-tail bl-tail--gap" :style="tailStyle" aria-hidden="true"></span>
+              <span class="bl-headchip" :class="{ 'bl-headchip--fused': line._tail }" aria-hidden="true">{{ line._head }}</span>
+              <span v-if="line._tail" class="bl-tail bl-tail--fused" :style="tailStyle" aria-hidden="true"></span>
             </template>
             <!-- Round 9 (Jason): hover shows "N subclauses" (italic, peach) right after
                  the turn chip — left-aligned over the subclause content below. -->
@@ -220,7 +224,22 @@
                Same OqlBrick dispatch + event set as the value cell — keep the two in sync. -->
           <!-- (Round 20, Jason: the ↳ wrap-marker tiles are gone "for now" — the
                .bl-field--marked binding + its background-image rule were removed.) -->
-          <div v-if="!line._head && !line._noField" class="bl-field" :class="{ 'bl-field--conn': line._fieldConn }">
+          <!-- Round 27 (Jason): the SUPER-CHIP — the `&` lead, the field name, and (for
+               fixed predicates) the predicate word merge into ONE left-aligned box that
+               fills the lead+field+pred columns to a shared right edge; the spike/turn
+               marker is the box's own shape. Chips imply affordances, and none of those
+               pieces had one — only an EDITABLE predicate (numeric operator menu,
+               line._predEdit) stays its own chip, rendered after the box. Cell widths,
+               the 13px boundary inset, and every child-indent expression are UNCHANGED —
+               the merge repaints the cell's interior only, so the value column and the
+               arm/disjunct alignment hold as-is. -->
+          <div v-if="!line._head && !line._noField" class="bl-field" :class="{ 'bl-field--conn': line._fieldConn, 'bl-field--lvl0': !line._level && !line._fieldConn }">
+            <span class="bl-super"
+              :class="{ 'bl-super--bare': line._fieldConn,
+                        'bl-super--open': !line._fieldConn && line._predEdit,
+                        'bl-super--turn': !line._fieldConn && line._slotTail && !line._predEdit,
+                        'bl-spike': !line._fieldConn && line._spikePred && !line._predEdit }">
+            <span v-if="!line._level && !line._fieldConn && leadWord(line)" class="bl-super-lead" aria-hidden="true">{{ leadWord(line) }}</span>
             <template v-for="(tok, ti) in (line._fieldToks || [])" :key="tok.t === 'vbrick' && tok.id ? tok.id : 'f' + ti">
               <span v-if="isBrick(tok)" class="bl-tok" :data-addr="tok.addr">
                 <OqlBrick :tok="tok" :ctx="brickCtx"
@@ -248,21 +267,16 @@
                   @remove="onRemoveValue(tok)" />
               </span>
             </template>
-            <!-- Slot PREDICATE chip (#575 round 4, Jason — replaces the round-3 `→`): the
-                 field's folded predicate ("has" / "is" / "≥") renders HERE, between the field
-                 chip and its values — `[title/abstract][has][foo][or][bar]` — semantic ink in
-                 the slot the AND-arm `and` chips share, so the column stacks. `→` only as the
-                 fallback for the rare predicate-less clause (bare row-subject chips). Inert
-                 decoration (not a token); the predicate stays editable via the field chip's
-                 menu (numeric operators). -->
+            <!-- FIXED predicate ("has"/"is"): merged into the super-chip as plain text —
+                 it isn't editable, so it isn't a chip (round 27). The `→` fallback for
+                 predicate-less row-subject clauses (cites/…) is gone with it. -->
+            <span v-if="!line._fieldConn && !line._predEdit && line._slotPred" class="bl-super-pred"
+              aria-hidden="true">{{ line._slotPred }}</span>
+            </span><!-- /.bl-super -->
             <!-- EDITABLE numeric predicate (#575 round 8, Jason): a range field's operator can be
-                 switched, so the slot is DARKER + clickable and opens an operator menu. Equality
-                 shows the `=` glyph (the fixed slot shows the folded `is`). -->
-            <!-- Round 9 (Jason): the predicate word is back ON the header row (round-5
-                 swap undone) — on a value-AND header (_slotTail) the pred chip itself
-                 doubles as the turn marker via the max-rounded top-right corner
-                 (.bl-slot-pred--turn). The numeric operator menu works again too. -->
-            <v-menu v-if="line._predEdit" location="bottom start" offset="2">
+                 switched — a real affordance, so it KEEPS its own chip outside the super box
+                 (round 27's one exception). It carries the spike / turn corner on such rows. -->
+            <v-menu v-if="!line._fieldConn && line._predEdit" location="bottom start" offset="2">
               <template #activator="{ props: mp }">
                 <button type="button" class="bl-slot-pred bl-slot-pred--edit" :class="{ 'bl-slot-pred--turn': line._slotTail, 'bl-spike': line._spikePred }" v-bind="mp"
                   title="change operator" @click.stop @mousedown.stop @dblclick.stop>{{ line._slotPred === 'is' ? '=' : (line._slotPred || 'is') }}</button>
@@ -274,9 +288,6 @@
                 </v-list>
               </v-card>
             </v-menu>
-            <!-- FIXED predicate ("has"/"is"/"≥" …) — inert decoration. -->
-            <span v-else-if="!line._fieldConn && line._fieldToks && line._fieldToks.length"
-              class="bl-slot-pred" :class="{ 'bl-slot-pred--turn': line._slotTail, 'bl-spike': line._spikePred }" aria-hidden="true">{{ line._slotPred || '→' }}</span>
           </div>
           <div v-if="!line._head" class="bl-body">
             <!-- Round 9 (Jason): hover shows "N subclauses" on a value-AND header —
@@ -430,8 +441,8 @@
           <button v-if="hasCommittedWhere" type="button" class="add-and-btn"
             @click.stop="addRootFilter()">&amp;&#8230;</button>
           <template v-if="!hasCommittedWhere">
-            <!-- round 12: blank lead box (the "where" moved to the toolbar) -->
-            <span class="bl-lead bl-lead--the" aria-hidden="true"></span>
+            <!-- (round 27: the round-12 blank lead box is gone — row 1 starts flush at the
+                 lead column, same as the merged super-chips.) -->
             <button type="button" class="select-filter-btn" @click.stop="addRootFilter()">select filter</button>
           </template>
         </div>
@@ -1292,6 +1303,33 @@ const displayLines = computed(() => {
       && (line._valueToks || []).some((t) => BRICK_TYPES.has(t.t) || t.t === "textblock");
     line._spikePred = hasVals && !!(line._fieldToks || []).length && !line._fieldConn;
     line._spikeLead = hasVals && !line._spikePred && line._lead != null && !!line._level;
+  });
+  // Round 27 (Jason): the value-scope `or` connector is no longer its own chip — it
+  // merges into the FRONT of the value chip it precedes (`_connPrefix`, rendered as
+  // non-editable half-opacity text inside the chip, draft and committed alike). The
+  // conn token is dropped from the render list; `and` conns (inline value-AND edit
+  // state) and filter-scope conns keep their chips. Runs POST-splice so draft or-lists
+  // merge too; the tail-chip index is recomputed since removals shift it.
+  out.forEach((line) => {
+    const toks = line._valueToks || [];
+    if (!toks.some((t) => t.t === "conn" && t._level !== "filter")) return;
+    const merged = [];
+    for (let i = 0; i < toks.length; i++) {
+      const t = toks[i];
+      const nxt = toks[i + 1];
+      if (t.t === "conn" && t._level !== "filter" && (t.label || "").trim() === "or"
+          && nxt && (nxt.t === "vbrick" || nxt.t === "textblock")) {
+        nxt._connPrefix = "or"; // safe to stamp: value tokens are fresh per-render clones
+        continue;
+      }
+      merged.push(t);
+    }
+    line._valueToks = merged;
+    line._tailIdx = -1; line._tailBrick = false;
+    for (let i = merged.length - 1; i >= 0; i--) {
+      const tt = merged[i].t;
+      if (tt === "textblock" || BRICK_TYPES.has(tt)) { line._tailIdx = i; line._tailBrick = BRICK_TYPES.has(tt); break; }
+    }
   });
   return out;
 });
@@ -2333,11 +2371,33 @@ const readChipValue = (id) => {
 // draftToFilter); a committed clause mutates in the tree (spawning AND-sibling rows for a
 // range). Returns true when it handled the commit; false (non-numeric / unparseable) so the
 // caller falls back to the normal setValue path. The trailing server render canonicalizes.
+// Round 27: a multi-filter numeric expression (a range like `2000-2020`, or `and`-joined
+// values) becomes SEPARATE AND-ed filter rows — a shape that can't live inside an
+// either/or group (the r7 landscape cap: level 2 is OR-only; and applyNumericExpr's
+// sibling insert would wrongly OR the halves). Detect that context so the commit can
+// reject with a hint instead of silently minting a broken query.
+const numericMultiBlocked = (tok, draft) => {
+  if (draft) return !!(draft._orTarget || draft._thenOr);
+  const cid = clauseOf(tok);
+  const w = v2.value && v2.value.where;
+  let blocked = false;
+  const walk = (n) => {
+    if (!n || blocked || n.node !== "group") return;
+    if ((n.join || "and") === "or" && n.children.some((c) => c.id === cid)) { blocked = true; return; }
+    n.children.forEach(walk);
+  };
+  if (w) walk(w);
+  return blocked;
+};
 const commitNumericExpr = (tok, raw) => {
   if (!tok._numeric) return false;
   const parsed = parseNumericExpr(raw);
   if (!parsed) return false;
   const draft = tok._draft ? draftOwning(tok.id) : null;
+  if (parsed.filters.length > 1 && numericMultiBlocked(tok, draft)) {
+    store.commit("snackbar", "A range makes two AND-ed filters — it can’t go inside an either/or group");
+    return false;
+  }
   if (draft) {
     draft._numericFilter = edit.numericFiltersToOqo(parsed.filters, draft.column_id);
     draft.editing = false;
@@ -2367,6 +2427,12 @@ const onValueKeydown = (tok, e) => {
   const cmd = e.metaKey || e.ctrlKey;
   e.preventDefault();
   e.stopPropagation(); // Enter now performs a builder action — keep it off the run-query shortcut
+  // Round 27 drive-by: an Enter-commit UNMOUNTS the input without a blur (Chrome fires
+  // none on removal — the r24 gotcha), so onValueBlur never cleared editTextId. The
+  // stale id left the chip's editOpen prop true, and re-clicking the SAME chip set the
+  // same id again — no change, no watch fire, no input: the chip was un-re-editable
+  // until some OTHER chip was edited. Clear it at the commit point.
+  editTextId.value = null;
   // Value-chip decomposition (oxjob #507 Phases 5 + 6): if the typed text is a boolean
   // expression (`a or b or c`, `a and b`, or a parenthesized `(a or b) and c`), split it
   // into the matching value tree in place of the single literal value. Only for typed
@@ -3995,40 +4061,62 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 /* (The line-tail `or` button styles live in OqlLineTailControls.vue. The `.add-plus`
    OR-of-filters chip was removed in #575 — filter-scope OR gates to the OQL tab.) */
-/* Leading filter-scope chip (#523 round 2): the `→` arrow (first filter row) or pale-PEACH `&`
-   (subsequent filter rows). Same square metrics + indent column as the connectors/parens so all
-   filter rows align down the page. Peach = filter scope (vs periwinkle value connectors). Inert
-   (decorative space-filler this round). Sits left of `.bl-body`, after the gutter. */
-.bl-lead {
+/* ---- round 27 (Jason): the SUPER-CHIP --------------------------------------
+   The `&` lead + field name + fixed predicate merge into ONE left-aligned box —
+   chips imply affordances, and none of those pieces had one (they're required by
+   the chips around them). The box fills the (lead+field+pred) columns to the
+   shared right edge, so the spikes still stack in one column; only an EDITABLE
+   predicate (numeric operator menu) stays its own chip after the box. The old
+   .bl-lead chip column is gone: top-level field cells absorb it (--lvl0 below),
+   and row 1 simply starts flush left with no `&` (its fieldname won't line up
+   with the rows below — accepted). */
+.bl-super {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   box-sizing: border-box;
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-width: 0;
   height: 26px;
-  width: var(--lead-w, var(--chip-w, 26px));
-  min-width: var(--lead-w, var(--chip-w, 26px));
-  margin-right: var(--gx);
-  margin-top: 0;
+  padding: 0 10px 0 8px;
+  column-gap: 1ch;               /* segment gaps read as monospace spaces */
   border-radius: 4px;
-  background: var(--conn-bg, #fdf6f0);
-  color: var(--conn-fg, #b25d06);
+  /* the universal 13px boundary inset (r21/r23) — the spike's whitespace; the box
+     ends 13px before the cell edge so the arrow lives in the field→value gutter */
+  margin-right: 13px;
+  background: var(--conn-bg, #e6e6e6);
+  color: var(--conn-fg, #1a1a1a);
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs, 0.8125rem);
   user-select: none;
 }
-/* #575 round 8 (Jason): the leading `→` arrow is replaced by the word "the" ("the title has
-   foo") — a natural-language flow marker matching the "and" on subsequent rows. Same peach
-   lead metrics; no size bump (it's a word now, not a glyph). Rendered in normal (non-italic)
-   type, same as "and" (Jason, 2026-07-09) — .bl-lead--the stays as a styling hook. */
-/* (Round 10: the lead-`and`-chip drag handle (#595 r2) is gone — rows drag by their
-   LINE NUMBER now, `.num-grab` below.) */
-/* on a selected row the lead chip darkens with the rest of the row's chips. */
-.bline--sel .bl-lead { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
-/* #575: a row with no lead (value-continuation rows) keeps an EMPTY transparent spacer in the
-   lead column so the field column starts at one shared x on every row. Placed after the --sel
-   rule so a selected continuation row's spacer stays transparent too. */
-.bl-lead.bl-lead--spacer, .bline--sel .bl-lead.bl-lead--spacer { background: transparent; }
+/* value-AND / either HEADER rows: the box itself carries the turn marker */
+.bl-super--turn { border-top-right-radius: 13px; }
+/* numeric rows: the editable pred chip follows OUTSIDE the box (it carries the
+   boundary inset/spike) — the box keeps just the flex gap to it */
+.bl-super--open { margin-right: 0; }
+/* legacy continuation rows (fieldConn): no box paint, content right-aligned as before */
+.bl-super--bare { background: transparent; padding: 0; margin-right: var(--gx); justify-content: flex-end; }
+.bl-super-lead, .bl-super-pred, .bl-super-head { flex: 0 0 auto; white-space: nowrap; }
+/* the field chip inside the box goes flat: no own fill/padding/hover, natural width,
+   left-aligned — the box is the chip now. (Replaces the r21 fill-the-column rules;
+   the FILL lives on .bl-super itself.) Covers committed leaves, the draft's picked
+   v-chip, and the type-on draft input alike. */
+.bl-super :deep(.prop-chip-leaf),
+.bl-super :deep(.prop-chip-leaf:not(.prop-typeon)) {
+  background: transparent;
+  padding: 0;
+  flex: 0 0 auto;
+  justify-content: flex-start;
+  cursor: default;
+}
+.bl-super :deep(.prop-chip-leaf:hover),
+.bl-super :deep(.prop-chip-leaf:not(.prop-typeon):hover) { background: transparent; }
+.bl-super :deep(.prop-chip) { background: transparent !important; padding: 0; flex: 0 0 auto; justify-content: flex-start; }
+/* the type-on DRAFT input still fills the box (it's a text box mid-build) */
+.bl-super :deep(.prop-chip-leaf.prop-typeon) { flex: 1 1 auto; cursor: text; }
+.bl-super :deep(.prop-chip-leaf.prop-typeon:hover) { background: transparent; }
+.bline--sel .bl-super { background: var(--conn-bg-sel, #e6e6e6); color: var(--conn-fg-sel, #1a1a1a); }
 /* ---- V2 outline additions (2026-07-11; geometry reworked round 2) ------------
    CHILD-line lead chip ('and' / 'or' / blank): PREDICATE-column width, indented via
    lead2Style to where the parent header's content ends, so the outline shares one
@@ -4083,8 +4171,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
    the only measured asymmetry was the GHOST or (4px left gap = its 2px margin-left on
    top of the tail unit's 2px flex gap, vs the committed ors' uniform 2px) — margin
    zeroed above so every or sits at the one --gx rhythm. */
-.bl-field :deep(.prop-chip-leaf:not(.prop-typeon)) { cursor: default; }
-.bl-field :deep(.prop-chip-leaf:not(.prop-typeon):hover) { background: var(--prop-bg, #1a1a1a); }
+/* (round 27: the r11 inert-cursor + hover-freeze rules for committed field chips moved
+   into the .bl-super block above — the box is the chip now, chips inside are flat.) */
 /* r22 (Jason): the ring paints ONLY for Cmd-multi — the .selected and :focus
    variants are gone (chips are never selected since r20; the :focus ring lingered
    on any clicked chip and read as a phantom "selected" state). */
@@ -4137,8 +4225,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-size: var(--brick-fs, 0.8125rem);
   user-select: none;
 }
-/* nested (level ≥1) either-head: the tail follows the natural-width head chip */
-.bl-tail--gap { margin-left: var(--gx); }
+/* nested (level ≥1) either-head (unreachable since r7; defensive): the tail FUSES with
+   the natural-width head chip (round 27) — no gap, squared adjoining corners, so the
+   pair reads as one merged chip with the turn corner at its right end. */
+.bl-tail--fused { margin-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.bl-headchip--fused { border-top-right-radius: 0; border-bottom-right-radius: 0; }
 /* round 9: on a value-AND header the predicate chip ITSELF is the turn marker —
    same max-rounded top-right corner as .bl-tail. */
 .bl-slot-pred--turn { border-top-right-radius: 13px !important; }
@@ -4188,8 +4279,8 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-size: var(--brick-fs, 0.8125rem);
   user-select: none;
 }
-.bl-headchip--fill { flex: 1 1 auto; justify-content: flex-end; }
-.bl-slot-ghost { flex: 0 0 auto; min-width: var(--pred-w, var(--chip-w)); height: 26px; }
+/* (round 27: .bl-headchip--fill + .bl-slot-ghost are gone — a top-level either-head
+   renders as the merged .bl-super box with the turn corner.) */
 .bl-headfill { flex: 1 1 auto; }
 .bline--sel .bl-headchip { background: var(--conn-bg-sel, #b25d06); color: var(--conn-fg-sel, #fff); }
 /* DRAFT field input (V2 round 2, Jason): the type-on chip left-aligns while you
@@ -4226,19 +4317,23 @@ defineExpose({ rebuildFromOql: async (oql) => {
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs);
 }
+/* round 27: TOP-LEVEL field cells absorb the former lead column (--lead-w + gx) —
+   the `&` renders INSIDE the super-chip now — so the cell's right edge (and with it
+   the spike column and the value column) stays exactly where it was. Sub-level cells
+   keep the plain width (their lead2 chips remain outside). */
+.bl-field--lvl0 {
+  width: calc(var(--lead-w, 34px) + var(--gx) + var(--field-w, 0px) + var(--pred-w, var(--chip-w)) + var(--gx));
+  min-width: calc(var(--lead-w, 34px) + var(--gx) + var(--field-w, 0px) + var(--pred-w, var(--chip-w)) + var(--gx));
+}
 /* (Round 20, Jason: the r19 ↳ line-continuation marker is REMOVED "for now" — the
    .bl-field--marked tile rule + its class binding are gone. If it comes back, the
    mechanism was: field cell stretches full line height, 26×28 tiles repeat-y
    right-aligned under the pred chip, row 1's OPAQUE pred covers tile 1 — which is
    why chips must stay opaque; see the r18 gotcha.) */
-/* Round 21 (Jason): the #575-r5 FILL rule is RESTORED — every committed field chip
-   fills the full field column ("column 2 chips must fill column 2"; r20 briefly made
-   them natural-width, misreading the round-20 report — the real bug was the 5px
-   right-edge spill fixed at .bl-slot-pred--turn below). Label right-aligned inside,
-   hugging its predicate; the unset type-on draft keeps its own fill rule above. */
-.bl-field :deep(.prop-chip-leaf:not(.prop-typeon)) { flex: 1 1 auto; justify-content: flex-end; }
+/* (Round 27: the r21 "field chips fill column 2" rules are gone — the SUPER-CHIP box
+   (.bl-super) is what fills the column now; the chips inside it are flat, natural-width,
+   left-aligned. See the .bl-super block above.) */
 .bl-field :deep(.bl-tok > div) { display: contents; }
-.bl-field :deep(.prop-chip) { flex: 1 1 auto; justify-content: flex-end; }
 /* a filter row's connector slot holds the inert PREDICATE chip (#575 round 4 — was the
    round-3 `→`): peach, and sized to the shared slot column (--pred-w = the query's widest
    predicate, min one chip) so it stacks with the `and` conn chips on the AND-arm rows. */

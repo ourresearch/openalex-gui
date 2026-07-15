@@ -26,6 +26,7 @@
          (built from `tok.text`, untouched). -->
     <span v-if="!editing" class="val-chip block-chip" tabindex="0"
       title="double-click to edit" @dblclick.stop="startEdit" @keydown="onKeydown"><span
+      v-if="tok._connPrefix" class="orpfx">{{ tok._connPrefix }}</span><span
       v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span><span
       v-for="(p, i) in displayParts" :key="i" :class="{ 'block-op': p.op }">{{ p.text }}</span><span
       v-if="tok._pClose" class="val-paren">{{ ')'.repeat(tok._pClose) }}</span></span>

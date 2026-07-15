@@ -23,7 +23,8 @@
       @click="onClick" @dblclick="onDblclick" @keydown="onKeydown"
       @dragstart="onDragstart" @dragend="onDragend">
       <!-- value-block parens, INSIDE the chip fill like every other value chip (#560 Phase 2) -->
-      <span v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span
+      <span v-if="tok._connPrefix" class="orpfx">{{ tok._connPrefix }}</span
+      ><span v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span
       ><span v-if="tok.negated" class="notpfx">not</span>{{ displayLabel }}<span
       v-if="tok._pClose" class="val-paren">{{ ')'.repeat(tok._pClose) }}</span>
     </span>
