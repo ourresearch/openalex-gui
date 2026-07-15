@@ -3846,7 +3846,19 @@ onMounted(async () => {
   window.addEventListener("keyup", onModifierKey);
   window.addEventListener("blur", onModifierBlur);
   window.addEventListener("keydown", onWindowKeydown);
-  if (props.entity && ENTITY_TYPES.includes(props.entity)) getRows.value = props.entity;
+  if (props.entity && ENTITY_TYPES.includes(props.entity) && props.entity !== getRows.value) {
+    // Mount-time entity init is NOT a user gesture (oxjob #593): without
+    // suppression, setting getRows fires the getRows + columnKeys watchers, whose
+    // commit renders emit `update:oqo` with the BARE entity query — before a
+    // legacy `?filter=` URL has been executed or seeded — and the host's
+    // bootstrap autoRun then replaces the route with `/q?oql=<entity>`, silently
+    // dropping the filter. (The works SERP never hit this only because "works"
+    // is getRows' initial value, so the watchers never fired.)
+    suppressCommit = true;
+    getRows.value = props.entity;
+    await nextTick();
+    suppressCommit = false;
+  }
   await store.dispatch("oqlBuilder/loadProperties", getRows.value);
   const sharedOql = props.oql != null ? props.oql
     : props.seedOql != null ? props.seedOql
