@@ -576,26 +576,6 @@ const router = createRouter({
     },
 });
 
-const redirectFromOldFilters = function (to, from, next) {
-    const redirects = {
-        "institutions.id": "authorships.institutions.lineage",
-        // "institutions.country_code": "authorships.countries",
-        // "topics.id": "primary_topic.id",
-    }
-    const isRedirectNeeded = Object.keys(redirects).some(key => {
-        return to.name === "Serp" && to.fullPath.includes(key)
-    })
-    if (isRedirectNeeded) {
-        let newFullPath = to.fullPath
-        Object.keys(redirects).forEach(k => {
-            newFullPath = newFullPath.replaceAll(k, redirects[k])
-        })
-        next(newFullPath)
-        return true
-    }
-    return false
-}
-
 // #397: normalize a shared/legacy/API-style search URL that carries the query in a single
 // `filter=<scope>.search:<terms>` clause to the canonical `?search.*=` shape the search box
 // hydrates, so it no longer lands on an empty-looking box + "No filters applied". Only the
@@ -633,8 +613,6 @@ router.beforeEach(async (to, from, next) => {
             }
         }
     }
-
-    if (redirectFromOldFilters(to, from, next)) return;
 
     if (redirectFilterSearchToTopLevel(to, from, next)) return;
 
