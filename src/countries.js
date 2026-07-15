@@ -6,7 +6,7 @@ const openAlexCountries = [
     },
     {
         id: "US",
-        display_name: "United States of America",
+        display_name: "United States",
         works_count: 24599403
     },
     {
@@ -16,7 +16,7 @@ const openAlexCountries = [
     },
     {
         id: "GB",
-        display_name: "United Kingdom of Great Britain and Northern Ireland",
+        display_name: "United Kingdom",
         works_count: 6448939
     },
     {
@@ -66,12 +66,12 @@ const openAlexCountries = [
     },
     {
         id: "RU",
-        display_name: "Russian Federation",
+        display_name: "Russia",
         works_count: 1903149
     },
     {
         id: "KR",
-        display_name: "Korea, Republic of",
+        display_name: "South Korea",
         works_count: 1669033
     },
     {
@@ -111,12 +111,12 @@ const openAlexCountries = [
     },
     {
         id: "IR",
-        display_name: "Iran, Islamic Republic of",
+        display_name: "Iran",
         works_count: 993380
     },
     {
         id: "TW",
-        display_name: "Taiwan, Province of China",
+        display_name: "Taiwan",
         works_count: 934172
     },
     {
@@ -271,7 +271,7 @@ const openAlexCountries = [
     },
     {
         id: "VN",
-        display_name: "Viet Nam",
+        display_name: "Vietnam",
         works_count: 150545
     },
     {
@@ -326,7 +326,7 @@ const openAlexCountries = [
     },
     {
         id: "VE",
-        display_name: "Venezuela, Bolivarian Republic of",
+        display_name: "Venezuela",
         works_count: 90356
     },
     {
@@ -426,7 +426,7 @@ const openAlexCountries = [
     },
     {
         id: "TZ",
-        display_name: "Tanzania, United Republic of",
+        display_name: "Tanzania",
         works_count: 45417
     },
     {
@@ -466,7 +466,7 @@ const openAlexCountries = [
     },
     {
         id: "BA",
-        display_name: "Bosnia and Herzegovina",
+        display_name: "Bosnia & Herzegovina",
         works_count: 28560
     },
     {
@@ -481,7 +481,7 @@ const openAlexCountries = [
     },
     {
         id: "BO",
-        display_name: "Bolivia, Plurinational State of",
+        display_name: "Bolivia",
         works_count: 25874
     },
     {
@@ -511,7 +511,7 @@ const openAlexCountries = [
     },
     {
         id: "MD",
-        display_name: "Moldova, Republic of",
+        display_name: "Moldova",
         works_count: 17377
     },
     {
@@ -526,7 +526,7 @@ const openAlexCountries = [
     },
     {
         id: "CI",
-        display_name: "Côte d'Ivoire",
+        display_name: "Ivory Coast",
         works_count: 16849
     },
     {
@@ -536,7 +536,7 @@ const openAlexCountries = [
     },
     {
         id: "PS",
-        display_name: "Palestine, State of",
+        display_name: "Palestine",
         works_count: 15994
     },
     {
@@ -581,7 +581,7 @@ const openAlexCountries = [
     },
     {
         id: "VG",
-        display_name: "Virgin Islands, British",
+        display_name: "British Virgin Islands",
         works_count: 12834
     },
     {
@@ -596,7 +596,7 @@ const openAlexCountries = [
     },
     {
         id: "SY",
-        display_name: "Syrian Arab Republic",
+        display_name: "Syria",
         works_count: 12223
     },
     {
@@ -631,17 +631,17 @@ const openAlexCountries = [
     },
     {
         id: "BN",
-        display_name: "Brunei Darussalam",
+        display_name: "Brunei",
         works_count: 10049
     },
     {
         id: "CD",
-        display_name: "Congo, Democratic Republic of the",
+        display_name: "DR Congo",
         works_count: 9738
     },
     {
         id: "TT",
-        display_name: "Trinidad and Tobago",
+        display_name: "Trinidad & Tobago",
         works_count: 9447
     },
     {
@@ -696,7 +696,7 @@ const openAlexCountries = [
     },
     {
         id: "DO",
-        display_name: "Dominican Republic",
+        display_name: "Dominican Rep.",
         works_count: 7194
     },
     {
@@ -771,7 +771,7 @@ const openAlexCountries = [
     },
     {
         id: "LA",
-        display_name: "Lao People's Democratic Republic",
+        display_name: "Laos",
         works_count: 3643
     },
     {
@@ -806,7 +806,7 @@ const openAlexCountries = [
     },
     {
         id: "ST",
-        display_name: "Sao Tome and Principe",
+        display_name: "São Tomé & Príncipe",
         works_count: 2340
     },
     {
@@ -826,7 +826,7 @@ const openAlexCountries = [
     },
     {
         id: "KN",
-        display_name: "Saint Kitts and Nevis",
+        display_name: "St. Kitts & Nevis",
         works_count: 1818
     },
     {
@@ -916,7 +916,7 @@ const openAlexCountries = [
     },
     {
         id: "KP",
-        display_name: "Korea, Democratic People's Republic of",
+        display_name: "North Korea",
         works_count: 1063
     },
     {
@@ -991,7 +991,7 @@ const openAlexCountries = [
     },
     {
         id: "FK",
-        display_name: "Falkland Islands (Malvinas)",
+        display_name: "Falkland Islands",
         works_count: 541
     },
     {
