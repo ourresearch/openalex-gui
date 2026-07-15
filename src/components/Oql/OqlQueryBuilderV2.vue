@@ -3642,6 +3642,17 @@ watch(() => props.oql, async (next) => {
   // auto-run feeds our own OQL back in whitespace-collapsed (the URL form); treat a
   // layout-only difference as identity so it doesn't churn a reseed/round-trip.
   if (oqlForUrl(incoming) === oqlForUrl(renderedOql.value || "")) return;
+  // #603 round 26: the post-run canonical projection (Serp.vue's executionOqo watcher,
+  // #464 Phase 2a) rewrites the URL with the EXECUTE-canonical `meta.x_query.oql`, which
+  // can differ TEXTUALLY from the render-canonical we emitted — e.g. an annotated slug
+  // value (`keyword is (machine-learning [Machine learning])`) comes back with the
+  // annotation stripped. That echo is still OUR OWN query — falling through to the
+  // external-reseed path here wiped every open draft the moment results returned (the
+  // either/or second-alternative draft-wipe). Recognise the projection exactly the way
+  // the SERP's own fetch skip-guard does (Serp.vue): by the canonical string the store
+  // recorded when OUR execution settled. Nothing goes stale by skipping — the display
+  // already renders this same query.
+  if (incoming === (store.state.query && store.state.query.lastExecutedOql)) return;
   // An external query change (the SERP dice, a shared link, back/forward) reseeds
   // us. Invalidate any in-flight renderQuery NOW so its late-resolving dispatch
   // can't fire a stale `update:oql` for the PREVIOUS query — which the SERP's
