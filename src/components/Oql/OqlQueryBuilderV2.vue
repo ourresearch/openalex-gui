@@ -588,7 +588,7 @@ import {
   uiOperatorsForProperty,
 } from "@/components/OqlPlayground/oqoTree";
 import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
-import * as edit from "@/components/OqlPlayground/v2Edit";
+import * as rawEdit from "@/components/OqlPlayground/v2Edit";
 import { layoutLines, splitLineCells, isEmptyVbrick } from "@/components/Oql/builderLayoutV2";
 import { parseValueExpr } from "@/components/Oql/valueExpr";
 import { parseNumericExpr } from "@/components/Oql/numericExpr";
@@ -683,6 +683,31 @@ const v2 = ref(null);
 const drafts = ref([]);
 const sortBy = ref([]);
 let suppressCommit = false;
+
+// Round 24 (the draft-wipe race): the builder is a PERSISTENT surface decoupled from
+// server round-trips — a response must never clobber local state that's newer than the
+// render it answers. `editGen` counts local mutations; renderQuery captures it at
+// dispatch and skips the reseed when it moved (the local tree is newer; the next commit
+// render re-syncs). A plain `let`, NOT a ref: it's only compared inside renderQuery, and
+// a non-reactive bump can never re-trigger a computed. Every structural edit flows
+// through the v2Edit module, so a thin wrapper over its mutators is the one choke point;
+// the few direct tree/draft resets (rebuildFromOqo, clearQuery, drag revert, entity
+// switch) bump explicitly.
+let editGen = 0;
+const bumpEditGen = () => { ++editGen; };
+// Read-only v2Edit exports — calling these must NOT count as a local edit (currentOqo
+// calls draftComplete/draftToFilter on every render dispatch).
+const EDIT_READERS = new Set([
+  "locate", "findValueParent", "joinOfValue", "groupableValues", "groupableFilters",
+  "draftComplete", "draftToFilter", "numericFiltersToOqo", "makeDraft",
+]);
+const edit = new Proxy(rawEdit, {
+  get(target, key) {
+    const fn = target[key];
+    if (typeof fn !== "function" || EDIT_READERS.has(key)) return fn;
+    return (...args) => { bumpEditGen(); return fn(...args); };
+  },
+});
 
 const properties = computed(() => store.getters["oqlBuilder/propsFor"](getRows.value) || {});
 
@@ -1507,12 +1532,22 @@ const renderQuery = async ({ swap, commit = swap, nav = swap ? "push" : "replace
   const oqo = currentOqo();
   const seq = ++commitSeq;
   const mySwap = swap ? ++swapSeq : 0;
+  // Round 24: snapshot the local-edit generation at dispatch. If ANY local mutation lands
+  // while this render is in flight (e.g. the user opens a transient add-value box — which
+  // deliberately dispatches no render of its own, so swapSeq can't protect it), the reseed
+  // below must be skipped: the server tree predates the edit and adopting it would wipe
+  // the user's in-progress work (the round-24 draft-wipe race). Display renders from the
+  // local tree (#490), so skipping only defers canonicalization to the next quiet render.
+  const myGen = editGen;
   rendering.value = true;
   const data = await store.dispatch("oqlBuilder/renderOqo", oqo);
   // Reseed `v2` from the server's authoritative tree if this is the LATEST swap render —
   // gated by `swapSeq`, NOT `commitSeq`, so a later keystroke (swap:false) render can't
   // invalidate it (see the `swapSeq` note above). A newer SWAP render still supersedes us.
-  if (swap && data.oql_render_v2 && mySwap === swapSeq) {
+  // Also gated by `editGen` (round 24) — see the dispatch-time snapshot above. This covers
+  // the complete-draft drop below too: a draft that completed DURING our flight is not in
+  // OUR server tree, so dropping it here would vanish the user's new filter.
+  if (swap && data.oql_render_v2 && mySwap === swapSeq && myGen === editGen) {
     reconcileTreeIds(data.oql_render_v2, local); // carry stable ids onto the server render
     v2.value = data.oql_render_v2;
     // "and either" chain (V2): a `_thenOr` draft that just folded (as a plain clause)
@@ -1532,6 +1567,10 @@ const renderQuery = async ({ swap, commit = swap, nav = swap ? "push" : "replace
     // no business touching (#490). Just prune any ref whose node no longer exists; survivors keep
     // their (id-stable) selection. So selecting a chip then editing elsewhere KEEPS the selection.
     pruneSelectionToLiveTree();
+    // Belt-and-braces (round 24): if this reseed somehow removed a transient's node anyway,
+    // clear the ref too — a set `pendingScalar`/`gapEntityFillId` whose chip no longer renders
+    // keeps `hasOpenDraft` true forever (the #561 singleton guard) and bricks every add button.
+    pruneTransientsToLiveTree();
   }
   // The emit channel (renderedOql / update:oql / update:oqo) keeps the LATEST-render-wins
   // guard: only the newest render of any kind updates the displayed OQL + execution channel.
@@ -1925,6 +1964,19 @@ const liveNodeIds = () => {
   if (v2.value && v2.value.where) walkExpr(v2.value.where);
   drafts.value.forEach((d) => { ids.add(d.id); walkVal(d.value); });
   return ids;
+};
+
+// PRUNE the tree-resident transients to nodes that still exist (round 24): `pendingScalar`
+// and `gapEntityFillId` point at an empty vleaf that lives in the LOCAL tree only (v2ToOqo
+// strips it, so no server tree ever contains it). If any tree replacement drops that
+// vleaf, the ref MUST clear with it — a dangling one keeps `hasOpenDraft` true with no
+// visible draft, which disables every add-affordance (the round-24 "stuck half-draft
+// state"). The DOM cleanup paths (blur/Enter/pick) can't be relied on here: Chrome fires
+// no blur when a focused element is removed.
+const pruneTransientsToLiveTree = () => {
+  const live = liveNodeIds();
+  if (pendingScalar.value && !live.has(pendingScalar.value.id)) pendingScalar.value = null;
+  if (gapEntityFillId.value != null && !live.has(gapEntityFillId.value)) gapEntityFillId.value = null;
 };
 
 // PRUNE selection to nodes that still exist — instead of wiping it wholesale on every server
@@ -2740,7 +2792,9 @@ const applyMoveWithRevert = (mutate) => {
   clearSelection();
   renderQuery({ swap: true }).then(() => {
     if (validation.value && validation.value.valid === false) {
+      bumpEditGen();                          // direct tree write — invalidate in-flight reseeds (round 24)
       v2.value = JSON.parse(before);          // incompatible move slipped the type filter
+      pruneTransientsToLiveTree();            // the snapshot predates any transient vleaf
       renderQuery({ swap: true });
       store.commit("snackbar", "Can’t move there");
     }
@@ -3314,6 +3368,9 @@ const hasQuery = computed(() =>
   !!(v2.value && v2.value.where) || drafts.value.length > 0
   || sortBy.value.length > 0 || !columnsAreDefault.value);
 const clearQuery = () => {
+  bumpEditGen();               // direct tree reset — invalidate in-flight reseeds (round 24)
+  pendingScalar.value = null;  // the transients' vleafs die with the tree
+  gapEntityFillId.value = null;
   drafts.value = [];
   sortBy.value = [];
   if (!columnsAreDefault.value) setColumns(defaultColumnKeys.value);
@@ -3561,6 +3618,9 @@ watch(columnKeys, () => renderQuery({ swap: false, commit: true, nav: "replace" 
 // ---- entity change ----------------------------------------------------------
 watch(getRows, async () => {
   if (suppressCommit) return;
+  bumpEditGen();               // drafts/transients reset — invalidate in-flight reseeds (round 24)
+  pendingScalar.value = null;
+  gapEntityFillId.value = null;
   drafts.value = [];
   await store.dispatch("oqlBuilder/loadProperties", getRows.value);
   renderQuery({ swap: true });
@@ -3599,6 +3659,13 @@ const rebuildFromOqo = async (data) => {
   // Drop any in-flight render from the query we're replacing (see the props.oql
   // watcher note) — covers the onMounted seed and the exposed rebuildFromOql path.
   ++commitSeq;
+  // Round 24: an external reseed replaces the tree wholesale — bump the edit generation so
+  // any in-flight swap render can't reseed over it (swapSeq alone doesn't cover this path),
+  // and clear the tree-resident transients with the tree they lived in (a dangling
+  // pendingScalar/gapEntityFillId would brick the add buttons via hasOpenDraft).
+  bumpEditGen();
+  pendingScalar.value = null;
+  gapEntityFillId.value = null;
   suppressCommit = true;
   drafts.value = [];
   if (oqo.get_rows && ENTITY_TYPES.includes(oqo.get_rows)) {
