@@ -1305,22 +1305,34 @@ const displayLines = computed(() => {
     line._spikeLead = hasVals && !line._spikePred && line._lead != null && !!line._level;
   });
   // Round 27 (Jason): the value-scope `or` connector is no longer its own chip — it
-  // merges into the FRONT of the value chip it precedes (`_connPrefix`, rendered as
-  // non-editable half-opacity text inside the chip, draft and committed alike). The
-  // conn token is dropped from the render list; `and` conns (inline value-AND edit
-  // state) and filter-scope conns keep their chips. Runs POST-splice so draft or-lists
-  // merge too; the tail-chip index is recomputed since removals shift it.
+  // merges into the FRONT of the value chip it follows in position (`_connPrefix`,
+  // rendered as non-editable half-opacity text inside the chip, draft and committed
+  // alike). Round-27 fix 2: the prefix is STRUCTURAL — derived from the chip's
+  // POSITION on the line, not from a preceding conn token ("it's an OR chip; the or
+  // is part of the chip's structure"). Every leaf value chip except the line's FIRST
+  // gets it, unless a kept `and` conn chip immediately precedes it (the inline
+  // value-AND edit state — the and chip IS that value's conjunction). The conn-token
+  // path alone missed post-decompose shapes (type `(foo or bar)` into a chip →
+  // Enter → the re-render had no conn directly before some chips → prefix lost).
+  // `or` conn tokens are dropped from the render list; `and` + filter-scope conns
+  // keep chips. Runs POST-splice so draft or-lists merge too; the tail-chip index is
+  // recomputed since removals shift it.
   out.forEach((line) => {
     const toks = line._valueToks || [];
-    if (!toks.some((t) => t.t === "conn" && t._level !== "filter")) return;
+    if (!toks.length) return;
     const merged = [];
+    let sawValue = false;
+    let pendingAnd = false;
     for (let i = 0; i < toks.length; i++) {
       const t = toks[i];
-      const nxt = toks[i + 1];
-      if (t.t === "conn" && t._level !== "filter" && (t.label || "").trim() === "or"
-          && nxt && (nxt.t === "vbrick" || nxt.t === "textblock")) {
-        nxt._connPrefix = "or"; // safe to stamp: value tokens are fresh per-render clones
-        continue;
+      if (t.t === "conn" && t._level !== "filter") {
+        if ((t.label || "").trim() === "or") continue; // absorbed into the next chip
+        pendingAnd = true; merged.push(t); continue;   // `and` stays a chip
+      }
+      if (t.t === "vbrick" || t.t === "textblock") {
+        t._connPrefix = (sawValue && !pendingAnd) ? "or" : null; // fresh per-render clones — safe to stamp
+        sawValue = true;
+        pendingAnd = false;
       }
       merged.push(t);
     }

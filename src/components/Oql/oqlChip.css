@@ -81,8 +81,11 @@
 
 /* `or` conjunction prefix (#603 round 27, Jason): an or-joined value carries its `or`
    INSIDE the chip — faded (half-opacity), non-editable — instead of a separate connector
-   chip. Renders in both display and edit/draft modes (the builder stamps _connPrefix). */
-.orpfx { margin-right: 1ch; opacity: 0.5; user-select: none; }
+   chip. Renders in both display and edit/draft modes (the builder stamps _connPrefix).
+   Explicit font-size (round-27 fix 1): inside the EDIT box (.val-wrap) the prefix has no
+   .val-chip ancestor setting the 13px brick size, so it inherited the body's 16px and
+   rendered visibly bigger than the chip text — pin it like .notpfx does. */
+.orpfx { margin-right: 1ch; opacity: 0.5; user-select: none; font-size: var(--brick-fs, 0.8125rem); }
 
 /* PILL shape (#603 round 27, Jason): values PICKED from a finite set — entity, enum,
    boolean — are stadiums (radius = half the 26px chip height); typed values (text,
