@@ -1,42 +1,48 @@
 <template>
-  <!-- Two-section story: the MAIN split is Available (left) vs Selected (right).
-       Inside Available there's a SUBORDINATE split of category TOC vs property
-       list. The search bar scopes to Available only (it searches properties). -->
+  <!-- Two-section story: Available (left) vs Selected (right). Available is a
+       single-column list grouped under collapsible category headings (#601 r2 —
+       the old category-TOC rail is gone); the search field sits on the
+       "Available" header row and scopes to Available only. A selected property
+       is REMOVED from Available (not greyed) — it exists only on the right. -->
   <div class="column-editor d-flex" :style="{ height, minHeight: '320px' }">
     <!-- ============ LEFT: AVAILABLE ============ -->
     <!-- In disabled/preset mode (e.g. RIS / WoS export) the whole Available
          side is greyed out and non-interactive — the column set is fixed. -->
     <div class="ce-available d-flex flex-column" :class="{ 'ce-available--disabled': disabled }">
-      <div class="ce-col-header">Available ({{ availableCount }})</div>
-
-      <div class="ce-search px-3 py-2">
+      <div class="ce-col-header d-flex align-center">
+        <span class="flex-shrink-0">Available ({{ availableCount }})</span>
+        <v-spacer />
         <v-text-field
           ref="searchFieldRef"
           v-model="searchQuery"
-          :placeholder="mode === 'group_by' ? 'Search stats…' : 'Search columns…'"
+          :placeholder="mode === 'group_by' ? 'Search stats' : 'Search columns'"
           variant="outlined"
           density="compact"
+          rounded="lg"
           hide-details
-          prepend-inner-icon="mdi-magnify"
           clearable
+          prepend-inner-icon="mdi-magnify"
+          class="ce-header-search"
           :disabled="disabled"
         />
       </div>
 
-      <!-- subordinate split: category TOC | property list — shared
-           CategorizedFacetPicker (oxjob #505). Add-only rows: title + hover
-           arrow, NO per-field icon; a selected property is greyed + disabled.
-           Removal / reorder happen on the right (chip rail). -->
-      <div class="ce-available-body flex-grow-1 d-flex" style="min-height: 0;">
-        <categorized-facet-picker
-          :categories="categories"
-          height="100%"
-          :empty-text="mode === 'group_by' ? 'No matching stats.' : 'No matching columns.'"
-          class="flex-grow-1"
-        >
-          <template #row="{ item }">
+      <!-- one-column grouped list: collapsible category headings, add-only
+           property rows (title + hover arrow, no per-field icon). Removal /
+           reorder happen on the right. -->
+      <div class="ce-available-body flex-grow-1 overflow-y-auto pa-2">
+        <div v-for="cat in categories" :key="cat.displayName">
+          <button type="button" class="ce-cat-toggle" @click="toggleCategory(cat.displayName)">
+            <v-icon size="16" class="ce-cat-icon">{{ cat.icon }}</v-icon>
+            <span class="text-capitalize">{{ cat.displayName }}</span>
+            <v-icon size="18" class="ce-cat-chevron ml-auto">
+              {{ isExpanded(cat.displayName) ? 'mdi-chevron-down' : 'mdi-chevron-right' }}
+            </v-icon>
+          </button>
+          <v-list v-show="isExpanded(cat.displayName)" density="compact" class="py-0">
             <v-list-item
-              :disabled="isSelected(item.key)"
+              v-for="item in cat.items"
+              :key="item.key"
               @click="addItem(item.key)"
               rounded
               class="rounded-lg ce-prop-row"
@@ -45,43 +51,46 @@
                 {{ item.label }}
               </v-list-item-title>
               <template #append>
-                <v-icon v-if="!isSelected(item.key)" size="18" class="ce-add-arrow">mdi-arrow-right</v-icon>
+                <v-icon size="18" class="ce-add-arrow">mdi-arrow-right</v-icon>
               </template>
             </v-list-item>
-          </template>
-        </categorized-facet-picker>
+          </v-list>
+        </div>
+        <div v-if="!categories.length" class="text-medium-emphasis text-center py-8">
+          {{ mode === 'group_by' ? 'No matching stats.' : 'No matching columns.' }}
+        </div>
       </div>
     </div>
 
     <!-- ============ RIGHT: SELECTED ============ -->
     <div class="ce-selected d-flex flex-column">
-      <div class="ce-col-header">Selected ({{ selectedCount }})</div>
+      <div class="ce-col-header d-flex align-center">Selected ({{ selectedCount }})</div>
 
-      <!-- selected columns as draggable chips, in column order. Chip [x]
-           de-selects (disabled on the last chip — ≥1-column floor); drag to
-           reorder. Edits emit live via v-model — the embedding container owns
-           whether/when they're committed (table dialog defers to Apply; the
-           export dialog uses them directly). -->
-      <div class="ce-chips flex-grow-1 overflow-y-auto pa-3">
-        <!-- Disabled/preset mode: static chips from presetLabels — no grip, no
+      <!-- selected columns as a draggable LIST (grab handle + label + remove),
+           in column order (#601 r2 — was chips). [x] de-selects (disabled on
+           the last row — ≥1-column floor); drag to reorder. Edits emit live via
+           v-model — the embedding container owns whether/when they're committed
+           (table dialog defers to Apply; the export dialog uses them directly). -->
+      <div class="ce-rows flex-grow-1 overflow-y-auto pa-2">
+        <!-- Disabled/preset mode: static rows from presetLabels — no grip, no
              remove, not draggable. Labels are already human-readable (acronyms
              intact), so no capitalize filter. -->
         <template v-if="disabled">
           <div
             v-for="label in presetLabels"
             :key="label"
-            class="column-editor-chip column-editor-chip--static"
+            class="ce-selected-row ce-selected-row--static"
           >
-            <span class="column-editor-chip-label">{{ label }}</span>
+            <span class="ce-selected-row-label">{{ label }}</span>
           </div>
         </template>
-        <!-- Editable mode: draggable chips with remove. -->
+        <!-- Editable mode: draggable rows with remove. -->
         <template v-else>
           <div
             v-for="(key, i) in modelValue"
             :key="key"
-            class="column-editor-chip"
-            :class="{ 'column-editor-chip--dragover': dragOverIndex === i }"
+            class="ce-selected-row"
+            :class="{ 'ce-selected-row--dragover': dragOverIndex === i }"
             draggable="true"
             @dragstart="onDragStart(i, $event)"
             @dragover.prevent="onDragOver(i)"
@@ -89,13 +98,13 @@
             @drop="onDrop(i)"
             @dragend="onDragEnd"
           >
-            <v-icon size="16" class="column-editor-chip-grip">mdi-drag-vertical</v-icon>
-            <span class="column-editor-chip-label text-capitalize">{{ chipLabel(key) }}</span>
+            <v-icon size="16" class="ce-selected-row-grip">mdi-drag-vertical</v-icon>
+            <span class="ce-selected-row-label text-capitalize">{{ selectedLabel(key) }}</span>
             <v-btn
               icon
               variant="text"
               size="x-small"
-              class="column-editor-chip-remove"
+              class="ce-selected-row-remove"
               :disabled="modelValue.length <= minItemsFloor"
               :title="modelValue.length <= minItemsFloor ? 'At least one column is required' : (mode === 'group_by' ? 'Remove stat' : 'Remove column')"
               @click="removeItem(key)"
@@ -114,13 +123,14 @@ import { ref, computed, onMounted } from 'vue';
 import filters from '@/filters';
 import { facetsByCategory, getFacetConfig } from '@/facetConfigUtils';
 import { resolveColumn, isColumnEligible, hasIdsSibling } from '@/components/Results/Table/columnConfig';
-import CategorizedFacetPicker from '@/components/Misc/CategorizedFacetPicker.vue';
 
 defineOptions({ name: 'ColumnEditorPanel' });
 
 // The reusable column editor body (job #304). Two main sections:
-//   AVAILABLE (left)  — search + category TOC (subordinate) + add-only property list
-//   SELECTED  (right) — the chosen columns as draggable chips, in order, each [x]
+//   AVAILABLE (left)  — search (on the header row) + one-column categorized
+//                       list with collapsible headings; add-only rows
+//   SELECTED  (right) — the chosen columns as a draggable list, in order,
+//                       each with a grab handle + [x]
 //
 // This panel is a CONTROLLED v-model over the ordered key list: every add /
 // remove / reorder emits `update:modelValue` immediately. Deferred-commit (the
@@ -134,10 +144,10 @@ const props = defineProps({
   // the standalone dialog's 60vh).
   height: { type: String, default: '60vh' },
   // Read-only/preset mode: greys out the Available side and renders the Selected
-  // side as static (non-removable, non-draggable) chips from `presetLabels`.
+  // side as static (non-removable, non-draggable) rows from `presetLabels`.
   // Used for fixed-shape exports (RIS / WoS) where the column set isn't editable.
   disabled: { type: Boolean, default: false },
-  // Human-readable column labels shown as static chips when `disabled` (acronyms
+  // Human-readable column labels shown as static rows when `disabled` (acronyms
   // already cased correctly — rendered verbatim, no capitalize filter).
   presetLabels: { type: Array, default: () => [] },
   // What this panel edits (#440 r6): 'column' (default — table columns, the
@@ -175,7 +185,7 @@ function removeItem(key) {
   commit(props.modelValue.filter((k) => k !== key));
 }
 
-function chipLabel(key) {
+function selectedLabel(key) {
   if (props.mode === 'group_by') {
     return filters.titleCase(getFacetConfig(props.entityType, key)?.displayName ?? key);
   }
@@ -190,11 +200,31 @@ const selectedCount = computed(() =>
   props.disabled && props.presetLabels.length ? props.presetLabels.length : props.modelValue.length,
 );
 const availableCount = computed(() =>
-  categories.value.reduce((n, cat) => n + cat.items.filter((i) => !isSelected(i.key)).length, 0),
+  categories.value.reduce((n, cat) => n + cat.items.length, 0),
 );
 
-// ---- center list: eligible properties, by category ----
+// ---- collapsible category headings (#601 r2) ----
+// All categories start expanded; state is remembered per category name for the
+// life of the panel (the dialog remounts it each open). While a search query is
+// active every (matching) category is force-expanded so hits are never hidden.
+const collapsedCats = ref(new Set());
+
+function isExpanded(name) {
+  if (searchQuery.value) return true;
+  return !collapsedCats.value.has(name);
+}
+
+function toggleCategory(name) {
+  const next = new Set(collapsedCats.value);
+  if (next.has(name)) next.delete(name);
+  else next.add(name);
+  collapsedCats.value = next;
+}
+
+// ---- available list: eligible, NOT-yet-selected properties, by category ----
 // column mode: column-eligible + renderable; group_by mode: group_by-actionable.
+// Selected keys are dropped entirely (they live on the right); a category whose
+// properties are all selected disappears.
 function isEligible(c) {
   if (c.entityToFilter !== props.entityType) return false;
   if (props.mode === 'group_by') return c.actions?.includes('group_by');
@@ -208,30 +238,36 @@ const categories = computed(() => {
       for (const c of cat.filterConfigs) {
         if (!isEligible(c)) continue;
         if (props.mode === 'group_by') {
-          items.push({
-            key: c.key,
-            label: filters.titleCase(c.displayName ?? c.key),
-            icon: c.icon ?? 'mdi-chart-box-outline',
-          });
+          if (!isSelected(c.key)) {
+            items.push({
+              key: c.key,
+              label: filters.titleCase(c.displayName ?? c.key),
+              icon: c.icon ?? 'mdi-chart-box-outline',
+            });
+          }
           continue; // no :ids siblings for stats widgets
         }
-        items.push({
-          key: c.key,
-          // Use the resolved column label (respects `column.label` overrides,
-          // e.g. "Work ID") so the picker matches the chip + table header.
-          label: filters.capitalize(resolveColumn(props.entityType, c.key)?.label ?? c.displayName ?? c.key),
-          icon: c.icon ?? 'mdi-table-column',
-        });
+        if (!isSelected(c.key)) {
+          items.push({
+            key: c.key,
+            // Use the resolved column label (respects `column.label` overrides,
+            // e.g. "Work ID") so the picker matches the selected row + table header.
+            label: filters.capitalize(resolveColumn(props.entityType, c.key)?.label ?? c.displayName ?? c.key),
+            icon: c.icon ?? 'mdi-table-column',
+          });
+        }
         // Auto-derived bare-ID sibling, only for entity-typed columns whose
         // items carry a parseable OpenAlex id (hasIdsSibling — gates out
         // controlled vocabularies like `type`/`language`/`country_codes`).
         if (hasIdsSibling(c)) {
           const idsKey = `${c.key}:ids`;
-          items.push({
-            key: idsKey,
-            label: filters.capitalize(resolveColumn(props.entityType, idsKey)?.label ?? idsKey),
-            icon: c.icon ?? 'mdi-table-column',
-          });
+          if (!isSelected(idsKey)) {
+            items.push({
+              key: idsKey,
+              label: filters.capitalize(resolveColumn(props.entityType, idsKey)?.label ?? idsKey),
+              icon: c.icon ?? 'mdi-table-column',
+            });
+          }
         }
       }
       return { displayName: cat.displayName, icon: cat.icon, items };
@@ -239,7 +275,7 @@ const categories = computed(() => {
     .filter((cat) => cat.items.length > 0);
 });
 
-// ---- chip drag-to-reorder (native HTML5 DnD) ----
+// ---- row drag-to-reorder (native HTML5 DnD) ----
 const dragIndex = ref(null);
 const dragOverIndex = ref(null);
 function onDragStart(i, e) {
@@ -281,8 +317,7 @@ onMounted(() => {
 
 <style scoped>
 /* Framed two-section editor: Available | Selected. The frame + the main
-   vertical divider read as the primary split; the category/property divider
-   inside Available is intentionally lighter (subordinate). */
+   vertical divider read as the primary split. */
 .column-editor {
   border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 8px;
@@ -303,25 +338,56 @@ onMounted(() => {
   background: rgba(0, 0, 0, 0.015);
 }
 
-/* Column headers — the two main sections (Available / Selected). These are the
-   DOMINANT level of the in-panel hierarchy: larger/bolder/darker than the
-   category sub-headings inside the Available list (.ce-cat-header). */
+/* Column headers — the two main sections (Available / Selected). Fixed height
+   on both sides so the header borders align even though only the left one
+   hosts the search field. */
 .ce-col-header {
   flex: 0 0 auto;
+  min-height: 56px;
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.01em;
   color: rgba(0, 0, 0, 0.87);
-  padding: 12px 16px 8px;
+  padding: 8px 12px 8px 16px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.ce-search {
-  flex: 0 0 auto;
+/* Search field on the Available header row — compact, right-aligned. */
+.ce-header-search {
+  flex: 0 1 220px;
+  max-width: 220px;
+  font-weight: 400;
 }
 
 .ce-available-body {
-  min-height: 0; /* let children scroll within the flex column */
+  min-height: 0; /* let it scroll within the flex column */
+}
+
+/* Collapsible category heading — darker and more heading-y than the old
+   uppercase micro-labels (#601 r2). Full-row click target with a chevron. */
+.ce-cat-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 8px;
+  margin-top: 4px;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: rgba(0, 0, 0, 0.87);
+  text-align: left;
+  cursor: pointer;
+}
+.ce-cat-toggle:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+.ce-cat-icon {
+  color: rgba(0, 0, 0, 0.6);
+}
+.ce-cat-chevron {
+  color: rgba(0, 0, 0, 0.45);
 }
 
 /* Hover affordance: a right-arrow on an available property row, signalling that
@@ -338,55 +404,57 @@ onMounted(() => {
   opacity: 1 !important;
 }
 
-.ce-chips {
+.ce-rows {
   min-height: 0;
 }
 
 /* Disabled/preset mode: grey out the whole Available side and block interaction.
-   The Selected side stays legible (static chips) so users can read the preset. */
+   The Selected side stays legible (static rows) so users can read the preset. */
 .ce-available--disabled {
   opacity: 0.5;
   pointer-events: none;
 }
 
-/* selected-column chips */
-.column-editor-chip {
+/* selected-column rows — list rows, not chips (#601 r2): full-width, no border,
+   hover background; grab handle on the left, remove on the right. */
+.ce-selected-row {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 4px 4px 6px;
-  margin-bottom: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  gap: 6px;
+  padding: 5px 6px 5px 8px;
+  margin-bottom: 2px;
   border-radius: 6px;
-  background: #fff;
   cursor: grab;
   user-select: none;
 }
-.column-editor-chip:active {
+.ce-selected-row:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+.ce-selected-row:active {
   cursor: grabbing;
 }
-/* Static (preset) chip — not draggable/removable; default cursor, left padding
+/* Static (preset) row — not draggable/removable; default cursor, left padding
    restored since there's no grip icon. */
-.column-editor-chip--static {
+.ce-selected-row--static {
   cursor: default;
-  padding-left: 10px;
+  padding-left: 12px;
 }
-.column-editor-chip--dragover {
-  border-color: rgba(0, 0, 0, 0.55);
+.ce-selected-row--dragover {
+  background: rgba(0, 0, 0, 0.06);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35) inset;
 }
-.column-editor-chip-grip {
+.ce-selected-row-grip {
   color: rgba(0, 0, 0, 0.3);
   flex: 0 0 auto;
 }
-.column-editor-chip-label {
+.ce-selected-row-label {
   flex: 1 1 auto;
   font-size: 0.875rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.column-editor-chip-remove {
+.ce-selected-row-remove {
   flex: 0 0 auto;
 }
 </style>

@@ -1,8 +1,9 @@
 <template>
-  <!-- Shared categorized field/property picker body (oxjob #505). The ONE
-       presentation engine behind all three pickers — the OQL "All fields" dialog
-       (BuilderFieldDialog), the filter selector (NoviceFilterDialog) and the column
-       selector (ColumnEditorPanel). It owns the left category TOC rail, scroll-spy
+  <!-- Shared categorized field/property picker body (oxjob #505). The
+       presentation engine behind the OQL "All fields" dialog
+       (BuilderFieldDialog) and the filter selector (NoviceFilterDialog); the
+       column selector (ColumnEditorPanel) used it too until #601 r2 moved to a
+       single-column collapsible list. It owns the left category TOC rail, scroll-spy
        (IntersectionObserver + onScroll fallback), the grouped list with category
        headers/icons, and the empty state. Each parent keeps its own search field
        above this and builds the `categories` array; the per-row affordance comes

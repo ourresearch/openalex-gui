@@ -24,21 +24,24 @@
       <v-card class="selection-menu-card rounded-o" :class="{ 'selection-menu-card--tinted': !!cardStyle }" :style="cardStyle">
         <!-- TYPE-ON-CHIP mode (oxjob #561): when `externalSearch` is set the query is typed on
              the caller's own chip/input, so the menu renders NO search box — options only. -->
+        <!-- Linear-style search row (#601 r2): a real outlined box in a padded
+             band, not a borderless field with padding hacks. -->
         <template v-if="!ext">
-          <v-text-field
-            v-model="searchString"
-            ref="initialInput"
-            variant="plain"
-            hide-details
-            autofocus
-            :placeholder="searchPlaceholder"
-            @keyup.enter="onEnter"
-            @keydown.down="onDownArrow"
-          >
-            <template #prepend-inner>
-              <v-icon color="primary" class="ml-4">mdi-magnify</v-icon>
-            </template>
-          </v-text-field>
+          <div class="selection-menu-search pa-2">
+            <v-text-field
+              v-model="searchString"
+              ref="initialInput"
+              variant="outlined"
+              density="compact"
+              rounded="lg"
+              hide-details
+              autofocus
+              prepend-inner-icon="mdi-magnify"
+              :placeholder="searchPlaceholder"
+              @keyup.enter="onEnter"
+              @keydown.down="onDownArrow"
+            />
+          </div>
 
           <v-divider/>
         </template>
@@ -73,7 +76,7 @@
 
         <v-list v-if="!effSearch">
           <v-list-item
-            v-for="(key, i) in popularKeys"
+            v-for="(key, i) in visiblePopularKeys"
             :key="key"
             :active="ext && i === hl"
             @click="selectOption(key)"
@@ -87,6 +90,24 @@
               {{ getDisplayName(key) }}
             </v-list-item-title>
             <template #append v-if="isStateful && selectedKeys?.includes(key)">
+              <v-icon>mdi-check</v-icon>
+            </template>
+          </v-list-item>
+          <!-- Overflow row (#601 r2): selected keys pushed out by the maxOptions
+               cap are summarized as "+n more ✓"; clicking opens the More dialog. -->
+          <v-list-item
+            v-if="hiddenSelectedCount > 0"
+            key="overflow-more"
+            @click="openMoreDialog"
+            @mousedown="onOptionMousedown"
+          >
+            <template #prepend>
+              <v-icon />
+            </template>
+            <v-list-item-title>
+              +{{ hiddenSelectedCount }} more
+            </v-list-item-title>
+            <template #append>
               <v-icon>mdi-check</v-icon>
             </template>
           </v-list-item>
@@ -246,6 +267,13 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  // Cap for the browse (non-search) list (#601 r2): show at most this many
+  // rows; selected keys hidden by the cap surface as a "+n more ✓" overflow
+  // row that opens the More dialog. null = unlimited (all existing usages).
+  maxOptions: {
+    type: Number,
+    default: null
+  },
   // When true, suppresses the internal flat-list "more" dialog and instead
   // emits `more` so the parent can render its own dialog. Used by AddFilter
   // to swap in the unified NoviceFilterDialog (oxjob #293).
@@ -319,10 +347,21 @@ const searchResults = computed(() => searchMatches(effSearch.value));
 
 const moreSearchResults = computed(() => searchMatches(moreSearchString.value));
 
+// Browse list under the optional cap, and the count of selected keys the cap
+// pushed out of view (they still deserve their checkmark — see overflow row).
+const visiblePopularKeys = computed(() =>
+  props.maxOptions ? props.popularKeys.slice(0, props.maxOptions) : props.popularKeys
+);
+const hiddenSelectedCount = computed(() => {
+  if (!props.maxOptions || !props.isStateful) return 0;
+  const visible = new Set(visiblePopularKeys.value);
+  return (props.selectedKeys ?? []).filter((key) => !visible.has(key)).length;
+});
+
 // Keyboard highlight for type-on-chip mode (#561): focus stays on the caller's input, so the
 // list is navigated remotely over whichever list is showing (results, or popular when empty).
 const hl = ref(0);
-const navKeys = computed(() => (effSearch.value ? searchResults.value : props.popularKeys));
+const navKeys = computed(() => (effSearch.value ? searchResults.value : visiblePopularKeys.value));
 watch(effSearch, () => { hl.value = 0; });
 defineExpose({
   moveHl: (d) => {
@@ -388,11 +427,14 @@ function onEnter() {
   min-width: 240px;
   max-height: 70vh;
   min-height: 200px;
-  input {
-    padding-top: 4px !important;
-  }
-  .v-field__prepend-inner, .v-field__append-inner {
-    padding-top: 12px !important;
+}
+
+/* The outlined search box's magnify icon: kill Vuetify's prepend-inner top
+   padding so the icon centers on the input line (#601 r2 alignment fix). */
+.selection-menu-search {
+  :deep(.v-field__prepend-inner) {
+    padding-top: 0;
+    align-items: center;
   }
 }
 

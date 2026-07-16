@@ -8,6 +8,7 @@
     :get-icon="getIcon"
     is-stateful
     custom-more
+    :max-options="5"
     button-style="icon"
     search-placeholder="Search columns"
     more-label="More columns"
@@ -156,11 +157,17 @@ const allKeys = computed(() => {
   return [...names, ...ids];
 });
 
-const popularKeys = computed(() =>
-  eligibleConfigs.value
+// Browse list, selected-first (#601 r2): the columns currently showing (in
+// table order, each checkmarked) followed by popular not-yet-selected
+// suggestions. SelectionMenu caps the rendered list at 5 (`max-options`) and
+// summarizes any selected columns beyond the cap as a "+n more ✓" row.
+const popularKeys = computed(() => {
+  const popular = eligibleConfigs.value
     .filter((c) => c.actionsPopular?.includes('column'))
-    .map((c) => c.key),
-);
+    .map((c) => c.key)
+    .filter((key) => !columnKeys.value.includes(key));
+  return [...columnKeys.value, ...popular];
+});
 
 function getDisplayName(key) {
   const col = resolveColumn(props.entityType, key);
