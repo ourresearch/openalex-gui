@@ -73,23 +73,27 @@ const emit = defineEmits(["add", "remove", "request-edit", "select", "select-cle
 
 const entityName = computed(() => props.tok._entityName || props.tok.display || props.tok.text);
 // The old "new institution" placeholder label, minus the "new " — the chip is an input now
-// (#561), so the hint is just the entity type you're searching.
-const typeHint = computed(() =>
-  (props.tok._placeholderLabel || "new value").replace(/^new /, ""));
+// (#561), so the hint is just the entity type you're searching. A committed chip's blank
+// re-pick input (#603 r28) hints the CURRENT name instead — faded, so it reads as "replacing
+// this", not as text still in the box.
+const typeHint = computed(() => {
+  if (props.tok._placeholderLabel) return props.tok._placeholderLabel.replace(/^new /, "");
+  return entityName.value || "new value";
+});
 
-// RE-PICK edit (#561 follow-up): when the builder flips this committed chip into the input,
-// prefill it with the current name, select it (type-to-replace, like the text chip's edit),
-// and emit the name as the query so the picker opens on relevant results.
+// RE-PICK edit (#561 follow-up): the builder flips this committed chip into the input.
+// #603 r28 (Jason): it opens BLANK — small tweaks to a picked entity are rare, so the old
+// prefilled-and-selected name was friction; the placeholder hints the entity type and the
+// picker opens on its default (unfiltered) results.
 const typeonEl = ref(null);
 watch(() => props.editOpen, (open) => {
   if (!open) return;
   nextTick(() => {
     const el = typeonEl.value;
     if (!el) return;
-    el.value = entityName.value || "";
+    el.value = "";
     el.focus();
-    el.select();
-    emit("query-input", el.value);
+    emit("query-input", "");
   });
 });
 

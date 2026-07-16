@@ -5,10 +5,13 @@
        SubclauseBox (block) layouts. Controlled `open` so the group's paren-menu
        "Add value" can pop the picker. -->
   <!-- TYPE-ON-CHIP mode (oxjob #561): when `externalSearch` is set, the query is typed on the
-       draft chip itself, so the menu has NO search box — just options + the "not" footer. The
+       draft chip itself, so the menu has NO search box — just the options list. The
        chip input is also the menu's ACTIVATOR (with open-on-click off) so Vuetify's
        click-outside dismiss ignores clicks/typing on the input; clicking anywhere else still
        closes the menu (→ abandon), same as before. -->
+  <!-- #603 r28 (Jason): the "not" checkbox footer is GONE ("always awkward") — negation is
+       TYPED: a query starting `not ` negates the pick, and the autocomplete stays quiet
+       while the input is still just a prefix of "not" (see notPrefix.js). -->
   <!-- #603 r22: the anchor is re-resolved to a LIVE element on every open (liveTarget) —
        a selector string handed straight to Vuetify gets resolved ONCE and cached, and the
        chip element it found is REPLACED when the chip flips display↔type-on-input
@@ -39,18 +42,12 @@
           </v-list-item>
           <v-list-item v-for="(r, i) in results" :key="r.id || r.value" :title="r.display_name || r.value"
             :subtitle="r.hint" :active="ext && i === hl" @click="pick(r)" />
-          <v-list-item v-if="!loading && !results.length && (ext ? externalSearch : search)"
+          <!-- suppressed = the input is a bare "n"/"no"/"not" (#603 r28): show NOTHING —
+               "No matches" would read as a failed search when we simply aren't searching. -->
+          <v-list-item v-if="!loading && !results.length && !suppressed && (ext ? externalSearch : search)"
             class="text-medium-emphasis text-center py-3">No matches</v-list-item>
         </v-list>
       </div>
-      <!-- "not" footer (oxjob #507, Jason 2026-06-25): a checkbox toggle that negates the
-           value(s) picked from this dropdown — `not Stanford University`. -->
-      <v-divider />
-      <button type="button" class="not-footer" :class="{ 'not-footer--on': negate }"
-        @click.stop="onToggleNegate">
-        <v-icon size="18">{{ negate ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline' }}</v-icon>
-        <span>not</span>
-      </button>
     </v-card>
   </v-menu>
   <v-btn v-else class="add-val-btn" icon size="x-small" variant="text" density="comfortable" @click="$emit('add')">
@@ -64,6 +61,7 @@ import { ref, computed, watch } from "vue";
 import { debounce } from "lodash";
 import { api } from "@/api";
 import { getEnumValues } from "@/components/OqlPlayground/oqlEditorApi";
+import { parseNotQuery } from "@/components/OqlPlayground/notPrefix";
 
 defineOptions({ name: "BuilderAddValue" });
 
@@ -82,15 +80,15 @@ const props = defineProps({
   // draft entity picker so the dropdown lands under the "new <entity>" placeholder chip
   // rather than offset to its right (the zero-width anchor sits after the placeholder). #494
   anchorTarget: { type: [String, Object], default: null },
-  // current negation state of the value being EDITED (committed re-pick): seeds the "not" footer
-  // so it reflects reality, and lets a footer toggle apply LIVE via `set-negate`. (#523 round 3.)
+  // current negation state of the value being EDITED (committed re-pick): a re-pick keeps the
+  // node's negation unless the user types a fresh `not ` (#523 round 3; footer gone in #603 r28).
   negated: { type: Boolean, default: false },
   // TYPE-ON-CHIP mode (oxjob #561): non-null = the autocomplete query is typed on the draft
-  // chip itself and passed in here; the menu renders NO search box (options + "not" footer
-  // only). The parent drives result navigation via the exposed moveHl()/pickHl().
+  // chip itself and passed in here; the menu renders NO search box (options only). The
+  // parent drives result navigation via the exposed moveHl()/pickHl().
   externalSearch: { type: String, default: null },
 });
-const emit = defineEmits(["add", "pick", "abandon", "set-negate"]);
+const emit = defineEmits(["add", "pick", "abandon"]);
 
 // The menu matches the FIELD-chip picker's recipe (#603 round 10, Jason: the all-blue
 // card is gone) — default white background, with the chip family's tint only on the
@@ -120,21 +118,27 @@ const loading = ref(false);
 // Keyboard highlight for type-on-chip mode (#561): the chip input keeps focus, so the menu
 // list is navigated remotely (moveHl/pickHl below); `hl` is the highlighted result index.
 const hl = ref(0);
-const negate = ref(false); // "not" footer toggle (oxjob #507): negate picked values
-// Toggle the "not" footer: flip locally, AND emit `set-negate` so a committed value being
-// re-edited negates IMMEDIATELY (the footer used to only modify the NEXT pick — checking it on
-// an already-placed value did nothing). The new state still rides the next `pick` payload. (#523)
-const onToggleNegate = () => { negate.value = !negate.value; emit("set-negate", negate.value); };
+// Negation carried into the pick (#603 r28): seeded from the edited value's current state
+// (a re-pick keeps an existing `not`); a typed `not ` prefix ORs in on top. The checkbox
+// footer that used to drive this is gone.
+const negate = ref(false);
+// The query string currently in force — the chip input (type-on mode) or the internal box.
+const activeQuery = () => (ext.value ? (props.externalSearch || "") : search.value);
+// Bare "n"/"no"/"not" → the autocomplete is OFF (#603 r28; see notPrefix.js).
+const suppressed = computed(() => parseNotQuery(activeQuery()).suppress);
 
 const pick = (r) => {
   const raw = props.listVocab ? r.value : (r.short_id || r.id || r.value);
   const id = props.slugValues ? String(raw).split("/").pop() : raw;
-  emit("pick", { value: id, label: r.display_name || id, negate: negate.value });
+  const typedNeg = parseNotQuery(activeQuery()).negate;
+  emit("pick", { value: id, label: r.display_name || id, negate: negate.value || typedNeg });
   search.value = ""; results.value = [];
 };
 
-const run = debounce(async (q) => {
+const run = debounce(async (rawQ) => {
   if (!isPicker.value || !props.autocompleteEntity) { results.value = []; return; }
+  // strip a typed `not ` prefix — the search runs on the real query (#603 r28)
+  const q = parseNotQuery(rawQ).query;
   loading.value = true;
   try {
     if (props.listVocab) {
@@ -151,17 +155,24 @@ const run = debounce(async (q) => {
   finally { loading.value = false; }
 }, 250);
 
-watch(search, (q) => { if (isPicker.value) run(q); });
+// Suppression must be INSTANT (not on the debounce): stale results sitting under an armed
+// Enter while the user types "n…" would pick something they never searched for. (#603 r28)
+const applyQuery = (rawQ) => {
+  if (parseNotQuery(rawQ).suppress) { run.cancel(); results.value = []; loading.value = false; return; }
+  run(rawQ);
+};
+
+watch(search, (q) => { if (isPicker.value) applyQuery(q); });
 // type-on-chip mode: the query lives on the chip; each keystroke re-runs the autocomplete.
 watch(() => props.externalSearch, (q) => {
-  if (ext.value && open.value) { hl.value = 0; run(q || ""); }
+  if (ext.value && open.value) { hl.value = 0; applyQuery(q || ""); }
 });
 watch(results, () => { if (hl.value >= results.value.length) hl.value = 0; });
 watch(open, (o) => {
   if (o) {
     if (!liveTarget.value || !liveTarget.value.isConnected) resolveTarget();
     negate.value = !!props.negated; hl.value = 0;
-    if (isPicker.value && ext.value) run(props.externalSearch || "");
+    if (isPicker.value && ext.value) applyQuery(props.externalSearch || "");
     else if (isPicker.value && !results.value.length) run("");
   }
   else { negate.value = false; emit("abandon"); }
@@ -208,16 +219,5 @@ defineExpose({
    !important }` house rule that would otherwise grey out the highlight (the #440 footgun). */
 .menu-card :deep(.v-list-item:hover),
 .menu-card :deep(.v-list-item--active) { background: var(--menu-hl, rgba(0, 0, 0, 0.08)) !important; }
-/* "not" footer (oxjob #507): a full-width checkbox row, Linear-minimal. Inherits the
-   menu's chip colouring (#561). */
-.not-footer {
-  display: flex; align-items: center; gap: 8px;
-  width: 100%; padding: 8px 12px;
-  font-size: 0.8125rem; color: inherit;
-  background: transparent; border: 0; cursor: pointer; text-align: left;
-}
-.not-footer:hover { background: var(--menu-hl, rgba(0, 0, 0, 0.06)); }
-.not-footer .v-icon { opacity: 0.55; }
-.not-footer--on { color: #1a1a1a; }
-.not-footer--on .v-icon { opacity: 1; }
+/* (the "not" checkbox footer is gone — #603 r28: negation is typed, `not <query>`) */
 </style>

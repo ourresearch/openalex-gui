@@ -376,7 +376,6 @@
                 :slug-values="tok._slugValues"
                 :external-search="typeOnQuery"
                 @pick="(p) => onPickEntityValueTo(tok._targetId, p, tok._draft)"
-                @set-negate="(neg) => onDraftSetNegate(tok._targetId, neg)"
                 @abandon="onAbandonValue(tok._targetId)" />
 
               <!-- One invisible in-place picker PER committed entity value, keyed by
@@ -396,7 +395,6 @@
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
                 :slug-values="tok._slugValues"
                 @pick="(p) => onPickEntityValue(tok, p)"
-                @set-negate="(neg) => onEntitySetNegate(tok, neg)"
                 @abandon="onAbandonEntityValue(tok)" />
             </template>
 
@@ -573,13 +571,30 @@
       :style="{ left: dateEditor.x + 'px', top: dateEditor.y + 'px' }" @click.stop @mousedown.stop>
       <OqlDatePicker :value="dateEditor.value" @pick="onDateEditorPick" />
     </div>
+
+    <!-- ENTITY value ACTION MENU (#603 round 28, Jason): clicking a committed entity chip
+         opens this menu instead of dropping into edit mode — editing is the least likely
+         intent for a picked entity. Headed by the entity's shortest ID (grey mono, inert).
+         Same fixed chip-anchored overlay recipe as the date editor above (a coordinate-
+         target v-menu dismisses on its own opening click). -->
+    <div v-if="entityMenu" class="entity-menu-overlay menu-card"
+      :style="{ left: entityMenu.x + 'px', top: entityMenu.y + 'px' }" @click.stop @mousedown.stop>
+      <div class="ent-menu-id">{{ entityMenu.shortId }}</div>
+      <v-divider />
+      <v-list density="compact" class="py-0">
+        <v-list-item v-if="entityMenu.viewPath" title="View" @click="onEntityMenuView" />
+        <v-list-item :title="entityMenu.tok.negated ? 'Remove NOT' : 'Negate (NOT)'" @click="onEntityMenuNegate" />
+        <v-list-item title="Edit" @click="onEntityMenuEdit" />
+        <v-list-item title="Delete" @click="onEntityMenuDelete" />
+      </v-list>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useStore } from "vuex";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { debounce } from "lodash";
 import { api } from "@/api";
 import OqlBrick from "@/components/Oql/OqlBrick.vue";
@@ -594,7 +609,7 @@ import { resolveColumns } from "@/components/Results/Table/columnConfig";
 import { useColumnsState } from "@/composables/useColumnsState";
 import { useLocalColumns } from "@/composables/useLocalColumns";
 import { facetConfigs } from "@/facetConfigs";
-import { ALL_ENTITY_TYPES } from "@/openalexId";
+import { ALL_ENTITY_TYPES, normalizeId } from "@/openalexId";
 import {
   valueKindForProperty, autocompleteEntityFor, isListVocabEntity, isSlugAutocompleteEntity,
   uiOperatorsForProperty,
@@ -675,6 +690,7 @@ const emit = defineEmits(["run", "update:oql", "update:oqo"]);
 
 const store = useStore();
 const route = useRoute();
+const router = useRouter();
 
 // All 23 entities the builder can drive (oxjob #621). Single-sourced from
 // openalexId.ALL_ENTITY_TYPES so it can't drift from the ID/registry vocabulary
@@ -1837,6 +1853,7 @@ const selectRowTarget = (r, chip = null) => {
 // on the band whitespace, an inert connector, the dot placeholder, or the entity/keyword chips.
 const onLineClick = (/* lineIdx, ev */) => {
   if (dateEditor.value) closeDateEditor();
+  if (entityMenu.value) closeEntityMenu();
   if (selection.value || selectionActive.value) clearSelection();
 };
 // Double-clicking a row band is a NO-OP (double-click was removed, Jason 2026-06-22). Kept as a
@@ -2048,6 +2065,9 @@ const pruneSelectionToLiveTree = () => {
   if (selectionAnchorId.value && !live.has(selectionAnchorId.value)) selectionAnchorId.value = null;
   if (lastSingleId.value && !live.has(lastSingleId.value)) lastSingleId.value = null;
   if (selectedChip.value && !live.has(selectedChip.value)) selectedChip.value = null;
+  // The entity action menu (r28) anchors to a chip — if a reseed dropped that node,
+  // the menu's actions would target a ghost; close it with the node.
+  if (entityMenu.value && !live.has(entityMenu.value.tok.id)) closeEntityMenu();
   const sel = selection.value;
   if (sel) {
     const id = sel.kind === "value" ? sel.id : (sel.clauseId || sel.groupId);
@@ -2063,10 +2083,10 @@ const pruneSelectionToLiveTree = () => {
 const onChipSelect = ({ id, mode }) => {
   if (mode === "single") {
     // Round 20 (Jason): chips are NOT selectable anymore — a single click goes straight
-    // to EDIT/draft mode (text/number: the in-place input; entity: the re-pick picker;
-    // date: the calendar) — the same routing as Enter/double-click. A sole boolean-
-    // phrase chip has nothing to edit (booleans toggle on click in OqlBoolChip; a
-    // phrase chip's only actions are the row × / typing `not`), so it's a no-op.
+    // to EDIT/draft mode (text/number: the in-place input; date: the calendar) — the
+    // same routing as Enter/double-click. A sole boolean-phrase chip has nothing to
+    // edit (booleans toggle on click in OqlBoolChip; a phrase chip's only actions are
+    // the row × / typing `not`), so it's a no-op.
     // (The r11-era "click paints a selection ring" model is gone; Cmd/Shift multi-
     // select below is kept — it feeds batch-delete / wrap-as-subclause, not selection.)
     const vt = findValueTok(id);
@@ -2074,6 +2094,15 @@ const onChipSelect = ({ id, mode }) => {
     lastSingleId.value = id;
     if (selectedIds.value.size) selectedIds.value = new Set();
     selectionAnchorId.value = null;
+    // Round 28 (Jason): a COMMITTED entity chip's click opens its ACTION MENU (view /
+    // negate / edit / delete) instead of dropping into the re-pick — editing is the
+    // least likely intent for a picked entity. Enter / double-click still edit
+    // directly (the power path); a re-click on the same chip toggles the menu closed.
+    if (vt._kind === "entity" && !vt._draft && !vt._placeholder) {
+      if (entityMenu.value && entityMenu.value.tok.id === id) { closeEntityMenu(); return; }
+      openEntityMenu(vt);
+      return;
+    }
     editValue(vt);
     return;
   }
@@ -2157,6 +2186,67 @@ const onDateEditorPick = (iso) => {
   closeDateEditor();
   if (tok) pickDate(tok, iso);
 };
+
+// ---- entity value ACTION MENU (#603 round 28) --------------------------------
+// Clicking a committed entity chip opens a small menu of the things the user
+// probably wants (view / negate / edit / delete) — NOT edit mode directly. Headed
+// by the entity's shortest ID (`t1234`, `sdgs/12` — the OQL value ref verbatim) in
+// grey mono. Fixed chip-anchored overlay, same recipe as the date editor.
+const entityMenu = ref(null); // { x, y, tok, shortId, viewPath } | null
+const closeEntityMenu = () => { entityMenu.value = null; };
+// The entity's profile-page path. The OQL value alone resolves for native short ids
+// ("w123") and namespaced ids ("sdgs/12"); a bare slug (keywords "machine-learning")
+// namespaces with the picker's entity type. Null (item hidden) when neither resolves
+// to a known entity type — e.g. vocab values with no entity page.
+// The one property entity_type whose GUI page namespace differs: the type vocab lives at
+// /work-types on the API but the entity pages are /types/<code> (openalexId "types").
+const VIEW_ENTITY_ALIASES = { "work-types": "types" };
+const entityViewPath = (tok) => {
+  const v = String(tok.value ?? "").trim();
+  if (!v) return null;
+  const ns = VIEW_ENTITY_ALIASES[tok._autocompleteEntity] || tok._autocompleteEntity;
+  const norm = normalizeId(v) || (ns ? normalizeId(`${ns}/${v}`) : null);
+  return norm ? `/${norm}` : null;
+};
+// The SHORTEST unambiguous spelling of the entity's id for the menu header (Jason:
+// "t1234 or sdgs/12, basically"). Native ids drop the namespace (it round-trips from
+// the prefix letter alone); external entities keep it (`sdgs/12`); an unresolvable
+// value (bare keyword slug) shows verbatim. NB tok.value spelling varies by how the
+// value arrived (URL seed `i136…` vs picker `institutions/I97018…`) — normalize first.
+const shortestEntityId = (tok) => {
+  const v = String(tok.value ?? "").trim();
+  const norm = normalizeId(v);
+  if (!norm) return v;
+  const tail = norm.split("/").slice(1).join("/");
+  return normalizeId(tail) === norm ? tail : norm;
+};
+const openEntityMenu = (tok) => {
+  closeDateEditor();
+  const el = document.querySelector(`[data-vid="${tok.id}"]`);
+  const r = el && el.getBoundingClientRect();
+  // No layout box → don't paint at screen (0,0) — same guard as the date editor (#493).
+  if (!r || (!r.width && !r.height)) return;
+  entityMenu.value = {
+    x: r.left, y: r.bottom + 4, tok,
+    shortId: shortestEntityId(tok), viewPath: entityViewPath(tok),
+  };
+};
+const onEntityMenuView = () => {
+  const m = entityMenu.value; closeEntityMenu();
+  if (m?.viewPath) router.push(m.viewPath);
+};
+const onEntityMenuNegate = () => {
+  const m = entityMenu.value; closeEntityMenu();
+  if (m) onToggleNeg(m.tok);
+};
+const onEntityMenuEdit = () => {
+  const m = entityMenu.value; closeEntityMenu();
+  if (m) onEditEntity(m.tok); // opens the BLANK re-pick input (OqlEntityChip, r28)
+};
+const onEntityMenuDelete = () => {
+  const m = entityMenu.value; closeEntityMenu();
+  if (m) onRemoveValue(m.tok);
+};
 // Edit a VALUE by its kind: entity re-picks, date opens the calendar, text/number edits inline.
 const editValue = (tok) => {
   if (!tok) return;
@@ -2175,15 +2265,18 @@ const onDocClick = (e) => {
   const t = e.target;
   const onChip = t?.closest?.(".val-chip");
   // The date editor closes on ANY click outside the editor itself (Jason 2026-06-19:
-  // "clicking *anywhere* should close the menu").
+  // "clicking *anywhere* should close the menu"). Same rule for the entity action menu
+  // (r28) — chip clicks stopPropagation, so the menu-opening click never lands here.
   const onDateOverlay = t?.closest?.(".date-editor-overlay");
   if (!onDateOverlay) closeDateEditor();
+  const onEntityMenuOverlay = t?.closest?.(".entity-menu-overlay");
+  if (!onEntityMenuOverlay) closeEntityMenu();
   // Selection-clear keeps the softer exemptions: a click on a chip, the toolbar, or another
   // Vuetify overlay (field dialog / entity picker) leaves any live selection intact. (Band
   // clicks `.bline` stopPropagation, so this only fires for clicks OUTSIDE the lines.)
   const onToolbar = t?.closest?.(".builder-toolbar");
   const onOverlay = t?.closest?.(".v-overlay__content");
-  if (onChip || onDateOverlay || onToolbar || onOverlay) return;
+  if (onChip || onDateOverlay || onEntityMenuOverlay || onToolbar || onOverlay) return;
   // Outside everything: clear the WHOLE selection. Must use clearSelection (not clearActive) —
   // clearActive leaves `selectedChip` set, so a row-selected leader chip (e.g. a committed field)
   // stayed painted black after clicking away even though its row highlight cleared (#507 selection
@@ -3175,32 +3268,16 @@ const onPickEntityValue = (tok, { value, label, negate }) => {
   const d = tok._draft ? draftOwning(tok.id) : null;
   if (d) foldNow(d); else renderQuery({ swap: true });
 };
-// Apply the entity picker's "not" footer (oxjob #507): SET the just-set value's negation to the
-// checkbox state. setNeg (not toggleNeg) so it's idempotent — a live in-edit toggle (onEntitySetNegate)
-// may have already negated this node, and re-picking a value preserves the node's negated flag; a
-// blind toggle would double-flip it. (#523 round 3.)
+// Apply the pick's negation (oxjob #507; r28: fed by the typed `not ` prefix — the checkbox
+// footer is gone). setNeg (not toggleNeg) so it's idempotent — re-picking a value preserves
+// the node's negated flag; a blind toggle would double-flip it. (#523 round 3.)
 const applyEntityNegate = (id, negate) => { if (id != null) edit.setNeg(v2.value, id, !!negate, drafts.value); };
-// The entity picker's "not" footer toggled WHILE editing a committed value (double-click → picker
-// open → check "not", no re-pick): negate the value immediately so the checkbox actually does
-// something (#523 round 3 — previously the footer only modified the NEXT pick, so checking it on an
-// already-placed value was a no-op). Guarded so it only fires on a real state change.
-const onEntitySetNegate = (tok, neg) => {
-  // NOT-first on a valueless gap placeholder (#561): just flag the empty vleaf locally so the
-  // chip shows the `not` prefix — no render (a swap would strip the empty value via vFilled),
-  // no submit. The negation state also rides the eventual pick payload (applyEntityNegate).
-  if (tok._placeholder) { edit.setNeg(v2.value, tok.id, !!neg, drafts.value); return; }
-  if (!!tok.negated !== !!neg) onToggleNeg(tok);
-};
-// NOT-first on a DRAFT clause's valueless placeholder (#561): the picker's "not" footer was
-// toggled before any value was picked. Mirror it onto the draft so draftBodyTokens renders the
-// `not` prefix on the placeholder chip; nothing submits until a value is also picked (the
-// negate then rides the pick payload as before).
-const onDraftSetNegate = (clauseId, neg) => {
-  const d = draftById(clauseId);
-  if (d) d._negNext = !!neg;
-};
-// Re-pick a committed entity value (double-click / Enter / toolbar Edit): open its in-place
-// picker in REPLACE mode. The picker is registered under the value id; on pick,
+// (onEntitySetNegate / onDraftSetNegate — the footer's live-toggle handlers — went with the
+// checkbox in r28. NOT-first still works: type `not <value>` on the placeholder chip; the
+// negation rides the pick payload into applyEntityNegate. A committed chip negates from its
+// action menu. `d._negNext` remains readable in draftBodyTokens but nothing sets it now.)
+// Re-pick a committed entity value (action-menu Edit / double-click / Enter): open its
+// in-place picker in REPLACE mode. The picker is registered under the value id; on pick,
 // onPickEntityValue sees editingEntityId === tok.id and sets the value rather than adding.
 const onEditEntity = (tok) => {
   if (!tok || tok._kind !== "entity" || tok._draft) return;
@@ -3798,6 +3875,7 @@ const isFieldTarget = (e) => {
 // removes the highlighted node — a row, a single value, or the #472 multi-set. Called from
 // BOTH handlers below; the ops are idempotent, so a double-fire is a harmless no-op.
 const handleSelectionKey = (e) => {
+  if (e.key === "Escape" && entityMenu.value) { closeEntityMenu(); return; }
   if (e.key === "Escape" && (selection.value || selectionActive.value)) { clearSelection(); return; }
   if (e.key === "Backspace" || e.key === "Delete") {
     if (selectedRow.value) { e.preventDefault(); onRowSelectionDelete(); return; }
@@ -3902,6 +3980,18 @@ defineExpose({ rebuildFromOql: async (oql) => {
    (viewport coords). */
 .date-editor-overlay { position: fixed; z-index: 2400; background: #fff; border-radius: 8px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.1); overflow: hidden; }
+
+/* ENTITY value action menu (#603 round 28): same fixed chip-anchored overlay recipe.
+   The header is the entity's shortest ID — small grey mono, inert (selectable text). */
+.entity-menu-overlay { position: fixed; z-index: 2400; min-width: 150px; background: #fff;
+  border-radius: 8px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden; }
+.ent-menu-id { padding: 7px 12px 5px; font-family: "JetBrains Mono", monospace;
+  font-size: 11px; color: #999; user-select: text; cursor: default; }
+.entity-menu-overlay :deep(.v-list-item-title) { font-size: 0.8125rem; }
+/* the #440 house rule greys active rows via !important — match the pickers' hover recipe */
+.entity-menu-overlay :deep(.v-list-item__overlay) { display: none; }
+.entity-menu-overlay :deep(.v-list-item:hover) { background: #f0f0f0 !important; }
 
 /* Line-flow canvas (oxjob #428): every visual line is a `.bline`
      [line number ::before]  [.bl-body — indented by --depth, content wraps]
