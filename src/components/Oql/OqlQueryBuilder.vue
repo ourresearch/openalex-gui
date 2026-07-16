@@ -650,6 +650,7 @@ import { resolveColumns } from "@/components/Results/Table/columnConfig";
 import { useColumnsState } from "@/composables/useColumnsState";
 import { useLocalColumns } from "@/composables/useLocalColumns";
 import { facetConfigs } from "@/facetConfigs";
+import { ALL_ENTITY_TYPES } from "@/openalexId";
 import {
   valueKindForProperty, autocompleteEntityFor, isListVocabEntity, isSlugAutocompleteEntity,
   uiOperatorsForProperty,
@@ -699,10 +700,10 @@ const emit = defineEmits(["run", "update:oql", "update:oqo"]);
 const store = useStore();
 const route = useRoute();
 
-const ENTITY_TYPES = [
-  "works", "authors", "sources", "institutions",
-  "topics", "publishers", "funders", "keywords",
-];
+// Single-sourced from openalexId.ALL_ENTITY_TYPES (oxjob #621; see V2). NOTE:
+// this V1 builder is reference/playground-only — SerpInputContainer renders
+// OqlQueryBuilderV2. Kept in sync so the dead copy can't mislead.
+const ENTITY_TYPES = ALL_ENTITY_TYPES;
 
 // ---- model -----------------------------------------------------------------
 // v2 = the server's `oql_render_v2` tree (committed query, single source of

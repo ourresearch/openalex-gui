@@ -594,6 +594,7 @@ import { resolveColumns } from "@/components/Results/Table/columnConfig";
 import { useColumnsState } from "@/composables/useColumnsState";
 import { useLocalColumns } from "@/composables/useLocalColumns";
 import { facetConfigs } from "@/facetConfigs";
+import { ALL_ENTITY_TYPES } from "@/openalexId";
 import {
   valueKindForProperty, autocompleteEntityFor, isListVocabEntity, isSlugAutocompleteEntity,
   uiOperatorsForProperty,
@@ -675,10 +676,13 @@ const emit = defineEmits(["run", "update:oql", "update:oqo"]);
 const store = useStore();
 const route = useRoute();
 
-const ENTITY_TYPES = [
-  "works", "authors", "sources", "institutions",
-  "topics", "publishers", "funders", "keywords",
-];
+// All 23 entities the builder can drive (oxjob #621). Single-sourced from
+// openalexId.ALL_ENTITY_TYPES so it can't drift from the ID/registry vocabulary
+// or the backend's OQO entity set. Previously an 8-entity hardcoded copy, which
+// made the other 15 entities render a "works (core)" header (11) or hard-fail
+// (4). getRows only accepts an entity in this list, so widening it here is what
+// wires the builder for every entity.
+const ENTITY_TYPES = ALL_ENTITY_TYPES;
 
 // ---- model -----------------------------------------------------------------
 // v2 = the server's `oql_render_v2` tree (committed query, single source of

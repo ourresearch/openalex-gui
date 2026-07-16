@@ -43,6 +43,7 @@ const facetCategories = {
         "other",
     ],
     publishers: [
+        "geo",
         "citation",
         "ids",
         "other",
@@ -1942,28 +1943,10 @@ const facetConfigs = function (entityType) {
             icon: "mdi-cash-multiple",
             extractFn: (entity) => entity.awards_count,
         },
-        {
-            key: "works_count",
-            entityToFilter: "funders",
-            displayName: "works count",
-            type: "range",
-            category: "citation",
-            actions: ["filter", "sort", "column"],
-            actionsPopular: ["sort", "column"],
-            icon: "mdi-file-document-outline",
-            extractFn: (entity) => entity.works_count,
-        },
-        {
-            key: "cited_by_count",
-            entityToFilter: "funders",
-            displayName: "citation count",
-            type: "range",
-            category: "citation",
-            actions: ["filter", "sort", "column"],
-            actionsPopular: ["sort", "column"],
-            icon: "mdi-format-quote-close",
-            extractFn: (entity) => entity.cited_by_count,
-        },
+        // works_count / cited_by_count for funders are injected globally for
+        // every entity (see worksCountFilters / citedByCountFilters below); the
+        // per-entity copies that used to live here produced duplicate picker rows
+        // (oxjob #621) — removed. Same trap called out in the #304 learning.
         {
             key: "summary_stats.2yr_mean_citedness",
             entityToFilter: "funders",
@@ -2184,6 +2167,10 @@ const facetConfigs = function (entityType) {
             entityToSelect: "institutions",
             displayName: "lineage",
             type: "selectEntity",
+            // Needs a category in facetCategories.institutions or facetsByCategory
+            // drops it from the picker (oxjob #621; the #304 "column-eligible yet
+            // absent" trap). "other" is in that entity's list.
+            category: "other",
             actions: ["filter"],
             actionsPopular: [],
             icon: "mdi-town-hall",
@@ -2750,6 +2737,13 @@ const facetConfigs = function (entityType) {
             displayName: "is open access",
             type: "boolean",
             category: "other",
+            // The one location facet exposed as a builder filter (#621): the OQL
+            // parser + OQO validator both accept `locations where is_oa is true`.
+            // Other backend location filter fields (source_id/work_id/etc.) are
+            // NOT in the OQL parser's field registry, so exposing them would break
+            // the OQL round-trip — left column-only until the OQL field vocab
+            // covers them.
+            actions: ["filter", "column"],
             icon: "mdi-lock-open-outline",
             extractFn: (e) => e.is_oa,
         },
@@ -2951,32 +2945,6 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.end_date,
         },
         {
-            // #294: server-supported year-range filter (RangeField start_year).
-            key: "start_year",
-            entityToFilter: "awards",
-            displayName: "start year",
-            type: "range",
-            category: "dates",
-            actions: ["filter", "sort", "column"],
-            actionsPopular: [],
-            icon: "mdi-calendar-start",
-            isMultiple: false,
-            extractFn: (entity) => entity.start_year,
-        },
-        {
-            // #294: server-supported year-range filter (RangeField end_year).
-            key: "end_year",
-            entityToFilter: "awards",
-            displayName: "end year",
-            type: "range",
-            category: "dates",
-            actions: ["filter", "sort", "column"],
-            actionsPopular: [],
-            icon: "mdi-calendar-end",
-            isMultiple: false,
-            extractFn: (entity) => entity.end_year,
-        },
-        {
             key: "funded_outputs_count",
             entityToFilter: "awards",
             displayName: "funded outputs count",
@@ -2990,6 +2958,9 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.funded_outputs_count,
         },
         {
+            // #294 server-supported year-range filter (RangeField start_year).
+            // Single source for the awards start-year facet (oxjob #621 removed a
+            // duplicate simpler copy that produced two picker rows).
             key: "start_year",
             entityToFilter: "awards",
             displayName: "start year",
@@ -2999,11 +2970,12 @@ const facetConfigs = function (entityType) {
             category: "dates",
             actions: ["filter", "sort", "column", "group_by"],
             actionsPopular: ["sort", "column", "group_by"],
-            icon: "mdi-calendar-range",
+            icon: "mdi-calendar-start",
             extractFn: (entity) => entity.start_year,
             isMultiple: false,
         },
         {
+            // #294 server-supported year-range filter (RangeField end_year).
             key: "end_year",
             entityToFilter: "awards",
             displayName: "end year",
@@ -3013,7 +2985,7 @@ const facetConfigs = function (entityType) {
             category: "dates",
             actions: ["filter", "sort", "column"],
             actionsPopular: [],
-            icon: "mdi-calendar-range",
+            icon: "mdi-calendar-end",
             extractFn: (entity) => entity.end_year,
             isMultiple: false,
         },
@@ -4151,7 +4123,12 @@ const facetConfigs = function (entityType) {
             key: "continent",
             entityToFilter: "publishers",
             displayName: "continent",
-            type: "search",
+            // Normalized to selectEntity + entityToSelect:"continents" to match
+            // institutions/sources (was type:"search"); consistent `type` per the
+            // oxjob #621 D3 cleanup. `geo` is added to facetCategories.publishers
+            // so this no longer drops out of the picker.
+            entityToSelect: "continents",
+            type: "selectEntity",
             category: "geo",
             actions: ["filter",],
             actionsPopular: [],
@@ -4162,7 +4139,8 @@ const facetConfigs = function (entityType) {
             key: "continent",
             entityToFilter: "funders",
             displayName: "continent",
-            type: "search",
+            entityToSelect: "continents",
+            type: "selectEntity",
             category: "geo",
             actions: ["filter",],
             actionsPopular: [],
@@ -4230,7 +4208,11 @@ const facetConfigs = function (entityType) {
             key: "topics.id",
             entityToFilter: "subfields",
             displayName: "topic",
-            type: "search",
+            // Normalized to selectEntity + entityToSelect:"topics" to match
+            // works/authors/sources/institutions (was type:"search"); consistent
+            // `type` per the oxjob #621 D3 cleanup.
+            entityToSelect: "topics",
+            type: "selectEntity",
             category: "other",
             actions: ["filter",],
             actionsPopular: [],
@@ -4240,8 +4222,9 @@ const facetConfigs = function (entityType) {
         {
             key: "topics.id",
             entityToFilter: "awards",
-            displayName: "topics id",
-            type: "search",
+            displayName: "topic",
+            entityToSelect: "topics",
+            type: "selectEntity",
             category: "other",
             actions: ["filter",],
             actionsPopular: [],

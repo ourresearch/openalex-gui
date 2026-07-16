@@ -4,6 +4,8 @@
 // duplicate / "Other"-dumping / no-Search-category complaints go away.
 import { describe, it, expect } from "vitest";
 import { facetsByCategory } from "@/facetConfigUtils";
+import { facetConfigs } from "@/facetConfigs";
+import { ALL_ENTITY_TYPES } from "@/openalexId";
 
 // Mirror the OQL "All fields" dialog's category build (BuilderFieldDialog.vue):
 // filter-action facets, is_xpac excluded, hideFromPicker already dropped by
@@ -59,5 +61,74 @@ describe("facet picker categories (works)", () => {
     const labels = cats.flatMap((c) => c.items.map((i) => i.label.toLowerCase()));
     const dupes = labels.filter((l, i) => labels.indexOf(l) !== i);
     expect(dupes, `duplicate labels: ${[...new Set(dupes)].join(", ")}`).toEqual([]);
+  });
+});
+
+// oxjob #621 — the advanced builder is wired for ALL 23 entities, and the D3
+// picker-config defects (#620) are fixed. These lock the invariants so the
+// builder can't silently regress to the 8-entity allowlist or re-introduce the
+// duplicate / dropped / mistyped facet bugs.
+describe("facet picker (all entities — #621)", () => {
+  it("ALL_ENTITY_TYPES covers the full 23 non-works + works vocabulary", () => {
+    // 22 non-works entities + works = 23 browsable entity types.
+    expect(ALL_ENTITY_TYPES).toContain("works");
+    for (const e of [
+      "authors", "sources", "publishers", "funders", "institutions", "concepts",
+      "keywords", "topics", "subfields", "fields", "domains", "sdgs", "countries",
+      "continents", "languages", "types", "source-types", "institution-types",
+      "licenses", "oa-statuses", "locations", "awards",
+    ]) {
+      expect(ALL_ENTITY_TYPES, `missing entity ${e}`).toContain(e);
+    }
+    expect(ALL_ENTITY_TYPES.length).toBe(23);
+  });
+
+  // Every entity the builder can drive must offer at least one buildable filter,
+  // or the builder renders present-but-empty. (#621 gave locations is_oa/source_id/
+  // work_id filter actions, so it's no longer an exception.)
+  for (const entity of ALL_ENTITY_TYPES) {
+    it(`${entity}: builder picker exposes >=1 filter and no duplicate keys`, () => {
+      const cats = oqlPickerCategories(entity);
+      const keys = cats.flatMap((c) => c.items.map((i) => i.key));
+      expect(keys.length, `${entity} has no buildable filters`).toBeGreaterThan(0);
+      const seen = new Set();
+      for (const k of keys) {
+        expect(seen.has(k), `${entity} duplicate picker key: ${k}`).toBe(false);
+        seen.add(k);
+      }
+    });
+  }
+
+  it("funders picker has no duplicate works_count / cited_by_count rows", () => {
+    const keys = oqlPickerCategories("funders").flatMap((c) => c.items.map((i) => i.key));
+    expect(keys.filter((k) => k === "works_count").length).toBe(1);
+    expect(keys.filter((k) => k === "cited_by_count").length).toBe(1);
+  });
+
+  it("awards picker has no duplicate start_year / end_year rows", () => {
+    const keys = oqlPickerCategories("awards").flatMap((c) => c.items.map((i) => i.key));
+    expect(keys.filter((k) => k === "start_year").length).toBe(1);
+    expect(keys.filter((k) => k === "end_year").length).toBe(1);
+  });
+
+  it("publishers picker includes continent; institutions picker includes lineage", () => {
+    const pub = oqlPickerCategories("publishers").flatMap((c) => c.items.map((i) => i.key));
+    expect(pub).toContain("continent");
+    const inst = oqlPickerCategories("institutions").flatMap((c) => c.items.map((i) => i.key));
+    expect(inst).toContain("lineage");
+  });
+
+  it("continent and topics.id have a consistent type across every entity", () => {
+    for (const key of ["continent", "topics.id"]) {
+      const types = new Set(
+        ALL_ENTITY_TYPES
+          .flatMap((e) => facetConfigs(e))
+          .filter((c) => c.key === key)
+          .map((c) => c.type),
+      );
+      expect(types, `${key} typed inconsistently: ${[...types].join(", ")}`).toEqual(
+        new Set(["selectEntity"]),
+      );
+    }
   });
 });
