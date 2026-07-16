@@ -204,21 +204,22 @@ const availableCount = computed(() =>
 );
 
 // ---- collapsible category headings (#601 r2) ----
-// All categories start expanded; state is remembered per category name for the
-// life of the panel (the dialog remounts it each open). While a search query is
+// All categories start CLOSED (r3) — the point of collapse is scanning every
+// category in one glance. State is remembered per category name for the life
+// of the panel (the dialog remounts it each open). While a search query is
 // active every (matching) category is force-expanded so hits are never hidden.
-const collapsedCats = ref(new Set());
+const expandedCats = ref(new Set());
 
 function isExpanded(name) {
   if (searchQuery.value) return true;
-  return !collapsedCats.value.has(name);
+  return expandedCats.value.has(name);
 }
 
 function toggleCategory(name) {
-  const next = new Set(collapsedCats.value);
+  const next = new Set(expandedCats.value);
   if (next.has(name)) next.delete(name);
   else next.add(name);
-  collapsedCats.value = next;
+  expandedCats.value = next;
 }
 
 // ---- available list: eligible, NOT-yet-selected properties, by category ----
