@@ -4748,27 +4748,31 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* The band is programmatically focused on row-select (so Enter/Cmd+Enter shortcuts reach the
    builder, #475) — focus is invisible; the black rails already mark the selected row. */
 .bline:focus, .bline:focus-visible { outline: none; }
-/* hover block-highlight: an extra-subtle grey band spanning the full canvas (Jason 2026-06-17:
-   ~half as dark as before, 0.025 black; HOVER-ONLY — the :not(--sel) keeps the darker selected
+/* hover block-highlight: an extra-subtle band spanning the full canvas (Jason 2026-06-17:
+   ~half as dark as before; HOVER-ONLY — the :not(--sel) keeps the darker selected
    band winning when a selected row is hovered). Pure CSS — no per-line hover state (the old
    `hoveredLineIdx` ref re-rendered the whole builder on every line-crossing). Scoped to
-   `.bline-flow` so the sort/return/add-filter chrome lines don't pick up a band they never had. */
+   `.bline-flow` so the sort/return/add-filter chrome lines don't pick up a band they never had.
+   #623 round 3 (Jason): the grey band "looks bad" against the coloured chips — bands are
+   HIGHLIGHTER YELLOW now (a third hue, deliberately outside both chip families so it reads
+   as attention, not membership). Hover/famhov/selected keep their one-hue two-strength
+   relationship: hover+famhov light butter, selected the same yellow a step stronger. */
 .bline-flow > .bline:hover:not(.bline--sel) {
-  background: rgba(0, 0, 0, 0.025);
+  background: #fdf6dc;
 }
 /* Round 20 (Jason): FAMILY hover — hovering a PARENT line highlights its descendants
    too (hover line 3 → 3, 3.1, 3.2 all banded). The parent keeps the pure-CSS :hover
    above; descendants get .bline--famhov from the builder (hoverLineKey + the _level
    walk in famHovKeys). Same band as :hover so the family reads as ONE hover. */
 .bline-flow > .bline--famhov:not(.bline--sel) {
-  background: rgba(0, 0, 0, 0.025);
+  background: #fdf6dc;
 }
 /* selected-scope row (oxjob #475, Jason 2026-06-19 review #3): clicking a leader chip selects
-   only that chip; the clause it acts on shows its "blast radius" here — the SAME light-grey band
-   as hover PLUS a bold black line number. (Earlier the band was hover-only; Jason now wants the
-   grey fill on selection too so the scope reads at a glance.) */
+   only that chip; the clause it acts on shows its "blast radius" here — the SAME band
+   as hover, a step stronger, PLUS a bold black line number. (Earlier the band was hover-only;
+   Jason wants the fill on selection too so the scope reads at a glance.) */
 .bline--sel {
-  background: rgba(0, 0, 0, 0.045);
+  background: #faeec2;
 }
 /* The gutter number is each row's REAL decimal address (#474/#487), not a dumb
    sequential counter: `content: attr(data-addr)` reads the `data-addr` the v-for
