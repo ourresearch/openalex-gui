@@ -17,9 +17,13 @@
        chip element it found is REPLACED when the chip flips display↔type-on-input
        (editingEntityId), so every open after the first positioned against a detached node
        at viewport (0,0). -->
+  <!-- content-class (#603 r29): while suppressed the ENTIRE overlay content hides — the
+       v-overlay__content wrapper itself carries a white bg + shadow, so hiding only the
+       card left a shadow sliver under the chip. -->
   <v-menu v-if="isPicker" v-model="open" location="bottom start" offset="4" :close-on-content-click="false"
     :activator="ext ? (liveTarget || undefined) : undefined" :open-on-click="!ext"
-    :target="liveTarget || undefined">
+    :target="liveTarget || undefined"
+    :content-class="ext && suppressed ? 'bav-suppressed' : undefined">
     <template #activator="{ props: mp }">
       <!-- anchor-only (block mode): a zero-size attach point, opened from the paren
            menu's "Add value"; otherwise a visible + button (inline value lists) -->
@@ -29,7 +33,12 @@
         <v-tooltip activator="parent" location="top">Add a value</v-tooltip>
       </v-btn>
     </template>
-    <v-card min-width="300" max-width="380" class="menu-card" :style="menuCardStyle">
+    <!-- v-show, not a menu close (#603 r29): while the typed input is a bare "n"/"no"/"not"
+         the WHOLE card hides — Jason: "there should be nothing, nothing at all there" (an
+         empty card rendered as a white stub). Closing the menu instead would fire `abandon`
+         and cull the draft, so the menu stays logically open, just invisible. ext-only: the
+         internal-search variant keeps its card (the search box lives inside it). -->
+    <v-card v-show="!ext || !suppressed" min-width="300" max-width="380" class="menu-card" :style="menuCardStyle">
       <template v-if="!ext">
         <v-text-field v-model="search" autofocus density="compact" variant="plain" hide-details
           prepend-inner-icon="mdi-magnify" :placeholder="`Search ${autocompleteEntity || 'values'}`" class="px-2 pt-1" />
@@ -220,4 +229,12 @@ defineExpose({
 .menu-card :deep(.v-list-item:hover),
 .menu-card :deep(.v-list-item--active) { background: var(--menu-hl, rgba(0, 0, 0, 0.08)) !important; }
 /* (the "not" checkbox footer is gone — #603 r28: negation is typed, `not <query>`) */
+</style>
+
+<!-- UNSCOPED on purpose: the v-menu content teleports to <body>, outside this component's
+     scope attr. .bav-suppressed is set via content-class while the typed input is a bare
+     "n"/"no"/"not" (#603 r29) — the wrapper itself paints a white bg + shadow, so it must
+     hide wholesale, not just the card inside it. -->
+<style>
+.bav-suppressed { display: none !important; }
 </style>

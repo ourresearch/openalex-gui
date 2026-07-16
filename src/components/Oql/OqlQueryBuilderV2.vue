@@ -572,20 +572,41 @@
       <OqlDatePicker :value="dateEditor.value" @pick="onDateEditorPick" />
     </div>
 
-    <!-- ENTITY value ACTION MENU (#603 round 28, Jason): clicking a committed entity chip
+    <!-- ENTITY value ACTION MENU (#603 rounds 28/29, Jason): clicking a committed entity chip
          opens this menu instead of dropping into edit mode — editing is the least likely
-         intent for a picked entity. Headed by the entity's shortest ID (grey mono, inert).
-         Same fixed chip-anchored overlay recipe as the date editor above (a coordinate-
-         target v-menu dismisses on its own opening click). -->
+         intent for a picked entity. First item = the entity's ID (mono; namespaced for
+         non-native ids: t123 stays bare, work-types/article keeps its namespace) —
+         click copies it. NOT is stateful (checkbox when negated) and keeps the menu open,
+         as does copy; view/edit/delete close it. Same fixed chip-anchored overlay recipe
+         as the date editor above (a coordinate-target v-menu dismisses on its opening click). -->
     <div v-if="entityMenu" class="entity-menu-overlay menu-card"
       :style="{ left: entityMenu.x + 'px', top: entityMenu.y + 'px' }" @click.stop @mousedown.stop>
-      <div class="ent-menu-id">{{ entityMenu.shortId }}</div>
-      <v-divider />
       <v-list density="compact" class="py-0">
-        <v-list-item v-if="entityMenu.viewPath" title="View" @click="onEntityMenuView" />
-        <v-list-item :title="entityMenu.tok.negated ? 'Remove NOT' : 'Negate (NOT)'" @click="onEntityMenuNegate" />
-        <v-list-item title="Edit" @click="onEntityMenuEdit" />
-        <v-list-item title="Delete" @click="onEntityMenuDelete" />
+        <v-list-item @click="onEntityMenuCopyId">
+          <template #prepend><v-icon>mdi-barcode</v-icon></template>
+          <v-list-item-title class="ent-menu-id">{{ entityMenu.menuId }}</v-list-item-title>
+          <template #append><v-icon class="ent-menu-trail">{{ idCopied ? 'mdi-check' : 'mdi-content-copy' }}</v-icon></template>
+        </v-list-item>
+        <v-divider />
+        <v-list-item v-if="entityMenu.viewPath" @click="onEntityMenuView">
+          <template #prepend><v-icon>mdi-eye-outline</v-icon></template>
+          <v-list-item-title>View profile</v-list-item-title>
+          <template #append><v-icon class="ent-menu-trail">mdi-open-in-new</v-icon></template>
+        </v-list-item>
+        <v-list-item @click="onEntityMenuNegate">
+          <template #prepend><v-icon>mdi-cancel</v-icon></template>
+          <v-list-item-title>NOT</v-list-item-title>
+          <template #append><v-icon v-if="entityMenu.tok.negated" class="ent-menu-check">mdi-checkbox-marked</v-icon></template>
+        </v-list-item>
+        <v-list-item @click="onEntityMenuEdit">
+          <template #prepend><v-icon>mdi-pencil-outline</v-icon></template>
+          <v-list-item-title>Edit</v-list-item-title>
+        </v-list-item>
+        <v-divider />
+        <v-list-item class="ent-menu-delete" @click="onEntityMenuDelete">
+          <template #prepend><v-icon>mdi-delete-outline</v-icon></template>
+          <v-list-item-title>Delete</v-list-item-title>
+        </v-list-item>
       </v-list>
     </div>
   </div>
@@ -2187,12 +2208,11 @@ const onDateEditorPick = (iso) => {
   if (tok) pickDate(tok, iso);
 };
 
-// ---- entity value ACTION MENU (#603 round 28) --------------------------------
+// ---- entity value ACTION MENU (#603 rounds 28/29) ----------------------------
 // Clicking a committed entity chip opens a small menu of the things the user
-// probably wants (view / negate / edit / delete) — NOT edit mode directly. Headed
-// by the entity's shortest ID (`t1234`, `sdgs/12` — the OQL value ref verbatim) in
-// grey mono. Fixed chip-anchored overlay, same recipe as the date editor.
-const entityMenu = ref(null); // { x, y, tok, shortId, viewPath } | null
+// probably wants (copy id / view profile / NOT / edit / delete) — NOT edit mode
+// directly. Fixed chip-anchored overlay, same recipe as the date editor.
+const entityMenu = ref(null); // { x, y, tok, menuId, viewPath } | null
 const closeEntityMenu = () => { entityMenu.value = null; };
 // The entity's profile-page path. The OQL value alone resolves for native short ids
 // ("w123") and namespaced ids ("sdgs/12"); a bare slug (keywords "machine-learning")
@@ -2208,17 +2228,20 @@ const entityViewPath = (tok) => {
   const norm = normalizeId(v) || (ns ? normalizeId(`${ns}/${v}`) : null);
   return norm ? `/${norm}` : null;
 };
-// The SHORTEST unambiguous spelling of the entity's id for the menu header (Jason:
-// "t1234 or sdgs/12, basically"). Native ids drop the namespace (it round-trips from
-// the prefix letter alone); external entities keep it (`sdgs/12`); an unresolvable
-// value (bare keyword slug) shows verbatim. NB tok.value spelling varies by how the
-// value arrived (URL seed `i136…` vs picker `institutions/I97018…`) — normalize first.
-const shortestEntityId = (tok) => {
+// The id shown on (and copied by) the menu's first item (r29): native ids stay bare
+// ("t123" — the namespace round-trips from the prefix letter); every non-native id is
+// NAMESPACED — "sdgs/12" as-is, bare vocab/slug values gain their API entity_type
+// ("article" → "work-types/article", "machine-learning" → "keywords/machine-learning").
+// NB tok.value spelling varies by arrival path (URL seed `i136…` vs picker
+// `institutions/I97018…`) — normalize first.
+const entityMenuId = (tok) => {
   const v = String(tok.value ?? "").trim();
   const norm = normalizeId(v);
-  if (!norm) return v;
-  const tail = norm.split("/").slice(1).join("/");
-  return normalizeId(tail) === norm ? tail : norm;
+  if (norm) {
+    const tail = norm.split("/").slice(1).join("/");
+    return normalizeId(tail) === norm ? tail : norm;
+  }
+  return tok._autocompleteEntity ? `${tok._autocompleteEntity}/${v}` : v;
 };
 const openEntityMenu = (tok) => {
   closeDateEditor();
@@ -2226,18 +2249,36 @@ const openEntityMenu = (tok) => {
   const r = el && el.getBoundingClientRect();
   // No layout box → don't paint at screen (0,0) — same guard as the date editor (#493).
   if (!r || (!r.width && !r.height)) return;
+  idCopied.value = false;
   entityMenu.value = {
     x: r.left, y: r.bottom + 4, tok,
-    shortId: shortestEntityId(tok), viewPath: entityViewPath(tok),
+    menuId: entityMenuId(tok), viewPath: entityViewPath(tok),
   };
+};
+// Copy the id (r29). Keeps the menu open — the copy icon flips to a check for feedback.
+const idCopied = ref(false);
+let idCopiedTimer = null;
+const onEntityMenuCopyId = async () => {
+  const m = entityMenu.value;
+  if (!m) return;
+  try { await navigator.clipboard.writeText(m.menuId); } catch (_) { return; }
+  idCopied.value = true;
+  clearTimeout(idCopiedTimer);
+  idCopiedTimer = setTimeout(() => { idCopied.value = false; }, 1400);
 };
 const onEntityMenuView = () => {
   const m = entityMenu.value; closeEntityMenu();
   if (m?.viewPath) router.push(m.viewPath);
 };
+// NOT is STATEFUL (r29): toggling keeps the menu open so the checkbox reflects the flip.
+// The menu holds a token SNAPSHOT (the reseed replaces line tokens under it), so mirror
+// the new negation onto the snapshot for the checkbox; the node id survives the reseed
+// (reconcileTreeIds), so the live-tree edit lands on the right node either way.
 const onEntityMenuNegate = () => {
-  const m = entityMenu.value; closeEntityMenu();
-  if (m) onToggleNeg(m.tok);
+  const m = entityMenu.value;
+  if (!m) return;
+  onToggleNeg(m.tok);
+  m.tok = { ...m.tok, negated: !m.tok.negated };
 };
 const onEntityMenuEdit = () => {
   const m = entityMenu.value; closeEntityMenu();
@@ -3981,17 +4022,30 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .date-editor-overlay { position: fixed; z-index: 2400; background: #fff; border-radius: 8px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.1); overflow: hidden; }
 
-/* ENTITY value action menu (#603 round 28): same fixed chip-anchored overlay recipe.
-   The header is the entity's shortest ID — small grey mono, inert (selectable text). */
-.entity-menu-overlay { position: fixed; z-index: 2400; min-width: 150px; background: #fff;
+/* ENTITY value action menu (#603 rounds 28/29): same fixed chip-anchored overlay recipe.
+   First row = the id (mono, click-to-copy); every row carries a leading icon; Delete is
+   the house red below its own divider. */
+.entity-menu-overlay { position: fixed; z-index: 2400; min-width: 180px; background: #fff;
   border-radius: 8px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: hidden; }
-.ent-menu-id { padding: 7px 12px 5px; font-family: "JetBrains Mono", monospace;
-  font-size: 11px; color: #999; user-select: text; cursor: default; }
+.ent-menu-id { font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: #666; }
 .entity-menu-overlay :deep(.v-list-item-title) { font-size: 0.8125rem; }
+/* icon sizes: App.vue's global `.v-icon { 18px !important }` beats the size prop (the #440
+   footgun) — out-specify it here. Leading icons 16, trailing decorations (copy/open-in-new)
+   a step smaller. */
+.entity-menu-overlay :deep(.v-icon) { font-size: 16px !important; width: 16px !important;
+  height: 16px !important; opacity: 0.62; }
+.entity-menu-overlay :deep(.v-icon.ent-menu-trail) { font-size: 13px !important;
+  width: 13px !important; height: 13px !important; margin-left: 18px; }
+.entity-menu-overlay :deep(.v-icon.ent-menu-check) { opacity: 0.85; margin-left: 18px; }
+/* compress Vuetify's default prepend spacer so icon→label reads as one unit */
+.entity-menu-overlay :deep(.v-list-item__spacer) { width: 10px !important; }
 /* the #440 house rule greys active rows via !important — match the pickers' hover recipe */
 .entity-menu-overlay :deep(.v-list-item__overlay) { display: none; }
 .entity-menu-overlay :deep(.v-list-item:hover) { background: #f0f0f0 !important; }
+/* Delete = the drag-zone's house red (r29) — text AND icon (v-icon uses currentColor) */
+.entity-menu-overlay :deep(.ent-menu-delete) { color: #b3261e; }
+.entity-menu-overlay :deep(.ent-menu-delete .v-icon) { opacity: 0.8; }
 
 /* Line-flow canvas (oxjob #428): every visual line is a `.bline`
      [line number ::before]  [.bl-body — indented by --depth, content wraps]
