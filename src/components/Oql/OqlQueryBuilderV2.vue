@@ -661,33 +661,39 @@ defineOptions({ name: "OqlQueryBuilderV2" });
 // Selection no longer recolours chips: the -sel vars equal the base, and a selected
 // value chip gets a BLACK BORDER instead (the :deep rules near .bl-body). V1/the
 // text editor keep the coloured palette — this map only reskins the V2 builder.
-const V2_INK = "#1a1a1a";
 // #623 round 1 — TWO-FAMILY COLOUR (Jason: explore colour-coding the chips). The
 // hues are V1's settled #507 two-family identity: PEACH fills for structure
 // (super-chips, leads, turn chips — and the .bl-spike pentagon, whose ::after
 // reads --conn-bg) and LINK-BLUE tint fills for values (val chips, or-prefixes,
-// value-level conns). Ink stays #1a1a1a on every chip: the V1 coloured
-// foregrounds measure only ~3.75:1 on these tints (below AA 4.5) while the black
-// ink measures ~14:1 — fills carry the hue, type stays mono.
+// value-level conns).
+// #623 round 2 (Jason): black ink "feels unintentional" — the type goes to DEEP
+// versions of each family's own hue instead ("crank up the darkness"): dark
+// orange on peach, dark blue ("periwinkle") on the blue tint. Both are AAA on
+// their fills (orange 7.9:1, blue 8.3:1) and on white (9.8 / 10.3), unlike V1's
+// mid fgs (#b25d06/#1f6feb ≈ 3.75:1, below AA). The faded or-prefix inherits the
+// chip ink, so at its 0.5 opacity it now blends to a light periwinkle instead of
+// the grey Jason flagged.
 // OPACITY RULE unchanged (r18): fills must be OPAQUE hexes — the ↳ wrap-marker
 // tiles paint UNDER row-1's chips (the cover-up IS the only-show-on-wrapped-rows
 // mechanism); translucent fills reopen that bug. Hovers go DARKER within the
-// same hue (V1's −0.06 L steps), still ~12:1 against the ink.
+// same hue (V1's −0.06 L steps), still AAA against the dark inks.
+const V2_STRUCT_FG = "#6b3502"; // deep orange (round 2)
 const V2_STRUCT_BG = "#fae1d1"; // peach (V1 --prop-bg)
 const V2_STRUCT_BG_HOV = "#f3d0b7";
+const V2_VAL_FG = "#0d3b8f"; // deep blue / periwinkle (round 2)
 const V2_VAL_BG = "#dbe7ff"; // link-blue tint (V1 --val-bg)
 const V2_VAL_BG_HOV = "#c7d8fb";
 const V2_ROLE_CSS_VARS = {
   ...OQL_ROLE_CSS_VARS,
-  "--prop-fg": V2_INK, "--prop-bg": V2_STRUCT_BG, "--prop-bg-hov": V2_STRUCT_BG_HOV,
-  "--prop-fg-sel": V2_INK, "--prop-bg-sel": V2_STRUCT_BG,
-  "--conn-fg": V2_INK, "--conn-bg": V2_STRUCT_BG, "--conn-bg-hov": V2_STRUCT_BG_HOV,
-  "--conn-fg-sel": V2_INK, "--conn-bg-sel": V2_STRUCT_BG,
-  "--rel-fg": V2_INK, "--rel-bg": V2_STRUCT_BG,
-  "--val-fg": V2_INK, "--val-bg": V2_VAL_BG, "--val-bg-hov": V2_VAL_BG_HOV,
-  "--val-fg-sel": V2_INK, "--val-bg-sel": V2_VAL_BG,
-  "--vconn-fg": V2_INK, "--vconn-bg": V2_VAL_BG, "--vconn-bg-hov": V2_VAL_BG_HOV,
-  "--vconn-fg-sel": V2_INK, "--vconn-bg-sel": V2_VAL_BG,
+  "--prop-fg": V2_STRUCT_FG, "--prop-bg": V2_STRUCT_BG, "--prop-bg-hov": V2_STRUCT_BG_HOV,
+  "--prop-fg-sel": V2_STRUCT_FG, "--prop-bg-sel": V2_STRUCT_BG,
+  "--conn-fg": V2_STRUCT_FG, "--conn-bg": V2_STRUCT_BG, "--conn-bg-hov": V2_STRUCT_BG_HOV,
+  "--conn-fg-sel": V2_STRUCT_FG, "--conn-bg-sel": V2_STRUCT_BG,
+  "--rel-fg": V2_STRUCT_FG, "--rel-bg": V2_STRUCT_BG,
+  "--val-fg": V2_VAL_FG, "--val-bg": V2_VAL_BG, "--val-bg-hov": V2_VAL_BG_HOV,
+  "--val-fg-sel": V2_VAL_FG, "--val-bg-sel": V2_VAL_BG,
+  "--vconn-fg": V2_VAL_FG, "--vconn-bg": V2_VAL_BG, "--vconn-bg-hov": V2_VAL_BG_HOV,
+  "--vconn-fg-sel": V2_VAL_FG, "--vconn-bg-sel": V2_VAL_BG,
 };
 
 const props = defineProps({
@@ -4091,10 +4097,13 @@ defineExpose({ rebuildFromOql: async (oql) => {
   --indent: var(--chip-w);    /* one indent step = one chip width */
   --brick-fs: 0.8125rem;
   /* Round 20 (Jason): ONE ink for all canvas numbering — line numbers (gutter,
-     inline, chrome ::before) AND the hover "N subclauses:" phrase read this pair,
-     so they can never drift apart again. */
-  --num-ink: #1a1a1a;
-  --num-op: 0.3;
+     inline, chrome ::before), the hover "N subclauses:" phrase AND the remove ×
+     read this pair, so they can never drift apart again.
+     #623 round 2 (Jason): canvas text is never grey — numbering is structure
+     context, so it's the V1 peach fg; opacity up from 0.3 (which washed the hue
+     back to grey-tan) to 0.6 so it still reads warm. */
+  --num-ink: #b25d06;
+  --num-op: 0.6;
   position: relative; /* positioning context for the drag-to-delete overlay */
 }
 .builder :deep(.v-chip.v-chip--size-small) { font-size: var(--brick-fs); font-family: "JetBrains Mono", monospace; }
@@ -4336,16 +4345,17 @@ defineExpose({ rebuildFromOql: async (oql) => {
       background stays the resting grey (-sel vars equal the base). Excludes the
       inert conn chips, which never read as selected. Covers .selected,
       .multi-selected, and :focus — every path oqlChip.css used to paint black. */
-.builder-lines :deep(.line-plus) { color: #1a1a1a; margin-left: 0; }
-/* Round 20 (Jason): the row-hover reveal shows the EOL ghost buttons at FULL black
-   (the component's 0.55 fade read as grey ink); button-hover fill = the CHIPS' own
-   background var — one var (--val-bg = the V2 chip grey) so they can't drift. The
-   .line-and variants are spelled out to out-specify the component's own scoped
-   `.line-plus.line-and:hover` peach rule. */
+/* #623 round 2 (Jason): the EOL ghosts join their colour families — the ghost
+   `or`/`+` adds a VALUE (periwinkle: --val-fg text, --val-bg hover fill); the
+   ghost `&` adds a filter row (peach: --conn-fg text, --conn-bg hover fill —
+   Jason: "the & button goes blue-background on hover; should be peach"). Still
+   full opacity on row hover (r20: the 0.55 fade read grey), and the .line-and
+   variants stay spelled out to out-specify the component's own scoped rules. */
+.builder-lines :deep(.line-plus) { color: var(--val-fg, #1a1a1a); margin-left: 0; }
 .builder-lines :deep(.bline:hover .line-plus) { opacity: 1; }
-.builder-lines :deep(.line-plus:hover),
-.builder-lines :deep(.line-plus.line-and:hover) { color: #1a1a1a; background: var(--val-bg, #ececec); }
-.builder-lines :deep(.line-plus.line-and) { color: #1a1a1a; }
+.builder-lines :deep(.line-plus:hover) { color: var(--val-fg, #1a1a1a); background: var(--val-bg, #ececec); }
+.builder-lines :deep(.line-plus.line-and) { color: var(--conn-fg, #1a1a1a); }
+.builder-lines :deep(.line-plus.line-and:hover) { color: var(--conn-fg, #1a1a1a); background: var(--conn-bg, #ececec); }
 /* round 11 (Jason: "margins around value OR chips are inconsistent — left too wide"):
    the only measured asymmetry was the GHOST or (4px left gap = its 2px margin-left on
    top of the tail unit's 2px flex gap, vs the committed ors' uniform 2px) — margin
@@ -4626,15 +4636,17 @@ defineExpose({ rebuildFromOql: async (oql) => {
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: #1a1a1a;
-  opacity: 1; /* r20 (Jason): EOL buttons read BLACK — the 0.55 fade looked grey */
+  /* #623 round 2 (Jason): "&…" adds a filter — STRUCTURE family: peach text +
+     peach hover fill (it hovered blue before, explicitly flagged). */
+  color: var(--conn-fg, #1a1a1a);
+  opacity: 1; /* r20 (Jason): EOL buttons at full opacity — the 0.55 fade looked grey */
   font-family: "JetBrains Mono", monospace;
   font-size: var(--brick-fs, 0.8125rem);
   font-weight: 400;
   cursor: pointer;
   transition: background 0.1s ease;
 }
-.add-and-btn:hover { background: var(--val-bg, #ececec); } /* the chips' own bg var (r20) */
+.add-and-btn:hover { background: var(--conn-bg, #ececec); }
 /* (V2 round 2: the trailing `or` button + its CSS are gone — filter-OR creation
    lives in the field menu's "Either…" option.) */
 /* "select filter" — the empty-state call to action (#595 round 4, Jason: the no-filter
@@ -4683,16 +4695,16 @@ defineExpose({ rebuildFromOql: async (oql) => {
   border: none;
   border-radius: 4px;
   background: transparent;
-  /* round 10 (Jason): the remove control is an × — same colour + half-opacity as the
-     digits beside it (round 11: grey ink, monochrome). Hover goes full black (the red
-     was off-palette). */
-  color: #1a1a1a;
+  /* round 10 (Jason): the remove control is an × — same colour as the digits
+     beside it. #623 round 2: that means the shared --num-ink (peach now), and the
+     hover fill is the structure family's peach tint instead of the grey wash. */
+  color: var(--num-ink, #1a1a1a);
   opacity: 0.5;
   cursor: pointer;
   visibility: hidden;
 }
 .bline:hover .row-trash { visibility: visible; }
-.row-trash:hover { opacity: 1; background: rgba(0, 0, 0, 0.07); }
+.row-trash:hover { opacity: 1; background: var(--conn-bg, rgba(0, 0, 0, 0.07)); }
 /* round 12 (Jason): smaller × — the template's size prop has never applied here
    (App.vue's global `.v-icon { font-size: 18px !important }` house rule wins over
    the inline style), so out-specify it. */
