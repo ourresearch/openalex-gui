@@ -87,10 +87,10 @@ function select(value) {
 </script>
 
 <style scoped>
-/* Tab idiom (#611 r5, Jason — replacing the #441 underline bar): ALL tab labels
-   are black — grey unselected labels read as disabled. Weight separates selected
-   (600) from unselected (500), and the selected tab gets a WHITE fill so it reads
-   as an actual tab against the grey page background. */
+/* Tab idiom (#611 r6, Jason — the Linear way; replaces r5's white fill, which
+   didn't hold up visually): ALL tab labels are black — grey unselected labels
+   read as disabled. Weight separates selected (600) from unselected (500), and
+   the selected tab gets Linear's subtle grey fill as the active marker. */
 .serp-mode-tabs {
   display: inline-flex;
   align-items: center;
@@ -126,7 +126,7 @@ function select(value) {
 }
 .pill--active {
   font-weight: 600 !important; /* !important: Vuetify's .v-btn weight otherwise wins */
-  background-color: #fff !important; /* the white fill IS the active marker (#611 r5) */
+  background-color: rgba(0, 0, 0, 0.08) !important; /* Linear's quiet grey fill (#611 r6) */
   color: rgba(0, 0, 0, 0.87) !important;
 }
 </style>
