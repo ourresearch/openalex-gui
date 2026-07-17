@@ -4756,23 +4756,24 @@ defineExpose({ rebuildFromOql: async (oql) => {
    #623 round 3 (Jason): the grey band "looks bad" against the coloured chips — bands are
    HIGHLIGHTER YELLOW now (a third hue, deliberately outside both chip families so it reads
    as attention, not membership). Hover/famhov/selected keep their one-hue two-strength
-   relationship: hover+famhov light butter, selected the same yellow a step stronger. */
+   relationship: hover+famhov light butter, selected the same yellow a step stronger.
+   Round 4 (Jason): "too strong, dial it back" - both steps moved ~halfway to white. */
 .bline-flow > .bline:hover:not(.bline--sel) {
-  background: #fdf6dc;
+  background: #fefaed;
 }
 /* Round 20 (Jason): FAMILY hover — hovering a PARENT line highlights its descendants
    too (hover line 3 → 3, 3.1, 3.2 all banded). The parent keeps the pure-CSS :hover
    above; descendants get .bline--famhov from the builder (hoverLineKey + the _level
    walk in famHovKeys). Same band as :hover so the family reads as ONE hover. */
 .bline-flow > .bline--famhov:not(.bline--sel) {
-  background: #fdf6dc;
+  background: #fefaed;
 }
 /* selected-scope row (oxjob #475, Jason 2026-06-19 review #3): clicking a leader chip selects
    only that chip; the clause it acts on shows its "blast radius" here — the SAME band
    as hover, a step stronger, PLUS a bold black line number. (Earlier the band was hover-only;
    Jason wants the fill on selection too so the scope reads at a glance.) */
 .bline--sel {
-  background: #faeec2;
+  background: #fcf6e0;
 }
 /* The gutter number is each row's REAL decimal address (#474/#487), not a dumb
    sequential counter: `content: attr(data-addr)` reads the `data-addr` the v-for
