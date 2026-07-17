@@ -33,7 +33,7 @@ export default {
         claim: null,
         savedSearches: [],
         columnViews: [],
-        statViews: [],
+        facetViews: [],
         corrections: [],
         isSaving: false,
         renameId: null,
@@ -611,7 +611,7 @@ export default {
 
         // **************************************************
         // SERP VIEWS (saved table-column + stats configurations,
-        // oxjobs #602/#626) — kind: 'columns' | 'stats'
+        // oxjobs #602/#626) — kind: 'columns' | 'facets'
         // **************************************************
 
         async fetchSerpViews({state}, kind = 'columns') {
@@ -622,7 +622,7 @@ export default {
             const sorted = [...resp.data].sort((a, b) =>
                 a.name.localeCompare(b.name)
             );
-            if (kind === 'stats') state.statViews = sorted;
+            if (kind === 'facets') state.facetViews = sorted;
             else state.columnViews = sorted;
         },
         async createSerpView({dispatch}, {entity_type, kind = 'columns', name, columns, sort_by}) {
@@ -711,7 +711,7 @@ export default {
         apiKey: (state) => state.apiKey,
         userSavedSearches: (state) => state.savedSearches,
         userColumnViews: (state) => state.columnViews,
-        userStatViews: (state) => state.statViews,
+        userFacetViews: (state) => state.facetViews,
         userCorrections: (state) => state.corrections,
         isAdmin: (state) => state.isAdmin || state.email?.trim() === 'jalperin@sfu.ca',
         isLibrarian: (state) => state.isLibrarian,

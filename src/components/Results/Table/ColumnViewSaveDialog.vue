@@ -1,10 +1,10 @@
 <template>
   <v-dialog v-model="myIsOpen" max-width="500">
     <v-card :loading="isLoading" :disabled="isLoading" v-if="userId" flat rounded>
-      <v-card-title>{{ isStats ? 'Save stats as view' : 'Save columns as view' }}</v-card-title>
+      <v-card-title>{{ isFacets ? 'Save facets as view' : 'Save columns as view' }}</v-card-title>
       <v-card-subtitle>
-        {{ isStats
-          ? 'Save the current stats as a named view you can reload later.'
+        {{ isFacets
+          ? 'Save the current facets as a named view you can reload later.'
           : 'Save the current columns and sort as a named view you can reload later.' }}
       </v-card-subtitle>
       <div class="pa-4 pb-0">
@@ -23,7 +23,7 @@
         />
       </div>
       <div class="px-6 pb-2">
-        <div class="text-caption text-medium-emphasis mb-1">{{ isStats ? 'Stats in this view' : 'Columns in this view' }}</div>
+        <div class="text-caption text-medium-emphasis mb-1">{{ isFacets ? 'Facets in this view' : 'Columns in this view' }}</div>
         <v-chip
           v-for="col in columnChips"
           :key="col.key"
@@ -45,7 +45,7 @@
     <v-card v-else flat rounded>
       <v-card-title>Login required</v-card-title>
       <v-card-text>
-        To save {{ isStats ? 'stat' : 'column' }} views, you must be signed up and logged in.
+        To save {{ isFacets ? 'facet' : 'column' }} views, you must be signed up and logged in.
       </v-card-text>
       <v-card-actions>
         <v-spacer />
@@ -72,12 +72,12 @@ defineOptions({ name: 'ColumnViewSaveDialog' });
 const props = defineProps({
   isOpen: Boolean,
   entityType: { type: String, required: true },
-  // 'columns' = table column view (#602); 'stats' = stats-sidebar view (#626).
+  // 'columns' = table column view (#602); 'facets' = facets-sidebar view (#626).
   kind: { type: String, default: 'columns' },
   // Ordered column/group_by keys + sort spec captured at open time.
   columnKeys: { type: Array, required: true },
   sortBy: { type: Array, default: null },
-  // Stats keys aren't table columns — the caller supplies its own labeler.
+  // Facet keys aren't table columns — the caller supplies its own labeler.
   getKeyLabel: { type: Function, default: null },
 });
 
@@ -102,7 +102,7 @@ const myIsOpen = computed({
   },
 });
 
-const isStats = computed(() => props.kind === 'stats');
+const isFacets = computed(() => props.kind === 'facets');
 
 const columnChips = computed(() => {
   if (props.getKeyLabel) {
@@ -131,8 +131,8 @@ async function save() {
     errorMessage.value = 'A name is required';
     return;
   }
-  const existing = isStats.value
-    ? store.getters['user/userStatViews']
+  const existing = isFacets.value
+    ? store.getters['user/userFacetViews']
     : store.getters['user/userColumnViews'];
   const clash = existing.find(
     (v) => v.entity_type === props.entityType && v.name.toLowerCase() === name.toLowerCase(),

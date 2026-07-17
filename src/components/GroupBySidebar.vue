@@ -1,13 +1,14 @@
 <template>
   <aside class="group-by-sidebar">
+    <!-- No title label (r2: the "Stats" header read as clutter) — just the
+         right-aligned controls. -->
     <div class="sidebar-head">
-      <span class="sidebar-title">Stats</span>
       <v-spacer />
 
-      <!-- Add/remove stats widgets — mirrors AddColumn.vue's column menu
+      <!-- Add/remove facet widgets — mirrors AddColumn.vue's column menu
            (#601 r2/r3 + #626): stateful SelectionMenu with the selected-first
-           browse list capped at 5 ("+n more ✓" overflow), "More stats" → the
-           shared Edit dialog in group_by mode, and a saved stat-views footer
+           browse list capped at 5 ("+n more ✓" overflow), "More facets" → the
+           shared Edit dialog in group_by mode, and a saved facet-views footer
            (#602 UX). group_by exists only for works/awards. -->
       <selection-menu
         v-if="canAddWidget"
@@ -21,8 +22,8 @@
         custom-more
         :max-options="5"
         button-style="icon"
-        search-placeholder="Search stats"
-        more-label="More stats"
+        search-placeholder="Search facets"
+        more-label="More facets"
         more-icon="mdi-dots-horizontal-circle-outline"
         location="bottom end"
         @select="toggleWidget"
@@ -35,14 +36,14 @@
             icon
             variant="text"
             size="small"
-            title="Edit stats"
-            aria-label="Edit stats"
+            title="Edit facets"
+            aria-label="Edit facets"
           >
-            <v-icon color="grey-darken-1">mdi-view-column-outline</v-icon>
+            <v-icon color="grey-darken-1">mdi-view-dashboard-outline</v-icon>
           </v-btn>
         </template>
 
-        <!-- Saved stat views (#626) — same footer UX as AddColumn's column
+        <!-- Saved facet views (#626) — same footer UX as AddColumn's column
              views (#602): Load hover submenu with per-view delete, then Save. -->
         <template #footer="{ close }">
           <v-list>
@@ -59,13 +60,13 @@
                 </v-list-item>
               </template>
               <v-list density="compact" min-width="200">
-                <v-list-item v-if="!entityStatViews.length" disabled>
+                <v-list-item v-if="!entityFacetViews.length" disabled>
                   <v-list-item-title class="text-medium-emphasis">
                     No saved views yet
                   </v-list-item-title>
                 </v-list-item>
                 <v-list-item
-                  v-for="view in entityStatViews"
+                  v-for="view in entityFacetViews"
                   :key="view.id"
                   @click="applyView(view, close)"
                 >
@@ -103,8 +104,8 @@
         variant="text"
         size="small"
         :href="csvUrl"
-        title="Download a summary of all widgets (CSV)"
-        aria-label="Download widgets summary"
+        title="Download a summary of all facets (CSV)"
+        aria-label="Download facets summary"
       >
         <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
       </v-btn>
@@ -119,14 +120,14 @@
       :selected-keys="rawGroupByKeys"
       :exclude-keys="excludedWidgetKeys"
       mode="group_by"
-      title="Edit stats"
+      title="Edit facets"
       @apply="applyWidgets"
     />
 
     <column-view-save-dialog
       :is-open="isSaveDialogOpen"
       :entity-type="entityType"
-      kind="stats"
+      kind="facets"
       :column-keys="rawGroupByKeys"
       :sort-by="null"
       :get-key-label="getKeyDisplayName"
@@ -169,7 +170,7 @@ const entityType = computed(() => store.getters.entityType);
 // group_by widgets exist only for works + awards (mirrors GroupByViews' toolbar gate).
 const canAddWidget = computed(() => ['works', 'awards'].includes(entityType.value));
 
-// ---- widget picker (quick menu + Edit-stats dialog), #440 r6 / #626 --------
+// ---- widget picker (quick menu + Edit-facets dialog), #440 r6 / #626 --------
 const isMenuOpen = ref(false);
 const isMoreOpen = ref(false);
 const isSaveDialogOpen = ref(false);
@@ -186,7 +187,7 @@ function widgetEligible(conf) {
 const allWidgetKeys = computed(() =>
   facetConfigs(entityType.value).filter(widgetEligible).map((c) => c.key)
 );
-// Keys that fail the gates — hidden from the Edit-stats dialog's Available side.
+// Keys that fail the gates — hidden from the Edit-facets dialog's Available side.
 const excludedWidgetKeys = computed(() =>
   facetConfigs(entityType.value)
     .filter((c) => c.actions?.includes('group_by') && !widgetEligible(c))
@@ -218,20 +219,20 @@ function applyWidgets(keys) {
   url.setGroupBy(keys);
 }
 
-// ---- saved stat views (#626, the #602 column-views UX) ----------------------
+// ---- saved facet views (#626, the #602 column-views UX) ---------------------
 
 const userId = computed(() => store.getters['user/userId']);
 
-const entityStatViews = computed(() =>
-  store.getters['user/userStatViews'].filter((v) => v.entity_type === entityType.value),
+const entityFacetViews = computed(() =>
+  store.getters['user/userFacetViews'].filter((v) => v.entity_type === entityType.value),
 );
 
 // Refresh from the server each time the menu opens (views are cross-device;
 // the list is tiny). Fire-and-forget: the submenu shows whatever is loaded.
 watch(isMenuOpen, (open) => {
   if (open && userId.value) {
-    store.dispatch('user/fetchSerpViews', 'stats').catch((e) => {
-      console.warn('GroupBySidebar: failed to fetch stat views', e);
+    store.dispatch('user/fetchSerpViews', 'facets').catch((e) => {
+      console.warn('GroupBySidebar: failed to fetch facet views', e);
     });
   }
 });
@@ -243,14 +244,14 @@ function applyView(view, close) {
   url.setGroupBy(eligible);
   const dropped = view.columns.length - eligible.length;
   store.commit('snackbar', dropped
-    ? `Loaded view "${view.name}" (${dropped} unavailable stat${dropped === 1 ? '' : 's'} skipped)`
+    ? `Loaded view "${view.name}" (${dropped} unavailable facet${dropped === 1 ? '' : 's'} skipped)`
     : `Loaded view "${view.name}"`);
   close();
 }
 
 function deleteView(view) {
-  store.dispatch('user/deleteSerpView', { id: view.id, kind: 'stats' }).catch((e) => {
-    console.warn('GroupBySidebar: failed to delete stat view', e);
+  store.dispatch('user/deleteSerpView', { id: view.id, kind: 'facets' }).catch((e) => {
+    console.warn('GroupBySidebar: failed to delete facet view', e);
     store.commit('snackbar', 'Could not delete view');
   });
 }
@@ -289,13 +290,6 @@ const csvUrl = computed(() =>
   gap: 2px;
   padding: 0 4px 8px;
   min-height: 40px;
-}
-.sidebar-title {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: rgba(0, 0, 0, 0.6);
 }
 
 /* The group-by widgets carry their own min-widths (150–300px) + Vuetify
