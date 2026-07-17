@@ -1331,8 +1331,12 @@ export function draftToFilter(draft) {
         // routing off the bare value would flip its exactness (#560 Phase 3).
         const surface = typeof v.display === "string" && v.value != null ? v.display : v.value;
         const r = searchSurfaceToFilter(surface, col);
-        const o = { column_id: r.column_id, value: r.value };
-        if (op !== "is") o.operator = op;
+        // `has` is the ONLY valid operator on a search column, and an OMITTED
+        // operator defaults server-side to `is` → invalid_operator_for_column.
+        // A draft can carry `is` here when its field pick couldn't resolve the
+        // property (catalog not yet loaded / unresolvable key) — coerce (#603 r30).
+        const o = { column_id: r.column_id, value: r.value,
+                    operator: !op || op === "is" ? "has" : op };
         if (v.negated) o.is_negated = true;
         return o;
       }

@@ -49,6 +49,24 @@ export function autocompleteEntityFor(prop) {
   return prop?.entity_type || null;
 }
 
+// Resolve a picked field key to its canonical /properties catalog key (#603 r30).
+// The builder's field pickers offer curated facetConfigs keys, a few of which are
+// legacy ALTERNATE keys of a catalog column rather than the column's own key —
+// e.g. `default.search` is `alternate_keys` of authors/sources/institutions/funders
+// `text.search`, and `is_oa` of works `open_access.is_oa`. A raw miss made
+// pickField fall back to operator `is` (invalid on search columns — the server
+// rejected the commit) and to the raw key as the chip label ("default.search").
+// The catalog itself publishes the mapping, so resolve through `alternate_keys`
+// instead of hand-curating more OQL_FIELD_KEY_ALIASES entries. Unknown keys pass
+// through unchanged (the caller's fallbacks still apply).
+export function resolvePropertyKey(properties, key) {
+  if (!properties || !key || properties[key]) return key;
+  for (const [k, p] of Object.entries(properties)) {
+    if ((p?.alternate_keys || []).includes(key)) return k;
+  }
+  return key;
+}
+
 // ---- property operator-classes -> UI operator options -----------------------
 // Operators are strictly AFFIRMATIVE (iter 20 / decision 22): `is`, `has`,
 // `>`… — never `is not` / `does not contain`. Negation lives on the value.

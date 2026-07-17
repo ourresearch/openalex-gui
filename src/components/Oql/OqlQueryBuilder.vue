@@ -653,7 +653,7 @@ import { facetConfigs } from "@/facetConfigs";
 import { ALL_ENTITY_TYPES } from "@/openalexId";
 import {
   valueKindForProperty, autocompleteEntityFor, isListVocabEntity, isSlugAutocompleteEntity,
-  uiOperatorsForProperty,
+  uiOperatorsForProperty, resolvePropertyKey,
 } from "@/components/OqlPlayground/oqoTree";
 import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as edit from "@/components/OqlPlayground/v2Edit";
@@ -921,7 +921,7 @@ const placeholderLabelFor = (p) =>
 
 // ---- enrich a raw token with edit metadata ---------------------------------
 // Short display aliases for field-chip labels (#575 round 5) — see enrichToken.
-const FIELD_LABEL_ALIASES = { "title/abstract": "title/abs" };
+const FIELD_LABEL_ALIASES = { "title/abstract": "title/abs", "text": "name" };
 
 function enrichToken(tok) {
   const t = { ...tok };
@@ -2122,6 +2122,9 @@ const draftOwning = (id) =>
   drafts.value.find((d) => d.id === id || (d.value && d.value.children.some((v) => v.id === id)));
 
 const pickField = (tok, key) => {
+  // #603 r30 (mirrored from V2): resolve legacy alternate keys (`default.search`,
+  // `is_oa`, …) to their catalog column so operator/kind/label don't fall back.
+  key = resolvePropertyKey(properties.value, key);
   const p = properties.value[key];
   const kind = valueKindForProperty(p);
   const ops = uiOperatorsForProperty(p);
@@ -2157,6 +2160,7 @@ const openFieldDialog = (tok) => { fieldDialogTok = tok; fieldDialogOpen.value =
 const OQL_FIELD_KEY_ALIASES = {
   "primary_location.source.publisher_lineage": "primary_location.source.host_organization_lineage",
   "institutions.is_global_south": "authorships.institutions.is_global_south",
+  "ids.ror": "ror", // #603 r30 — no catalog entry or alternate_keys breadcrumb
 };
 const onFieldDialogSelect = (key) => {
   if (fieldDialogTok) pickField(fieldDialogTok, OQL_FIELD_KEY_ALIASES[key] || key);

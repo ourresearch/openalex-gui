@@ -633,7 +633,7 @@ import { facetConfigs } from "@/facetConfigs";
 import { ALL_ENTITY_TYPES, normalizeId } from "@/openalexId";
 import {
   valueKindForProperty, autocompleteEntityFor, isListVocabEntity, isSlugAutocompleteEntity,
-  uiOperatorsForProperty,
+  uiOperatorsForProperty, resolvePropertyKey,
 } from "@/components/OqlPlayground/oqoTree";
 import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as rawEdit from "@/components/OqlPlayground/v2Edit";
@@ -983,7 +983,13 @@ const placeholderLabelFor = (p) =>
 // surface (which a clause silently re-routes to when a quoted/wildcard value joins
 // it, e.g. after a drag-reorder) says "title and abstract". The builder must ALWAYS
 // show "title/abs", so both spellings alias.
-const FIELD_LABEL_ALIASES = { "title/abstract": "title/abs", "title and abstract": "title/abs" };
+// "text" → "name" (#603 r30, Jason): the non-works entities' default search column
+// `text.search` (what the curated "Name" facet resolves to) has catalog display
+// "text" — as a chip label that reads like a mystery handle. It searches the
+// entity's name fields (display_name + alternatives/acronyms), so show "name".
+// Works is unaffected (its broad search is `fulltext.search`, display "full text").
+const FIELD_LABEL_ALIASES = { "title/abstract": "title/abs", "title and abstract": "title/abs",
+  "text": "name" };
 
 function enrichToken(tok) {
   const t = { ...tok };
@@ -2418,6 +2424,12 @@ const draftOwning = (id) =>
   drafts.value.find((d) => d.id === id || (d.value && d.value.children.some((v) => v.id === id)));
 
 const pickField = (tok, key) => {
+  // #603 r30: a curated facet key can be a legacy ALTERNATE key of the catalog
+  // column (`default.search` → `text.search`, `is_oa` → `open_access.is_oa`).
+  // A raw miss here cascaded: operator fell back to `is` (invalid on search
+  // columns — the server rejected the commit) and the chip label fell back to
+  // the raw key ("default.search"). Resolve through the catalog's alternate_keys.
+  key = resolvePropertyKey(properties.value, key);
   const p = properties.value[key];
   const kind = valueKindForProperty(p);
   const ops = uiOperatorsForProperty(p);
@@ -2453,6 +2465,10 @@ const openFieldDialog = (tok) => { fieldDialogTok = tok; fieldDialogOpen.value =
 const OQL_FIELD_KEY_ALIASES = {
   "primary_location.source.publisher_lineage": "primary_location.source.host_organization_lineage",
   "institutions.is_global_south": "authorships.institutions.is_global_south",
+  // institutions facet key with no catalog entry OR alternate_keys breadcrumb —
+  // the server column is bare `ror` (#603 r30; keys that ARE alternate_keys of a
+  // catalog column resolve automatically via resolvePropertyKey in pickField).
+  "ids.ror": "ror",
 };
 const onFieldDialogSelect = (key) => {
   if (fieldDialogTok) pickField(fieldDialogTok, OQL_FIELD_KEY_ALIASES[key] || key);

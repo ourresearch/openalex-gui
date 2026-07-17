@@ -51,7 +51,12 @@ function valueToFilter(v, col, op) {
       // the typed text (v2Edit.setValue), so this is the same routing there.
       const surface = typeof v.display === "string" && v.value != null ? v.display : v.value;
       const r = searchSurfaceToFilter(surface, col); // per-value column routing
-      return { column_id: r.column_id, value: r.value, operator: op, is_negated: !!v.negated };
+      // `has` is the only valid operator on a search column; `is` (or a missing
+      // operator, which the server defaults to `is`) fails validation. A clause
+      // can carry `is` when its field pick couldn't resolve the property in the
+      // catalog (e.g. a legacy alternate key) — coerce here too (#603 r30).
+      return { column_id: r.column_id, value: r.value,
+               operator: !op || op === "is" ? "has" : op, is_negated: !!v.negated };
     }
     return { column_id: col, value: v.value, operator: op, is_negated: !!v.negated };
   }
