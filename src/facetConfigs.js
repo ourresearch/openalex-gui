@@ -747,6 +747,11 @@ const facetConfigs = function (entityType) {
             actions: ["filter"],
             icon: "mdi-book-open-outline",
             isMultiple: false,
+            // Column-eligible (CSV export + table view): the dehydrated source
+            // on works carries the issn list; server flat-path is
+            // `primary_location.source.issn` (|-joined).
+            extractFn: (entity) => entity.primary_location?.source?.issn,
+            noIdsSibling: true,
         },
         {
             key: "primary_location.source.type",
