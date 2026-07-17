@@ -265,6 +265,13 @@ describe("getColumnExportSpec (#304)", () => {
         const spec = getColumnExportSpec("works", "authorships.institutions.ror");
         expect(spec?.path).toBe("authorships.institutions.ror");
     });
+
+    it("source ISSN column (stringList, isId) → path = key, no :ids sibling", () => {
+        // The dehydrated source on works carries the issn list; the server
+        // flat-path is the base key (|-joined by flatten_value).
+        const spec = getColumnExportSpec("works", "primary_location.source.issn");
+        expect(spec).toEqual({ path: "primary_location.source.issn", header: "ISSN" });
+    });
 });
 
 describe("getColumnExportSpecs (ordered list, drops unresolved)", () => {
