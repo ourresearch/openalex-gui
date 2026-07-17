@@ -221,7 +221,7 @@ const currentSortBy = computed(() => {
 // the list is tiny). Fire-and-forget: the submenu shows whatever is loaded.
 watch(isMenuOpen, (open) => {
   if (open && userId.value) {
-    store.dispatch('user/fetchColumnViews').catch((e) => {
+    store.dispatch('user/fetchSerpViews', 'columns').catch((e) => {
       console.warn('AddColumn: failed to fetch column views', e);
     });
   }
@@ -241,7 +241,7 @@ function applyView(view, close) {
 }
 
 function deleteView(view) {
-  store.dispatch('user/deleteColumnView', view.id).catch((e) => {
+  store.dispatch('user/deleteSerpView', { id: view.id, kind: 'columns' }).catch((e) => {
     console.warn('AddColumn: failed to delete column view', e);
     store.commit('snackbar', 'Could not delete view');
   });

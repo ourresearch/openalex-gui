@@ -1,9 +1,11 @@
 <template>
   <v-dialog v-model="myIsOpen" max-width="500">
     <v-card :loading="isLoading" :disabled="isLoading" v-if="userId" flat rounded>
-      <v-card-title>Save columns as view</v-card-title>
+      <v-card-title>{{ isStats ? 'Save stats as view' : 'Save columns as view' }}</v-card-title>
       <v-card-subtitle>
-        Save the current columns and sort as a named view you can reload later.
+        {{ isStats
+          ? 'Save the current stats as a named view you can reload later.'
+          : 'Save the current columns and sort as a named view you can reload later.' }}
       </v-card-subtitle>
       <div class="pa-4 pb-0">
         <v-text-field
@@ -21,7 +23,7 @@
         />
       </div>
       <div class="px-6 pb-2">
-        <div class="text-caption text-medium-emphasis mb-1">Columns in this view</div>
+        <div class="text-caption text-medium-emphasis mb-1">{{ isStats ? 'Stats in this view' : 'Columns in this view' }}</div>
         <v-chip
           v-for="col in columnChips"
           :key="col.key"
@@ -43,7 +45,7 @@
     <v-card v-else flat rounded>
       <v-card-title>Login required</v-card-title>
       <v-card-text>
-        To save column views, you must be signed up and logged in.
+        To save {{ isStats ? 'stat' : 'column' }} views, you must be signed up and logged in.
       </v-card-text>
       <v-card-actions>
         <v-spacer />
@@ -63,16 +65,20 @@ import { resolveColumns } from '@/components/Results/Table/columnConfig';
 
 defineOptions({ name: 'ColumnViewSaveDialog' });
 
-// Gmail-canned-responses "save" dialog (oxjob #602): shows the CURRENT column
-// set (read-only) + a required name, unique per (user, entity type). The server
-// enforces uniqueness too (409); we pre-check against the fetched list so the
-// common case errors inline without a round trip.
+// Gmail-canned-responses "save" dialog (oxjobs #602/#626): shows the CURRENT
+// key set (read-only) + a required name, unique per (user, entity type, kind).
+// The server enforces uniqueness too (409); we pre-check against the fetched
+// list so the common case errors inline without a round trip.
 const props = defineProps({
   isOpen: Boolean,
   entityType: { type: String, required: true },
-  // Ordered column keys + sort spec captured by the kebab at open time.
+  // 'columns' = table column view (#602); 'stats' = stats-sidebar view (#626).
+  kind: { type: String, default: 'columns' },
+  // Ordered column/group_by keys + sort spec captured at open time.
   columnKeys: { type: Array, required: true },
   sortBy: { type: Array, default: null },
+  // Stats keys aren't table columns — the caller supplies its own labeler.
+  getKeyLabel: { type: Function, default: null },
 });
 
 const emit = defineEmits(['close']);
@@ -96,12 +102,20 @@ const myIsOpen = computed({
   },
 });
 
-const columnChips = computed(() =>
-  resolveColumns(props.entityType, props.columnKeys).map((col) => ({
+const isStats = computed(() => props.kind === 'stats');
+
+const columnChips = computed(() => {
+  if (props.getKeyLabel) {
+    return props.columnKeys.map((key) => ({
+      key,
+      label: filters.capitalize(props.getKeyLabel(key) ?? key),
+    }));
+  }
+  return resolveColumns(props.entityType, props.columnKeys).map((col) => ({
     key: col.key,
     label: filters.capitalize(col.label),
-  })),
-);
+  }));
+});
 
 const sortLabel = computed(() => {
   const s = props.sortBy?.[0];
@@ -117,7 +131,10 @@ async function save() {
     errorMessage.value = 'A name is required';
     return;
   }
-  const clash = store.getters['user/userColumnViews'].find(
+  const existing = isStats.value
+    ? store.getters['user/userStatViews']
+    : store.getters['user/userColumnViews'];
+  const clash = existing.find(
     (v) => v.entity_type === props.entityType && v.name.toLowerCase() === name.toLowerCase(),
   );
   if (clash) {
@@ -126,8 +143,9 @@ async function save() {
   }
   isLoading.value = true;
   try {
-    await store.dispatch('user/createColumnView', {
+    await store.dispatch('user/createSerpView', {
       entity_type: props.entityType,
+      kind: props.kind,
       name,
       columns: [...props.columnKeys],
       sort_by: props.sortBy ?? null,

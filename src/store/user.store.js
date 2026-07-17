@@ -33,6 +33,7 @@ export default {
         claim: null,
         savedSearches: [],
         columnViews: [],
+        statViews: [],
         corrections: [],
         isSaving: false,
         renameId: null,
@@ -609,34 +610,37 @@ export default {
         },
 
         // **************************************************
-        // COLUMN VIEWS (saved table configurations, oxjob #602)
+        // SERP VIEWS (saved table-column + stats configurations,
+        // oxjobs #602/#626) — kind: 'columns' | 'stats'
         // **************************************************
 
-        async fetchColumnViews({state}) {
+        async fetchSerpViews({state}, kind = 'columns') {
             const resp = await axios.get(
-                apiBaseUrl + "/column-view",
+                apiBaseUrl + "/serp-view?kind=" + kind,
                 axiosConfig({userAuth: true})
             )
-            state.columnViews = [...resp.data].sort((a, b) =>
+            const sorted = [...resp.data].sort((a, b) =>
                 a.name.localeCompare(b.name)
             );
+            if (kind === 'stats') state.statViews = sorted;
+            else state.columnViews = sorted;
         },
-        async createColumnView({dispatch}, {entity_type, name, columns, sort_by}) {
+        async createSerpView({dispatch}, {entity_type, kind = 'columns', name, columns, sort_by}) {
             const id = shortUuid.generate()
             const resp = await axios.put(
-                apiBaseUrl + "/column-view/" + id,
-                {entity_type, name, columns, sort_by},
+                apiBaseUrl + "/serp-view/" + id,
+                {entity_type, kind, name, columns, sort_by},
                 axiosConfig({userAuth: true}),
             )
-            await dispatch("fetchColumnViews")
+            await dispatch("fetchSerpViews", kind)
             return resp;
         },
-        async deleteColumnView({commit, dispatch}, id) {
+        async deleteSerpView({commit, dispatch}, {id, kind = 'columns'}) {
             const resp = await axios.delete(
-                apiBaseUrl + `/column-view/${id}`,
+                apiBaseUrl + `/serp-view/${id}`,
                 axiosConfig({userAuth: true}),
             )
-            await dispatch("fetchColumnViews")
+            await dispatch("fetchSerpViews", kind)
             commit("snackbar", "View deleted", {root: true})
             return resp;
         },
@@ -707,6 +711,7 @@ export default {
         apiKey: (state) => state.apiKey,
         userSavedSearches: (state) => state.savedSearches,
         userColumnViews: (state) => state.columnViews,
+        userStatViews: (state) => state.statViews,
         userCorrections: (state) => state.corrections,
         isAdmin: (state) => state.isAdmin || state.email?.trim() === 'jalperin@sfu.ca',
         isLibrarian: (state) => state.isLibrarian,

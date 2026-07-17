@@ -79,7 +79,7 @@ const store = useStore();
 const columnViews = computed(() => store.getters['user/userColumnViews']);
 
 onMounted(() => {
-  store.dispatch('user/fetchColumnViews').catch((e) => {
+  store.dispatch('user/fetchSerpViews', 'columns').catch((e) => {
     console.warn('MeAppearance: failed to fetch column views', e);
   });
 });
@@ -91,7 +91,7 @@ function columnLabels(view) {
 }
 
 function deleteView(view) {
-  store.dispatch('user/deleteColumnView', view.id)
+  store.dispatch('user/deleteSerpView', { id: view.id, kind: 'columns' })
     .then(() => {
       store.commit('snackbar', `Deleted view "${view.name}"`);
     })

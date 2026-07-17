@@ -1,16 +1,17 @@
 <template>
-  <aside class="group-by-sidebar" :class="{ 'is-two-col': columns === 2 }">
+  <aside class="group-by-sidebar">
     <div class="sidebar-head">
       <span class="sidebar-title">Stats</span>
       <v-spacer />
 
-      <!-- Add/remove stats widgets — the exact AddColumn.vue pattern (#440 r5/r6):
-           a stateful SelectionMenu quick-picker whose "More" opens the SAME
-           Edit-columns dialog component in group_by mode ("Edit stats": search |
-           categories | property list | draggable ordered chips, deferred-commit).
-           group_by exists only for works/awards. -->
+      <!-- Add/remove stats widgets — mirrors AddColumn.vue's column menu
+           (#601 r2/r3 + #626): stateful SelectionMenu with the selected-first
+           browse list capped at 5 ("+n more ✓" overflow), "More stats" → the
+           shared Edit dialog in group_by mode, and a saved stat-views footer
+           (#602 UX). group_by exists only for works/awards. -->
       <selection-menu
         v-if="canAddWidget"
+        v-model:open="isMenuOpen"
         :all-keys="allWidgetKeys"
         :popular-keys="popularWidgetKeys"
         :selected-keys="rawGroupByKeys"
@@ -18,8 +19,11 @@
         :get-icon="getKeyIcon"
         is-stateful
         custom-more
+        :max-options="5"
         button-style="icon"
         search-placeholder="Search stats"
+        more-label="More stats"
+        more-icon="mdi-dots-horizontal-circle-outline"
         location="bottom end"
         @select="toggleWidget"
         @toggle="toggleWidget"
@@ -31,11 +35,63 @@
             icon
             variant="text"
             size="small"
-            title="Add or remove stats"
-            aria-label="Add or remove stats"
+            title="Edit stats"
+            aria-label="Edit stats"
           >
-            <v-icon color="grey-darken-1">mdi-plus</v-icon>
+            <v-icon color="grey-darken-1">mdi-view-column-outline</v-icon>
           </v-btn>
+        </template>
+
+        <!-- Saved stat views (#626) — same footer UX as AddColumn's column
+             views (#602): Load hover submenu with per-view delete, then Save. -->
+        <template #footer="{ close }">
+          <v-list>
+            <v-menu v-if="userId" submenu open-on-hover location="end" :offset="2">
+              <template #activator="{ props: subProps }">
+                <v-list-item v-bind="{ ...subProps, onClick: undefined }" @click.stop>
+                  <template #prepend>
+                    <v-icon>mdi-folder-open-outline</v-icon>
+                  </template>
+                  <v-list-item-title>Load view</v-list-item-title>
+                  <template #append>
+                    <v-icon size="20">mdi-chevron-right</v-icon>
+                  </template>
+                </v-list-item>
+              </template>
+              <v-list density="compact" min-width="200">
+                <v-list-item v-if="!entityStatViews.length" disabled>
+                  <v-list-item-title class="text-medium-emphasis">
+                    No saved views yet
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item
+                  v-for="view in entityStatViews"
+                  :key="view.id"
+                  @click="applyView(view, close)"
+                >
+                  <v-list-item-title>{{ view.name }}</v-list-item-title>
+                  <template #append>
+                    <v-btn
+                      icon
+                      variant="text"
+                      size="x-small"
+                      :aria-label="`Delete view ${view.name}`"
+                      @click.stop="deleteView(view)"
+                    >
+                      <v-icon size="16">mdi-delete-outline</v-icon>
+                    </v-btn>
+                  </template>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+
+            <v-list-item @click="openSaveDialog(close)">
+              <template #prepend>
+                <v-icon>mdi-content-save-outline</v-icon>
+              </template>
+              <v-list-item-title>Save as view</v-list-item-title>
+            </v-list-item>
+          </v-list>
         </template>
       </selection-menu>
 
@@ -52,35 +108,6 @@
       >
         <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
       </v-btn>
-
-      <!-- Column-count dropdown (1 or 2 for now; room for 0/3 later — #440 r5). -->
-      <v-menu location="bottom end">
-        <template #activator="{ props: colProps }">
-          <v-btn
-            v-bind="colProps"
-            icon
-            variant="text"
-            size="small"
-            title="Layout columns"
-            aria-label="Layout columns"
-          >
-            <!-- Static columns icon (the state-dependent agenda icon read as "an
-                 outline of an equals sign" — Jason, r6). -->
-            <v-icon color="grey-darken-1">mdi-view-column-outline</v-icon>
-          </v-btn>
-        </template>
-        <v-list density="compact" min-width="150">
-          <v-list-item v-for="n in [1, 2]" :key="n" @click="setColumns(n)">
-            <template #prepend>
-              <v-icon
-                size="18"
-                :style="{ visibility: columns === n ? 'visible' : 'hidden' }"
-              >mdi-check</v-icon>
-            </template>
-            <v-list-item-title>{{ n }} {{ n === 1 ? 'column' : 'columns' }}</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
     </div>
 
     <!-- "More" → the shared Edit dialog in group_by mode (#440 r6): same
@@ -96,9 +123,19 @@
       @apply="applyWidgets"
     />
 
+    <column-view-save-dialog
+      :is-open="isSaveDialogOpen"
+      :entity-type="entityType"
+      kind="stats"
+      :column-keys="rawGroupByKeys"
+      :sort-by="null"
+      :get-key-label="getKeyDisplayName"
+      @close="isSaveDialogOpen = false"
+    />
+
     <group-by-views
       :results-object="resultsObject"
-      :columns="columns"
+      :columns="1"
       hide-toolbar
       hide-results-count
       compact
@@ -107,7 +144,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 
@@ -118,6 +155,7 @@ import { getFacetConfig } from '@/facetConfigUtils';
 import GroupByViews from '@/components/GroupByViews.vue';
 import SelectionMenu from '@/components/Misc/SelectionMenu.vue';
 import EditColumnsDialog from '@/components/Results/Table/EditColumnsDialog.vue';
+import ColumnViewSaveDialog from '@/components/Results/Table/ColumnViewSaveDialog.vue';
 
 defineOptions({ name: 'GroupBySidebar' });
 
@@ -131,8 +169,10 @@ const entityType = computed(() => store.getters.entityType);
 // group_by widgets exist only for works + awards (mirrors GroupByViews' toolbar gate).
 const canAddWidget = computed(() => ['works', 'awards'].includes(entityType.value));
 
-// ---- widget picker (quick menu + Edit-stats dialog), #440 r6 ----------------
+// ---- widget picker (quick menu + Edit-stats dialog), #440 r6 / #626 --------
+const isMenuOpen = ref(false);
 const isMoreOpen = ref(false);
+const isSaveDialogOpen = ref(false);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
 
 // Same eligibility gates as the old ActionMenu group_by branch: actionable,
@@ -152,16 +192,17 @@ const excludedWidgetKeys = computed(() =>
     .filter((c) => c.actions?.includes('group_by') && !widgetEligible(c))
     .map((c) => c.key)
 );
+// Browse list, selected-first (#601 r2 pattern): currently-showing widgets in
+// URL order (each checkmarked), then popular not-yet-selected suggestions.
+// SelectionMenu caps the rendered list at 5 and summarizes the rest as "+n
+// more ✓".
 const popularWidgetKeys = computed(() => {
-  const keys = facetConfigs(entityType.value)
+  const popular = facetConfigs(entityType.value)
     .filter((c) => c.actionsPopular?.includes('group_by'))
     .filter(widgetEligible)
-    .map((c) => c.key);
-  // Also surface currently-showing widgets so they can be unchecked.
-  rawGroupByKeys.value.forEach((k) => {
-    if (!keys.includes(k)) keys.push(k);
-  });
-  return keys;
+    .map((c) => c.key)
+    .filter((key) => !rawGroupByKeys.value.includes(key));
+  return [...rawGroupByKeys.value, ...popular];
 });
 // RAW (URL-ordered) widget keys — the order the rail renders in compact mode and
 // the order the dialog's chips edit. (groupByKeys below is the CSV-export list.)
@@ -177,23 +218,46 @@ function applyWidgets(keys) {
   url.setGroupBy(keys);
 }
 
-// One (default) or two columns. A per-device view preference persisted in
-// localStorage (not a URL param — it's chrome, not query state, so it shouldn't
-// ride along in shareable result links). oxjob #440 round 4.
-const COLUMNS_KEY = 'statsColumns';
-function loadColumns() {
-  try {
-    return localStorage.getItem(COLUMNS_KEY) === '2' ? 2 : 1;
-  } catch (e) {
-    return 1;
+// ---- saved stat views (#626, the #602 column-views UX) ----------------------
+
+const userId = computed(() => store.getters['user/userId']);
+
+const entityStatViews = computed(() =>
+  store.getters['user/userStatViews'].filter((v) => v.entity_type === entityType.value),
+);
+
+// Refresh from the server each time the menu opens (views are cross-device;
+// the list is tiny). Fire-and-forget: the submenu shows whatever is loaded.
+watch(isMenuOpen, (open) => {
+  if (open && userId.value) {
+    store.dispatch('user/fetchSerpViews', 'stats').catch((e) => {
+      console.warn('GroupBySidebar: failed to fetch stat views', e);
+    });
   }
+});
+
+// Eligibility is user-dependent (admin/xpac gates), so a saved view can hold
+// keys the loading user can't currently see — drop those and say so.
+function applyView(view, close) {
+  const eligible = view.columns.filter((k) => allWidgetKeys.value.includes(k));
+  url.setGroupBy(eligible);
+  const dropped = view.columns.length - eligible.length;
+  store.commit('snackbar', dropped
+    ? `Loaded view "${view.name}" (${dropped} unavailable stat${dropped === 1 ? '' : 's'} skipped)`
+    : `Loaded view "${view.name}"`);
+  close();
 }
-const columns = ref(loadColumns());
-function setColumns(n) {
-  columns.value = n;
-  try {
-    localStorage.setItem(COLUMNS_KEY, String(n));
-  } catch (e) { /* private mode / quota — ignore */ }
+
+function deleteView(view) {
+  store.dispatch('user/deleteSerpView', { id: view.id, kind: 'stats' }).catch((e) => {
+    console.warn('GroupBySidebar: failed to delete stat view', e);
+    store.commit('snackbar', 'Could not delete view');
+  });
+}
+
+function openSaveDialog(close) {
+  isSaveDialogOpen.value = true;
+  close();
 }
 
 // Widgets currently showing → the facets CSV summary download.
@@ -218,11 +282,6 @@ const csvUrl = computed(() =>
   flex: 0 0 450px;
   box-sizing: border-box;
   padding: 14px 12px 40px;
-}
-/* Two-column mode needs more room than the single-column rail. */
-.group-by-sidebar.is-two-col {
-  width: 640px;
-  flex: 0 0 640px;
 }
 .sidebar-head {
   display: flex;
@@ -251,9 +310,6 @@ const csvUrl = computed(() =>
 .group-by-sidebar :deep(.v-col) {
   padding: 0;
   margin-bottom: 12px;
-}
-.group-by-sidebar.is-two-col :deep(.v-col) {
-  padding: 0 6px;
 }
 .group-by-sidebar :deep(.group-by) {
   min-width: 0 !important;
