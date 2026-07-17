@@ -4377,8 +4377,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* Numbers: grey ink at half-opacity (round 11 — the round-5 peach went with the
    monochrome pass), full text size (was 0.72rem; the outer cell is already mono at
    --brick-fs, so the inner span just inherits). */
-.bl-num2 > span { color: var(--num-ink); opacity: var(--num-op); } /* r20: shared --num-ink/--num-op */
-.bline--sel .bl-num2 > span { font-weight: 700; color: var(--num-ink); opacity: 1; }
+/* the DIGITS span (not the grab-handle span, #603 r32 — otherwise this `.bl-num2 > span`
+   rule's opacity would override the handle's opacity:0 and it'd show without a hover). */
+.bl-num2 > span:not(.num-grab-handle) { color: var(--num-ink); opacity: var(--num-op); } /* r20: shared --num-ink/--num-op */
+.bline--sel .bl-num2 > span:not(.num-grab-handle) { font-weight: 700; color: var(--num-ink); opacity: 1; }
 /* …and the gutter cell goes BLANK on those lines (the ::before box keeps its --num-w
    width so every row's content shares one origin). Doubled class = out-specify the
    later `.bline::before { content: attr(data-addr) }` rule. */
@@ -4806,7 +4808,11 @@ defineExpose({ rebuildFromOql: async (oql) => {
 }
 /* num2: inline, right before the digits (the cell is flex-end, so the digits keep their
    right-pinned x and the × just shifts left to make room). */
-.bl-num2 .num-grab-handle { flex: 0 0 auto; width: 12px; margin-right: 1px; }
+.bl-num2 .num-grab-handle { flex: 0 0 auto; width: 12px; margin-right: 2px; }
+/* #603 r32 fix (Jason): on subclauses the × had its full 12px right-margin AND the inline
+   grip after it, so it sat ~25px from the number. With the grip taking the gap now, tighten
+   the × so × + grip + digits read as one cluster (matches the num1 gutter's spacing). */
+.bl-num2 .row-trash--num { margin-right: 3px; }
 /* Token wrapper for the footer's address delegation (#487): display:contents so it
    generates NO box — the chip inside stays the direct flex child of `.bl-body`, leaving
    the spacing/wrap/indent layout untouched, while `closest('[data-addr]')` still finds
