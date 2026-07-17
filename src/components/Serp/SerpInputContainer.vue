@@ -454,14 +454,16 @@ const oqlTabText = ref('');
 const oqlTabValidation = ref(null);
 const oqlSeedBaseline = ref('');
 // #611 r5 (Jason): teach by example — the empty-state hint shows real, runnable
-// queries (each one prod-validated; note the author-name field is `display_name`,
-// not `name`). Multi-line: OqlEditor renders a \n-bearing placeholder as a block.
+// queries (each one prod-validated). The author example uses `name` — Jason's
+// original wording, enabled server-side in r6 (elastic-api PROPERTIES 7.2.0:
+// `name` is the canonical name-search word on every non-works entity).
+// Multi-line: OqlEditor renders a \n-bearing placeholder as a block.
 const OQL_TAB_PLACEHOLDER = [
   'Type or paste OQL. Examples:',
   '',
   '•  works where title/abstract has (open and science)',
   '•  works where year > (2020) and type is (article)',
-  '•  authors where display_name has (einstein)',
+  '•  authors where name has (einstein)',
 ].join('\n');
 // dirty = the text has diverged from what we last seeded in.
 const oqlTabDirty = computed(() => oqlTabText.value !== oqlSeedBaseline.value);
