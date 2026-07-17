@@ -18,11 +18,11 @@
 // The returned `onKeydown` binds to the chip span (which holds focus after a click).
 // stopPropagation keeps the keys off the builder-level @keydown handler.
 //
-// DRAG-TO-DELETE (oxjob #467 Phase 4): the chip is `draggable`; dragging it OUTSIDE the
-// builder card and releasing DELETES it (same `onDelete` intent as ⌫). Releasing INSIDE
-// is a deliberate no-op. We compare the `dragend` pointer position to the `.builder`
-// card's rect (recomputed at release, so page-scroll mid-drag is handled).
-import { ref, onBeforeUnmount } from "vue";
+// DRAG (oxjob #467 Phase 4 → #603 round 32): the chip's `or`-handle is `draggable` for
+// REORDER only. `chipDrag.begin/end` announce the in-flight value drag so the builder routes
+// its dragover/drop to the reorder path. (The old drag-OUTSIDE-to-delete gesture + its delete
+// drop-zone were removed in round 32 — delete is the ⌫ key / the chip menu's Delete now.)
+import { ref } from "vue";
 import { useChipDrag } from "@/components/Oql/useChipDrag";
 
 // MULTI-SELECT (oxjob #472): a chip can be SELECTED into an ephemeral set for a batch action
@@ -40,33 +40,21 @@ import { useChipDrag } from "@/components/Oql/useChipDrag";
 export function useChipShortcuts({ idRef, onEdit, onCmdEnter, onDelete,
   selectedRef, selectionActiveRef, onSelect, onSelectClear }) {
   const dragging = ref(false);    // LOCAL to this chip — drives the dim while THIS chip drags
-  const chipDrag = useChipDrag(); // SHARED singleton — lets the builder reveal its delete zone
+  const chipDrag = useChipDrag(); // SHARED singleton — announces the in-flight value drag
 
-  // --- drag-to-delete -------------------------------------------------------
-  let builderEl = null;
-
+  // --- drag-to-reorder (the builder's container owns the drop) --------------
   const onDragstart = (e) => {
     dragging.value = true;
-    chipDrag.begin(idRef?.());   // reveal the builder's delete zone for the drag's duration
+    chipDrag.begin(idRef?.());   // announce the value drag so the builder routes its drops
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = "move";
       try { e.dataTransfer.setData("text/plain", "oql-chip"); } catch (_) { /* noop */ }
     }
-    builderEl = e.currentTarget?.closest?.(".builder") || null;
   };
 
-  const onDragend = (e) => {
+  const onDragend = () => {
     dragging.value = false;
-    const el = builderEl;
-    builderEl = null;
-    const consumed = chipDrag.draggingId.value == null;
-    chipDrag.end();              // hide the delete zone
-    if (consumed || !el) return;
-    const x = e?.clientX ?? 0, y = e?.clientY ?? 0;
-    if (x === 0 && y === 0) return;
-    const r = el.getBoundingClientRect();
-    const outside = x < r.left || x > r.right || y < r.top || y > r.bottom;
-    if (outside) onDelete?.();
+    chipDrag.end();
   };
 
   const onClick = (e) => {
@@ -120,8 +108,6 @@ export function useChipShortcuts({ idRef, onEdit, onCmdEnter, onDelete,
       onEdit();
     }
   };
-
-  onBeforeUnmount(() => { builderEl = null; });
 
   return { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend };
 }

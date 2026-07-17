@@ -1,20 +1,8 @@
 <template>
-  <div ref="builderRootEl" class="builder" :style="V2_ROLE_CSS_VARS" @keydown="onBuilderKeydown">
-    <!-- Drag-to-delete zone (oxjob #467 Phase 4): an overlay strip pinned to the top of
-         the builder that appears only while a value chip is being dragged (shared
-         useChipDrag state). Dashed + muted "Drag here to delete" while armed; turns solid
-         + red "Release to delete" when the chip is dragged over it. Its `drop` handler is
-         the reliable delete path (a real registered target). Children are pointer-events:
-         none so dragenter/dragleave don't flicker as the cursor crosses the icon/label. -->
-    <div v-show="chipDragging" class="delete-zone" :class="{ 'delete-zone--hot': zoneHot }"
-      :style="chromeH ? { height: chromeH + 'px' } : null"
-      @dragenter.prevent="zoneHot = true"
-      @dragover.prevent="onZoneDragover"
-      @dragleave="zoneHot = false"
-      @drop.prevent="onZoneDrop">
-      <v-icon class="dz-icon">{{ zoneHot ? 'mdi-trash-can' : 'mdi-trash-can-outline' }}</v-icon>
-      <span class="dz-label">{{ zoneHot ? 'Release to delete' : 'Drag here to delete' }}</span>
-    </div>
+  <div class="builder" :style="V2_ROLE_CSS_VARS" @keydown="onBuilderKeydown">
+    <!-- (#603 round 32, Jason: the "drag here to delete" drop-zone is GONE — dragging a
+         chip reorders it; delete is the ⌫ key / the chip menu's Delete. The drag-outside-
+         the-builder delete fallback in useChipShortcuts went with it.) -->
 
     <header v-if="showHeader" class="builder-head">
       <h1 class="text-h5">Query builder</h1>
@@ -113,14 +101,12 @@
              family (the parent via plain :hover, the descendants via .bline--famhov,
              computed from the hovered line's key + the _level sequence). -->
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
-          :class="{ 'bline--sel': isSelectedLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx), 'bline--sub': !!line._level, 'bline--num1': !line._level, 'bline--famhov': famHovKeys.has(line.key), 'row-grab': !!lineDragFor(line) }"
+          :class="{ 'bline--sel': isSelectedLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx), 'bline--sub': !!line._level, 'bline--num1': !line._level, 'bline--famhov': famHovKeys.has(line.key) }"
           :data-addr="line.addr"
           :style="lineStyle(line)" tabindex="-1"
-          :draggable="lineDragFor(line) ? 'true' : undefined"
           @mouseenter="hoverLineKey = line.key" @mouseleave="hoverLineKey = null"
           @click.stop="onLineClick(lineIdx, $event)"
-          @dblclick.stop="onLineDblclick(lineIdx, $event)"
-          @dragstart="onRowBandDragstart(line, $event)" @dragend="onNumDragend">
+          @dblclick.stop="onLineDblclick(lineIdx, $event)">
           <!-- (#595 round 4, Jason: the row DELETE trash moved from the left gutter to the END
                of the line — see the button after .bl-body below — freeing the left lane so the
                line numbers can sit at the results-list checkbox column.) -->
@@ -148,17 +134,23 @@
                VALUE column, so the whole outline stays on one grid. Scope colours the
                chip: filter = peach, value = periwinkle. -->
           <!-- Round 10 (Jason): the top-level gutter is a REAL cell now (.bl-num1 — the
-               ::before pseudo couldn't take drag handlers): [remove ×][digits]. The ×
+               ::before pseudo couldn't take drag handlers): [remove ×][grab handle][digits]. The ×
                sits in its own icon-size lane LEFT of the digits (the gutter grew by
                --trash-w to make room); it's an mdi-close in the numbers' light peach,
-               not a trashcan ("less ink"). The DIGITS are the row's drag handle —
-               grab them to move the row (see onNumDragstart; the lead-chip handle is
-               gone). Disjunct lines delete ONE alternative (removeDisjunct), arm
-               lines ONE value arm (round 8), other lines the whole row. -->
+               not a trashcan ("less ink"). #603 round 32 (Jason): the DIGITS are the row's
+               drag handle again (grab cursor) AND a grip glyph (.num-grab-handle) appears on
+               row hover between the × and the digits — same onNumDragstart, both draggable.
+               (Round 31's whole-row grab was too much.) Disjunct lines delete ONE alternative
+               (removeDisjunct), arm lines ONE value arm (round 8), other lines the whole row. -->
           <span v-if="!line._level" class="bl-num1"><button v-if="canDeleteLine(line)" type="button" class="row-trash row-trash--num"
               aria-label="remove" title="remove"
               @click.stop="onLineTrash(line)" @mousedown.stop @dblclick.stop><v-icon size="12">mdi-close</v-icon></button><span
-              class="bl-num1-digits"
+              v-if="lineDragFor(line)" class="num-grab-handle" draggable="true"
+              @dragstart="onNumDragstart(line, $event)" @dragend="onNumDragend"
+              @click.stop @mousedown.stop aria-hidden="true" title="drag to reorder"></span><span
+              class="bl-num1-digits" :class="{ 'num-grab': !!lineDragFor(line) }"
+              :draggable="lineDragFor(line) ? 'true' : undefined"
+              @dragstart="onNumDragstart(line, $event)" @dragend="onNumDragend"
               aria-hidden="true">{{ line.addr }}</span></span>
           <!-- (Round 27, Jason: the top-level lead CHIP is gone — the `&` merges into the
                row's SUPER-CHIP below, and row 1's blank spacer is removed outright. The
@@ -177,6 +169,12 @@
             <span class="bl-num2" :style="num2Style(line)"><button v-if="canDeleteLine(line)" type="button" class="row-trash row-trash--num"
                 aria-label="remove" title="remove"
                 @click.stop="onLineTrash(line)" @mousedown.stop @dblclick.stop><v-icon size="12">mdi-close</v-icon></button><span
+                v-if="lineDragFor(line)" class="num-grab-handle" draggable="true"
+                @dragstart="onNumDragstart(line, $event)" @dragend="onNumDragend"
+                @click.stop @mousedown.stop aria-hidden="true" title="drag to reorder"></span><span
+                :class="{ 'num-grab': !!lineDragFor(line) }"
+                :draggable="lineDragFor(line) ? 'true' : undefined"
+                @dragstart="onNumDragstart(line, $event)" @dragend="onNumDragend"
                 aria-hidden="true">{{ line.addr }}</span></span>
             <span class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead, 'bl-lead2--end': line._leadEnd, 'bl-spike': line._spikeLead }"
               :style="lead2Style(line)" aria-hidden="true">{{ leadWord(line) }}</span>
@@ -2686,9 +2684,9 @@ const onValueBlur = (tok) => {
   blurTimers.add(timer);
 };
 const onToggleNeg = (tok) => { edit.toggleNeg(v2.value, tok.id, drafts.value); afterEdit(tok); };
-// The single choke point for removing a VALUE — every path (chip menu "Delete", the ⌫
-// shortcut, drag-to-the-delete-zone, and drag-outside-the-builder) routes through here,
-// so the "Value deleted" toast lives here once and fires for all of them. (oxjob #467.)
+// The single choke point for removing a VALUE — every path (chip menu "Delete" and the ⌫
+// shortcut) routes through here, so the "Value deleted" toast lives here once and fires for
+// all of them. (oxjob #467; #603 round 32 dropped the drag-to-delete paths.)
 const onRemoveValue = (tok) => {
   // ENTITY delete flash fix (oxjob #428, 2026-06-17): the display is driven by the server's
   // `lines` token stream, which only updates on the swap render (~300ms). During that window
@@ -2707,68 +2705,22 @@ const onRemoveValue = (tok) => {
   afterEdit(tok);
 };
 
-// ---- drag-to-delete zone (oxjob #467 Phase 4 feedback) ----------------------
-// A delete drop-zone appears at the top of the builder while a value chip is being
-// dragged (shared state from useChipDrag). Dropping a chip ON the zone removes it — a
-// real registered drop target, which fires a reliable `drop` (unlike "release into empty
-// space", which the HTML5 DnD API reports unreliably). The chip's own dragend also still
-// deletes on a release fully OUTSIDE the builder card (forgiving fallback) — see
-// useChipShortcuts. Both end in onRemoveValue, so both toast.
+// ---- value-chip drag shared state (oxjob #467; #603 round 32) --------------------
+// `useChipDrag` is a small reactive singleton the value chips set on dragstart/dragend so
+// the builder knows a value drag is in flight (draggingKind === "value") — it routes the
+// container's dragover/drop to the reorder path. (The drag-to-delete zone + drag-outside
+// delete that also used it are gone as of round 32.)
 const chipDrag = useChipDrag();
-// `chipDrag.dragging` is a ref nested in a plain object — Vue templates only auto-unwrap
-// TOP-LEVEL setup refs, so bind it to a top-level const for `v-show` to read the boolean
-// (otherwise the template sees a truthy Ref object and the zone never hides).
+// `chipDrag.dragging` is a ref nested in a plain object — bind it to a top-level const so
+// the reorder-cleanup watch below reads the boolean, not a truthy Ref object.
 const chipDragging = chipDrag.dragging;
-const zoneHot = ref(false); // true while a chip is dragged OVER the zone (solid + red)
-// The zone is OPAQUE and sized to cover exactly the header chrome (the toolbar in the
-// SERP, or the title header in the standalone sandbox) so none of it shows through and
-// reads as droppable while dragging. We measure that height = the brick lines' offset
-// from the top of the builder (everything above the bricks IS the chrome), so it's robust
-// whatever chrome a host renders. Measured when a drag starts (the overlay is absolute, so
-// it doesn't perturb the layout it's measuring).
-const builderRootEl = ref(null);
 const linesEl = ref(null);
-const chromeH = ref(0);
-watch(chipDragging, (on) => {
-  if (!on) return;
-  nextTick(() => {
-    const lines = linesEl.value, root = builderRootEl.value;
-    // Viewport-rect delta (NOT offsetTop — the Vuetify card is position:relative, so
-    // offsetTop would be measured from the card and miss a header that sits above it).
-    chromeH.value = (lines && root)
-      ? Math.max(0, Math.round(lines.getBoundingClientRect().top - root.getBoundingClientRect().top))
-      : 0;
-  });
-});
 const findValueTok = (id) => {
   for (const line of displayLines.value) {
     const t = line.tokens.find((tk) => tk.t === "vbrick" && tk.id === id);
     if (t) return t;
   }
   return null;
-};
-// preventDefault (via @dragover.prevent) is what makes the zone a valid drop target; also
-// show the "move" effect cursor while over it (the only cursor native DnD lets us set).
-const onZoneDragover = (e) => {
-  if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
-};
-const onZoneDrop = () => {
-  zoneHot.value = false;
-  const id = chipDrag.draggingId.value;
-  // Claim the drop so the chip's dragend outside-rect fallback skips it (no double-remove).
-  chipDrag.draggingId.value = null;
-  if (!id) return;
-  // A MULTI value-chip drag dropped on the trash (oxjob #475): delete the whole dragged set.
-  if (valueDragIds.value.size > 1) {
-    const removed = [...valueDragIds.value];
-    clearSelection();
-    edit.removeNodes(v2.value, removed, drafts.value);
-    renderQuery({ swap: true });
-    return;
-  }
-  const tok = findValueTok(id);
-  if (tok) onRemoveValue(tok);
-  else { edit.removeNode(v2.value, id, drafts.value); renderQuery({ swap: true }); }
 };
 
 // value-CHIP drag slots (oxjob #475) — declared here (before onLinesDragover reads them); the
@@ -2851,14 +2803,11 @@ const subtreeIdSet = (nodeId) => {
   return set;
 };
 
-// ---- line drag-to-reorder — the WHOLE ROW is the handle (#603 round 31, Jason) ------
-// The grab handle used to be JUST the line number (round 10); Jason widened it: anywhere on
-// a row is grabbable (grab cursor) EXCEPT the value chips and the clickable (editable) predicate
-// chip — those are their own affordances sitting "above" the row surface. So the number, the
-// fieldname super-chip, and the row whitespace all drag the row; a value-chip or numeric-op grab
-// does not. The `.bline` is `draggable`; onRowBandDragstart (below) vetoes grabs that land on a
-// value chip / predicate button / the value-chip drag handle, and otherwise starts the row drag.
-// EVERY committed line drags, including the first and last:
+// ---- line drag-to-reorder via the LINE NUMBER + hover grip (#603 round 32, Jason) ------
+// The grab handle is the line NUMBER again (round 10's model) — round 31's whole-row grab was
+// "too much". The digits are draggable (grab cursor), and a small grip glyph (.num-grab-handle)
+// appears on row hover between the × and the digits; both call onNumDragstart. EVERY committed
+// line drags, including the first and last:
 //   • a TOP-LEVEL row (plain filter, value-AND clause, or a whole either-group) —
 //     filter scope;
 //   • an either-DISJUNCT line — filter scope: it can drop at any root boundary, into
@@ -2967,28 +2916,6 @@ const valueLineSlots = (drag) => {
   });
   if (lastEl) slots.push({ parentId: drag.parentId, index: k, y: bottom(lastEl) + 1 });
   return slots;
-};
-
-// A drag started somewhere on a `.bline` (#603 round 31). Decide whether it's a ROW grab or
-// belongs to a chip:
-//   • grab landed on a value-chip drag handle (.orpfx--handle) → the chip's own reorder/delete
-//     gesture; the event bubbles on to onLinesDragstart which drives it. We stay out of the way.
-//   • grab landed on a value chip body OR the clickable numeric-operator predicate → their own
-//     affordance, NOT a row grab: cancel the drag (preventDefault) so nothing moves.
-//   • anywhere else (number, fieldname super-chip, whitespace) → start the row reorder.
-// We read what's under the pointer via elementFromPoint (robust regardless of which node the
-// browser reports as the drag source when the source is the ancestor `.bline`).
-const onRowBandDragstart = (line, e) => {
-  const under = (document.elementFromPoint && e.clientX != null)
-    ? document.elementFromPoint(e.clientX, e.clientY)
-    : e.target;
-  const hit = under || e.target;
-  if (hit && hit.closest && hit.closest(".orpfx--handle")) return; // chip handle → let it bubble
-  if (hit && hit.closest && hit.closest(".val-chip, .bl-slot-pred, button, a, input, textarea, [contenteditable=true]")) {
-    e.preventDefault();  // a chip / clickable predicate is its own thing, above the row surface
-    return;
-  }
-  onNumDragstart(line, e);
 };
 
 const onNumDragstart = (line, e) => {
@@ -3182,14 +3109,13 @@ const onValueDrop = () => {
   const s = activeValueSlot.value;
   const ids = [...valueDragIds.value];
   if (!s || !ids.length) { clearValueDrag(); return; }
-  chipDrag.draggingId.value = null;          // claim the drop (skip the dragend delete fallback)
+  chipDrag.draggingId.value = null;
   clearValueDrag();
   applyMoveWithRevert(() => edit.moveValues(v2.value, ids, s.parentId, s.index, drafts.value));
 };
 
-// A value-chip drag ended. The chip's own onDragend (useChipShortcuts) still owns the
-// release-OUTSIDE-the-builder delete; here we just clear the reorder state + the dim. (A drop
-// consumed by onValueDrop / onZoneDrop already nulled draggingId, so no double-handling.)
+// A value-chip drag ended; clear the reorder state + the dim. (#603 round 32 removed the
+// drag-to-delete paths, so there's nothing else to disambiguate here.)
 const clearValueDrag = () => { valueDropSlots.value = []; activeValueSlot.value = null; valueDragIds.value = new Set(); valueDragType.value = null; dragHostRect = null; };
 watch(chipDragging, (on) => { if (!on) clearValueDrag(); });
 
@@ -4155,46 +4081,10 @@ defineExpose({ rebuildFromOql: async (oql) => {
      back to grey-tan) to 0.6 so it still reads warm. */
   --num-ink: #b25d06;
   --num-op: 0.6;
-  position: relative; /* positioning context for the drag-to-delete overlay */
+  position: relative;
 }
 .builder :deep(.v-chip.v-chip--size-small) { font-size: var(--brick-fs); font-family: "JetBrains Mono", monospace; }
 .builder-head { margin-bottom: 18px; }
-
-/* Drag-to-delete zone (oxjob #467 Phase 4): an OPAQUE overlay that, while a value chip is
-   dragged, covers exactly the builder's header chrome (the toolbar in the SERP, or the
-   title header in the sandbox) — its height is set inline to the brick lines' offset so
-   none of that chrome shows through (the peek-through made it read as "drop on a button").
-   Overlay (not in flow) so revealing it doesn't reflow the bricks mid-drag. Two states:
-   armed (dashed border, soft solid-red fill) and hot (solid red fill, white text). */
-.delete-zone {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 46px; /* fallback until chromeH is measured; inline style overrides */
-  border: 2px dashed rgba(179, 38, 30, 0.55);
-  border-radius: 8px;
-  background: #fbe9e7; /* OPAQUE — nothing behind it shows through */
-  color: #b3261e;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  cursor: copy;
-}
-.delete-zone--hot {
-  border-style: solid;
-  border-color: #b3261e;
-  background: #b3261e; /* solid red */
-  color: #fff;
-}
-/* children non-hittable so dragenter/dragleave only fire on the zone (no flicker) */
-.delete-zone > * { pointer-events: none; }
-.delete-zone .dz-icon { color: #b3261e; }
-.delete-zone--hot .dz-icon { color: #fff; }
 .tree-card { padding: 14px 16px; background: white; }
 /* with the toolbar, the card opens flush at the top so the toolbar strip reads as
    chrome (its own bottom border) above the canvas. */
@@ -4887,17 +4777,36 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* the line-number drag handle (round 10): grab cursor on the digits */
 .num-grab { cursor: grab; }
 .num-grab:active { cursor: grabbing; }
-/* #603 round 31 (Jason): the WHOLE row is the drag handle — grab cursor over the number,
-   the fieldname super-chip, and the row whitespace. Value chips keep `pointer`, the
-   editable numeric-operator predicate keeps its button `pointer`, and the value-chip drag
-   handle sets its own `grab` — those override this by being more specific / deeper. */
-.bline.row-grab { cursor: grab; }
-.bline.row-grab:active { cursor: grabbing; }
-.bline.row-grab .bl-super,
-.bline.row-grab .bl-super :deep(.prop-chip-leaf),
-.bline.row-grab .bl-num1,
-.bline.row-grab .bl-num2,
-.bline.row-grab .bl-lead2 { cursor: grab; }
+/* #603 round 32 (Jason): a grab-handle grip that appears on row hover, BETWEEN the × and
+   the digits, also draggable (both it and the digits call onNumDragstart). In .bl-num1 it's
+   absolutely positioned in the reserved gap after the ×-lane so revealing it never shifts the
+   left-aligned digits; in .bl-num2 (right-aligned) it sits inline before the digits, which
+   stay pinned to the right edge. Hidden (opacity 0) until the row is hovered. */
+.num-grab-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  cursor: grab;
+  opacity: 0;
+  color: var(--num-ink);
+  font-family: "JetBrains Mono", monospace;
+  font-size: var(--brick-fs, 0.8125rem);
+}
+.num-grab-handle:active { cursor: grabbing; }
+.num-grab-handle::before { content: "\283F"; opacity: 0.55; } /* ⠿ six-dot grip */
+.bline:hover .num-grab-handle { opacity: 1; }
+/* num1: overlay the grip in the gap between the ×-lane (ends at lane-w+trash-w) and the
+   digits — absolute so it doesn't push the fixed-x digits. */
+.bl-num1 .num-grab-handle {
+  position: absolute;
+  left: calc(var(--lane-w, 10px) + var(--trash-w, 28px) - 12px);
+  top: 0;
+  width: 12px;
+}
+/* num2: inline, right before the digits (the cell is flex-end, so the digits keep their
+   right-pinned x and the × just shifts left to make room). */
+.bl-num2 .num-grab-handle { flex: 0 0 auto; width: 12px; margin-right: 1px; }
 /* Token wrapper for the footer's address delegation (#487): display:contents so it
    generates NO box — the chip inside stays the direct flex child of `.bl-body`, leaving
    the spacing/wrap/indent layout untouched, while `closest('[data-addr]')` still finds
