@@ -4,10 +4,10 @@
     <nav class="workbench-sidebar">
       <div class="sidebar-head">
         <div class="d-flex align-center">
-          <div class="text-h6">Query</div>
+          <div class="text-h6">Natural language</div>
           <v-chip color="amber-darken-2" variant="tonal" size="x-small" class="ml-2 alpha-chip">alpha</v-chip>
         </div>
-        <div class="text-caption text-medium-emphasis">OpenAlex Query Language</div>
+        <div class="text-caption text-medium-emphasis">Ask OpenAlex in plain English</div>
       </div>
       <v-list density="compact" nav>
         <v-list-item
@@ -37,18 +37,13 @@
         class="alpha-alert mb-6"
         icon="mdi-flask-outline"
       >
-        The OpenAlex Query Language is in <strong>alpha</strong>, expected to launch in summer
-        2026. It may change without warning — build against it at your own risk, and
+        Natural-language querying is in <strong>alpha</strong>, expected to launch in summer
+        2026. It may change without warning —
         <a href="mailto:support@openalex.org">tell us what you think</a>.
       </v-alert>
 
-      <PlaygroundMarkdownDoc v-if="section === 'cheatsheet'" slug="cheatsheet" />
-      <PlaygroundCases v-else-if="section === 'cases'" />
-      <PlaygroundMarkdownDoc v-else-if="section === 'guide'" slug="guide" />
-      <PlaygroundMarkdownDoc v-else-if="section === 'api'" slug="api" />
-      <PlaygroundMarkdownDoc v-else-if="section === 'spec'" slug="oql" />
-      <PlaygroundGrammar v-else-if="section === 'grammar'" />
-      <PlaygroundOqoSchema v-else-if="section === 'schema'" />
+      <PlaygroundNlEvals v-if="section === 'cases'" />
+      <PlaygroundNlAnnotate v-else-if="section === 'annotate'" :case-id="caseId" />
       <div v-else class="placeholder">
         <v-icon size="48" color="grey-lighten-1">mdi-tools</v-icon>
         <p class="text-body-1 mt-3">{{ activeLabel }} coming soon.</p>
@@ -61,46 +56,38 @@
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useHead } from "@unhead/vue";
-import PlaygroundCases from "@/components/OqlPlayground/PlaygroundCases.vue";
-import PlaygroundMarkdownDoc from "@/components/OqlPlayground/PlaygroundMarkdownDoc.vue";
-import PlaygroundGrammar from "@/components/OqlPlayground/PlaygroundGrammar.vue";
-import PlaygroundOqoSchema from "@/components/OqlPlayground/PlaygroundOqoSchema.vue";
+import PlaygroundNlEvals from "@/components/OqlPlayground/PlaygroundNlEvals.vue";
+import PlaygroundNlAnnotate from "@/components/OqlPlayground/PlaygroundNlAnnotate.vue";
 
-defineOptions({ name: "QueryWorkbench" });
+defineOptions({ name: "NlWorkbench" });
 
-// section ∈ {cheatsheet, cases, guide, api, spec, grammar, schema} — supplied as a
-// route param (validated by the route's regex constraint) so the URL is the source
-// of truth. The natural-language tools moved to their own /nl page, so the sidebar
-// is now a single flat OQL section list (no category header).
+// The natural-language tools, moved out of the /query workbench to their own /nl
+// page (Jason, 2026-07-17). section ∈ {cases, annotate, playground} — a route param
+// validated by the route regex. caseId is set only by the /nl/annotate/:id deep link.
 const props = defineProps({
   section: { type: String, required: true },
+  caseId: { type: String, default: undefined },
 });
 
 const router = useRouter();
 
-// The sidebar sections: user-facing docs first (Cheat sheet / Cases / Guide / API)
-// then the deeper reference pages (Spec / Grammar / OQO schema, #361 + #530).
-// Editing OQL itself happens in the SERP (the "Show as OQL" panel + no-code
-// builder), so there is no standalone editor page here (#530).
+// "Playground" (the live NL→OQO submit endpoint) is still a placeholder — the
+// submit endpoint is disabled server-side.
 const sections = [
-  { section: "cheatsheet", label: "Cheat sheet", icon: "mdi-card-text-outline", disabled: false },
-  { section: "cases", label: "Cases", icon: "mdi-table", disabled: false },
-  { section: "guide", label: "Guide", icon: "mdi-book-open-variant", disabled: false },
-  { section: "api", label: "API", icon: "mdi-api", disabled: false },
-  { section: "spec", label: "Spec", icon: "mdi-file-document-outline", disabled: false },
-  { section: "grammar", label: "Grammar", icon: "mdi-sitemap-outline", disabled: false },
-  { section: "schema", label: "OQO schema", icon: "mdi-code-json", disabled: false },
+  { section: "cases", label: "Cases", icon: "mdi-robot", disabled: false },
+  { section: "annotate", label: "Annotate", icon: "mdi-pencil-box-outline", disabled: false },
+  { section: "playground", label: "Playground", icon: "mdi-message-text-outline", disabled: true },
 ];
 
 const activeLabel = computed(
-  () => sections.find((s) => s.section === props.section)?.label || "Query"
+  () => sections.find((s) => s.section === props.section)?.label || "Natural language"
 );
 
-useHead({ title: computed(() => `${activeLabel.value} — Query`) });
+useHead({ title: computed(() => `${activeLabel.value} — Natural language`) });
 
 const go = (section, disabled) => {
   if (disabled || section === props.section) return;
-  router.push({ name: "Query", params: { section } });
+  router.push({ name: "Nl", params: { section } });
 };
 </script>
 

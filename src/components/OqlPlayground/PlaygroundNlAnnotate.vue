@@ -322,7 +322,7 @@ watch(
   currentKey,
   (v) => {
     if (v && route.params.id !== v) {
-      router.replace({ name: "QueryNlAnnotate", params: { id: v } });
+      router.replace({ name: "NlAnnotate", params: { id: v } });
     }
   },
   { immediate: true }

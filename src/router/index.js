@@ -23,6 +23,7 @@ import TransparencyPage from "@/views/Transparency.vue";
 import LegalPage from "@/views/Legal.vue";
 import BrandPage from "@/views/Brand.vue";
 import OqlPlayground from "@/views/OqlPlayground.vue";
+import NlWorkbench from "@/views/NlWorkbench.vue";
 import Funders2026Page from "@/views/Funders2026.vue";
 import PricingPage from '@/views/PricingPage.vue';
 import PricingPageNew from '@/views/PricingPageNew.vue';
@@ -371,8 +372,9 @@ const routes = [
     {path: '/transparency', name: 'Transparency', component: TransparencyPage},
     {path: '/legal', name: 'Legal', component: LegalPage},
     {path: '/brand', name: 'Brand', component: BrandPage},
-    // Query workbench: two axes (OQL / natural language). The OQL axis lands on the
-    // Cheat sheet (the alpha on-ramp, oxjob #530); editing OQL happens in the SERP panel.
+    // Query workbench: the OQL docs/reference. Lands on the Cheat sheet (the alpha
+    // on-ramp, oxjob #530); editing OQL happens in the SERP panel. The natural-language
+    // tools moved to their own /nl page (#630 Phase 2), so /query is OQL-only now.
     {path: '/query', redirect: '/query/oql/cheatsheet'},
     // The standalone Builder tab was REMOVED (oxjob #475): it was a second, divergent
     // copy of the SERP's OQL builder (it preserved value order while the real SERP path
@@ -381,13 +383,21 @@ const routes = [
     {path: '/query/oql/builder', redirect: to => ({name: 'OqlQuery', query: {...to.query, mode: 'advanced'}})},
     // The standalone OQL Editor page was REMOVED (oxjob #530): you now compose & run
     // OQL in the SERP's "Show as OQL" panel + no-code builder. Send old links to the
-    // OQL home (Cheat sheet). (The NL axis keeps its own /query/nl/playground placeholder.)
+    // OQL home (Cheat sheet).
     {path: '/query/oql/playground', redirect: '/query/oql/cheatsheet'},
-    {path: '/query/:axis(oql|nl)/:section(cheatsheet|cases|playground|annotate|guide|api|spec|grammar|schema)', name: 'Query', component: OqlPlayground, props: true},
+    // /query is OQL-only now; the path keeps the literal `oql` segment for link
+    // stability, but it's no longer a param (the NL axis moved to /nl).
+    {path: '/query/oql/:section(cheatsheet|cases|guide|api|spec|grammar|schema)', name: 'Query', component: OqlPlayground, props: true},
     {path: '/query/oql/cases/:id', name: 'QueryOqlCase', component: () => import('@/components/OqlPlayground/PlaygroundCaseDetail.vue'), props: true},
-    // NL gold-standard annotator (#382): deep-link a specific case; renders inside
-    // the workbench shell (axis=nl, section=annotate) with the case preselected.
-    {path: '/query/nl/annotate/:id', name: 'QueryNlAnnotate', component: OqlPlayground, props: route => ({axis: 'nl', section: 'annotate', caseId: route.params.id})},
+    // Natural-language tools, now at their own top-level /nl page (#630 Phase 2).
+    {path: '/nl', redirect: '/nl/cases'},
+    {path: '/nl/:section(cases|annotate|playground)', name: 'Nl', component: NlWorkbench, props: true},
+    // NL gold-standard annotator (#382): deep-link a specific case with it preselected.
+    {path: '/nl/annotate/:id', name: 'NlAnnotate', component: NlWorkbench, props: route => ({section: 'annotate', caseId: route.params.id})},
+    // Old /query/nl/* links → the new /nl page.
+    {path: '/query/nl/annotate/:id', redirect: to => `/nl/annotate/${to.params.id}`},
+    {path: '/query/nl/:section(cases|annotate|playground)', redirect: to => `/nl/${to.params.section}`},
+    {path: '/query/nl', redirect: '/nl/cases'},
     // Legacy /oql-playground paths → new /query structure.
     {path: '/oql-playground', redirect: '/query/oql/cheatsheet'},
     {path: '/oql-playground/cases/:id', redirect: to => `/query/oql/cases/${to.params.id}`},

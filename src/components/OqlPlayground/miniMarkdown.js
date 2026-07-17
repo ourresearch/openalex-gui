@@ -17,6 +17,16 @@ function esc(s) {
     .replace(/"/g, "&quot;");
 }
 
+// GitHub-style heading slug: lowercase, every run of non-alphanumerics → a single
+// hyphen, trim edge hyphens. Used to give headings stable `id`s so in-doc anchor
+// links (`[…](#some-heading)`) and the scrollspy TOC can target them.
+export function slugify(text) {
+  return String(text)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 // Inline: `code`, **bold**, *italic*, [text](url). Applied to already-escaped text.
 function inline(text) {
   let t = text;
@@ -24,9 +34,12 @@ function inline(text) {
   t = t.replace(/`([^`]+)`/g, (_, c) => `<code>${c}</code>`);
   t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   t = t.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
-  // links [text](href) — href escaped already; allow only http(s)/relative
+  // links [text](href) — href escaped already; allow only http(s)/relative/anchor.
+  // A same-page anchor (#…) stays in the tab (no target=_blank); external/relative
+  // links open in a new tab as before.
   t = t.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, txt, href) => {
     const safe = /^(https?:\/\/|\/|#)/.test(href) ? href : "#";
+    if (safe.startsWith("#")) return `<a href="${safe}">${txt}</a>`;
     return `<a href="${safe}" target="_blank" rel="noopener">${txt}</a>`;
   });
   return t;
@@ -37,6 +50,7 @@ export function renderMarkdown(md) {
   const out = [];
   let i = 0;
   let para = [];
+  const usedSlugs = Object.create(null); // heading slug → collision count
 
   const flushPara = () => {
     if (para.length) {
@@ -76,7 +90,14 @@ export function renderMarkdown(md) {
     if (h) {
       flushPara();
       const level = h[1].length;
-      out.push(`<h${level}>${inline(esc(h[2].trim()))}</h${level}>`);
+      const raw = h[2].trim();
+      let slug = slugify(raw);
+      if (slug) {
+        if (slug in usedSlugs) slug = `${slug}-${(usedSlugs[slug] += 1)}`;
+        else usedSlugs[slug] = 0;
+      }
+      const idAttr = slug ? ` id="${slug}"` : "";
+      out.push(`<h${level}${idAttr}>${inline(esc(raw))}</h${level}>`);
       i++;
       continue;
     }

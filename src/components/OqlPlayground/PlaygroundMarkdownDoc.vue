@@ -1,14 +1,34 @@
 <template>
   <div class="playground-doc">
-    <v-progress-circular v-if="loading" indeterminate color="primary" class="my-8" />
+    <div class="doc-main">
+      <v-progress-circular v-if="loading" indeterminate color="primary" class="my-8" />
 
-    <v-alert v-else-if="error" type="error" variant="tonal" class="my-4">
-      Couldn't load this page: {{ error }}
-    </v-alert>
+      <v-alert v-else-if="error" type="error" variant="tonal" class="my-4">
+        Couldn't load this page: {{ error }}
+      </v-alert>
 
-    <!-- first-party trusted artifact, escaped + rendered by miniMarkdown.
-         The markdown carries its own H1 + intro, so the doc is self-contained. -->
-    <article v-else class="md-body" v-html="html"></article>
+      <!-- first-party trusted artifact, escaped + rendered by miniMarkdown.
+           The markdown carries its own H1 + intro, so the doc is self-contained. -->
+      <article v-else ref="articleRef" class="md-body" v-html="html"></article>
+    </div>
+
+    <!-- Scrollspy "On this page" TOC, built from the rendered <h2> headings
+         (miniMarkdown stamps slug ids). Mirrors the pricing page's TOC. -->
+    <nav v-if="toc.length > 1" class="doc-toc">
+      <div class="doc-toc-heading">
+        <v-icon size="16">mdi-text-box-outline</v-icon>
+        On this page
+      </div>
+      <ul>
+        <li v-for="item in toc" :key="item.id">
+          <a
+            :href="'#' + item.id"
+            :class="{ active: activeId === item.id }"
+            @click.prevent="scrollToSection(item.id)"
+          >{{ item.label }}</a>
+        </li>
+      </ul>
+    </nav>
   </div>
 </template>
 
@@ -17,7 +37,7 @@
 // fetches a canonical markdown artifact from elastic-api (`/query/spec/<slug>`)
 // at runtime so it can never drift from the API, and renders it with the shared
 // miniMarkdown. The slug selects which doc (oxjob #530).
-import { ref, watch } from "vue";
+import { ref, watch, nextTick, onBeforeUnmount } from "vue";
 import { fetchSpecMarkdown } from "./oqlSpecApi";
 import { renderMarkdown } from "./miniMarkdown";
 
@@ -31,6 +51,43 @@ const loading = ref(true);
 const error = ref(null);
 const html = ref("");
 
+// Scrollspy TOC state.
+const articleRef = ref(null);
+const toc = ref([]);
+const activeId = ref("");
+let observer = null;
+
+// Build the TOC from the rendered <h2> section headings and wire an
+// IntersectionObserver that highlights whichever section is in view (same
+// approach as PricingPageNewer.vue).
+async function buildToc() {
+  await nextTick();
+  if (observer) { observer.disconnect(); observer = null; }
+  toc.value = [];
+  activeId.value = "";
+  const root = articleRef.value;
+  if (!root) return;
+  const heads = Array.from(root.querySelectorAll("h2[id]"));
+  toc.value = heads.map((h) => ({ id: h.id, label: h.textContent }));
+  if (heads.length < 2) return;
+  activeId.value = heads[0].id;
+  observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) activeId.value = entry.target.id;
+      }
+    },
+    { rootMargin: "-15% 0px -70% 0px" }
+  );
+  heads.forEach((h) => observer.observe(h));
+}
+
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  window.history.replaceState(null, "", `#${id}`);
+}
+
 async function load(slug) {
   loading.value = true;
   error.value = null;
@@ -42,14 +99,75 @@ async function load(slug) {
   } finally {
     loading.value = false;
   }
+  // Build the TOC only AFTER `loading` flips false — that's when the <article>
+  // (a v-else) actually mounts, so articleRef is available to query for headings.
+  await buildToc();
 }
 
 watch(() => props.slug, load, { immediate: true });
+onBeforeUnmount(() => { if (observer) observer.disconnect(); });
 </script>
 
 <style scoped>
 .playground-doc {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+}
+.doc-main {
+  flex: 1;
+  min-width: 0;
   max-width: 820px;
+}
+/* Scrollspy TOC — sticky in the right gutter; hidden on narrower viewports. */
+.doc-toc {
+  position: sticky;
+  top: 88px;
+  flex-shrink: 0;
+  width: 190px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  font-size: 0.82rem;
+}
+.doc-toc-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.55);
+  margin-bottom: 10px;
+}
+.doc-toc ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.doc-toc li {
+  margin: 0;
+}
+.doc-toc a {
+  display: block;
+  padding: 4px 0 4px 12px;
+  border-left: 2px solid rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.6);
+  text-decoration: none;
+  line-height: 1.35;
+}
+.doc-toc a:hover {
+  color: rgba(0, 0, 0, 0.9);
+}
+.doc-toc a.active {
+  color: #0a0a0a;
+  border-left-color: #0a0a0a;
+  font-weight: 500;
+}
+@media (max-width: 1100px) {
+  .doc-toc {
+    display: none;
+  }
 }
 .md-body :deep(h1) {
   font-size: 1.7rem;

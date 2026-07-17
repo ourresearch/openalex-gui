@@ -143,7 +143,7 @@ const props = defineProps({
 });
 
 // Back to the OQL cases table.
-const casesLink = { name: "Query", params: { axis: "oql", section: "cases" } };
+const casesLink = { name: "Query", params: { section: "cases" } };
 
 // Same six-sector derivation as the Cases table (see PlaygroundCases.vue):
 // ok/hint rows use the corpus's authored `oxurl_status` (#384), error and
