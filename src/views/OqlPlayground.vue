@@ -33,6 +33,7 @@
       <PlaygroundMarkdownDoc v-if="axis === 'oql' && section === 'cheatsheet'" slug="cheatsheet" />
       <PlaygroundCases v-else-if="axis === 'oql' && section === 'cases'" />
       <PlaygroundMarkdownDoc v-else-if="axis === 'oql' && section === 'guide'" slug="guide" />
+      <PlaygroundMarkdownDoc v-else-if="axis === 'oql' && section === 'api'" slug="api" />
       <PlaygroundMarkdownDoc v-else-if="axis === 'oql' && section === 'spec'" slug="oql" />
       <PlaygroundGrammar v-else-if="axis === 'oql' && section === 'grammar'" />
       <PlaygroundOqoSchema v-else-if="axis === 'oql' && section === 'schema'" />
@@ -85,6 +86,7 @@ const nav = [
       { section: "cheatsheet", label: "Cheat sheet", icon: "mdi-card-text-outline", disabled: false },
       { section: "cases", label: "Cases", icon: "mdi-table", disabled: false },
       { section: "guide", label: "Guide", icon: "mdi-book-open-variant", disabled: false },
+      { section: "api", label: "API", icon: "mdi-api", disabled: false },
       { section: "spec", label: "Spec", icon: "mdi-file-document-outline", disabled: false },
       { section: "grammar", label: "Grammar", icon: "mdi-sitemap-outline", disabled: false },
       { section: "schema", label: "OQO schema", icon: "mdi-code-json", disabled: false },

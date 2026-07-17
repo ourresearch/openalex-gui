@@ -24,7 +24,7 @@ import { renderMarkdown } from "./miniMarkdown";
 defineOptions({ name: "PlaygroundMarkdownDoc" });
 
 const props = defineProps({
-  slug: { type: String, required: true }, // cheatsheet | guide | oql (spec)
+  slug: { type: String, required: true }, // cheatsheet | guide | api | oql (spec)
 });
 
 const loading = ref(true);

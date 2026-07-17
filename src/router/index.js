@@ -383,7 +383,7 @@ const routes = [
     // OQL in the SERP's "Show as OQL" panel + no-code builder. Send old links to the
     // OQL home (Cheat sheet). (The NL axis keeps its own /query/nl/playground placeholder.)
     {path: '/query/oql/playground', redirect: '/query/oql/cheatsheet'},
-    {path: '/query/:axis(oql|nl)/:section(cheatsheet|cases|playground|annotate|guide|spec|grammar|schema)', name: 'Query', component: OqlPlayground, props: true},
+    {path: '/query/:axis(oql|nl)/:section(cheatsheet|cases|playground|annotate|guide|api|spec|grammar|schema)', name: 'Query', component: OqlPlayground, props: true},
     {path: '/query/oql/cases/:id', name: 'QueryOqlCase', component: () => import('@/components/OqlPlayground/PlaygroundCaseDetail.vue'), props: true},
     // NL gold-standard annotator (#382): deep-link a specific case; renders inside
     // the workbench shell (axis=nl, section=annotate) with the case preselected.
