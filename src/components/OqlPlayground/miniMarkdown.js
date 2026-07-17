@@ -115,13 +115,27 @@ export function renderMarkdown(md) {
       continue;
     }
 
+    // A hard-wrapped list item continues on indented follow-up lines (standard
+    // markdown "lazy continuation"). Absorb any line that starts with whitespace
+    // and isn't itself a new item / blank / block construct.
+    const isListContinuation = (l) =>
+      /^\s+\S/.test(l) &&
+      !/^\s*[-*+]\s+/.test(l) &&
+      !/^\s*\d+\.\s+/.test(l) &&
+      !/^\s*(#{1,6}\s|```|>|\||---)/.test(l);
+
     // unordered list
     if (/^\s*[-*+]\s+/.test(line)) {
       flushPara();
       const items = [];
       while (i < lines.length && /^\s*[-*+]\s+/.test(lines[i])) {
-        items.push(lines[i].replace(/^\s*[-*+]\s+/, ""));
+        let item = lines[i].replace(/^\s*[-*+]\s+/, "");
         i++;
+        while (i < lines.length && isListContinuation(lines[i])) {
+          item += " " + lines[i].trim();
+          i++;
+        }
+        items.push(item);
       }
       out.push("<ul>" + items.map((it) => `<li>${inline(esc(it))}</li>`).join("") + "</ul>");
       continue;
@@ -132,8 +146,13 @@ export function renderMarkdown(md) {
       flushPara();
       const items = [];
       while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
-        items.push(lines[i].replace(/^\s*\d+\.\s+/, ""));
+        let item = lines[i].replace(/^\s*\d+\.\s+/, "");
         i++;
+        while (i < lines.length && isListContinuation(lines[i])) {
+          item += " " + lines[i].trim();
+          i++;
+        }
+        items.push(item);
       }
       out.push("<ol>" + items.map((it) => `<li>${inline(esc(it))}</li>`).join("") + "</ol>");
       continue;
