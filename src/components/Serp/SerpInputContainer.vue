@@ -87,6 +87,7 @@
             min-height="200px"
             max-height="60vh"
             :status="oqlTabStatus"
+            :placeholder="OQL_TAB_PLACEHOLDER"
             toolbar
             :show-badge="false"
             @validation="onOqlTabValidation"
@@ -133,7 +134,7 @@
         <div class="results-card-head d-flex align-center">
           <!-- #598 r5: Basic mode has NO selection affordances — no master checkbox,
                no per-row checkboxes, no collection action. Selection lives in the
-               power modes (Advanced table / OQL list). -->
+               power modes (the Advanced/OQL table). -->
           <v-checkbox-btn
             v-if="mode !== 'basic'"
             class="results-header-checkbox mr-1"
@@ -292,11 +293,12 @@ const inOqlMode = computed(
   () => !!store.getters.featureFlags['oql'] && !!route.query.oql
 );
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
-// View is COUPLED to the mode (#440 r5): Basic = list, Advanced = table. The
-// old view-as-table/list toggle is gone. List/table is recipient-local chrome
+// View is COUPLED to the mode (#440 r5): Basic = list, Advanced = table — and
+// OQL = table too (#611 r5, Jason: the power modes share the table). The old
+// view-as-table/list toggle is gone. List/table is recipient-local chrome
 // kept off the URL (#492): the `mode` watcher below mirrors it into the reactive
 // store so per-page + the API fetch key (url.isTableView) agree with the mode.
-const isTableView = computed(() => mode.value === 'advanced');
+const isTableView = computed(() => mode.value !== 'basic');
 
 // ---- mode ('basic' | 'advanced') ------------------------------------------
 // mode is recipient-local CHROME, no longer on the URL (#492, charter decision 33).
@@ -451,6 +453,16 @@ onMounted(refreshQueryObject);
 const oqlTabText = ref('');
 const oqlTabValidation = ref(null);
 const oqlSeedBaseline = ref('');
+// #611 r5 (Jason): teach by example — the empty-state hint shows real, runnable
+// queries (each one prod-validated; note the author-name field is `display_name`,
+// not `name`). Multi-line: OqlEditor renders a \n-bearing placeholder as a block.
+const OQL_TAB_PLACEHOLDER = [
+  'Type or paste OQL. Examples:',
+  '',
+  '•  works where title/abstract has (open and science)',
+  '•  works where year > (2020) and type is (article)',
+  '•  authors where display_name has (einstein)',
+].join('\n');
 // dirty = the text has diverged from what we last seeded in.
 const oqlTabDirty = computed(() => oqlTabText.value !== oqlSeedBaseline.value);
 // Activity status shown in the editor's badge slot: "querying" while a SERP fetch
@@ -709,7 +721,7 @@ watch(mode, (now, was) => {
 // after basicRepresentable because `mode` reads it, and this fires immediately.
 watch(mode, (m) => {
   store.commit('setSerpResultsView', {
-    value: m === 'advanced' ? 'table' : 'list',
+    value: m === 'basic' ? 'list' : 'table',
     persist: false,
   });
 }, { immediate: true });
@@ -837,11 +849,12 @@ watch(
 
 /* Width regime (#440 r5): Basic reads like a document — search box + results in
    a narrow, Scholar-ish measure; Advanced spreads the builder + results table
-   across the full viewport width. */
+   across the full viewport width. OQL (#611 r5): the editor card keeps the
+   narrow measure (a viewport-wide code editor reads poorly) but the results
+   region is full-width — it's the same table as Advanced now. */
 .serp-input-container--basic .search-card,
 .serp-input-container--basic .serp-results-region,
-.serp-input-container--oql .search-card,
-.serp-input-container--oql .serp-results-region {
+.serp-input-container--oql .search-card {
   max-width: 970px; /* r10: 720px felt cramped — ~35% wider */
   min-width: 480px;
 }
@@ -870,7 +883,8 @@ watch(
    larger) results head above clearly owns the card. Scoped to the flag-on
    container; the flag-off table is untouched. */
 .serp-input-container--advanced :deep(th.results-table-header),
-.serp-input-container--advanced2 :deep(th.results-table-header) {
+.serp-input-container--advanced2 :deep(th.results-table-header),
+.serp-input-container--oql :deep(th.results-table-header) {
   font-size: 12px !important;
   font-weight: 500 !important;
   color: rgba(0, 0, 0, 0.48) !important;
@@ -880,33 +894,40 @@ watch(
    hidden here (both actions live in the results header above). The flag-off
    table keeps them (scoped CSS, shared component untouched). */
 .serp-input-container--advanced :deep(th.checkbox-cell .v-selection-control),
-.serp-input-container--advanced2 :deep(th.checkbox-cell .v-selection-control) {
+.serp-input-container--advanced2 :deep(th.checkbox-cell .v-selection-control),
+.serp-input-container--oql :deep(th.checkbox-cell .v-selection-control) {
   display: none;
 }
 .serp-input-container--advanced :deep(th.add-column-cell .v-btn),
-.serp-input-container--advanced2 :deep(th.add-column-cell .v-btn) {
+.serp-input-container--advanced2 :deep(th.add-column-cell .v-btn),
+.serp-input-container--oql :deep(th.add-column-cell .v-btn) {
   display: none;
 }
 /* Whole-cell header click target (Linear): the hover bg fills the entire th,
    not a small rounded box inside it. The th's padding moves onto the trigger. */
 .serp-input-container--advanced :deep(th.results-table-header),
-.serp-input-container--advanced2 :deep(th.results-table-header) {
+.serp-input-container--advanced2 :deep(th.results-table-header),
+.serp-input-container--oql :deep(th.results-table-header) {
   padding: 0;
 }
 .serp-input-container--advanced :deep(th.results-table-header.checkbox-cell),
 .serp-input-container--advanced2 :deep(th.results-table-header.checkbox-cell),
+.serp-input-container--oql :deep(th.results-table-header.checkbox-cell),
 .serp-input-container--advanced :deep(th.results-table-header.add-column-cell),
-.serp-input-container--advanced2 :deep(th.results-table-header.add-column-cell) {
+.serp-input-container--advanced2 :deep(th.results-table-header.add-column-cell),
+.serp-input-container--oql :deep(th.results-table-header.add-column-cell) {
   padding: 8px 10px;
 }
 .serp-input-container--advanced :deep(th.results-table-header .column-header-trigger),
-.serp-input-container--advanced2 :deep(th.results-table-header .column-header-trigger) {
+.serp-input-container--advanced2 :deep(th.results-table-header .column-header-trigger),
+.serp-input-container--oql :deep(th.results-table-header .column-header-trigger) {
   margin: 0;
   padding: 8px 10px;
   border-radius: 0;
 }
 .serp-input-container--advanced :deep(th.results-table-header .column-header-trigger:hover),
-.serp-input-container--advanced2 :deep(th.results-table-header .column-header-trigger:hover) {
+.serp-input-container--advanced2 :deep(th.results-table-header .column-header-trigger:hover),
+.serp-input-container--oql :deep(th.results-table-header .column-header-trigger:hover) {
   background: rgba(0, 0, 0, 0.05);
 }
 

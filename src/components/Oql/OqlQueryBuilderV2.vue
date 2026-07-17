@@ -3845,12 +3845,18 @@ const guiKeysFromSelect = (names) => {
 watch(columnKeys, () => renderQuery({ swap: false, commit: true, nav: "replace" }));
 
 // ---- entity change ----------------------------------------------------------
+// #611 r5 (Jason): switching entity CLEARS the query — the old entity's filters
+// and sort almost never exist on the new one (carrying them over just errored,
+// e.g. `authors where publication_year …`). Same wipe as clearQuery, minus the
+// column reset (columns state is already per-entity via useColumnsState).
 watch(getRows, async () => {
   if (suppressCommit) return;
   bumpEditGen();               // drafts/transients reset — invalidate in-flight reseeds (round 24)
   pendingScalar.value = null;
   gapEntityFillId.value = null;
   drafts.value = [];
+  sortBy.value = [];
+  v2.value = null;
   await store.dispatch("oqlBuilder/loadProperties", getRows.value);
   renderQuery({ swap: true });
 });

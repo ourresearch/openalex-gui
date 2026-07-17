@@ -87,10 +87,10 @@ function select(value) {
 </script>
 
 <style scoped>
-/* Underline tabs (oxjob #441): the active tab is marked by a 2px bar underneath +
-   bolder/darker text, NOT a filled pill. The old gray-chip fill read as one of the
-   builder's gray filled "bricks" right below it — same shape, visually confusing.
-   No fill here keeps "active tab" and "filter chip" in clearly different idioms. */
+/* Tab idiom (#611 r5, Jason — replacing the #441 underline bar): ALL tab labels
+   are black — grey unselected labels read as disabled. Weight separates selected
+   (600) from unselected (500), and the selected tab gets a WHITE fill so it reads
+   as an actual tab against the grey page background. */
 .serp-mode-tabs {
   display: inline-flex;
   align-items: center;
@@ -106,27 +106,27 @@ function select(value) {
   min-width: 0;
   height: 30px;
   border-radius: 6px !important; /* slightly rounded, like the app's other buttons (#598 r5) */
-  color: rgba(0, 0, 0, 0.5) !important;
+  color: rgba(0, 0, 0, 0.87) !important;
 }
 /* Too-complex-for-basic: strike the label through — reads as "not available for
    this query" more clearly than grey alone (#598 r5). */
 .pill--strike {
   text-decoration: line-through;
 }
+/* An unavailable tab keeps a TRANSPARENT bg (#611 r5): Vuetify paints a disabled
+   button grey TWO ways — a fill on the button itself AND the .v-btn__overlay
+   child (which background-color rules on the button never touch) — and the grey
+   box read confusingly against the grey page. Kill both; reduced opacity + the
+   strikethrough are the whole "unavailable" story. */
+.pill.v-btn--disabled {
+  background-color: transparent !important;
+}
+.pill.v-btn--disabled :deep(.v-btn__overlay) {
+  opacity: 0 !important;
+}
 .pill--active {
   font-weight: 600 !important; /* !important: Vuetify's .v-btn weight otherwise wins */
-  background-color: transparent !important; /* no fill — the underline is the marker */
+  background-color: #fff !important; /* the white fill IS the active marker (#611 r5) */
   color: rgba(0, 0, 0, 0.87) !important;
-}
-/* the 2px indicator bar, inset slightly from the tab's edges */
-.pill--active::after {
-  content: "";
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  bottom: 0;
-  height: 2px !important;
-  border-radius: 1px;
-  background-color: currentColor; /* near-black, matches the active label */
 }
 </style>

@@ -350,6 +350,21 @@ function setDoc(text, { external }) {
   applyingExternal = false;
 }
 
+// A placeholder containing newlines (the SERP OQL tab's example list, #611 r5)
+// renders as a block: CM's placeholder extension collapses \n in a plain string
+// (the .cm-placeholder element is inline), so hand it an element factory with
+// white-space: pre instead. Single-line strings pass through untouched.
+function placeholderSpec() {
+  const s = props.placeholder || "";
+  if (!s.includes("\n")) return s;
+  return () => {
+    const el = document.createElement("span");
+    el.style.whiteSpace = "pre";
+    el.textContent = s;
+    return el;
+  };
+}
+
 function buildState(doc) {
   return EditorState.create({
     doc,
@@ -362,7 +377,7 @@ function buildState(doc) {
       EditorView.lineWrapping,
       EditorView.editable.of(!props.readonly),
       EditorState.readOnly.of(props.readonly),
-      cmPlaceholder(props.placeholder),
+      cmPlaceholder(placeholderSpec()),
       oqlSyntax(),
       makeOqlLinter(onValidateResult),
       keymap.of([
