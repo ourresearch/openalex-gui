@@ -25,10 +25,11 @@
   <!-- #603 round 27 (Jason): boolean chips are PILLS (val-pill), like entity chips —
        picked/toggled values read as stadiums, typed values stay rectangles. An
        or-joined value carries its `or` inside the chip as a faded prefix (orpfx). -->
-  <span class="val-chip val-pill" :class="{ selected: active, 'multi-selected': selected, negated: tok.negated, dragging }"
-    tabindex="0" :data-vid="tok.id" draggable="true"
-    @click="onBoolClick" @keydown="onKeydown"
-    @dragstart="onDragstart" @dragend="onDragend">
+  <!-- #603 round 31 (Jason): booleans are single-value (never or-joined) so they're not
+       draggable — the only value-chip drag handle is the `or` prefix, which a boolean never has. -->
+  <span class="val-chip val-pill" :class="{ selected: active, 'multi-selected': selected, negated: tok.negated }"
+    tabindex="0" :data-vid="tok.id"
+    @click="onBoolClick" @keydown="onKeydown">
     <!-- value-block parens, INSIDE the chip fill like every other value chip (#560 Phase 2) -->
     <span v-if="tok._connPrefix" class="orpfx">{{ tok._connPrefix }}</span
     ><span v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span
@@ -55,7 +56,7 @@ const isPhrase = computed(() => !!props.tok._boolPhrase);
 const label = computed(() => (isPhrase.value ? props.tok.text : String(props.tok.value)));
 
 // Cmd/Ctrl-click multi-selects, ⌫ deletes (via useChipShortcuts); a PLAIN click toggles.
-const { dragging, onClick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
+const { onClick, onKeydown } = useChipShortcuts({
   idRef: () => props.tok.id,
   onDelete: () => emit("remove"),
   selectedRef: () => props.selected,

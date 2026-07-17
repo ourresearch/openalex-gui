@@ -18,10 +18,11 @@
 -->
 <template>
   <span class="val-leaf" :class="{ negated: tok.negated }">
-    <span class="val-chip" :class="{ selected: active, 'multi-selected': selected, 'val-placeholder': isEmpty, dragging }"
-      tabindex="0" :data-vid="tok.id" :draggable="!isEmpty"
-      @click="onClick" @dblclick="onDblclick" @keydown="onKeydown"
-      @dragstart="onDragstart" @dragend="onDragend">
+    <!-- #603 round 31 (Jason): dates aren't multi-value / or-joined, so they're not draggable —
+         the only value-chip drag handle is the `or` prefix, which a date never has. -->
+    <span class="val-chip" :class="{ selected: active, 'multi-selected': selected, 'val-placeholder': isEmpty }"
+      tabindex="0" :data-vid="tok.id"
+      @click="onClick" @dblclick="onDblclick" @keydown="onKeydown">
       <!-- value-block parens, INSIDE the chip fill like every other value chip (#560 Phase 2) -->
       <span v-if="tok._connPrefix" class="orpfx">{{ tok._connPrefix }}</span
       ><span v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span
@@ -68,7 +69,7 @@ const displayLabel = computed(() => {
 
 // Single-click selects + opens the menu; Enter opens the calendar; Cmd/Ctrl+Enter
 // adds a sibling; ⌫ deletes.
-const { dragging, onClick, onDblclick, onKeydown, onDragstart, onDragend } = useChipShortcuts({
+const { onClick, onDblclick, onKeydown } = useChipShortcuts({
   idRef: () => props.tok.id,
   onEdit: () => emit("request-edit"),
   onCmdEnter: () => emit("add"),

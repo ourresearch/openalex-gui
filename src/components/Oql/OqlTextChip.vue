@@ -27,17 +27,20 @@
 <template>
   <span class="val-leaf" :class="{ negated: tok.negated }">
     <!-- DISPLAY: borderless teal chip; single-click selects + opens its menu, Enter edits -->
+    <!-- #603 round 31 (Jason): the chip is no longer draggable as a whole — the ONLY drag
+         handle is the `or` prefix (OqlOrHandle). A value with no `or` isn't draggable. -->
     <span v-if="!showInput" class="val-chip" :class="{ numeric: tok._numeric, selected: active, 'multi-selected': selected, dragging }"
-      tabindex="0" :data-vid="tok.id" draggable="true"
-      @click="onClick" @dblclick="onDblclick" @keydown="onKeydown"
-      @dragstart="onDragstart" @dragend="onDragend">
+      tabindex="0" :data-vid="tok.id"
+      @click="onClick" @dblclick="onDblclick" @keydown="onKeydown">
       <!-- OQL grouping parens (#523 round 9): rendered INSIDE the chip fill, faded + low-key, as
            pure pedagogical scaffolding. They show only on the COMMITTED chip (this !showInput
            display branch) — never in the EDIT input below — so they're never part of editable text. -->
       <!-- #603 round 27 (Jason): a value joined by `or` carries the conjunction INSIDE
-           the chip as a faded non-editable prefix — the connector chip is gone. -->
-      <span v-if="tok._connPrefix" class="orpfx">{{ tok._connPrefix }}</span
-      ><span v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span
+           the chip as a faded non-editable prefix — the connector chip is gone.
+           Round 31: that prefix IS the drag handle now. -->
+      <OqlOrHandle v-if="tok._connPrefix" :text="tok._connPrefix"
+        @dragstart="onDragstart" @dragend="onDragend"
+      /><span v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span
       ><span v-if="tok.negated" class="notpfx">not</span>{{ valueText }}<span
       v-if="tok._pClose" class="val-paren">{{ ')'.repeat(tok._pClose) }}</span>
     </span>
@@ -65,6 +68,7 @@
 <script setup>
 import { computed, ref, nextTick, watch } from "vue";
 import { useChipShortcuts } from "@/components/Oql/useChipShortcuts";
+import OqlOrHandle from "@/components/Oql/OqlOrHandle.vue";
 import { proxSegments, surfaceSegments } from "@/components/Oql/proxSegments";
 import "@/components/Oql/oqlChip.css"; // shared .val-chip styles
 

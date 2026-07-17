@@ -41,12 +41,15 @@
       @click.stop @mousedown.stop />
   </span>
 
+  <!-- #603 round 31 (Jason): the chip's ONLY drag handle is the `or` prefix (OqlOrHandle);
+       an entity value with no `or` isn't draggable. -->
   <span v-else class="val-chip val-pill" :class="{ selected: active, 'multi-selected': selected, dragging }"
-    tabindex="0" :data-vid="tok.id" draggable="true"
-    @click="onClick" @dblclick="onDblclick" @keydown="onKeydown" @dragstart="onDragstart" @dragend="onDragend">
+    tabindex="0" :data-vid="tok.id"
+    @click="onClick" @dblclick="onDblclick" @keydown="onKeydown">
     <!-- OQL grouping parens (#523 round 9): faded, low-key, inside the chip fill — pedagogical only. -->
-    <span v-if="tok._connPrefix" class="orpfx">{{ tok._connPrefix }}</span
-    ><span v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span
+    <OqlOrHandle v-if="tok._connPrefix" :text="tok._connPrefix"
+      @dragstart="onDragstart" @dragend="onDragend"
+    /><span v-if="tok._pOpen" class="val-paren">{{ '('.repeat(tok._pOpen) }}</span
     ><span v-if="tok.negated" class="notpfx">not</span>{{ entityName }}<span
     v-if="tok._pClose" class="val-paren">{{ ')'.repeat(tok._pClose) }}</span>
   </span>
@@ -55,6 +58,7 @@
 <script setup>
 import { computed, ref, watch, nextTick } from "vue";
 import { useChipShortcuts } from "@/components/Oql/useChipShortcuts";
+import OqlOrHandle from "@/components/Oql/OqlOrHandle.vue";
 import "@/components/Oql/oqlChip.css"; // shared .val-chip styles
 
 const props = defineProps({

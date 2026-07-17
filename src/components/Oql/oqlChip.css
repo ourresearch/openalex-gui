@@ -87,6 +87,26 @@
    rendered visibly bigger than the chip text — pin it like .notpfx does. */
 .orpfx { margin-right: 1ch; opacity: 0.5; user-select: none; font-size: var(--brick-fs, 0.8125rem); }
 
+/* The `or` prefix DOUBLES as the value chip's drag handle (#603 round 31, Jason):
+   "when a user hovers over a value chip, replace the `or` with a grabby handle." At rest it
+   reads as the faded `or`; on chip hover the `or` swaps to a grip glyph and the cursor turns
+   grab. It's the ONLY draggable spot on the chip — a value with no `or` (the first in a list)
+   never renders it, so it isn't draggable. The grip overlays the `or` box (position:absolute)
+   so revealing it causes no layout shift. */
+.orpfx--handle { position: relative; cursor: grab; }
+.orpfx--handle:active { cursor: grabbing; }
+.orpfx-grip {
+  display: none;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+}
+.orpfx-grip::before { content: "\283F"; } /* ⠿ six-dot grip glyph */
+.val-chip:hover .orpfx--handle .orpfx-text { visibility: hidden; }
+.val-chip:hover .orpfx--handle .orpfx-grip { display: flex; }
+
 /* PILL shape (#603 round 27, Jason): values PICKED from a finite set — entity, enum,
    boolean — are stadiums (radius = half the 26px chip height); typed values (text,
    number, date) keep the rounded-rect. A touch more side padding so text clears the

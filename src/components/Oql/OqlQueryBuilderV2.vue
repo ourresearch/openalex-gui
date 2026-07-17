@@ -46,13 +46,14 @@
         <!-- #523 round 5: always opt into the corpus selector so the works entry always offers the
              two "works (core)" / "works (all)" rows; the selector only shows the corpus in its label
              when the subject IS works. -->
-        <span class="tb-search-label">get</span>
+        <!-- #603 round 31 (Jason): the toolbar is just the subject now — "works (core)" with
+             no filters, "works (core) where…" once a filter exists. The "get" verb is gone and
+             the phrase renders in the app's NORMAL font (not monospace) — it's a plain-language
+             label, not part of the mono OQL surface below. -->
         <EntitySelectorButton class="tb-entity" :model-value="getRows"
           :corpus="corpus"
           @update:model-value="getRows = $event" @update:corpus="corpus = $event" />
-        <!-- round 12 (Jason): the "where" lives up HERE now — "get works (core) where…"
-             reads as one monospace phrase; the canvas's first row leads with a blank box. -->
-        <span class="tb-where-label">where&#8230;</span>
+        <span v-if="hasCommittedWhere" class="tb-where-label">where&#8230;</span>
 
         <!-- (#575 round 8, Jason: the toolbar "filter-plus" icon is gone — adding a filter now
              lives entirely on the canvas: the trailing "and…" button, the empty-state "Add a
@@ -112,12 +113,14 @@
              family (the parent via plain :hover, the descendants via .bline--famhov,
              computed from the hovered line's key + the _level sequence). -->
         <div v-for="(line, lineIdx) in displayLines" :key="line.key" class="bline"
-          :class="{ 'bline--sel': isSelectedLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx), 'bline--sub': !!line._level, 'bline--num1': !line._level, 'bline--famhov': famHovKeys.has(line.key) }"
+          :class="{ 'bline--sel': isSelectedLine(lineIdx), 'bline--disabled': isDimmedLine(lineIdx), 'bline--sub': !!line._level, 'bline--num1': !line._level, 'bline--famhov': famHovKeys.has(line.key), 'row-grab': !!lineDragFor(line) }"
           :data-addr="line.addr"
           :style="lineStyle(line)" tabindex="-1"
+          :draggable="lineDragFor(line) ? 'true' : undefined"
           @mouseenter="hoverLineKey = line.key" @mouseleave="hoverLineKey = null"
           @click.stop="onLineClick(lineIdx, $event)"
-          @dblclick.stop="onLineDblclick(lineIdx, $event)">
+          @dblclick.stop="onLineDblclick(lineIdx, $event)"
+          @dragstart="onRowBandDragstart(line, $event)" @dragend="onNumDragend">
           <!-- (#595 round 4, Jason: the row DELETE trash moved from the left gutter to the END
                of the line — see the button after .bl-body below — freeing the left lane so the
                line numbers can sit at the results-list checkbox column.) -->
@@ -155,9 +158,7 @@
           <span v-if="!line._level" class="bl-num1"><button v-if="canDeleteLine(line)" type="button" class="row-trash row-trash--num"
               aria-label="remove" title="remove"
               @click.stop="onLineTrash(line)" @mousedown.stop @dblclick.stop><v-icon size="12">mdi-close</v-icon></button><span
-              class="bl-num1-digits" :class="{ 'num-grab': !!lineDragFor(line) }"
-              :draggable="lineDragFor(line) ? 'true' : undefined"
-              @dragstart="onNumDragstart(line, $event)" @dragend="onNumDragend"
+              class="bl-num1-digits"
               aria-hidden="true">{{ line.addr }}</span></span>
           <!-- (Round 27, Jason: the top-level lead CHIP is gone — the `&` merges into the
                row's SUPER-CHIP below, and row 1's blank spacer is removed outright. The
@@ -176,9 +177,6 @@
             <span class="bl-num2" :style="num2Style(line)"><button v-if="canDeleteLine(line)" type="button" class="row-trash row-trash--num"
                 aria-label="remove" title="remove"
                 @click.stop="onLineTrash(line)" @mousedown.stop @dblclick.stop><v-icon size="12">mdi-close</v-icon></button><span
-                :class="{ 'num-grab': !!lineDragFor(line) }"
-                :draggable="lineDragFor(line) ? 'true' : undefined"
-                @dragstart="onNumDragstart(line, $event)" @dragend="onNumDragend"
                 aria-hidden="true">{{ line.addr }}</span></span>
             <span class="bl-lead2" :class="{ 'bl-lead2--val': line._leadScope === 'value' && line._lead, 'bl-lead2--spacer': !line._lead, 'bl-lead2--end': line._leadEnd, 'bl-spike': line._spikeLead }"
               :style="lead2Style(line)" aria-hidden="true">{{ leadWord(line) }}</span>
@@ -2853,9 +2851,14 @@ const subtreeIdSet = (nodeId) => {
   return set;
 };
 
-// ---- line drag-to-reorder via the LINE NUMBERS (round 10, Jason) --------------
-// The drag handle is the line's number (grab cursor on hover) — the round-2 lead-`and`-
-// chip handle is gone. EVERY committed line drags, including the first and last:
+// ---- line drag-to-reorder — the WHOLE ROW is the handle (#603 round 31, Jason) ------
+// The grab handle used to be JUST the line number (round 10); Jason widened it: anywhere on
+// a row is grabbable (grab cursor) EXCEPT the value chips and the clickable (editable) predicate
+// chip — those are their own affordances sitting "above" the row surface. So the number, the
+// fieldname super-chip, and the row whitespace all drag the row; a value-chip or numeric-op grab
+// does not. The `.bline` is `draggable`; onRowBandDragstart (below) vetoes grabs that land on a
+// value chip / predicate button / the value-chip drag handle, and otherwise starts the row drag.
+// EVERY committed line drags, including the first and last:
 //   • a TOP-LEVEL row (plain filter, value-AND clause, or a whole either-group) —
 //     filter scope;
 //   • an either-DISJUNCT line — filter scope: it can drop at any root boundary, into
@@ -2966,6 +2969,28 @@ const valueLineSlots = (drag) => {
   return slots;
 };
 
+// A drag started somewhere on a `.bline` (#603 round 31). Decide whether it's a ROW grab or
+// belongs to a chip:
+//   • grab landed on a value-chip drag handle (.orpfx--handle) → the chip's own reorder/delete
+//     gesture; the event bubbles on to onLinesDragstart which drives it. We stay out of the way.
+//   • grab landed on a value chip body OR the clickable numeric-operator predicate → their own
+//     affordance, NOT a row grab: cancel the drag (preventDefault) so nothing moves.
+//   • anywhere else (number, fieldname super-chip, whitespace) → start the row reorder.
+// We read what's under the pointer via elementFromPoint (robust regardless of which node the
+// browser reports as the drag source when the source is the ancestor `.bline`).
+const onRowBandDragstart = (line, e) => {
+  const under = (document.elementFromPoint && e.clientX != null)
+    ? document.elementFromPoint(e.clientX, e.clientY)
+    : e.target;
+  const hit = under || e.target;
+  if (hit && hit.closest && hit.closest(".orpfx--handle")) return; // chip handle → let it bubble
+  if (hit && hit.closest && hit.closest(".val-chip, .bl-slot-pred, button, a, input, textarea, [contenteditable=true]")) {
+    e.preventDefault();  // a chip / clickable predicate is its own thing, above the row surface
+    return;
+  }
+  onNumDragstart(line, e);
+};
+
 const onNumDragstart = (line, e) => {
   const drag = lineDragFor(line);
   const host = linesEl.value;
@@ -3063,7 +3088,11 @@ const onLinesDrop = () => {
 // `e.target`, resolve the dragged SET (the whole selection if the chip is in it, else just that
 // chip), set the "N values" drag image, and compute the vertical slots. Dragover/drop run on the
 // same container (onLinesDragover/onLinesDrop), routed by `draggingKind`.
+// #603 round 31: a value chip is draggable ONLY from its `or` handle (OqlOrHandle, .orpfx--handle)
+// now — the chip body isn't draggable and grabbing it drags the ROW instead. So gate on the
+// handle: a drag that didn't start on one is a row-band grab, not a value reorder.
 const onLinesDragstart = (e) => {
+  if (!e.target.closest?.(".orpfx--handle")) return; // only the or-handle starts a value drag
   const chipEl = e.target.closest?.(".val-chip");
   if (!chipEl) return;                       // not a value-chip drag (a row band grab → ignore)
   const id = chipEl.getAttribute("data-vid");
@@ -4183,24 +4212,12 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* Subject-entity selector (oxjob #507): the leading control. A thin divider sets it
    apart from the action buttons that follow. */
 .tb-entity { margin-right: 2px; }
-/* "search" as plain toolbar text (#595 round 2, Jason): the verb belongs to the toolbar,
-   not the button — only the entity is the choice, so only the entity is the control.
-   Type matches the entity button's quiet toolbar look. */
-/* Round 12 (Jason): the toolbar phrase is MONOSPACE now — "get works (core) where…" —
-   with the entity name bold; "where…" trails the entity selector (the canvas's leading
-   "where" chip became a blank box). */
-/* round 14 (Jason): the whole toolbar phrase is BLACK — no grey text. */
-.tb-search-label {
-  padding: 0 2px 0 6px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.875rem;
-  color: #1a1a1a;
-  user-select: none;
-}
+/* #603 round 31 (Jason): the toolbar phrase is a plain-language label in the app's NORMAL
+   font — "works (core)" / "works (core) where…" — not the mono OQL surface. "where…" only
+   appears once a filter is committed (v-if hasCommittedWhere). Black, no grey text. */
 .tb-where-label {
   padding: 0 2px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: #1a1a1a;
   user-select: none;
 }
@@ -4216,10 +4233,13 @@ defineExpose({ rebuildFromOql: async (oql) => {
 .builder-toolbar :deep(.entity-chip) {
   background: transparent !important;
   color: #1a1a1a !important; /* round 14: all-black toolbar */
-  /* round 12 (Jason): monospace + BOLD entity name — the toolbar phrase
-     "get works (core) where…" reads as the query's first line */
-  font-family: "JetBrains Mono", monospace !important;
-  font-weight: 700;
+  /* #603 round 31 (Jason): NORMAL font (app default, not monospace) — the toolbar is a
+     plain-language label now, not the query's mono first line. Semibold so the subject
+     still reads as the thing you pick. `inherit` beats the builder's
+     `.v-chip--size-small { monospace }` rule; keep the !important to win specificity. */
+  font-family: inherit !important;
+  font-weight: 600;
+  font-size: 0.9375rem;
   letter-spacing: 0;
   border-radius: 6px;
   box-shadow: none;
@@ -4867,6 +4887,17 @@ defineExpose({ rebuildFromOql: async (oql) => {
 /* the line-number drag handle (round 10): grab cursor on the digits */
 .num-grab { cursor: grab; }
 .num-grab:active { cursor: grabbing; }
+/* #603 round 31 (Jason): the WHOLE row is the drag handle — grab cursor over the number,
+   the fieldname super-chip, and the row whitespace. Value chips keep `pointer`, the
+   editable numeric-operator predicate keeps its button `pointer`, and the value-chip drag
+   handle sets its own `grab` — those override this by being more specific / deeper. */
+.bline.row-grab { cursor: grab; }
+.bline.row-grab:active { cursor: grabbing; }
+.bline.row-grab .bl-super,
+.bline.row-grab .bl-super :deep(.prop-chip-leaf),
+.bline.row-grab .bl-num1,
+.bline.row-grab .bl-num2,
+.bline.row-grab .bl-lead2 { cursor: grab; }
 /* Token wrapper for the footer's address delegation (#487): display:contents so it
    generates NO box — the chip inside stays the direct flex child of `.bl-body`, leaving
    the spacing/wrap/indent layout untouched, while `closest('[data-addr]')` still finds
