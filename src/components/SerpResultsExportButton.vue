@@ -60,12 +60,17 @@
           <v-card-text class="pt-4">
             <!-- Cost / scope summary, set off in a soft info box rather than
                  left hanging loose at the top of the dialog. -->
-            <div class="export-info-box d-flex align-start" :class="{ 'export-info-box--warn': hasInsufficientTokens }">
+            <div class="export-info-box d-flex align-start" :class="{ 'export-info-box--warn': hasInsufficientTokens || isOqlExportBlocked }">
               <v-icon size="18" class="export-info-box__icon">
-                {{ hasInsufficientTokens ? 'mdi-alert-circle-outline' : 'mdi-information-outline' }}
+                {{ (hasInsufficientTokens || isOqlExportBlocked) ? 'mdi-alert-circle-outline' : 'mdi-information-outline' }}
               </v-icon>
               <div class="text-body-2">
-                <template v-if="rateLimitData && !hasInsufficientTokens">
+                <template v-if="isOqlExportBlocked">
+                  This query can't be exported yet — it uses features (like nested
+                  boolean logic or a non-default corpus) the exporter doesn't
+                  support. You can still export individually selected rows.
+                </template>
+                <template v-else-if="rateLimitData && !hasInsufficientTokens">
                   Exporting these {{ resultsCount.toLocaleString() }} {{ rowsNoun }} will cost approximately
                   {{ formatUsd(costUsd) }} of your remaining {{ formatUsd(totalAvailableUsd) }} budget.
                 </template>
@@ -159,7 +164,7 @@
             <v-btn
               color="primary"
               rounded
-              :disabled="!exportFormat || hasInsufficientTokens"
+              :disabled="!exportFormat || hasInsufficientTokens || isOqlExportBlocked"
               @click="startExport"
             >
               Start export
@@ -210,6 +215,7 @@ import { url } from '@/url';
 import { useColumnsState } from '@/composables/useColumnsState';
 import { getColumnExportSpecs } from '@/components/Results/Table/columnConfig';
 import { resolveExportSelection, idsOpenAlexFilter } from '@/utils/selectionExport';
+import { deriveOqlExportParams } from '@/utils/oqlExportParams';
 import ColumnEditorPanel from '@/components/Results/Table/ColumnEditorPanel.vue';
 
 const store = useStore();
@@ -251,6 +257,20 @@ const csvOnlyFormatOptions = [
 // cost line / the export request all key off it. Falls back to the full set in
 // select-all mode or when the selection is empty / too large to inline.
 const exportSelection = computed(() => resolveExportSelection(store.state.selection));
+
+// OQL-mode export scoping: on /q the query lives only in `?oql=`, never in
+// `filter=`/`search=` route params, so the classic param-copying below would
+// send an UNFILTERED request — which the backend treats as "export the entire
+// corpus" (bit us with 319M-row export attempts). Derive the scope from the
+// server's canonical classic-URL echo instead; when the query isn't
+// URL-expressible (derived params are null) the export is blocked outright.
+const isOqlMode = computed(() => !!route.query.oql);
+const oqlDerivedParams = computed(() =>
+  deriveOqlExportParams(store.state.resultsObject?.meta?.x_query?.url)
+);
+const isOqlExportBlocked = computed(
+  () => isOqlMode.value && !exportSelection.value.scoped && oqlDerivedParams.value === null
+);
 const resultsCount = computed(() =>
   exportSelection.value.scoped
     ? exportSelection.value.count
@@ -312,17 +332,20 @@ const SEARCH_FILTERS = [
 ];
 
 const isSearchQuery = computed(() => {
+  // In OQL mode the query params live in the derived x_query.url params, not
+  // route.query; price the export off whichever set the request will use.
+  const effectiveQuery = isOqlMode.value ? (oqlDerivedParams.value ?? {}) : route.query;
   // Check top-level search params
   const topLevelSearchKeys = [
     'search', 'search.exact', 'search.semantic',
     'search.title', 'search.title.exact',
     'search.title_and_abstract', 'search.title_and_abstract.exact',
   ];
-  if (topLevelSearchKeys.some(k => route.query[k])) {
+  if (topLevelSearchKeys.some(k => effectiveQuery[k])) {
     return true;
   }
   // Check for search-type filters in the filter= param
-  const filterStr = route.query.filter;
+  const filterStr = effectiveQuery.filter;
   if (filterStr && SEARCH_FILTERS.some(f => filterStr.includes(f))) {
     return true;
   }
@@ -433,6 +456,18 @@ async function startExport() {
   });
   if (selection.scoped) {
     params.set('filter', idsOpenAlexFilter(selection.ids));
+  } else if (isOqlMode.value) {
+    // OQL mode: scope from the server's canonical classic-URL echo. Bail if the
+    // query isn't expressible — NEVER fall through to an unfiltered request,
+    // which the backend would run as a whole-corpus export.
+    if (oqlDerivedParams.value === null) {
+      store.commit('snackbar', "This query can't be exported yet.");
+      closeExportDialog();
+      return;
+    }
+    for (const [key, value] of Object.entries(oqlDerivedParams.value)) {
+      params.set(key, value);
+    }
   } else if (filterStr) {
     params.set('filter', filterStr);
   }
@@ -459,8 +494,10 @@ async function startExport() {
   
   // Pass search params so the backend includes them in query_url. Skipped for a
   // scoped (ids.openalex) export — the id list already pins the exact rows, and
-  // ANDing a `search=` clause would only risk dropping a selected row.
-  if (!selection.scoped) {
+  // ANDing a `search=` clause would only risk dropping a selected row. Skipped
+  // in OQL mode too: search params (if any) already arrived via the derived
+  // x_query.url params above, and route.query has none on /q.
+  if (!selection.scoped && !isOqlMode.value) {
     const searchParamKeys = [
       'search', 'search.exact', 'search.semantic',
       'search.title', 'search.title.exact',
