@@ -66,9 +66,8 @@
               </v-icon>
               <div class="text-body-2">
                 <template v-if="isOqlExportBlocked">
-                  This query can't be exported yet — it uses features (like nested
-                  boolean logic or a non-default corpus) the exporter doesn't
-                  support. You can still export individually selected rows.
+                  The query hasn't finished loading yet — close this dialog and
+                  try again in a moment.
                 </template>
                 <template v-else-if="rateLimitData && !hasInsufficientTokens">
                   Exporting these {{ resultsCount.toLocaleString() }} {{ rowsNoun }} will cost approximately
@@ -215,7 +214,6 @@ import { url } from '@/url';
 import { useColumnsState } from '@/composables/useColumnsState';
 import { getColumnExportSpecs } from '@/components/Results/Table/columnConfig';
 import { resolveExportSelection, idsOpenAlexFilter } from '@/utils/selectionExport';
-import { deriveOqlExportParams } from '@/utils/oqlExportParams';
 import ColumnEditorPanel from '@/components/Results/Table/ColumnEditorPanel.vue';
 
 const store = useStore();
@@ -261,15 +259,18 @@ const exportSelection = computed(() => resolveExportSelection(store.state.select
 // OQL-mode export scoping: on /q the query lives only in `?oql=`, never in
 // `filter=`/`search=` route params, so the classic param-copying below would
 // send an UNFILTERED request — which the backend treats as "export the entire
-// corpus" (bit us with 319M-row export attempts). Derive the scope from the
-// server's canonical classic-URL echo instead; when the query isn't
-// URL-expressible (derived params are null) the export is blocked outright.
+// corpus" (bit us with 319M-row export attempts). Instead, send the server's
+// canonical OQL echo as `oql=`; the users-api export endpoint stores a root
+// `/?oql=` query_url and the worker cursor-paginates it like any classic URL.
+// This covers every OQL shape, including ones with no classic-URL equivalent
+// (nested boolean trees, corpus selector).
 const isOqlMode = computed(() => !!route.query.oql);
-const oqlDerivedParams = computed(() =>
-  deriveOqlExportParams(store.state.resultsObject?.meta?.x_query?.url)
-);
+const canonicalOql = computed(() => store.state.resultsObject?.meta?.x_query?.oql ?? null);
+// Defensive: the dialog only opens once results (and their x_query echo) have
+// landed, so a missing canonical OQL should be unreachable — but if it ever
+// happens we must block rather than fall through to an unfiltered request.
 const isOqlExportBlocked = computed(
-  () => isOqlMode.value && !exportSelection.value.scoped && oqlDerivedParams.value === null
+  () => isOqlMode.value && !exportSelection.value.scoped && !canonicalOql.value
 );
 const resultsCount = computed(() =>
   exportSelection.value.scoped
@@ -332,9 +333,11 @@ const SEARCH_FILTERS = [
 ];
 
 const isSearchQuery = computed(() => {
-  // In OQL mode the query params live in the derived x_query.url params, not
-  // route.query; price the export off whichever set the request will use.
-  const effectiveQuery = isOqlMode.value ? (oqlDerivedParams.value ?? {}) : route.query;
+  // OQL exports page the root /?oql= endpoint, which the api proxy prices at
+  // the 1-credit list rate regardless of search content — mirror that here
+  // (the users-api credit pre-check applies the same rule).
+  if (isOqlMode.value) return false;
+  const effectiveQuery = route.query;
   // Check top-level search params
   const topLevelSearchKeys = [
     'search', 'search.exact', 'search.semantic',
@@ -457,17 +460,15 @@ async function startExport() {
   if (selection.scoped) {
     params.set('filter', idsOpenAlexFilter(selection.ids));
   } else if (isOqlMode.value) {
-    // OQL mode: scope from the server's canonical classic-URL echo. Bail if the
-    // query isn't expressible — NEVER fall through to an unfiltered request,
-    // which the backend would run as a whole-corpus export.
-    if (oqlDerivedParams.value === null) {
-      store.commit('snackbar', "This query can't be exported yet.");
+    // OQL mode: send the canonical OQL echo. Bail if it's somehow missing —
+    // NEVER fall through to an unfiltered request, which the backend would
+    // run as a whole-corpus export.
+    if (!canonicalOql.value) {
+      store.commit('snackbar', 'The query is still loading — please try again.');
       closeExportDialog();
       return;
     }
-    for (const [key, value] of Object.entries(oqlDerivedParams.value)) {
-      params.set(key, value);
-    }
+    params.set('oql', canonicalOql.value);
   } else if (filterStr) {
     params.set('filter', filterStr);
   }
@@ -525,7 +526,7 @@ async function startExport() {
     exportState.value = 'submitted';
   } catch (error) {
     console.error('Export failed:', error);
-    const msg = error.response?.status === 403 && error.response?.data?.message
+    const msg = [400, 403].includes(error.response?.status) && error.response?.data?.message
       ? error.response.data.message
       : 'Export failed. Please try again.';
     store.commit('snackbar', msg);
