@@ -453,12 +453,14 @@ async function startExport() {
     truncate = true;
   }
 
-  const params = new URLSearchParams({
+  // Sent as a POST JSON body (oxjob #634): the canonical OQL string can be
+  // arbitrarily long, so the query must not ride in the URL.
+  const body = {
     format: actualFormat,
     truncate: truncate,
-  });
+  };
   if (selection.scoped) {
-    params.set('filter', idsOpenAlexFilter(selection.ids));
+    body.filter = idsOpenAlexFilter(selection.ids);
   } else if (isOqlMode.value) {
     // OQL mode: send the canonical OQL echo. Bail if it's somehow missing —
     // NEVER fall through to an unfiltered request, which the backend would
@@ -468,15 +470,15 @@ async function startExport() {
       closeExportDialog();
       return;
     }
-    params.set('oql', canonicalOql.value);
+    body.oql = canonicalOql.value;
   } else if (filterStr) {
-    params.set('filter', filterStr);
+    body.filter = filterStr;
   }
 
   // CSV export is a snapshot of the user's current column selection (#304
   // C-lite). Read the live `column=` keys via useColumnsState, translate
   // each to its server export spec via getColumnExportSpec, and send as
-  // URL-encoded JSON `columns_v2`. Non-CSV formats (RIS, WoS) are fixed
+  // the `columns_v2` JSON array. Non-CSV formats (RIS, WoS) are fixed
   // shape and don't take a column list.
   const isCsv = actualFormat === 'csv';
   if (isCsv) {
@@ -489,7 +491,7 @@ async function startExport() {
     }
     const specs = getColumnExportSpecs(entityType.value, keys);
     if (specs.length) {
-      params.set('columns_v2', JSON.stringify(specs));
+      body.columns_v2 = specs;
     }
   }
   
@@ -506,19 +508,20 @@ async function startExport() {
     ];
     for (const key of searchParamKeys) {
       if (route.query[key]) {
-        params.set(key, route.query[key]);
+        body[key] = route.query[key];
       }
     }
   }
 
   // Include XPAC works if the parameter is set in the URL
   if (route.query.include_xpac === 'true') {
-    params.set('include_xpac', 'true');
+    body.include_xpac = 'true';
   }
 
   try {
-    const resp = await axios.get(
-      `${urlBase.userApi}/export/${entityType.value}?${params.toString()}`,
+    const resp = await axios.post(
+      `${urlBase.userApi}/export/${entityType.value}`,
+      body,
       axiosConfig({ userAuth: true })
     );
     console.log('startExport resp:', resp);
