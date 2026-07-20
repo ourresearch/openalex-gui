@@ -7,6 +7,7 @@
         <thead>
         <tr>
           <th>Name</th>
+          <th>Frequency</th>
           <th>Last updated</th>
           <th></th>
         </tr>
@@ -21,6 +22,18 @@
           <td>
             <v-icon color="grey" start>mdi-bell</v-icon>
             {{ search.name }}
+          </td>
+          <td @click.stop>
+            <v-select
+              class="frequency-select"
+              :model-value="search.alert_frequency || 'daily'"
+              :items="frequencyOptions"
+              density="compact"
+              variant="plain"
+              hide-details
+              :aria-label="`Alert frequency for ${search.name}`"
+              @update:model-value="setFrequency(search, $event)"
+            />
           </td>
           <td>
             {{ formatDate(search.updated) }}
@@ -82,6 +95,17 @@ const alertSearches = computed(() => userSavedSearches.value.filter(s => s.has_a
 
 const openSavedSearch = (id) => store.dispatch('user/openSavedSearch', id);
 
+const frequencyOptions = [
+  { title: 'Daily', value: 'daily' },
+  { title: 'Weekly', value: 'weekly' },
+  { title: 'Monthly', value: 'monthly' },
+];
+
+function setFrequency(search, alert_frequency) {
+  if (alert_frequency === (search.alert_frequency || 'daily')) return;
+  store.dispatch('user/updateSearchFrequency', { id: search.id, alert_frequency });
+}
+
 function confirmRemoveAlert(search) {
   alertToRemove.value = search;
   showConfirmDialog.value = true;
@@ -110,6 +134,14 @@ const formatDate = (dateString) => {
 .alerts-page {
   .alert-row {
     cursor: pointer;
+  }
+  .frequency-select {
+    max-width: 130px;
+    .v-field__input {
+      padding-top: 0;
+      padding-bottom: 0;
+      font-size: 14px;
+    }
   }
   table {
     border-top: none !important;

@@ -579,6 +579,18 @@ export default {
             return resp;
         },
         // update
+        async updateSearchFrequency({commit, dispatch, state}, {id, alert_frequency}) {
+            const oldSearchObj = state.savedSearches.find(s => s.id === id)
+            const resp = await axios.put(
+                apiBaseUrl + "/saved-search/" + id,
+                {...oldSearchObj, alert_frequency},
+                axiosConfig({userAuth: true}),
+            )
+            await dispatch("fetchSavedSearches") // have to update the list
+            commit("snackbar", "Alert frequency updated", {root: true})
+            return resp;
+        },
+        // update
         async updateSearchAlert({commit, dispatch, state}, {id, has_alert}) {
             const oldSearchObj = state.savedSearches.find(s => s.id === id)
             const resp = await axios.put(
