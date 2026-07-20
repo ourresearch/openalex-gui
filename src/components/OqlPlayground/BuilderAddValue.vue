@@ -46,9 +46,9 @@
       </template>
       <div class="menu-list">
         <v-list density="compact" class="py-0">
-          <v-list-item v-if="loading" class="text-center py-3">
-            <v-progress-circular indeterminate size="18" width="2" color="grey" />
-          </v-list-item>
+          <!-- No loading spinner (#648): fetches are fast enough that a spinner just
+               makes typing feel jerky — prior results stay put until new ones land.
+               `loading` still gates "No matches" below so it can't flash mid-fetch. -->
           <v-list-item v-for="(r, i) in results" :key="r.id || r.value" :title="r.display_name || r.value"
             :subtitle="r.hint" :active="ext && i === hl" @click="pick(r)" />
           <!-- suppressed = the input is a bare "n"/"no"/"not" (#603 r28): show NOTHING —
