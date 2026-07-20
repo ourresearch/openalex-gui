@@ -242,6 +242,7 @@ const allFormatOptions = [
   { label: 'CSV (Excel)', value: 'csv-excel' },
   { label: 'CSV', value: 'csv' },
   { label: 'Endnote', value: 'ris' },
+  { label: 'BibTeX', value: 'bibtex' },
   { label: 'Text', value: 'wos-plaintext' },
 ];
 const csvOnlyFormatOptions = [
@@ -285,16 +286,22 @@ const entityType = computed(() => store.getters.entityType);
 const formatOptions = computed(() => entityType.value === 'works' ? allFormatOptions : csvOnlyFormatOptions);
 const isCsvFormat = computed(() => exportFormat.value === 'csv' || exportFormat.value === 'csv-excel');
 
-// RIS (Endnote) and WoS-plaintext (Text) are fixed-shape, works-only presets —
-// the user can't pick columns. We still show the column picker for continuity,
-// but disabled, with the preset's fields listed as static chips. These lists
-// mirror the server serializers in openalex-users-api (formats/ris.py and
-// formats/wos_plaintext.py), in emitted order, as human-readable labels.
+// RIS (Endnote), BibTeX, and WoS-plaintext (Text) are fixed-shape, works-only
+// presets — the user can't pick columns. We still show the column picker for
+// continuity, but disabled, with the preset's fields listed as static chips.
+// These lists mirror the server serializers in openalex-users-api
+// (formats/ris.py, formats/bibtex_serializer.py, formats/wos_plaintext.py),
+// in emitted order, as human-readable labels.
 const PRESET_COLUMNS = {
   ris: [
     'Type', 'Title', 'Publication year', 'Publisher', 'ISSN', 'Source', 'DOI',
     'DOI URL', 'Publication date', 'Authors', 'Affiliations', 'Language',
     'Keywords', 'Volume', 'Issue', 'First page', 'Last page', 'Abstract',
+  ],
+  bibtex: [
+    'Type', 'Cite key', 'Title', 'Authors', 'Publication year', 'Source',
+    'Publisher', 'Volume', 'Issue', 'Pages', 'ISSN', 'DOI', 'DOI URL',
+    'Language', 'Keywords', 'Abstract',
   ],
   'wos-plaintext': [
     'Publication type', 'Authors', 'Author full names', 'Title', 'Source',
