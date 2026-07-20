@@ -44,8 +44,10 @@ const store = useStore();
 const { smAndDown } = useDisplay();
 
 const entityType = computed(() => props.collection?.entity_type);
+// entityConfigs is keyed by GUI type names (`types`, not `work-types`).
 const entityPlural = computed(
-  () => entityConfigs?.[entityType.value]?.displayName || entityType.value || "entities"
+  () => entityConfigs?.[openalexId.fromCollectionEntityType(entityType.value)]?.displayName
+    || entityType.value || "entities"
 );
 
 // Search-as-you-type loader for the picker: autocomplete over the collection's
@@ -67,7 +69,8 @@ async function loadEntities(searchStr) {
 // the collection page refetches its members on its own.
 async function onApply(entityValues) {
   const shortIds = (entityValues || [])
-    .map((v) => openalexId.toDisplayFormat(v, "short") || v)
+    // Stored collection id form: bare code, canonical case (oxjob #396).
+    .map((v) => openalexId.toCollectionEntityId(v) || v)
     .filter(Boolean);
   if (!shortIds.length) return;
   try {

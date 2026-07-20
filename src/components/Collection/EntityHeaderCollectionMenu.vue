@@ -133,9 +133,15 @@ const collectionsLoaded = computed(
   () => !!store.state.collections?.loaded && myEntityCollectionsLoaded.value
 );
 
+// props.entityType is the GUI page type; collections use the users-api name
+// (identical except `types` → `work-types`).
+const collectionEntityType = computed(() =>
+  openalexId.toCollectionEntityType(props.entityType)
+);
+
 const allUserCollections = computed(() =>
   (store.state.collections?.collections || []).filter(
-    (c) => c.entity_type === props.entityType
+    (c) => c.entity_type === collectionEntityType.value
   )
 );
 
@@ -160,16 +166,16 @@ const allInCollections = computed(
 );
 
 const entityTypeSingular = computed(() => {
-  const t = props.entityType || "";
+  const t = collectionEntityType.value || "";
   return t.endsWith("s") ? t.slice(0, -1) : t;
 });
 
+// The stored collection id form: bare code, canonical case (`W123`, `US`,
+// `article`) — users-api rejects namespaced forms and the `collection:`
+// filter matches ids case-sensitively (oxjob #396).
 const shortId = computed(() => {
   if (!props.entityId) return "";
-  if (openalexId.isValidId(props.entityId)) {
-    return openalexId.toDisplayFormat(props.entityId, "short") || props.entityId;
-  }
-  return props.entityId;
+  return openalexId.toCollectionEntityId(props.entityId) || props.entityId;
 });
 
 // Refetch when an Add/Remove anywhere mutates membership — keeps the
@@ -190,7 +196,7 @@ async function fetchMyEntityCollections() {
       axiosConfig({ userAuth: true })
     );
     myEntityCollections.value = (resp.data?.results || []).filter(
-      (c) => c.entity_type === props.entityType
+      (c) => c.entity_type === collectionEntityType.value
     );
   } catch (e) {
     myEntityCollections.value = [];

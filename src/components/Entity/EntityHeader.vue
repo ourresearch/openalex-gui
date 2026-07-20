@@ -156,22 +156,21 @@ const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
 // Collections feature: kebab + chip row are gated on the flag, on having a
 // logged-in user (EntityCollectionsRow handles its own auth gate), and on the
 // entity being a collectible type. #394 widened collections to every
-// users-api SUPPORTED_ENTITY_TYPES whose GUI entity-type name (getEntityType)
-// matches the backend name 1:1. work-types is intentionally NOT here: the
-// backend collection type is `work-types`, but getEntityType('types/article')
-// returns `types` (the canonical ID path is `/types/`), so a collection would
-// be created with the wrong type and the `work-types` filter field wouldn't
-// match it. Reconciling that `types`↔`work-types` naming is a tracked follow-up.
+// users-api SUPPORTED_ENTITY_TYPES; #396 re-enabled work-types by mapping the
+// GUI page type through toCollectionEntityType (`types` → `work-types`) before
+// gating — so this set holds users-api collection entity_type names.
 const COLLECTION_ENTITY_TYPES = new Set([
   // original 10 (collections-v1)
   'works', 'authors', 'sources', 'institutions', 'topics',
   'sdgs', 'funders', 'publishers', 'keywords', 'concepts',
-  // #394: clean-name backend-collectible types (work-types excluded — see above)
+  // #394 widen; work-types re-enabled by #396
   'domains', 'fields', 'subfields', 'countries', 'continents',
   'languages', 'licenses', 'oa-statuses', 'source-types',
-  'institution-types', 'awards',
+  'institution-types', 'awards', 'work-types',
 ]);
-const isNativeCollectionType = computed(() => COLLECTION_ENTITY_TYPES.has(myEntityType.value));
+const isNativeCollectionType = computed(() =>
+  COLLECTION_ENTITY_TYPES.has(openalexId.toCollectionEntityType(myEntityType.value))
+);
 
 // Read once on mount — history.state.back reflects the previous in-app
 // navigation, and stays stable while we're on this page. Direct hits (typing

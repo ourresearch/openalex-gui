@@ -145,6 +145,7 @@ import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { entityConfigs } from "@/entityConfigs";
 import { worksFieldsForCollectionType } from "@/collectionFilter";
+import { fromCollectionEntityType } from "@/openalexId";
 
 const props = defineProps({
   collections: { type: Array, default: () => [] },
@@ -166,11 +167,13 @@ const filteredCollections = computed(() => {
   );
 });
 
+// entityConfigs (and GUI routes) are keyed by GUI type names — identical to
+// the collection entity_type except `work-types` → `types` (oxjob #396).
 function entityIcon(type) {
-  return entityConfigs?.[type]?.icon || "mdi-folder-outline";
+  return entityConfigs?.[fromCollectionEntityType(type)]?.icon || "mdi-folder-outline";
 }
 function entityPlural(type) {
-  return entityConfigs?.[type]?.displayName || type;
+  return entityConfigs?.[fromCollectionEntityType(type)]?.displayName || type;
 }
 function cap(s) {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
@@ -181,8 +184,9 @@ function worksFields(type) {
 
 // View the collection's own entities on their native SERP via the membership
 // (`collection:`) filter. For works-collections this is itself a works search.
+// GUI routes use the GUI type name (`/types`, not `/work-types`).
 function showEntities(collection) {
-  router.push(`/${collection.entity_type}?filter=collection:${collection.id}`);
+  router.push(`/${fromCollectionEntityType(collection.entity_type)}?filter=collection:${collection.id}`);
 }
 
 // Apply the collection as a value of a works filter field (#350 model): e.g. a

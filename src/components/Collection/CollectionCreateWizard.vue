@@ -202,10 +202,8 @@ import CollectionMatchTable from "@/components/Collection/CollectionMatchTable.v
 
 // `value` is the entity_type sent to users-api, so these must be exact
 // SUPPORTED_ENTITY_TYPES names. #394 widened this to every backend-collectible
-// type whose name maps cleanly to its /<entity_type>/ API path (used by
-// collectionResolve.js for paste resolution + display-name enrichment).
-// work-types is omitted: its API path is /types/ (not /work-types/) and the
-// entity page reports it as `types` — reconciling that is a tracked follow-up.
+// type; #396 added work-types (collectionResolve maps its `types` ID path via
+// openalexId.fromCollectionEntityType, and the API also serves /work-types/).
 const SUPPORTED_TYPES = [
   { value: "works", title: "Works" },
   { value: "authors", title: "Authors" },
@@ -229,6 +227,8 @@ const SUPPORTED_TYPES = [
   { value: "source-types", title: "Source types" },
   { value: "institution-types", title: "Institution types" },
   { value: "awards", title: "Awards" },
+  // #396
+  { value: "work-types", title: "Work types" },
 ];
 
 const EXTERNAL_HINTS = {

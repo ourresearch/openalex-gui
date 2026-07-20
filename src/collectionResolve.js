@@ -37,12 +37,58 @@ function detectExternalKind(raw) {
 const BARE_DIGITS_RE = /^\d+$/;
 
 /**
+ * Resolve one raw string for an external (non-native) vocab type: sdgs,
+ * keywords, countries, work-types, etc. Input may be a bare code (`US`, `3`,
+ * `article`), a namespaced id (`countries/US`, `types/article`), or a full
+ * OpenAlex URL. Resolution is a singleton `GET /{entity_type}/{code}` — one
+ * call that validates existence, returns the canonical-case id (users-api
+ * stores codes verbatim and the `collection:` filter matches them
+ * case-sensitively), and fetches display_name (oxjob #396).
+ */
+async function resolveExternalVocab(raw, trimmed, entity_type, guiType) {
+    let code = trimmed;
+    const normalized = openalexId.normalizeId(trimmed);
+    if (normalized) {
+        const ty = openalexId.getEntityType(normalized);
+        if (ty !== guiType) {
+            return { input: raw, resolved: null, reason: `wrong entity type (got ${ty}, expected ${entity_type})` };
+        }
+        code = openalexId.getShortId(normalized);
+    } else if (/[\s/]/.test(trimmed)) {
+        return { input: raw, resolved: null, reason: "unrecognized format" };
+    }
+
+    const url = `${urlBase.api}/${entity_type}/${encodeURIComponent(code)}?select=id,display_name&mailto=ui@openalex.org`;
+    try {
+        const resp = await axios.get(url);
+        const id = resp.data?.id;
+        const short = id && openalexId.toCollectionEntityId(id);
+        if (!short) return { input: raw, resolved: null, reason: "not found" };
+        return { input: raw, resolved: short, display_name: resp.data?.display_name || undefined };
+    } catch (e) {
+        if (e.response?.status === 404) {
+            return { input: raw, resolved: null, reason: "not found" };
+        }
+        return { input: raw, resolved: null, reason: `lookup failed: ${e.response?.status || e.message}` };
+    }
+}
+
+/**
  * Resolve a single raw string into a short-form OpenAlex ID, given the target entity type.
+ * `entity_type` is the users-api collection entity_type (`work-types`, not `types`).
  * @returns {Promise<{input: string, resolved: string|null, display_name?: string, reason?: string}>}
  */
 async function resolveOne(raw, entity_type) {
     const trimmed = (raw || "").trim();
     if (!trimmed) return { input: raw, resolved: null, reason: "empty" };
+
+    // External vocab types (no single-letter ID prefix) resolve via singleton
+    // lookup — bare codes like `US` / `3` / `article` aren't parseable as
+    // OpenAlex ids locally, and the response supplies the canonical case.
+    const guiType = openalexId.fromCollectionEntityType(entity_type);
+    if (!openalexId.isNativeEntityType(guiType)) {
+        return resolveExternalVocab(raw, trimmed, entity_type, guiType);
+    }
 
     // QA-049c: bare digits (e.g. "2755968057") get prefixed with the entity's
     // native letter so they resolve. Pure-digit IDs are how the OpenAlex API
@@ -168,6 +214,14 @@ async function enrichDisplayNames(rows, entity_type, opts = {}) {
     const unique = [...new Set(needIds)];
     if (unique.length === 0) return;
 
+    // External vocab endpoints have no `openalex:` filter; batch by `id:`
+    // instead (accepts bare codes, case-insensitively). Their rows normally
+    // arrive pre-named from resolveExternalVocab, so this is a fallback path.
+    const isExternal = !openalexId.isNativeEntityType(
+        openalexId.fromCollectionEntityType(entity_type)
+    );
+    const filterParam = isExternal ? "id" : "openalex";
+
     const PER_PAGE = 200;
     const batches = [];
     for (let i = 0; i < unique.length; i += PER_PAGE) {
@@ -184,13 +238,15 @@ async function enrichDisplayNames(rows, entity_type, opts = {}) {
             const idx = cursor++;
             if (idx >= total) return;
             const batch = batches[idx];
-            const filter = `openalex:${batch.join("|")}`;
+            const filter = `${filterParam}:${batch.join("|")}`;
             const url = `${urlBase.api}/${entity_type}?filter=${encodeURIComponent(filter)}&select=id,display_name&per-page=${PER_PAGE}&mailto=ui@openalex.org`;
             try {
                 const resp = await axios.get(url);
                 const results = resp.data?.results || [];
                 for (const r of results) {
-                    const short = openalexId.toDisplayFormat(r.id, "short");
+                    // Key by the stored collection id form so the row.resolved
+                    // lookup below matches (bare code for externals, W123 for natives).
+                    const short = openalexId.toCollectionEntityId(r.id);
                     if (short && r.display_name) byId.set(short, r.display_name);
                 }
             } catch {

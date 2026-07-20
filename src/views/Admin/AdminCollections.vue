@@ -211,6 +211,7 @@ import { useStore } from "vuex";
 import axios from "axios";
 import { urlBase, axiosConfig } from "@/apiConfig";
 import { entityConfigs } from "@/entityConfigs";
+import { fromCollectionEntityType } from "@/openalexId";
 
 defineOptions({ name: "AdminCollections" });
 
@@ -219,12 +220,17 @@ const store = useStore();
 const SUPPORTED_TYPES = [
   "works", "authors", "sources", "institutions", "topics",
   "sdgs", "funders", "publishers", "keywords", "concepts",
+  // #394 widen + #396 work-types
+  "domains", "fields", "subfields", "countries", "continents",
+  "languages", "licenses", "oa-statuses", "source-types",
+  "institution-types", "awards", "work-types",
 ];
 
+// entityConfigs is keyed by GUI type names (`types`, not `work-types`).
 const entityOptions = SUPPORTED_TYPES.map((value) => ({
   title: value,
   value,
-  icon: entityConfigs?.[value]?.icon || "mdi-folder-outline",
+  icon: entityConfigs?.[fromCollectionEntityType(value)]?.icon || "mdi-folder-outline",
 }));
 
 const collections = ref([]);

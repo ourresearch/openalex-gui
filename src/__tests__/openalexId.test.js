@@ -12,6 +12,9 @@ import {
     toOpenAlexUrl,
     toDisplayFormat,
     makeId,
+    toCollectionEntityType,
+    fromCollectionEntityType,
+    toCollectionEntityId,
 } from '../openalexId';
 
 describe('openalexId', () => {
@@ -304,6 +307,35 @@ describe('openalexId', () => {
         it('returns null for empty short ID', () => {
             expect(makeId('works', '')).toBe(null);
             expect(makeId('works', null)).toBe(null);
+        });
+    });
+
+    describe('collection helpers (oxjob #396)', () => {
+        it('maps GUI type <-> collection entity_type (identity except types/work-types)', () => {
+            expect(toCollectionEntityType('types')).toBe('work-types');
+            expect(fromCollectionEntityType('work-types')).toBe('types');
+            expect(toCollectionEntityType('countries')).toBe('countries');
+            expect(fromCollectionEntityType('sdgs')).toBe('sdgs');
+        });
+
+        it('toCollectionEntityId returns bare, canonical-case codes', () => {
+            // natives: bare uppercase
+            expect(toCollectionEntityId('https://openalex.org/W123')).toBe('W123');
+            expect(toCollectionEntityId('w123')).toBe('W123');
+            // countries/continents: uppercase codes (users-api stores verbatim;
+            // the collection: filter matches ES ids case-sensitively)
+            expect(toCollectionEntityId('https://openalex.org/countries/US')).toBe('US');
+            expect(toCollectionEntityId('countries/us')).toBe('US');
+            expect(toCollectionEntityId('continents/q15')).toBe('Q15');
+            // everything else: lowercase slug/digit
+            expect(toCollectionEntityId('https://openalex.org/types/article')).toBe('article');
+            expect(toCollectionEntityId('sdgs/3')).toBe('3');
+            expect(toCollectionEntityId('keywords/machine-learning')).toBe('machine-learning');
+        });
+
+        it('toCollectionEntityId returns null for invalid ids', () => {
+            expect(toCollectionEntityId('not an id')).toBe(null);
+            expect(toCollectionEntityId(null)).toBe(null);
         });
     });
 });

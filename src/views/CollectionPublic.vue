@@ -74,7 +74,7 @@
           <v-btn
             v-if="collection.entity_type !== 'works'"
             variant="outlined"
-            :to="`/${collection.entity_type}?filter=collection:${collection.id}`"
+            :to="`/${guiEntityType}?filter=collection:${collection.id}`"
           >
             View as {{ entityCollectionPlural.toLowerCase() }} search
             <v-icon end>mdi-arrow-right</v-icon>
@@ -248,13 +248,19 @@ const isOwner = computed(() =>
   !!(collection.value && store.getters["collections/byId"](collection.value.id))
 );
 
+// GUI type name for routes + entityConfigs lookups — identical to the
+// collection entity_type except `work-types` → `types` (oxjob #396).
+const guiEntityType = computed(() =>
+  openalexId.fromCollectionEntityType(collection.value?.entity_type)
+);
+
 const entityCollectionPlural = computed(() => {
   if (!collection.value) return "";
-  return entityConfigs?.[collection.value.entity_type]?.displayName || collection.value.entity_type;
+  return entityConfigs?.[guiEntityType.value]?.displayName || collection.value.entity_type;
 });
 const entityCollectionSingular = computed(() => {
   if (!collection.value) return "";
-  const cfg = entityConfigs?.[collection.value.entity_type];
+  const cfg = entityConfigs?.[guiEntityType.value];
   if (cfg?.displayNameSingular) return cfg.displayNameSingular;
   const p = entityCollectionPlural.value;
   return p.endsWith("s") ? p.slice(0, -1) : p;
@@ -291,7 +297,7 @@ async function loadCollection() {
   errorMessage.value = "";
   try {
     collection.value = await store.dispatch("collections/fetchPublic", collectionId.value);
-    store.commit("setEntityType", collection.value.entity_type);
+    store.commit("setEntityType", openalexId.fromCollectionEntityType(collection.value.entity_type));
     if (!store.state.collections.loaded && !store.state.collections.loading) {
       store.dispatch("collections/fetchAll");
     }
@@ -425,7 +431,8 @@ async function confirmRemove() {
     } else {
       fullIds = [...store.state.selection.selectedIds];
     }
-    const shortIds = fullIds.map(v => openalexId.toDisplayFormat(v, "short") || v).filter(Boolean);
+    // Stored collection id form: bare code, canonical case (oxjob #396).
+    const shortIds = fullIds.map(v => openalexId.toCollectionEntityId(v) || v).filter(Boolean);
     if (shortIds.length) {
       await removeShortIds(shortIds);
       store.commit(

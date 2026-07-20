@@ -60,12 +60,17 @@ const entityMutationCounter = computed(
   () => store.state.collections?.entityMutationCounter || 0
 );
 
+// props.entityType is the GUI page type; collections use the users-api name
+// (identical except `types` → `work-types`).
+const collectionEntityType = computed(() =>
+  openalexId.toCollectionEntityType(props.entityType)
+);
+
+// The stored collection id form: bare code, canonical case (`W123`, `US`,
+// `article`) — matches what users-api stores verbatim (oxjob #396).
 const shortId = computed(() => {
   if (!props.entityId) return "";
-  if (openalexId.isValidId(props.entityId)) {
-    return openalexId.toDisplayFormat(props.entityId, "short") || props.entityId;
-  }
-  return props.entityId;
+  return openalexId.toCollectionEntityId(props.entityId) || props.entityId;
 });
 
 async function fetchCollections() {
@@ -89,7 +94,7 @@ async function fetchCollections() {
       shortId.value
     );
     myCollections.value = (all || []).filter(
-      (l) => l.entity_type === props.entityType
+      (l) => l.entity_type === collectionEntityType.value
     );
   } catch (e) {
     myCollections.value = [];

@@ -360,16 +360,58 @@ function toDisplayFormat(id, format = 'short') {
 
 /**
  * Get the single-letter prefix for a native entity type.
- * 
+ *
  * @param {string} entityType - Entity type
  * @returns {string|null} Single-letter prefix or null if not a native entity
- * 
+ *
  * @example
  * getNativePrefix("works") // => "w"
  * getNativePrefix("sdgs") // => null
  */
 function getNativePrefix(entityType) {
     return ENTITY_TO_NATIVE_PREFIX[entityType] || null;
+}
+
+/**
+ * GUI entity type ↔ users-api collection entity_type. Identity for every type
+ * except work-types: the canonical ID path (and this module) call it `types`,
+ * while collections and filter fields use `work-types` (oxjob #396).
+ *
+ * @example
+ * toCollectionEntityType("types") // => "work-types"
+ * fromCollectionEntityType("work-types") // => "types"
+ * toCollectionEntityType("countries") // => "countries"
+ */
+function toCollectionEntityType(guiEntityType) {
+    return guiEntityType === 'types' ? 'work-types' : guiEntityType;
+}
+
+function fromCollectionEntityType(collectionEntityType) {
+    return collectionEntityType === 'work-types' ? 'types' : collectionEntityType;
+}
+
+/**
+ * The entity_id form users-api stores in collections: bare short id, canonical
+ * case. Natives are uppercase (`W123`); countries/continents codes are
+ * uppercase (`US`, `Q15`); every other external vocab is a lowercase
+ * slug/digit (`article`, `machine-learning`, `3`). Namespaced or full-URL
+ * forms are rejected by users-api, and ES id matching (the `collection:`
+ * filter) is case-sensitive — so always send exactly this form (oxjob #396).
+ *
+ * @example
+ * toCollectionEntityId("https://openalex.org/W123") // => "W123"
+ * toCollectionEntityId("https://openalex.org/countries/US") // => "US"
+ * toCollectionEntityId("types/article") // => "article"
+ */
+const UPPERCASE_CODE_ENTITY_TYPES = new Set(['countries', 'continents']);
+
+function toCollectionEntityId(id) {
+    const parsed = parseId(id);
+    if (!parsed) return null;
+    if (parsed.isNative || UPPERCASE_CODE_ENTITY_TYPES.has(parsed.entityType)) {
+        return parsed.shortId.toUpperCase();
+    }
+    return parsed.shortId;
 }
 
 /**
@@ -407,7 +449,12 @@ export {
     toApiUrl,
     toOpenAlexUrl,
     toDisplayFormat,
-    
+
+    // Collections (oxjob #396)
+    toCollectionEntityType,
+    fromCollectionEntityType,
+    toCollectionEntityId,
+
     // Construction
     makeId,
     

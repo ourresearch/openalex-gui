@@ -167,7 +167,7 @@
 
   <collection-quick-create-dialog
     v-model="showQuickCreate"
-    :entity-type="entityType"
+    :entity-type="collectionEntityType"
     :entity-ids="selectedShortIds"
     @created="onQuickCreated"
   />
@@ -219,18 +219,22 @@ const collectionsLoaded = computed(() => !!store.state.collections?.loaded);
 const selectedShortIds = computed(() => {
   const out = [];
   for (const id of props.selectedIds) {
-    if (openalexId.isValidId(id)) {
-      const short = openalexId.toDisplayFormat(id, "short");
-      if (short) out.push(short);
-    } else if (id) {
-      out.push(id);
-    }
+    // Stored collection id form: bare code, canonical case (oxjob #396).
+    const short = openalexId.toCollectionEntityId(id);
+    if (short) out.push(short);
+    else if (id) out.push(id);
   }
   return out;
 });
 
+// props.entityType is the GUI page type; collections use the users-api name
+// (identical except `types` → `work-types`).
+const collectionEntityType = computed(() =>
+  openalexId.toCollectionEntityType(props.entityType)
+);
+
 const entityTypeCollections = computed(() =>
-  collections.value.filter((l) => l.entity_type === props.entityType)
+  collections.value.filter((l) => l.entity_type === collectionEntityType.value)
 );
 
 const filteredCollections = computed(() => {
