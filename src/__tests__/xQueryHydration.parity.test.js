@@ -28,14 +28,17 @@ import path from "path";
 
 import { filtersFromUrlStr, filtersAsUrlStr } from "@/filterConfigs";
 
-const FIXTURE = path.resolve(
-    __dirname,
-    "../../../oxjobs/working/gui-oqo-source-of-truth/work/v1-gate/fixture.json",
-);
-const REPORT = path.resolve(
-    __dirname,
-    "../../../oxjobs/working/gui-oqo-source-of-truth/work/v1-gate/gate-report.json",
-);
+// The fixture lives in the #378 oxjob dir, which moves between stage
+// directories over its lifecycle (working/ -> done/ -> archived/). Resolve
+// across stages so the gate doesn't silently self-skip when the job is
+// archived — which is exactly what happened until #633 caught it (the suite
+// "passed" everywhere by skipping).
+const JOB_DIR = ["working", "done", "archived"]
+    .map((stage) => path.resolve(
+        __dirname, `../../../oxjobs/${stage}/gui-oqo-source-of-truth/work/v1-gate`))
+    .find((p) => fs.existsSync(path.join(p, "fixture.json")));
+const FIXTURE = JOB_DIR ? path.join(JOB_DIR, "fixture.json") : "/nonexistent";
+const REPORT = JOB_DIR ? path.join(JOB_DIR, "gate-report.json") : "/nonexistent";
 
 // --- order-insensitive normalization of a filter string (the "same query" key) ---
 
