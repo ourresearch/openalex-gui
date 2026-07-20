@@ -19,9 +19,9 @@
     <!-- Download -->
     <v-menu location="bottom">
       <template #activator="{ props: menuProps }">
-        <v-tooltip text="Download" location="bottom" aria-label="Download">
+        <v-tooltip :text="downloadTooltip" location="bottom" :aria-label="downloadTooltip">
           <template #activator="{ props: tooltipProps }">
-            <v-btn icon variant="text" v-bind="{ ...menuProps, ...tooltipProps }" aria-label="Download">
+            <v-btn icon variant="text" v-bind="{ ...menuProps, ...tooltipProps }" :aria-label="downloadTooltip">
               <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
             </v-btn>
           </template>
@@ -292,6 +292,15 @@ const formattedResultsCount = computed(() => {
 const exportSelection = computed(() => resolveExportSelection(store.state.selection));
 const isSelectionScopedDownload = computed(
   () => exportMode.value === 'async' && exportSelection.value.scoped
+);
+
+// Download-button tooltip mirrors the menu item (and the sibling
+// SerpDownloadButton on the OQL SERP): when rows are ticked, name the scope so
+// the user can see the export is limited to their selection before opening it.
+const downloadTooltip = computed(() =>
+  isSelectionScopedDownload.value
+    ? `Download ${exportSelection.value.count} selected ${filters.pluralize(entityType.value, exportSelection.value.count)}`
+    : `Download ${formattedResultsCount.value} ${filters.pluralize(entityType.value, 2)}`
 );
 
 // Group-by / facets
