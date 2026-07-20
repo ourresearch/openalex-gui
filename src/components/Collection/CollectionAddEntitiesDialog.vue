@@ -94,6 +94,10 @@ async function onApply(entityValues) {
 }
 
 function singular(plural) {
+  // Prefer the config's real singular ("countries" → "country"); the naive
+  // de-s fallback mangles -ies plurals ("countrie", oxjob #396).
+  const cfg = entityConfigs?.[openalexId.fromCollectionEntityType(entityType.value)];
+  if (cfg?.displayNameSingular) return cfg.displayNameSingular.toLowerCase();
   const p = (plural || "").toLowerCase();
   return p.endsWith("s") ? p.slice(0, -1) : p;
 }
