@@ -550,7 +550,12 @@ const groupsRequestSignature = () => {
     if (!store.state.query.lastExecutedOql) return null;
     return `oql:${props.entityType}:${props.filterKey}:${store.state.query.lastExecutedOql}`;
   }
-  return `url:${props.entityType}:${props.filterKey}:${JSON.stringify(apiRequestFilters.value)}`;
+  // The Xpac toggle changes the corpus via ?include_xpac without touching
+  // ?filter=, so it must be part of the signature — otherwise toggling it never
+  // refetches and the facets keep the other corpus's counts (#642, found by
+  // Inist). The fetch itself is corpus-correct: makeGroupByUrl reads
+  // include_xpac from the live route.
+  return `url:${props.entityType}:${props.filterKey}:xpac=${route.query.include_xpac === 'true'}:${JSON.stringify(apiRequestFilters.value)}`;
 };
 // The signature of the last SUCCESSFUL fetch (recorded after the await, so a
 // failed fetch retries). Value comparison, no sticky flag (the #464/#562

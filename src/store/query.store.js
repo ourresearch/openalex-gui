@@ -40,7 +40,11 @@ import {
 
 
 // The fields of an OQO that constitute the citeable QUERY (ride in the share id)…
-const QUERY_KEYS = ["get_rows", "filter_rows", "sort_by", "select"];
+// `corpus` (#481) is a corpus SELECTION — part of the query's identity (it renders
+// in the canonical OQL, e.g. "works (all corpora)"), so it must survive the split:
+// dropping it made every store-driven re-execution (facet group_bys, refinements,
+// sort edits) silently fall back to the core corpus (#642).
+const QUERY_KEYS = ["get_rows", "filter_rows", "sort_by", "select", "corpus"];
 // …vs. the executable VIEW chrome (reproduce an execution, but recipient-local / not
 // part of the query identity). `seed`/`sample` back the random-query dice.
 const VIEW_KEYS = ["page", "per_page", "group_by", "cursor", "seed", "sample"];

@@ -29,6 +29,7 @@ describe("#464 — splitOqo", () => {
       filter_rows: [{ column_id: "publication_year", value: 2019 }],
       sort_by: [{ column_id: "cited_by_count", direction: "desc" }],
       select: ["id", "display_name"],
+      corpus: "all",
       page: 3,
       per_page: 25,
       group_by: ["open_access.is_oa"],
@@ -40,6 +41,9 @@ describe("#464 — splitOqo", () => {
       filter_rows: [{ column_id: "publication_year", value: 2019 }],
       sort_by: [{ column_id: "cited_by_count", direction: "desc" }],
       select: ["id", "display_name"],
+      // #642: corpus is a query-identity field — dropping it here made every
+      // store-driven re-execution silently revert to the core corpus.
+      corpus: "all",
     });
     expect(viewState).toEqual({
       page: 3,
