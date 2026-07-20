@@ -104,8 +104,8 @@
         variant="text"
         size="small"
         :href="csvUrl"
-        title="Download a summary of all facets (CSV)"
-        aria-label="Download facets summary"
+        title="Export a summary of all facets (CSV)"
+        aria-label="Export facets summary"
       >
         <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
       </v-btn>

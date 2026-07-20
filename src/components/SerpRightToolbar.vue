@@ -34,10 +34,10 @@
           </template>
           <v-list-item-title>
             <template v-if="isSelectionScopedDownload">
-              Download {{ exportSelection.count }} selected {{ filters.pluralize(entityType, exportSelection.count) }}
+              Export {{ exportSelection.count }} selected {{ filters.pluralize(entityType, exportSelection.count) }}
             </template>
             <template v-else>
-              Download {{ formattedResultsCount }} {{ filters.pluralize(entityType, 2) }}
+              Export {{ formattedResultsCount }} {{ filters.pluralize(entityType, 2) }}
             </template>
           </v-list-item-title>
         </v-list-item>
@@ -46,7 +46,7 @@
             <v-icon>mdi-chart-box-outline</v-icon>
           </template>
           <v-list-item-title>
-            Download {{ groupByCount }} facets
+            Export {{ groupByCount }} facets
           </v-list-item-title>
         </v-list-item>
       </v-list>
@@ -294,13 +294,13 @@ const isSelectionScopedDownload = computed(
   () => exportMode.value === 'async' && exportSelection.value.scoped
 );
 
-// Download-button tooltip mirrors the menu item (and the sibling
+// Export-button tooltip mirrors the menu item (and the sibling
 // SerpDownloadButton on the OQL SERP): when rows are ticked, name the scope so
 // the user can see the export is limited to their selection before opening it.
 const downloadTooltip = computed(() =>
   isSelectionScopedDownload.value
-    ? `Download ${exportSelection.value.count} selected ${filters.pluralize(entityType.value, exportSelection.value.count)}`
-    : `Download ${formattedResultsCount.value} ${filters.pluralize(entityType.value, 2)}`
+    ? `Export ${exportSelection.value.count} selected ${filters.pluralize(entityType.value, exportSelection.value.count)}`
+    : `Export ${formattedResultsCount.value} ${filters.pluralize(entityType.value, 2)}`
 );
 
 // Group-by / facets
@@ -360,7 +360,7 @@ async function handleClientSideExport() {
   const columns = config?.exportColumns;
   if (!columns) return;
 
-  snackbar('Downloading...');
+  snackbar('Exporting...');
 
   const params = { mailto: 'ui@openalex.org' };
   if (route.query.filter) params.filter = route.query.filter;
@@ -380,10 +380,10 @@ async function handleClientSideExport() {
       maxPages: 10,
       axiosOptions: {},
     });
-    snackbar(`Downloaded ${count} ${entityType.value}.`);
+    snackbar(`Exported ${count} ${entityType.value}.`);
   } catch (e) {
     console.error('Client-side export failed:', e);
-    snackbar('Download failed. Please try again.');
+    snackbar('Export failed. Please try again.');
   }
 }
 

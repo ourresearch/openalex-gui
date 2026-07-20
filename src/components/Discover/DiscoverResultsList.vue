@@ -19,7 +19,7 @@
           </template>
           View API
         </v-tooltip>
-        <v-tooltip v-if="results?.length" location="bottom" aria-label="Download CSV">
+        <v-tooltip v-if="results?.length" location="bottom" aria-label="Export CSV">
           <template #activator="{ props }">
             <v-btn
               v-bind="props"
@@ -31,7 +31,7 @@
               <v-icon>mdi-tray-arrow-down</v-icon>
             </v-btn>
           </template>
-          Download CSV
+          Export CSV
         </v-tooltip>
       </div>
     </div>

@@ -63,8 +63,8 @@ const isSelectionScopedDownload = computed(
 
 const tooltipText = computed(() =>
   isSelectionScopedDownload.value
-    ? `Download ${exportSelection.value.count} selected ${filters.pluralize(entityType.value, exportSelection.value.count)}`
-    : `Download ${formattedResultsCount.value} ${filters.pluralize(entityType.value, 2)}`
+    ? `Export ${exportSelection.value.count} selected ${filters.pluralize(entityType.value, exportSelection.value.count)}`
+    : `Export ${formattedResultsCount.value} ${filters.pluralize(entityType.value, 2)}`
 );
 
 const snackbar = (val) => store.commit('snackbar', val);
@@ -82,7 +82,7 @@ async function handleClientSideExport() {
   const columns = config?.exportColumns;
   if (!columns) return;
 
-  snackbar('Downloading...');
+  snackbar('Exporting...');
 
   const params = { mailto: 'ui@openalex.org' };
   if (route.query.filter) params.filter = route.query.filter;
@@ -102,10 +102,10 @@ async function handleClientSideExport() {
       maxPages: 10,
       axiosOptions: {},
     });
-    snackbar(`Downloaded ${count} ${entityType.value}.`);
+    snackbar(`Exported ${count} ${entityType.value}.`);
   } catch (e) {
     console.error('Client-side export failed:', e);
-    snackbar('Download failed. Please try again.');
+    snackbar('Export failed. Please try again.');
   }
 }
 </script>

@@ -31,12 +31,12 @@
 
         <v-divider class="my-1" />
 
-        <!-- Download -->
+        <!-- Export -->
         <v-list-item @click="handleDownload">
           <template #prepend>
             <v-icon>mdi-tray-arrow-down</v-icon>
           </template>
-          <v-list-item-title>Download results</v-list-item-title>
+          <v-list-item-title>Export results</v-list-item-title>
         </v-list-item>
 
         <!-- Copy API query -->
