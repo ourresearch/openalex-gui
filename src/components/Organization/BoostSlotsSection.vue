@@ -202,13 +202,14 @@ const revokeSlotIndex = ref(null);
 const revoking = ref(false);
 
 // Plans that may grant high-volume boost slots. Kept in sync with
-// plans.BOOST_ELIGIBLE_ORG_PLANS on the backend and migration 035's
-// api_keys_view boost gate.
+// plans.BOOST_ELIGIBLE_ORG_PLANS on the backend and migration 063's
+// api_keys_view boost gate. premium-10M is the internal OpenAlex org.
 const BOOST_ELIGIBLE_ORG_PLANS = [
   'partner',
   'institutional',
   'institutional-1M',
   'institutional-2M',
+  'premium-10M',
 ];
 const isEligible = computed(() =>
   BOOST_ELIGIBLE_ORG_PLANS.includes(props.organization?.plan)
