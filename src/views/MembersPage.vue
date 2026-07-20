@@ -231,6 +231,7 @@ const supportingMembers = ref([
   'Inria',
   'Inserm',
   'Institute of Electrical and Electronics Engineers',
+  'James Madison University',
   'Japan Science and Technology Agency',
   'Jisc',
   'Karolinska Institutet',
@@ -296,8 +297,12 @@ const supportingMembers = ref([
   'University of South Carolina',
   'University of Victoria',
   'Utrecht University',
+  'Virginia Commonwealth University',
+  'Virginia Military Institute',
+  'Virginia Tech',
   'Wellcome',
   'Wellcome Trust',
+  'William & Mary',
   'École normale supérieure de Lyon',
 ]);
 </script>
