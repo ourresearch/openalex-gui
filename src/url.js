@@ -74,18 +74,22 @@ const routeFromOxurl = function (oxurl) {
 // edit-base both read this one helper: the server may reorder clauses, so chip
 // edit-by-index is only safe if both sides see the same ordering.
 //
-// Search-strip: the server folds a top-level `?search=` into x_query.url as a
-// `default.search:…` clause (and drops scoped `search.title=…`). Search is a
-// top-level route param and is never a chip (`facetTypeToChipType('search')`
-// → null), so we strip search-typed clauses here — otherwise the edit base
-// would re-serialize a folded search back into `?filter=`, yanking it out of
-// the search box. See EXPLORE.md §"search-folding nuance".
+// Search-strip: the server folds every top-level search param into x_query.url
+// as a filter clause — `?search=` → `fulltext.search:…`, and (since API #633)
+// the scoped family too: `search.title[_and_abstract][.exact]=` →
+// `<field>.search:…` / `<field>.search.exact:…`. Search is a top-level route
+// param and is never a chip (`facetTypeToChipType('search')` → null), so we
+// strip search-typed clauses here — otherwise the edit base would re-serialize
+// a folded search back into `?filter=`, yanking it out of the search box, and
+// an unstripped `.search.exact` clause has no facet config so it would force
+// Basic → Advanced mode. See EXPLORE.md §"search-folding nuance".
 const stripSearchClauses = function (filterStr) {
     if (!filterStr) return filterStr;
     const kept = splitFilterString(filterStr).filter(clause => {
         let key = clause.split(":")[0];
         if (key.startsWith("!")) key = key.slice(1);
-        return key !== "search" && !key.endsWith(".search");
+        return key !== "search" && !key.endsWith(".search")
+            && !key.endsWith(".search.exact");
     });
     return kept.join(",");
 }

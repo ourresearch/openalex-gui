@@ -68,6 +68,23 @@ describe("url.chipFilterStr (#378)", () => {
         expect(url.chipFilterStr(ROUTE("is_oa:true"))).toBe("is_oa:true");
     });
 
+    it("strips *.search.exact clauses (API #633 folds search.title.exact= etc.)", () => {
+        // Without this strip, the no-facet-config .exact clause would force
+        // Basic mode -> Advanced and vanish from the chip row.
+        storeState.resultsObject = { meta: { x_query: { url: xqUrl("/works?filter=display_name.search.exact:cancer treatment,is_oa:true") } } };
+        expect(url.chipFilterStr(ROUTE("is_oa:true"))).toBe("is_oa:true");
+    });
+
+    it("strips the folded fulltext.search.exact clause from search.exact=", () => {
+        storeState.resultsObject = { meta: { x_query: { url: xqUrl("/works?filter=fulltext.search.exact:%22dark matter%22,type:article") } } };
+        expect(url.chipFilterStr(ROUTE("type:article"))).toBe("type:article");
+    });
+
+    it("strips negated search clauses (leading !)", () => {
+        storeState.resultsObject = { meta: { x_query: { url: xqUrl("/works?filter=!title_and_abstract.search.exact:spin,type:article") } } };
+        expect(url.chipFilterStr(ROUTE("type:article"))).toBe("type:article");
+    });
+
     it("returns undefined when the canonical query is search-only (no chips)", () => {
         storeState.resultsObject = { meta: { x_query: { url: xqUrl("/works?filter=default.search:cancer") } } };
         expect(url.chipFilterStr(ROUTE(undefined))).toBeUndefined();
