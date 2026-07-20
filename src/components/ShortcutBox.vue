@@ -319,7 +319,10 @@ function onSearchInputUpdate(val) {
   }
 }
 
+// Ticket guard: a slow older response must not overwrite a newer one.
+let suggestionTicket = 0;
 const getSuggestions = _.debounce(async () => {
+  const ticket = ++suggestionTicket;
   const fulltext = createSimpleFilter(entityType.value, defaultSearchType.value, cleanedSearchString.value);
 
   if (searchString.value === 'coriander OR cilantro') {
@@ -331,7 +334,9 @@ const getSuggestions = _.debounce(async () => {
 
   try {
     if (newFilter.value && !searchString.value) {
-      suggestions.value = await api.getGroups(entityType.value, newFilter.value.key);
+      const groups = await api.getGroups(entityType.value, newFilter.value.key);
+      if (ticket !== suggestionTicket) return;
+      suggestions.value = groups;
       isLoading.value = false;
       return;
     }
@@ -348,6 +353,7 @@ const getSuggestions = _.debounce(async () => {
       searchString.value,
       url.readFilters(route)
     );
+    if (ticket !== suggestionTicket) return;
 
     isLoading.value = false;
 
@@ -365,6 +371,7 @@ const getSuggestions = _.debounce(async () => {
     //console.log('cleaned suggestions', cleaned);
     suggestions.value = cleaned;
   } catch (error) {
+    if (ticket !== suggestionTicket) return;
     console.error('Error fetching suggestions:', error);
     // Fall back to just showing the fulltext search option
     suggestions.value = [fulltext];

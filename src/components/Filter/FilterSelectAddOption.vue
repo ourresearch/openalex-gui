@@ -100,18 +100,37 @@ const hasAutocomplete = computed(() =>
   entityConfig.value?.hasAutocomplete
 );
 
-// Debounced suggestion fetching
+// Debounced suggestion fetching. The ticket + abort pair keeps a slow older
+// response from overwriting a newer one (leading:true means two can be in
+// flight per typing burst).
+let suggestionTicket = 0;
+let suggestionAbort = null;
 const getSuggestions = _.debounce(async () => {
+  const ticket = ++suggestionTicket;
+  suggestionAbort?.abort();
+  const ctrl = new AbortController();
+  suggestionAbort = ctrl;
   isLoading.value = true;
-  suggestions.value = await api.getSuggestions(
-    entityType.value,
-    props.filterKey,
-    props.searchString,
-    props.filters ?? [],
-    props.oqo
-  );
-  isLoading.value = false;
-}, 300, { leading: true });
+  try {
+    const sugg = await api.getSuggestions(
+      entityType.value,
+      props.filterKey,
+      props.searchString,
+      props.filters ?? [],
+      props.oqo,
+      { signal: ctrl.signal }
+    );
+    if (ticket !== suggestionTicket) return;
+    suggestions.value = sugg;
+  } catch (e) {
+    if (e?.code === 'ERR_CANCELED') return;
+    if (ticket !== suggestionTicket) return;
+    console.error('Error fetching suggestions:', e);
+    suggestions.value = [];
+  } finally {
+    if (ticket === suggestionTicket) isLoading.value = false;
+  }
+}, 200, { leading: true });
 
 // Watchers
 watch(() => props.searchString, () => {

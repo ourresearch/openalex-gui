@@ -63,25 +63,35 @@ const onMenuUpdate = (isOpen) => {
   emit('menu-state-change', isOpen);
 };
 
+// Abort the previous keystroke's request; without this a slow older response
+// could land after a faster newer one and overwrite it.
+let searchAbort = null;
+
 const searchEntities = async (query) => {
   if (!query || query.length === 0) {
     entities.value = localValueOptions.value || [];
     return;
   }
 
+  searchAbort?.abort();
+  const ctrl = new AbortController();
+  searchAbort = ctrl;
   loading.value = true;
   try {
-    const response = await api.getAutocomplete(props.entityType, { q: query });
+    const response = await api.getAutocomplete(props.entityType, { q: query }, { signal: ctrl.signal });
+    if (ctrl.signal.aborted) return;
     entities.value = response && response.length > 0 ? response : localValueOptions.value || [];
   } catch (error) {
+    if (error?.code === 'ERR_CANCELED') return;
     console.error(`Error fetching ${props.entityType}:`, error);
     entities.value = localValueOptions.value || [];
   } finally {
-    loading.value = false;
+    // A stale call must not clear the newer call's loading spinner.
+    if (searchAbort === ctrl) loading.value = false;
   }
 };
 
-const debouncedSearchEntities = debounce(searchEntities, 300);
+const debouncedSearchEntities = debounce(searchEntities, 150);
 
 const onSearchInputUpdate = (val) => {
   search.value = val;

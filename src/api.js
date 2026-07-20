@@ -59,7 +59,9 @@ const api = (function () {
     }
 
     const getUrl = async function (url, config) {
-        config = config || axiosConfig();
+        // config: extra axios options (e.g. {signal} to abort a stale
+        // autocomplete request) merged over the standard auth headers.
+        config = config ? {...axiosConfig(), ...config} : axiosConfig();
         
         if (!url.startsWith("http")) { 
             url = urlBase.api + url;
@@ -85,6 +87,8 @@ const api = (function () {
             res = await axios.get(url, config);
             // console.log(`api GET ${url} success:`, res.data)
         } catch (e) {
+            // Deliberate aborts (stale autocomplete keystrokes) aren't failures.
+            if (e?.code === "ERR_CANCELED") throw e;
             // https://gist.github.com/fgilio/230ccd514e9381fafa51608fcf137253
             console.log("api GET failure:", e.response);
             if (e.response?.status === 429 && !store.state.user.id) {
@@ -96,9 +100,9 @@ const api = (function () {
         return res.data;
     }
 
-    const get =  async function (pathName, searchParams) {
+    const get =  async function (pathName, searchParams, config) {
         const url = makeUrl(pathName, searchParams);
-        const resp = await getUrl(url);
+        const resp = await getUrl(url, config);
         return resp;
     }
 
@@ -282,7 +286,7 @@ const api = (function () {
         return filterKey
     }
 
-    const getAutocompleteResponses = async function (entityType, filterKey, searchString) {
+    const getAutocompleteResponses = async function (entityType, filterKey, searchString, config = null) {
         //console.log("getAutocompleteResponses", entityType, filterKey, searchString)
         if (!filterKey && entityType !== "works") {
             filterKey = "ids.openalex"
@@ -320,7 +324,7 @@ const api = (function () {
         const filterValueEntityId = facetConfig?.entityToSelect
 
         const myUrl = url.makeAutocompleteUrl(filterValueEntityId, searchString)
-        const resp = await getUrl(myUrl)
+        const resp = await getUrl(myUrl, config)
         const suggestionFilters = resp.results
             .filter(r => !!r.id)
             .filter(r => r.entity_type !== "filter")
@@ -380,7 +384,7 @@ const api = (function () {
     // aggregate via getGroupsForOqo or the "More…" dialog shows UNFILTERED counts
     // while the widget itself shows filtered ones. Autocomplete-backed search
     // stays global — it always has been, in both modes.
-    const getSuggestions = async function (entityType, filterKey, searchString, filters, oqo = null) {
+    const getSuggestions = async function (entityType, filterKey, searchString, filters, oqo = null, config = null) {
         //console.log("getSuggestions", entityType, filterKey, searchString)
         // OQO has no within-group-by search param, so the searchString path
         // fetches the full (filtered) bucket set and substring-matches locally.
@@ -421,12 +425,12 @@ const api = (function () {
                 filters,
             })
         } else if (!filterKey) {
-            return await getAutocompleteResponses(entityType, filterKey, searchString, filters)
+            return await getAutocompleteResponses(entityType, filterKey, searchString, config)
         } else {
             const myEntityId = getFacetConfig(entityType, filterKey)?.entityToSelect
             const isAutocompleteEndpointAvailable = myEntityId ? getEntityConfig(myEntityId)?.hasAutocomplete : false
             if (isAutocompleteEndpointAvailable && myEntityId) {
-                return await getAutocompleteResponses(entityType, filterKey, searchString, filters)
+                return await getAutocompleteResponses(entityType, filterKey, searchString, config)
             } else {
                 if (oqo) return await getGroupsViaOqo()
                 return await getGroups(entityType, filterKey, {
@@ -438,7 +442,7 @@ const api = (function () {
         }
     };
 
-    const getAutocomplete = async function(entityType, params) {
+    const getAutocomplete = async function(entityType, params, config) {
         // /autocomplete/<type> only exists for native types + keywords. Small
         // closed vocabs (countries, work-types, sdgs, …) are searched locally
         // over the fetched-once full list (oxjob #396; generalizes zd#7567).
@@ -453,10 +457,10 @@ const api = (function () {
                 search: params?.q || "",
                 "per-page": 25,
                 select: "id,display_name,works_count",
-            });
+            }, config);
             return resp.results;
         }
-        const response = await get(`/autocomplete/${entityType}`, params);
+        const response = await get(`/autocomplete/${entityType}`, params, config);
         //console.log("getAutocomplete", response);
         return response.results;
     };

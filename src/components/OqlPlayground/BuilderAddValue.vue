@@ -144,25 +144,35 @@ const pick = (r) => {
   search.value = ""; results.value = [];
 };
 
+// Ticket + abort: drop a slow older response so it can't overwrite a newer one.
+let runTicket = 0;
+let runAbort = null;
 const run = debounce(async (rawQ) => {
   if (!isPicker.value || !props.autocompleteEntity) { results.value = []; return; }
   // strip a typed `not ` prefix — the search runs on the real query (#603 r28)
   const q = parseNotQuery(rawQ).query;
+  const ticket = ++runTicket;
+  runAbort?.abort();
+  const ctrl = new AbortController();
+  runAbort = ctrl;
   loading.value = true;
   try {
     if (props.listVocab) {
       const all = await getEnumValues(props.autocompleteEntity);
+      if (ticket !== runTicket) return;
       const needle = (q || "").toLowerCase();
       results.value = needle
         ? all.filter((v) => v.display_name.toLowerCase().includes(needle) ||
                             String(v.value).toLowerCase().includes(needle))
         : all;
     } else {
-      results.value = (await api.getAutocomplete(props.autocompleteEntity, { q })) || [];
+      const r = (await api.getAutocomplete(props.autocompleteEntity, { q }, { signal: ctrl.signal })) || [];
+      if (ticket !== runTicket) return;
+      results.value = r;
     }
-  } catch { results.value = []; }
-  finally { loading.value = false; }
-}, 250);
+  } catch (e) { if (e?.code === "ERR_CANCELED" || ticket !== runTicket) return; results.value = []; }
+  finally { if (ticket === runTicket) loading.value = false; }
+}, 150);
 
 // Suppression must be INSTANT (not on the debounce): stale results sitting under an armed
 // Enter while the user types "n…" would pick something they never searched for. (#603 r28)

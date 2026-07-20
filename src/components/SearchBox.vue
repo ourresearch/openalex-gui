@@ -688,6 +688,9 @@ function submitIfHasSearch() {
 
 // Autocomplete
 let fetchId = 0;
+// Abort the previous keystroke's in-flight requests so responses can't pile up
+// or arrive out of order (the fetchId guard below is the belt to this suspender).
+let fetchAbort = null;
 
 function entityIcon(type) {
   return getEntityConfig(type)?.icon || 'mdi-tag-outline';
@@ -732,27 +735,27 @@ function topByWorksCount(items, n) {
   return [...items].sort((a, b) => (b.works_count || 0) - (a.works_count || 0)).slice(0, n);
 }
 
-async function searchEntities(entityType, query) {
+async function searchEntities(entityType, query, signal) {
   // Use the search endpoint for full-text matching (not just prefix).
   // Fetch extra results so we can filter/re-rank client-side by works_count.
   const resp = await api.get(`/${entityType}`, {
     search: query,
     per_page: 10,
     select: 'id,display_name,works_count',
-  });
+  }, signal ? { signal } : undefined);
   return resp.results || [];
 }
 
 // Look up a source (journal) by ISSN so an ISSN-shaped query surfaces the
 // matching journal directly in the dropdown (zd#8095), the way DOI/ORCID jump
 // to their entity. Returns the source result or null.
-async function lookupSourceByIssn(issn) {
+async function lookupSourceByIssn(issn, signal) {
   try {
     const resp = await api.get('/sources', {
       filter: `issn:${issn}`,
       per_page: 1,
       select: 'id,display_name,works_count',
-    });
+    }, signal ? { signal } : undefined);
     return (resp.results && resp.results[0]) || null;
   } catch (e) {
     return null;
@@ -766,12 +769,16 @@ async function fetchSuggestions(query) {
     return;
   }
   const id = ++fetchId;
+  fetchAbort?.abort();
+  const abortCtrl = new AbortController();
+  fetchAbort = abortCtrl;
+  const signal = abortCtrl.signal;
   const currentEntity = entityType.value;
   const config = getEntityConfig(currentEntity);
 
   // Kick off an ISSN→journal lookup in parallel; merged into the dropdown below.
   const issn = extractIssn(query);
-  const issnSourcePromise = issn ? lookupSourceByIssn(issn) : null;
+  const issnSourcePromise = issn ? lookupSourceByIssn(issn, signal) : null;
 
   const tag = (items, type) =>
     dedupeByName(items || []).map(item => ({
@@ -783,13 +790,13 @@ async function fetchSuggestions(query) {
   if (currentEntity === 'works') {
     // Works SERP: suggest authors, institutions, keywords (as filters) + work titles
     const calls = [
-      searchEntities('authors', query),
-      searchEntities('institutions', query),
-      api.getAutocomplete('keywords', { q: query }),
+      searchEntities('authors', query, signal),
+      searchEntities('institutions', query, signal),
+      api.getAutocomplete('keywords', { q: query }, { signal }),
     ];
     const includeWorks = countCompleteWords(query) >= 3;
     if (includeWorks) {
-      calls.push(api.getAutocomplete('works', { q: query }));
+      calls.push(api.getAutocomplete('works', { q: query }, { signal }));
     }
 
     const settled = await Promise.allSettled(calls);
@@ -809,7 +816,13 @@ async function fetchSuggestions(query) {
     return;
   } else if (config?.isNative) {
     // Native entities (authors, institutions, sources, publishers, funders, etc.)
-    const results = await searchEntities(currentEntity, query);
+    let results;
+    try {
+      results = await searchEntities(currentEntity, query, signal);
+    } catch (e) {
+      if (e?.code === 'ERR_CANCELED') return;
+      throw e;
+    }
     if (id !== fetchId) return;
     let items = tag(results, currentEntity);
     if (currentEntity === 'authors') {
@@ -818,7 +831,13 @@ async function fetchSuggestions(query) {
     suggestions.value = topByWorksCount(items, 5);
   } else {
     // Non-native entities with autocomplete (keywords, topics, subfields, etc.)
-    const results = await api.getAutocomplete(currentEntity, { q: query });
+    let results;
+    try {
+      results = await api.getAutocomplete(currentEntity, { q: query }, { signal });
+    } catch (e) {
+      if (e?.code === 'ERR_CANCELED') return;
+      throw e;
+    }
     if (id !== fetchId) return;
     suggestions.value = tag(results || [], currentEntity).slice(0, 5);
   }
@@ -838,7 +857,7 @@ async function fetchSuggestions(query) {
   dropdownOpen.value = suggestions.value.length > 0;
 }
 
-const debouncedFetch = debounce(fetchSuggestions, 200);
+const debouncedFetch = debounce(fetchSuggestions, 100);
 
 watch(searchString, (val) => {
   if (!isUserTyping.value) return;

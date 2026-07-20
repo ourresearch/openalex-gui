@@ -434,18 +434,25 @@ function toggleEntity(value, row = null) {
 }
 
 // --- data loading ---
+// Ticket guard: loadEntities is an injected prop (no abort handle), so a slow
+// older response must be dropped here or it overwrites a newer one.
+let loadTicket = 0;
 const loadEntitiesDebounced = _.debounce(async () => {
   if (isCollectionField.value) return;
+  const ticket = ++loadTicket;
   entitiesLoading.value = true;
   try {
-    entityRows.value = await props.loadEntities(searchString.value || '') || [];
+    const rows = await props.loadEntities(searchString.value || '') || [];
+    if (ticket !== loadTicket) return;
+    entityRows.value = rows;
   } catch (e) {
+    if (ticket !== loadTicket) return;
     console.error('EntityValuePicker: loadEntities failed', e);
     entityRows.value = [];
   } finally {
-    entitiesLoading.value = false;
+    if (ticket === loadTicket) entitiesLoading.value = false;
   }
-}, 250, { leading: true });
+}, 200, { leading: true });
 
 watch(searchString, () => { loadEntitiesDebounced(); });
 
