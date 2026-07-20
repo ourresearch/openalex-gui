@@ -2,7 +2,7 @@
   <SettingsSection v-if="isEligible" title="High-volume user keys">
     <template #subtitle>
       <div class="text-body-2 text-medium-emphasis mb-2">
-        Raise selected members' personal API keys to a <strong>$25/day</strong> cost cap.
+        Raise selected members' personal API keys to a <strong>{{ boostCapDisplay }}</strong> cost cap.
         Members must already have an OpenAlex account and an email on one of your
         organization's domains. Assignments take effect within ~60 seconds.
       </div>
@@ -202,7 +202,7 @@ const revokeSlotIndex = ref(null);
 const revoking = ref(false);
 
 // Plans that may grant high-volume boost slots. Kept in sync with
-// plans.BOOST_ELIGIBLE_ORG_PLANS on the backend and migration 063's
+// plans.BOOST_ELIGIBLE_ORG_PLANS on the backend and migration 064's
 // api_keys_view boost gate. premium-10M is the internal OpenAlex org.
 const BOOST_ELIGIBLE_ORG_PLANS = [
   'partner',
@@ -213,6 +213,12 @@ const BOOST_ELIGIBLE_ORG_PLANS = [
 ];
 const isEligible = computed(() =>
   BOOST_ELIGIBLE_ORG_PLANS.includes(props.organization?.plan)
+);
+
+// Boost cost cap per granting-org plan. Kept in sync with
+// plans.BOOST_API_MAX_PER_DAY_BY_PLAN / boost_api_max_per_day().
+const boostCapDisplay = computed(() =>
+  props.organization?.plan === 'premium-10M' ? '$100/day' : '$25/day'
 );
 
 function formatDate(iso) {
