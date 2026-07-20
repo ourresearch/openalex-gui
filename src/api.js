@@ -6,6 +6,7 @@ import {url} from "@/url";
 import {oqlForUrl} from "@/oqlSerialize";
 import {createDisplayFilter, createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
 import {openAlexCountries} from "@/countries";
+import {isSmallVocabType, searchVocab} from "@/vocabAutocomplete";
 import {getFacetConfig} from "@/facetConfigUtils";
 import {collectionMatchType, filterCollectionsForField} from "@/collectionFilter";
 import {openAlexSdgs} from "@/sdgs";
@@ -438,6 +439,23 @@ const api = (function () {
     };
 
     const getAutocomplete = async function(entityType, params) {
+        // /autocomplete/<type> only exists for native types + keywords. Small
+        // closed vocabs (countries, work-types, sdgs, …) are searched locally
+        // over the fetched-once full list (oxjob #396; generalizes zd#7567).
+        if (isSmallVocabType(entityType)) {
+            return searchVocab(entityType, params?.q);
+        }
+        // awards: no /autocomplete endpoint and far too many to fetch — fall
+        // back to the list endpoint's full-text search (stemmed, not prefix,
+        // but it finds funder/program names like "nih").
+        if (entityType === "awards") {
+            const resp = await get(`/awards`, {
+                search: params?.q || "",
+                "per-page": 25,
+                select: "id,display_name,works_count",
+            });
+            return resp.results;
+        }
         const response = await get(`/autocomplete/${entityType}`, params);
         //console.log("getAutocomplete", response);
         return response.results;
