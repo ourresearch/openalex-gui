@@ -66,10 +66,10 @@ const store = useStore();
 const route = useRoute();
 const isMenuOpen = ref(false);
 
-// OQL mode (#464 Phase 2b): page size is owned by the canonical query store's
-// viewState (carried inline in the OQO), not the legacy serpPageSize store — the
-// inbound executeOql channel ignores URL per_page, so the URL path was dead in OQL
-// mode. Drive the store; basic/chip + flag-off keep url.setPerPage. Replace intent.
+// OQL mode (#464 Phase 2b; #661): page size is owned by the canonical query
+// store's client-side paging slice (POSTed as a sibling param beside the OQO),
+// not the legacy serpPageSize store — the inbound executeOql channel ignores URL
+// per_page, so the URL path was dead in OQL mode. Drive the store; basic/chip + flag-off keep url.setPerPage. Replace intent.
 const inOqlMode = computed(
   () => !!store.getters.featureFlags['oql'] && !!route.query.oql
 );

@@ -210,7 +210,7 @@ const inOqlMode = computed(
 // captured into the view on save.
 const currentSortBy = computed(() => {
   if (inOqlMode.value) {
-    const sortBy = store.state.query?.queryOqo?.sort_by || [];
+    const sortBy = store.state.query?.sort || [];
     return sortBy.length ? sortBy : null;
   }
   const field = url.getSortField(route);

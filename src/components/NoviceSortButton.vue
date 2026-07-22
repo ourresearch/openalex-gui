@@ -86,14 +86,15 @@ const store = useStore();
 const entityType = computed(() => store.getters.entityType);
 const selectedSort = computed(() => url.getSort(route));
 
-// OQL mode (#464 Phase 2a): the sort is part of the canonical query store, not a
-// `?sort=` URL param (an OQL query carries its sort inside `?oql=`). When an OQL
-// query is in play we both READ the active sort from the store's `queryOqo.sort_by`
-// and WRITE edits through the `query/setSort` action (which drives the POST-OQO
-// fetch). Basic/chip (OXURL) mode is unchanged — it keeps using `?sort=` via url.*.
+// OQL mode (#464 Phase 2a; #661 split): the sort is TRANSIENT client state in the
+// canonical query store (`state.query.sort`), not a `?sort=` URL param and not
+// part of the OQO/OQL — it's POSTed as a sibling request param and resets on
+// every new query. We READ it here and WRITE edits through the `query/setSort`
+// action (which drives the POST-OQO fetch). Basic/chip (OXURL) mode is
+// unchanged — it keeps using `?sort=` via url.*.
 const oqlFlag = computed(() => !!store.getters.featureFlags['oql']);
 const inOqlMode = computed(() => oqlFlag.value && !!route.query.oql);
-const storeSortBy = computed(() => store.state.query?.queryOqo?.sort_by || []);
+const storeSortBy = computed(() => store.state.query?.sort || []);
 
 // Entity-specific sort options. If an entry is present here, it overrides
 // the facetConfigs-driven defaults so we can control collection + set for a page.

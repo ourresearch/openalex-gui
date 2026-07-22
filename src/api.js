@@ -252,13 +252,14 @@ const api = (function () {
     // rejects strings with "string indices must be integers"). filterKey is the
     // column id (identity mapping with the legacy `group_by=` param).
     const buildGroupByOqo = function (oqo, filterKey) {
-        const aggOqo = { ...oqo, group_by: [{ column_id: filterKey }], per_page: 200 }
-        delete aggOqo.cursor
-        delete aggOqo.page
-        delete aggOqo.sort_by
-        delete aggOqo.select
-        return aggOqo
+        // The incoming executionOqo is already pure "which rows" (#661 — sort,
+        // select and paging live outside the OQO), so there's nothing to strip:
+        // just point group_by at this facet's column. The bucket-set size
+        // (per_page=200, matching the legacy makeGroupByUrl) rides as a sibling
+        // request param, like all view params.
+        return { ...oqo, group_by: [{ column_id: filterKey }] }
     }
+    const GROUP_BY_PARAMS = { per_page: 200 }
 
     // The same aggregation as a GET link (#563 "View in API"): the API root
     // executes `?oqo=<json>` exactly like the POST body, so the link returns the
@@ -266,12 +267,13 @@ const api = (function () {
     // (`?oql=…&group_by=…` does NOT work: the legacy group_by param is ignored
     // on the root endpoint and the response's group_by comes back empty.)
     const makeOqoGroupByUrl = function (oqo, filterKey) {
-        return `${urlBase.api}/?oqo=${encodeURIComponent(JSON.stringify(buildGroupByOqo(oqo, filterKey)))}`
+        const oqoJson = encodeURIComponent(JSON.stringify(buildGroupByOqo(oqo, filterKey)))
+        return `${urlBase.api}/?oqo=${oqoJson}&per_page=${GROUP_BY_PARAMS.per_page}`
     }
 
     const getGroupsForOqo = async function (entityType, filterKey, oqo, options = {}) {
         if (!oqo || !filterKey) return []
-        const respData = await executeOqo(buildGroupByOqo(oqo, filterKey))
+        const respData = await executeOqo(buildGroupByOqo(oqo, filterKey), GROUP_BY_PARAMS)
         return buildGroupDisplayFilters(entityType, filterKey, respData.group_by, options.hideUnknown)
     }
 
@@ -597,19 +599,23 @@ const api = (function () {
         return resp.data;
     }
 
-    const executeOqo = async function(oqo) {
+    const executeOqo = async function(oqo, params = {}) {
         // Execute a canonical OQO directly (oxjob #464 pillar A). Same execute
         // surface as executeOql (POST /, no request-line cap — the OQO can be an
         // arbitrarily large boolean tree), but the query is already structured so
         // the server skips the OQL parse. Response is the normal {meta, results,
         // group_by} envelope with meta.x_query = {oql, oqo, url} echoing the
-        // server-canonical query. A single OQO carries the whole request inline
-        // (entity + filters + sort + select + group_by + page/per_page/cursor),
-        // so this is the one channel pillar A POSTs once the canonical store is
-        // authoritative (Phase 1). Throws on a 4xx with a structured
-        // {validation: {errors: [...]}} body, like executeOql.
+        // server-canonical query.
+        //
+        // #661 query/view split: the OQO is pure "which rows" (get_rows, corpus,
+        // filter_rows, group_by, sample/seed). View params — sort/select/page/
+        // per_page/cursor, classic wire syntax ("sort": "cited_by_count:desc",
+        // "select": "id,doi") — ride as SIBLING body keys next to `oqo`. The
+        // server's strict-body allowlist accepts exactly these; a sibling wins
+        // over any (transitional) embedded value. Throws on a 4xx with a
+        // structured {validation: {errors: [...]}} body, like executeOql.
         const url = `${urlBase.api}/?mailto=ui@openalex.org`;
-        const resp = await axios.post(url, { oqo }, axiosConfig());
+        const resp = await axios.post(url, { oqo, ...params }, axiosConfig());
         return resp.data;
     }
 

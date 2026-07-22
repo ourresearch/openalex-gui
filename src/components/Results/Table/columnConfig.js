@@ -14,7 +14,7 @@
  * each extracted item and bare-formats it.
  *
  * QA-051 discipline: an unknown, ineligible, or malformed key is dropped with a
- * console.warn — NEVER thrown — so a bad URL `column=` value can't blank the
+ * console.warn — NEVER thrown — so a bad stored column key can't blank the
  * whole table.
  */
 

@@ -130,7 +130,7 @@
                  the SAME component table view uses (job #304). Edits are
                  EPHEMERAL: the draft seeds from the user's current column set
                  but only shapes THIS export; it is never written back to the
-                 shared `column=` / localStorage state. The chip rail IS the CSV
+                 sticky localStorage column preference. The chip rail IS the CSV
                  header row (no separate preview). Hidden for RIS/WoS. -->
             <div v-if="isCsvFormat || isPresetFormat" class="export-columns-section">
               <div class="d-flex align-center mb-2">
@@ -421,14 +421,12 @@ function goToSignUp() {
 
 // "Open in table view" — DISABLED (Jason, 2026-06-01): editing the table
 // out-of-band from the export dialog is idiosyncratic. Kept (with the button in
-// the template) in case we want it back. It PROMOTES the ephemeral draft to the
-// shared column state (writes `column=` + switches to table view) in ONE
-// navigation — two separate setColumn/setResultsView calls race (router.push is
-// async; the second reads the stale query and drops `column=`). See url.js.
-// function openInTableView() {
-//   url.setColumnsAndResultsView([...exportColumnKeys.value], 'table');
-//   closeExportDialog();
-// }
+// the template) in case we want it back. If revived it would PROMOTE the
+// ephemeral draft to the sticky column preference — via
+// useColumnsState.setColumns + url.setResultsView('table') now that columns are
+// localStorage-only view state (#661; the old url.setColumnsAndResultsView
+// `column=` helper is gone).
+// function openInTableView() { ... }
 
 async function fetchRateLimit() {
   if (!userApiKey.value) return;
@@ -483,7 +481,7 @@ async function startExport() {
   }
 
   // CSV export is a snapshot of the user's current column selection (#304
-  // C-lite). Read the live `column=` keys via useColumnsState, translate
+  // C-lite). Read the live sticky column keys via useColumnsState, translate
   // each to its server export spec via getColumnExportSpec, and send as
   // the `columns_v2` JSON array. Non-CSV formats (RIS, WoS) are fixed
   // shape and don't take a column list.

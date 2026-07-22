@@ -225,8 +225,6 @@ const clickOption = (key) => {
     url.toggleSort(key);
   } else if (props.action === 'group_by') {
     url.toggleGroupBy(key);
-  } else if (props.action === 'column') {
-    url.toggleColumn(key);
   } else if (props.action === 'filter') {
     emit('click', key);
   }

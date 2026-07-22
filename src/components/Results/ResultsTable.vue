@@ -115,19 +115,20 @@ const props = defineProps({
 // value-picker so the property's existing filter UI is reused verbatim.
 const emit = defineEmits(['filter-column']);
 
-// The ordered column keys come from the URL (`?column=…`), falling back to
-// localStorage then per-entity defaults — resolved in useColumnsState. The
-// mutations (drag-reorder/remove) write the URL + mirror localStorage.
+// The ordered column keys are the sticky per-entity preference (localStorage,
+// falling back to per-entity defaults) — resolved in useColumnsState. The
+// mutations (drag-reorder/remove) silently persist; they never touch the URL
+// or the query (#661 column-model redesign).
 const { columnKeys, removeColumn, setColumns } = useColumnsState(toRef(props, 'entityType'));
 
-// OQL mode: sort is part of the canonical query store (`queryOqo.sort_by`), not
-// a `?sort=` URL param — the OQL fetch path ignores ?sort= entirely. So both the
-// active-sort read and the sort write must branch on mode, mirroring
-// NoviceSortButton's gate. Basic/chip (OXURL) + flag-off keep using ?sort=.
+// OQL mode: sort is transient client state in the canonical query store
+// (`state.query.sort`, #661 — never in the OQO or the URL; POSTed as a sibling
+// param). So both the active-sort read and the sort write must branch on mode,
+// mirroring NoviceSortButton's gate. Basic/chip (OXURL) + flag-off keep ?sort=.
 const inOqlMode = computed(
   () => !!store.getters.featureFlags['oql'] && !!route.query.oql,
 );
-const storeSortBy = computed(() => store.state.query?.queryOqo?.sort_by || []);
+const storeSortBy = computed(() => store.state.query?.sort || []);
 
 // Active sort state, reflected on the headers (check next to the active
 // direction + a small arrow indicator beside the label). In OQL mode the
@@ -220,7 +221,7 @@ const results = computed(() => props.resultsObject?.results ?? []);
 
 // Resolve the ordered keys to renderable column descriptors. resolveColumns
 // drops unknown/ineligible/malformed keys (with a console.warn) and never
-// throws, so a bad URL `column=` value degrades gracefully instead of blanking
+// throws, so a bad stored column key degrades gracefully instead of blanking
 // the table (QA-051 discipline). We then layer on the display-only flags
 // (alignment + width hints) derived from the render kind.
 const columns = computed(() =>

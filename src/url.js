@@ -14,7 +14,7 @@ import {
 } from "./filterConfigs";
 import {getEntityConfig} from "@/entityConfigs";
 import * as openalexId from "@/openalexId";
-import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";
+import {getActionConfig, getActionDefaultValues} from "@/actionConfigs";
 import {getFacetConfig} from "@/facetConfigUtils";
 import {urlBase} from "@/apiConfig";
 import {oqlForUrl} from "@/oqlSerialize";
@@ -825,18 +825,6 @@ const clearNewSearch = function () {
 }
 
 
-const setDefaultActions = function () {
-    console.log("setDefaultActions")
-    pushToRoute(router, {
-        name: "Serp",
-        query: {
-            sort: getActionDefaultsStr("sort", router.currentRoute.value.query),
-            column: getActionDefaultsStr("column", router.currentRoute.value.query),
-        }
-    })
-}
-
-
 const getActionValues = function (action) {
     const val = router.currentRoute.value.query[action]
     if (!val) return []
@@ -972,17 +960,17 @@ const OQL_DEFAULT_PER_PAGE = 25
 
 // Results-per-page for BOTH the pager and the API fetch, for the current view.
 //
-// OQL mode (#464 Phase 2b): the EXECUTED page size is owned by the canonical query
-// store's `viewState.per_page` (echoed back by the server after every store-driven
-// fetch), NOT the legacy serpPageSize store. Reading it here means the pager, the
-// "1–N of M" label, showPagination, and the page-size checkmark all stay consistent
-// with what the OQL endpoint actually returned. Falls back to the API default (25)
-// when unset (e.g. first load, before any paging edit). Basic/chip + flag-off modes
-// are unchanged — they keep the per-view serpPageSize store + localStorage pref.
+// OQL mode (#464 Phase 2b; #661): the EXECUTED page size is owned by the canonical
+// query store's client-side `paging.per_page` (a sibling request param since the
+// query/view split), NOT the legacy serpPageSize store. Reading it here means the
+// pager, the "1–N of M" label, showPagination, and the page-size checkmark all stay
+// consistent with what the OQL endpoint is actually sent. Falls back to the API
+// default (25) when unset (e.g. first load, before any paging edit). Basic/chip +
+// flag-off modes are unchanged — they keep the per-view serpPageSize store.
 const getPerPage = function() {
     const r = router.currentRoute.value
     if (store.getters.featureFlags?.["oql"] && r?.query?.oql) {
-        return store.state.query?.viewState?.per_page ?? OQL_DEFAULT_PER_PAGE
+        return store.state.query?.paging?.per_page ?? OQL_DEFAULT_PER_PAGE
     }
     const cfg = pageSizeStoreFor()
     return store.state[cfg.state] ?? cfg.default
@@ -1011,35 +999,6 @@ const adoptPerPageFromUrl = function(route) {
     if (Number.isFinite(pp) && pp >= 1 && pp <= 200 && pp !== getPerPage()) {
         store.commit(pageSizeStoreFor(r).mutation, { value: pp, persist: false })
     }
-}
-
-
-const setColumn = function (filterKeys) {
-    pushQueryParam("column", filterKeys.join(","))
-}
-
-
-const addColumn = function (filterKey) {
-    const extantKeys = getColumn(router.currentRoute.value)
-    const newKeys = [...extantKeys, filterKey]
-    pushQueryParam("column", newKeys.join(","))
-}
-
-
-const toggleColumn = function (filterKey) {
-    const extantKeys = getColumn(router.currentRoute.value)
-    let newKeys
-    if (extantKeys.includes(filterKey)) {
-        newKeys = extantKeys.filter(k => k !== filterKey)
-    } else {
-        newKeys = [...extantKeys, filterKey]
-    }
-    pushQueryParam("column", newKeys.join(","))
-}
-
-
-const getColumn = function (route) {
-    return route.query.column?.split(",") ?? []
 }
 
 
@@ -1094,16 +1053,6 @@ const toggleView = function (viewId) {
 const setResultsView = function (resultsView) {
     store.commit("setSerpResultsView", { value: resultsView, persist: true })
 }
-
-// Set the `column` list AND switch to table view. `column` is still a URL param;
-// the results-view is now store chrome, so this is one column push + one store
-// commit (no two-push race to avoid anymore). Used by the export dialog's "Open
-// in table view" (job #304).
-const setColumnsAndResultsView = function (filterKeys, resultsView) {
-    store.commit("setSerpResultsView", { value: resultsView, persist: true })
-    pushQueryParam("column", filterKeys.join(","))
-}
-
 
 // #492 Phase 4: group-by widgets are recipient-local SERP chrome, OFF the URL
 // (charter decision 33). The active list lives in a per-entity session store
@@ -1382,7 +1331,6 @@ const url = {
     setIsFilterOptionNegated,
     findFilterIndex,
 
-    setDefaultActions,
     getActionValues,
     getActionValueKeys,
     setActionValueKeys,
@@ -1394,9 +1342,6 @@ const url = {
     toggleGroupBy,
     deleteGroupBy,
     groupByMoneySignature,
-    setColumn,
-    addColumn,
-    toggleColumn,
 
     getPerPage,
     setPerPage,
@@ -1409,7 +1354,6 @@ const url = {
     getSortField,
     getSortDirection,
     getGroupBy,
-    getColumn,
     addGroupBy,
 
     setSidebar,
@@ -1436,7 +1380,6 @@ const url = {
     isViewSet,
     toggleView,
     setResultsView,
-    setColumnsAndResultsView,
     isTableView,
 
 }

@@ -340,7 +340,9 @@ watch(
     const isStale = beginFetch();
     store.state.isLoading = true;
     try {
-      const resp = await api.executeOqo(oqo);
+      // #661 query/view split: the OQO is pure "which rows"; sort + paging ride
+      // as sibling params (classic wire syntax) built by executionParams.
+      const resp = await api.executeOqo(oqo, store.getters['query/executionParams']);
       if (isStale()) return;
       resultsObject.value = resp;
       store.state.resultsObject = resp;
