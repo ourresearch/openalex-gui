@@ -265,6 +265,7 @@ const supportingMembers = ref([
   'Universiteit Leiden (CWTS)',
   'University Hospital Carl Gustav Carus',
   'University Hospital Sussex NHS Foundation Trust',
+  'University Medical Centre Groningen',
   'University of Birmingham',
   'University of Bristol',
   'University of California System',
