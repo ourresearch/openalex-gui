@@ -489,90 +489,9 @@
           </template>
         </div>
 
-        <!-- sort by — its own numbered line (kept as a component row; aligns with
-             the server's sort directive line on #463's text pane). -->
-        <div v-if="sortShown" class="bline" :style="{ '--depth': 0 }">
-          <div class="bl-body">
-            <v-chip class="kw-chip" size="small" label variant="flat">sort by</v-chip>
-            <template v-for="(s, i) in sortBy" :key="i">
-              <span v-if="i > 0" class="sort-sep">,</span>
-              <v-menu location="bottom start" offset="4">
-                <template #activator="{ props: mp }">
-                  <v-chip v-bind="mp" class="sort-chip" label size="small"
-                    variant="flat" append-icon="mdi-menu-down">{{ sortFieldTitle(s.column_id) }}</v-chip>
-                </template>
-                <v-card min-width="220" max-height="320" class="menu-card" style="overflow-y:auto">
-                  <v-list density="compact" class="py-0">
-                    <v-list-item v-for="o in sortItems" :key="o.value" :title="o.title"
-                      :active="s.column_id === o.value" @click="s.column_id = o.value; onSortChange()" />
-                  </v-list>
-                </v-card>
-              </v-menu>
-              <v-menu location="bottom start" offset="4">
-                <template #activator="{ props: mp }">
-                  <v-chip v-bind="mp" class="sort-chip" label size="small"
-                    variant="flat" append-icon="mdi-menu-down">{{ s.direction }}</v-chip>
-                </template>
-                <v-card min-width="100" class="menu-card">
-                  <v-list density="compact" class="py-0">
-                    <v-list-item title="desc" :active="s.direction === 'desc'" @click="s.direction = 'desc'; onSortChange()" />
-                    <v-list-item title="asc" :active="s.direction === 'asc'" @click="s.direction = 'asc'; onSortChange()" />
-                  </v-list>
-                </v-card>
-              </v-menu>
-              <v-btn class="sort-remove" icon size="x-small" variant="text" density="comfortable" @click="removeSort(i)">
-                <v-icon size="13">mdi-close</v-icon>
-              </v-btn>
-            </template>
-            <template v-if="sortPending">
-              <span v-if="sortBy.length" class="sort-sep">,</span>
-              <v-menu v-model="sortPendingMenuOpen" location="bottom start" offset="4">
-                <template #activator="{ props: mp }">
-                  <v-chip v-bind="mp" class="sort-chip pending" label size="small" variant="outlined">select field</v-chip>
-                </template>
-                <v-card min-width="220" max-height="320" class="menu-card" style="overflow-y:auto">
-                  <v-list density="compact" class="py-0">
-                    <v-list-item v-for="o in sortItems" :key="o.value" :title="o.title" @click="addSortEntry(o.value)" />
-                  </v-list>
-                </v-card>
-              </v-menu>
-            </template>
-            <v-menu v-if="sortBy.length" location="bottom start" offset="4">
-              <template #activator="{ props: mp }">
-                <v-btn v-bind="mp" class="add-sort-btn hover-reveal" icon size="x-small" variant="text" density="comfortable">
-                  <v-icon size="16">mdi-plus</v-icon>
-                  <v-tooltip activator="parent" location="top">Add a sort</v-tooltip>
-                </v-btn>
-              </template>
-              <v-card min-width="220" max-height="320" class="menu-card" style="overflow-y:auto">
-                <v-list density="compact" class="py-0">
-                  <v-list-item v-for="o in sortItems" :key="o.value" :title="o.title" @click="addSortEntry(o.value)" />
-                </v-list>
-              </v-card>
-            </v-menu>
-          </div>
-        </div>
-
-        <!-- return — which columns come back (OQL `return …`) -->
-        <div v-if="returnShown" class="bline" :style="{ '--depth': 0 }">
-          <div class="bl-body">
-            <v-chip class="kw-chip" size="small" label variant="flat">return</v-chip>
-            <v-chip v-for="c in returnColumns" :key="c.key" class="return-chip" label size="small" variant="flat"
-              :closable="returnColumns.length > 1" @click:close="removeColumn(c.key)">{{ c.label }}</v-chip>
-            <AddColumn :entity-type="getRows">
-              <template #activator="{ props: mp }">
-                <v-btn v-bind="mp" class="add-sort-btn hover-reveal" icon size="x-small" variant="text" density="comfortable">
-                  <v-icon size="16">mdi-plus</v-icon>
-                  <v-tooltip activator="parent" location="top">Add a column</v-tooltip>
-                </v-btn>
-              </template>
-            </AddColumn>
-            <v-btn class="sort-remove" icon size="x-small" variant="text" density="comfortable" @click="resetReturn">
-              <v-icon size="13">mdi-close</v-icon>
-              <v-tooltip activator="parent" location="top">Back to default columns</v-tooltip>
-            </v-btn>
-          </div>
-        </div>
+        <!-- (#661: the `sort by` and `return` lines are GONE — sort is transient
+             view state and columns are the sticky table preference; both are the
+             results table's job now. The builder is purely "which rows".) -->
 
         <!-- root add line — the main thing to do next. Hidden when the toolbar is
              shown (its "add filter / columns / sort" live up there instead). -->
@@ -585,9 +504,8 @@
               </template>
               <v-list density="compact">
                 <v-list-item prepend-icon="mdi-plus" title="Add a filter" @click="addRootFilter()" />
-                <v-divider />
-                <v-list-item prepend-icon="mdi-sort" title="Add sort" @click="startSortPending" />
-                <v-list-item v-if="!returnShown" prepend-icon="mdi-table-column-plus-after" title="Add return columns" @click="returnForced = true" />
+                <!-- (#661: "Add sort" / "Add return columns" removed — view state
+                     is the results table's job.) -->
               </v-list>
             </v-menu>
           </div>
@@ -645,11 +563,6 @@ import EntitySelectorButton from "@/components/EntitySelectorButton.vue";
 import OqlDatePicker from "@/components/Oql/OqlDatePicker.vue";
 import BuilderFieldDialog from "@/components/OqlPlayground/BuilderFieldDialog.vue";
 import BuilderAddValue from "@/components/OqlPlayground/BuilderAddValue.vue";
-import AddColumn from "@/components/Results/Table/AddColumn.vue";
-import { resolveColumns } from "@/components/Results/Table/columnConfig";
-import { useColumnsState } from "@/composables/useColumnsState";
-import { useLocalColumns } from "@/composables/useLocalColumns";
-import { facetConfigs } from "@/facetConfigs";
 import { ALL_ENTITY_TYPES } from "@/openalexId";
 import {
   valueKindForProperty, autocompleteEntityFor, isListVocabEntity, isSlugAutocompleteEntity,
@@ -717,7 +630,6 @@ const getRows = ref("works");
 const corpus = ref("core");
 const v2 = ref(null);
 const drafts = ref([]);
-const sortBy = ref([]);
 let suppressCommit = false;
 
 const properties = computed(() => store.getters["oqlBuilder/propsFor"](getRows.value) || {});
@@ -1393,7 +1305,8 @@ function draftLine(d) {
 // returned v2 tree and dropped from the local list.
 function currentOqo() {
   // corpus only applies to works (#523 round 5) — never tag a non-works query with a corpus.
-  const oqo = v2ToOqo({ tree: v2.value, getRows: getRows.value, corpus: getRows.value === "works" ? corpus.value : "core", sortBy: sortBy.value, select: oqoSelect.value });
+  // #661: no sortBy/select — the builder's OQO is pure "which rows".
+  const oqo = v2ToOqo({ tree: v2.value, getRows: getRows.value, corpus: getRows.value === "works" ? corpus.value : "core" });
   // `editing` drafts (a committed flat clause popped open to add a value, via
   // popClauseToDraft) are excluded: they re-render via draftLine, so folding them in
   // too would duplicate the row. Plain new-filter drafts fold once complete.
@@ -3144,13 +3057,10 @@ const copyOql = () => {
   }).catch(() => {});
 };
 const hasQuery = computed(() =>
-  !!(v2.value && v2.value.where) || drafts.value.length > 0
-  || sortBy.value.length > 0 || !columnsAreDefault.value);
+  !!(v2.value && v2.value.where) || drafts.value.length > 0);
 const clearQuery = () => {
   drafts.value = [];
-  sortBy.value = [];
-  returnForced.value = false;
-  if (!columnsAreDefault.value) setColumns(defaultColumnKeys.value);
+  // (#661: sort/columns are view state — clearing the query doesn't touch them.)
   v2.value = null;            // wipe the committed where-tree…
   renderQuery({ swap: true }); // …then re-render the empty starting query
 };
@@ -3293,74 +3203,12 @@ const predColW = computed(() => {
   return `calc(${Math.min(chars, 14)}ch + 10px)`;
 });
 
-// ---- sort -------------------------------------------------------------------
-const sortItems = computed(() => {
-  let opts = [];
-  try {
-    opts = facetConfigs(getRows.value)
-      .filter((c) => (c.actionsPopular || []).includes("sort") || (c.actions || []).includes("sort"))
-      .map((c) => ({ title: c.displayName, value: c.key }));
-  } catch { /* entity may have no configs */ }
-  if (!opts.length) {
-    opts = [
-      { title: "citation count", value: "cited_by_count" },
-      { title: "publication date", value: "publication_year" },
-    ];
-  }
-  const seen = new Set();
-  return opts.filter((o) => !seen.has(o.value) && seen.add(o.value));
-});
-const sortFieldTitle = (col) => (sortItems.value.find((o) => o.value === col) || {}).title || col;
-const sortPending = ref(false);
-const sortPendingMenuOpen = ref(false);
-const sortShown = computed(() => sortBy.value.length > 0 || sortPending.value);
-const startSortPending = () => { sortPending.value = true; nextTick(() => { sortPendingMenuOpen.value = true; }); };
-watch(sortPendingMenuOpen, (open) => { if (!open) setTimeout(() => { sortPending.value = false; }, 120); });
-const addSortEntry = (col) => { sortBy.value.push({ column_id: col, direction: "desc" }); sortPending.value = false; onSortChange(); };
-const removeSort = (i) => { sortBy.value.splice(i, 1); onSortChange(); };
-const onSortChange = () => renderQuery({ swap: true });
-
-// ---- return columns ---------------------------------------------------------
-const { columnKeys, defaultColumnKeys, removeColumn, setColumns } =
-  props.standalone ? useLocalColumns(getRows) : useColumnsState(getRows);
-const returnForced = ref(false);
-const columnsAreDefault = computed(() => JSON.stringify(columnKeys.value) === JSON.stringify(defaultColumnKeys.value));
-const returnShown = computed(() => !columnsAreDefault.value || returnForced.value);
-const returnColumns = computed(() => resolveColumns(getRows.value, columnKeys.value));
-const resetReturn = () => {
-  returnForced.value = false;
-  if (!columnsAreDefault.value) setColumns(defaultColumnKeys.value);
-};
-const selectNameForKey = (k) => {
-  const base = String(k).split(":")[0];
-  for (const cand of [base, base.split(".")[0]]) {
-    const p = properties.value[cand];
-    if (p && (p.actions || []).includes("select")) return cand;
-  }
-  return null;
-};
-const oqoSelect = computed(() => {
-  if (columnsAreDefault.value) return null;
-  const names = [...new Set(columnKeys.value.map(selectNameForKey).filter(Boolean))];
-  return names.length ? names : null;
-});
-const SELECT_TO_COLUMN_ALIASES = { title: "display_name" };
-const guiKeysFromSelect = (names) => {
-  const out = [];
-  const candidates = [...new Set([...columnKeys.value, ...defaultColumnKeys.value])];
-  for (const raw of names) {
-    const name = SELECT_TO_COLUMN_ALIASES[raw] || raw;
-    if (resolveColumns(getRows.value, [name]).length) { out.push(name); continue; }
-    const hit = candidates.find((k) => String(k).split(":")[0].split(".")[0] === name);
-    if (hit) { out.push(hit); continue; }
-    console.warn(`builder return: no table column for select field "${raw}" — dropped`);
-  }
-  return [...new Set(out)];
-};
-// Changing the return columns is a positive gesture (clicking a column on/off) → it IS
-// a commit (run the query with the new projection), but it's tuning, not a new query →
-// `replace` (don't push a history entry). Non-swap render, explicit commit. (#464 2c)
-watch(columnKeys, () => renderQuery({ swap: false, commit: true, nav: "replace" }));
+// ---- sort / return columns --------------------------------------------------
+// #661: GONE. Sort is transient client state (query.store `state.sort`) and
+// columns are the sticky per-entity localStorage preference (useColumnsState in
+// the results table) — neither is part of the query, so the builder carries no
+// sortBy/oqoSelect/return plumbing and a column change never re-renders or
+// re-runs the query from here. This kills the #471 leak class structurally.
 
 // ---- entity change ----------------------------------------------------------
 watch(getRows, async () => {
@@ -3410,11 +3258,7 @@ const rebuildFromOqo = async (data) => {
     await store.dispatch("oqlBuilder/loadProperties", oqo.get_rows);
   }
   corpus.value = oqo.corpus || "core"; // seed corpus from the loaded query (#481)
-  sortBy.value = (oqo.sort_by || []).map((s) => ({ column_id: s.column_id, direction: s.direction || "asc" }));
-  if (Array.isArray(oqo.select) && oqo.select.length) {
-    const keys = guiKeysFromSelect(oqo.select);
-    if (keys.length) setColumns(keys);
-  }
+  // (#661: any sort_by/select a stale OQO still carries is ignored.)
   renderedOql.value = data.oql || "";
   oxurl.value = data.oxurl || "";
   validation.value = data.validation || null;
