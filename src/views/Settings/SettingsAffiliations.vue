@@ -203,12 +203,12 @@ async function fetchByLineage(rootIds) {
   return results;
 }
 
-async function fetchChildIds(institutionId) {
+async function fetchReseedIds(institutionId) {
   const res = await axios.get(
     `https://api.openalex.org/institutions/${institutionId}?select=id,associated_institutions`
   );
   return (res.data.associated_institutions || [])
-    .filter(assoc => assoc.relationship === 'child')
+    .filter(assoc => assoc.relationship === 'child' || assoc.relationship === 'predecessor')
     .map(assoc => normalizeInstitutionId(assoc.id));
 }
 
@@ -217,19 +217,25 @@ async function fetchDescendants(institutionId) {
     const found = await fetchByLineage([institutionId]);
     const seen = new Set(found.map(inst => normalizeInstitutionId(inst.id)));
 
+    // Two association types fall outside lineage and need re-seeding:
+    //
     // A university system (UC, UT, CSU, UNC...) lists its campuses as `child`,
     // but OpenAlex deliberately keeps the system out of those campuses' lineage
     // -- so the query above returns the system alone and the org can curate
-    // nothing beneath it. Re-seed with any child lineage missed, which pulls in
-    // the campuses and their own descendants.
+    // nothing beneath it.
     //
-    // Only the *uncovered* children are re-seeded. Under an ordinary parent the
+    // A merged university (Université de Toulouse and other post-merger orgs)
+    // lists the entity it absorbed as `predecessor`. The old entity keeps
+    // accumulating records from historical affiliation strings, and the
+    // successor's curators are the only people left to fix them.
+    //
+    // Only the *uncovered* ids are re-seeded. Under an ordinary parent the
     // children are already in its lineage (Inserm: 314 of 314), so this adds no
     // ids, leaves the filter short, and keeps those orgs exactly as they were.
-    const uncoveredChildren = (await fetchChildIds(institutionId))
+    const uncoveredIds = (await fetchReseedIds(institutionId))
       .filter(id => !seen.has(id));
-    if (uncoveredChildren.length) {
-      for (const inst of await fetchByLineage(uncoveredChildren)) {
+    if (uncoveredIds.length) {
+      for (const inst of await fetchByLineage(uncoveredIds)) {
         const id = normalizeInstitutionId(inst.id);
         if (!seen.has(id)) {
           seen.add(id);
