@@ -152,6 +152,25 @@ const routes = [
         path: `/:entityType(${entityNames})/:entityId`,
         name: 'EntityPage',
         component: EntityPage,
+        beforeEnter: (to, from, next) => {
+            // A namespaced id in the param (/keywords/keywords%2Fkelp) means an old
+            // link minted before oxjob #671's autocomplete fix — normalize it to the
+            // canonical route instead of 404ing.
+            const { entityId } = to.params;
+            if (entityId.includes('/')) {
+                const parsed = openalexId.parseId(entityId);
+                if (parsed) {
+                    next({
+                        name: 'EntityPage',
+                        params: { entityType: parsed.entityType, entityId: parsed.shortId },
+                        query: to.query,
+                        replace: true,
+                    });
+                    return;
+                }
+            }
+            next();
+        },
     },
 
     // user pages and routes

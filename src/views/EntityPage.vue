@@ -337,6 +337,15 @@
       </v-row>
 
     </v-container>
+
+    <v-container v-else-if="entityLoadFailed">
+      <div class="text-h1">
+        Page not found
+      </div>
+      <div class="mt-12">
+        Sorry, there's no {{ myEntityType }} page for "{{ route.params.entityId }}".
+      </div>
+    </v-container>
   </div>
 </template>
 
@@ -373,6 +382,7 @@ const route = useRoute();
 const router = useRouter();
 
 const entityData = ref(null);
+const entityLoadFailed = ref(false);
 const myEntityType = ref(route.params.entityType);
 const worksResultObject = ref({});
 const worksPage = ref(1);
@@ -539,11 +549,21 @@ const allLocations = computed(() => {
 
 const getEntityData = async () => {
   store.state.isLoading = true;
+  entityLoadFailed.value = false;
   // Clear old data first to prevent mixing location and work data
   entityData.value = null;
-  
-  const data = await api.get(apiPath.value);
-  
+
+  let data;
+  try {
+    data = await api.get(apiPath.value);
+  } catch (e) {
+    // Bad/unknown id: without this the page stays blank with the loading bar
+    // stuck on forever (oxjob #671).
+    entityLoadFailed.value = true;
+    store.state.isLoading = false;
+    return;
+  }
+
   // For locations, massage the data to create entity objects for better rendering
   if (myEntityType.value === 'locations' && data) {
     // Add the id field from the route params
