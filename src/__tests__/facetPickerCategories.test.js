@@ -44,9 +44,9 @@ describe("facet picker categories (works)", () => {
 
   it("puts 'institution is in Global South' under Geo, not Other", () => {
     const geoKeys = (byName.geo?.items ?? []).map((i) => i.key);
-    expect(geoKeys).toContain("institutions.is_global_south");
+    expect(geoKeys).toContain("authorships.institutions.is_global_south");
     const otherKeys = (byName.other?.items ?? []).map((i) => i.key);
-    expect(otherKeys).not.toContain("institutions.is_global_south");
+    expect(otherKeys).not.toContain("authorships.institutions.is_global_south");
   });
 
   it("has no facet in two categories", () => {

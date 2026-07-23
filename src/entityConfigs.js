@@ -27,7 +27,7 @@ const entityConfigs = {
         hasSerp: true,
         highlightFilters: [
             {key: "open_access.is_oa", value: true, displayName: "Open Access works"},
-            {key: "institutions.is_global_south", value: true, displayName: "from the Global South"},
+            {key: "authorships.institutions.is_global_south", value: true, displayName: "from the Global South"},
             {key: "type", value: "dataset", displayName: "datasets"},
         ],
         rowsToShowOnEntityPage: [
@@ -246,8 +246,8 @@ const entityConfigs = {
         descr: "Organizations that publish scholarly journals and books",
         eg: "Elsevier",
         placeholder: "Search academic publishers",
-        filterName: "primary_location.source.publisher_lineage",
-        filterKey: "primary_location.source.publisher_lineage",
+        filterName: "primary_location.source.host_organization_lineage",
+        filterKey: "primary_location.source.host_organization_lineage",
         color: "pink",
         hasAutocomplete: true,
         isNative: true,

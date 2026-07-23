@@ -2067,12 +2067,9 @@ const pickField = (tok, key) => {
 
 const openFieldDialog = (tok) => { fieldDialogTok = tok; fieldDialogOpen.value = true; };
 // The field dialog now offers the curated `facetConfigs.js` keys (oxjob #505).
-// A handful of curated keys are GUI-side aliases that drifted from the server
-// `/properties` key the leaf-builder (pickField → properties[key]) needs; bridge
-// them here. Most keys line up 1:1, so this map stays tiny.
+// Facet keys are canonical server keys since #455 (publisher_lineage /
+// institutions.is_global_south re-keyed), so this bridge map stays tiny.
 const OQL_FIELD_KEY_ALIASES = {
-  "primary_location.source.publisher_lineage": "primary_location.source.host_organization_lineage",
-  "institutions.is_global_south": "authorships.institutions.is_global_south",
   "ids.ror": "ror", // #603 r30 — no catalog entry or alternate_keys breadcrumb
 };
 const onFieldDialogSelect = (key) => {

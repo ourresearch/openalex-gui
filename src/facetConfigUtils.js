@@ -45,11 +45,15 @@ const getFacetConfig = function (entityType, key) {
         }
     }
 
-    // WORKAROUND: Server-side bug - the grouping API uses "publisher_lineage" but
-    // the API response object uses "host_organization_lineage". This replacement
-    // ensures we find the correct config. This is a known issue that should be
-    // fixed on the server side but is out of scope for the frontend.
-    key = key.replace("primary_location.source.host_organization_lineage", "primary_location.source.publisher_lineage")
+    // Facets are keyed on the CANONICAL server key (#455); fold the legacy alias
+    // spellings (still valid on input — old URLs, saved searches) to the canonical.
+    // Exact-match, not substring: "institutions.is_global_south" is a substring of
+    // authors' distinct "last_known_institutions.is_global_south" key.
+    if (key === "primary_location.source.publisher_lineage") {
+        key = "primary_location.source.host_organization_lineage"
+    } else if (key === "institutions.is_global_south") {
+        key = "authorships.institutions.is_global_south"
+    }
 
     const myFacetConfig = facetConfigs().find(f => f.key === key && f.entityToFilter === entityType)
     if (!myFacetConfig) {

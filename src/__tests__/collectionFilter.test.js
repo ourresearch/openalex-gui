@@ -150,7 +150,7 @@ describe('worksFieldsForCollectionType (#356 hub "Show works by …")', () => {
 
     it('single-field types resolve to their one works field', () => {
         expect(keys('funders')).toEqual(['funders.id']);
-        expect(keys('publishers')).toEqual(['primary_location.source.publisher_lineage']);
+        expect(keys('publishers')).toEqual(['primary_location.source.host_organization_lineage']);
         // #573: topics.id (any topic) joined primary_topic.id
         expect(keys('topics')).toEqual(['primary_topic.id', 'topics.id']);
         expect(keys('keywords')).toEqual(['keywords.id']);

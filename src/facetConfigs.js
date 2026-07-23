@@ -798,7 +798,9 @@ const facetConfigs = function (entityType) {
             isMultiple: false,
         },
         {
-            key: "primary_location.source.publisher_lineage",
+            // Canonical key (#455); the old alias `primary_location.source.publisher_lineage`
+            // still resolves via the fold in facetConfigUtils.getFacetConfig.
+            key: "primary_location.source.host_organization_lineage",
             entityToFilter: "works",
             entityToSelect: "publishers",
             displayName: "publisher",
@@ -908,7 +910,9 @@ const facetConfigs = function (entityType) {
             },
         },
         {
-            key: "institutions.is_global_south",
+            // Canonical key (#455); the old alias `institutions.is_global_south`
+            // still resolves via the fold in facetConfigUtils.getFacetConfig.
+            key: "authorships.institutions.is_global_south",
             entityToFilter: "works",
             displayName: "global south",
             type: "boolean",
