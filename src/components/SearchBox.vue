@@ -362,6 +362,7 @@ import { facetConfigs } from '@/facetConfigs';
 import { extractIssn, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, requestSearchBoxFocus, consumeSearchBoxFocus } from '@/components/searchBox.helpers';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import { entityCounts, worksCoreCount, compactCount } from '@/entityCounts';
+import { getShortId } from '@/openalexId';
 import EntitySelectorButton from '@/components/EntitySelectorButton.vue';
 
 const props = defineProps({
@@ -880,7 +881,9 @@ function selectSuggestion(item) {
   dismissDropdown();
   searchString.value = '';
 
-  const entityId = item.id?.replace('https://openalex.org/', '') || item.id;
+  // Non-native ids are namespaced (https://openalex.org/keywords/kelp), so
+  // stripping only the domain double-prefixes the route (/keywords/keywords%2Fkelp).
+  const entityId = getShortId(item.id) || item.id;
   router.push({ name: 'EntityPage', params: { entityType: item._acType, entityId } });
 }
 
