@@ -19,7 +19,7 @@ import * as openalexId from "@/openalexId";
 const SMALL_VOCAB_TYPES = new Set([
     "countries", "continents", "languages", "licenses", "oa-statuses",
     "source-types", "institution-types", "work-types", "sdgs",
-    "domains", "fields", "subfields",
+    "domains", "fields", "subfields", "indexes",
 ]);
 
 const MAX_PAGES = 5; // 1,000 rows — far above the largest vocab (subfields, 252)

@@ -133,6 +133,10 @@ const facetCategories = {
         "citation",
         "other",
     ],
+    indexes: [
+        "citation",
+        "other",
+    ],
     keywords: [
         "citation",
         "other",
@@ -1093,10 +1097,10 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "indexed_in",
+            entityToSelect: "indexes",
             entityToFilter: "works",
             displayName: "indexed in",
             type: "selectEntity",
-            isStringOnly: true,
             category: "ids",
             actions: ["filter", "group_by",],
             icon: "mdi-tag-outline",
@@ -3408,6 +3412,15 @@ const facetConfigs = function (entityType) {
             icon: "mdi-lock-open-outline",
             extractFn: (e) => e.description,
         },
+        {
+            key: "description",
+            entityToFilter: "indexes",
+            displayName: "description",
+            type: "search",
+            category: "other",
+            icon: "mdi-tag-outline",
+            extractFn: (e) => e.description,
+        },
 
         // ============================================================
         // DISPLAY NAME CONFIGS FOR SECONDARY ENTITY TYPES
@@ -3566,6 +3579,17 @@ const facetConfigs = function (entityType) {
             actions: ["column"],
             category: "other",
             icon: "mdi-lock-open-outline",
+            extractFn: (entity) => entity.display_name,
+        },
+        {
+            key: "display_name",
+            isIdentityColumn: true,
+            entityToFilter: "indexes",
+            displayName: "name",
+            type: "search",
+            actions: ["column"],
+            category: "other",
+            icon: "mdi-tag-outline",
             extractFn: (entity) => entity.display_name,
         },
         {

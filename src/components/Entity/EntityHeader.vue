@@ -167,6 +167,8 @@ const COLLECTION_ENTITY_TYPES = new Set([
   'domains', 'fields', 'subfields', 'countries', 'continents',
   'languages', 'licenses', 'oa-statuses', 'source-types',
   'institution-types', 'awards', 'work-types',
+  // #672 indexes registry entity
+  'indexes',
 ]);
 const isNativeCollectionType = computed(() =>
   COLLECTION_ENTITY_TYPES.has(openalexId.toCollectionEntityType(myEntityType.value))
