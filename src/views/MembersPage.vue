@@ -250,6 +250,7 @@ const supportingMembers = ref([
   'Newcastle University',
   'North Carolina State University',
   'OA.Works',
+  'Old Dominion University',
   'Polytechnique Montréal',
   'RAND Europe',
   'Sorbonne University',
