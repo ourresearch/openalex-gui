@@ -121,6 +121,12 @@ defineOptions({ name: 'SiteFooter' });
     width: 24px !important;
     height: 24px !important;
     color: #1a1a1a !important;
+
+    // The OSI keyhole glyph is drawn with a very thin line at this size —
+    // thicken its outline so it doesn't get lost next to the other marks.
+    &.mdi-open-source-initiative {
+      -webkit-text-stroke: 0.8px #1a1a1a;
+    }
   }
 
   .trust-badge-img {
