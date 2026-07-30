@@ -1,5 +1,5 @@
 <template>
-  <static-page title="Members and partners" :sections="tocSections">
+  <static-page title="Members" :sections="tocSections">
     <template #intro>
       Institutions committed to sustaining open research infrastructure.
     </template>
@@ -22,7 +22,7 @@
       </div>
     </static-section>
 
-    <static-section id="members" title="Our members and partners">
+    <static-section id="members" title="Our members">
       <p class="section-body">
         These institutions are helping keep OpenAlex free and open for everyone.
       </p>
@@ -44,7 +44,7 @@
       </div>
     </static-section>
 
-    <static-section id="join" title="Become a member or partner">
+    <static-section id="join" title="Become a member">
       <p class="section-body">
         Join the institutions supporting open research infrastructure.
       </p>
@@ -86,14 +86,14 @@ defineOptions({ name: 'MembersPage' });
 
 const tocSections = [
   { id: 'benefits', label: 'Member benefits' },
-  { id: 'members', label: 'Members and partners' },
-  { id: 'join', label: 'Join us' },
+  { id: 'members', label: 'Our members' },
+  { id: 'join', label: 'Become a member' },
 ];
 
 useHead({
-  title: 'Members and partners',
+  title: 'Members',
   meta: [
-    { name: 'description', content: 'OpenAlex institutional members and partners supporting open research infrastructure. Learn about member benefits and how to join.' }
+    { name: 'description', content: 'OpenAlex institutional members supporting open research infrastructure. Learn about member benefits and how to join.' }
   ]
 });
 
