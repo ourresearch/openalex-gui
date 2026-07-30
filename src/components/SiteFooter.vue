@@ -1,44 +1,36 @@
 <template>
   <v-footer color="#fff" class="site-footer" style="padding: 0 0 100px; z-index: 1500;">
     <v-container>
-      <div class="footer-top">
-        <router-link to="/" class="footer-logo-link">
-          <img
-            src="@/assets/openalex-logo.png"
-            class="footer-logo"
-            alt="OpenAlex"
-          />
-        </router-link>
-
-        <div class="trust-badges">
-          <template v-for="badge in trustBadges" :key="badge.name">
-            <router-link
-              v-if="badge.to"
-              :to="badge.to"
-              class="trust-badge"
-            >
-              <v-icon class="trust-badge-icon">{{ badge.icon }}</v-icon>
-              <span class="trust-badge-text">
-                <span class="trust-badge-eyebrow">{{ badge.eyebrow }}</span>
-                <span class="trust-badge-label">{{ badge.name }}</span>
-              </span>
+      <v-row justify="center">
+        <v-col cols="12" md="10">
+          <div class="footer-top">
+            <router-link to="/" class="footer-logo-link">
+              <img
+                src="/brand-assets/openalex-lockup.png"
+                class="footer-logo"
+                alt="OpenAlex"
+              />
             </router-link>
-            <a
-              v-else
-              :href="badge.href"
-              target="_blank"
-              rel="noopener"
-              class="trust-badge"
-            >
-              <v-icon class="trust-badge-icon">{{ badge.icon }}</v-icon>
-              <span class="trust-badge-text">
-                <span class="trust-badge-eyebrow">{{ badge.eyebrow }}</span>
+
+            <div class="trust-badges">
+              <div
+                v-for="badge in trustBadges"
+                :key="badge.name"
+                class="trust-badge"
+              >
+                <v-icon v-if="badge.icon" class="trust-badge-icon">{{ badge.icon }}</v-icon>
+                <img
+                  v-else-if="badge.img"
+                  :src="badge.img"
+                  class="trust-badge-img"
+                  :alt="badge.name"
+                />
                 <span class="trust-badge-label">{{ badge.name }}</span>
-              </span>
-            </a>
-          </template>
-        </div>
-      </div>
+              </div>
+            </div>
+          </div>
+        </v-col>
+      </v-row>
 
       <v-row justify="center">
         <v-col
@@ -103,11 +95,11 @@ defineOptions({ name: 'SiteFooter' });
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 24px;
-  margin-bottom: 48px;
+  margin-bottom: 36px;
 }
 
 .footer-logo {
-  height: 38px;
+  height: 28px;
   display: block;
 }
 
@@ -121,34 +113,20 @@ defineOptions({ name: 'SiteFooter' });
 .site-footer .trust-badge {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  color: rgba(0, 0, 0, 0.55) !important;
-  transition: color 0.15s ease;
-
-  &:hover {
-    text-decoration: none;
-    color: rgba(0, 0, 0, 0.87) !important;
-  }
+  gap: 8px;
+  color: #1a1a1a !important;
 
   .trust-badge-icon {
     font-size: 24px !important;
     width: 24px !important;
     height: 24px !important;
-    color: inherit !important;
+    color: #1a1a1a !important;
   }
 
-  .trust-badge-text {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .trust-badge-eyebrow {
-    font-size: 9px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    line-height: 1.3;
-    opacity: 0.85;
+  .trust-badge-img {
+    height: 24px;
+    width: 24px;
+    display: block;
   }
 
   .trust-badge-label {

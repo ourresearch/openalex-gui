@@ -117,24 +117,21 @@ const navConfigs = [
 ]
 
 
+import ccZeroIcon from "@/assets/cc-zero.svg"
+
+// Plain text + logo marks, not links (Jason 2026-07-30)
 const trustBadges = [
     {
-        eyebrow: "501(c)(3)",
         name: "Nonprofit",
         icon: "mdi-charity",
-        to: "/about",
     },
     {
-        eyebrow: "CC0",
         name: "Open Data",
-        icon: "mdi-creative-commons",
-        href: "https://developers.openalex.org/",
+        img: ccZeroIcon,  // official CC0 mark (creativecommons.org press kit)
     },
     {
-        eyebrow: "MIT",
         name: "Open Source",
-        icon: "mdi-github",
-        href: "https://github.com/ourresearch",
+        icon: "mdi-open-source-initiative",  // OSI keyhole
     },
 ]
 
