@@ -608,7 +608,7 @@ body {
   // anchor rule. Without :not(.v-chip), the !important here paints chip
   // text blue even on a coloured chip background.
   a:not(.v-btn):not(.v-list-item):not(.v-tab):not(.v-chip):not(.novice-link) {
-    color: #1976D2 !important;  // Material Design blue
+    color: #2563EB !important;  // Tailwind blue-600 — modern, AA on white (5.2:1)
     text-decoration: none;
 
     &:hover {
@@ -619,7 +619,7 @@ body {
   // For text links inside components
   .text-decoration-none,
   .link-text {
-    color: #1976D2 !important;
+    color: #2563EB !important;
   }
 
   // Override for specific link-like text that should remain blue
@@ -628,7 +628,7 @@ body {
   .v-card-text a:not(.v-btn):not(.v-chip),
   p a:not(.v-btn):not(.v-chip),
   span a:not(.v-btn):not(.v-chip) {
-    color: #1976D2 !important;
+    color: #2563EB !important;
   }
 
   //background: #F7F9FC !important;
