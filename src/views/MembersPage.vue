@@ -27,6 +27,13 @@
         These institutions are helping keep OpenAlex free and open for everyone.
       </p>
 
+      <div v-if="membersError" class="section-body">
+        The member list is taking a break —
+        <a href="mailto:sales@openalex.org">contact us</a> and we'll happily tell you
+        who's on board.
+      </div>
+      <v-progress-circular v-else-if="!tiers.length" indeterminate size="24" class="mt-4" />
+
       <div v-for="tier in tiers" :key="tier.label" class="member-tier">
         <h3 class="subsection-header">{{ tier.label }}</h3>
         <div class="member-columns">
@@ -68,7 +75,10 @@
 
 
 <script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
 import { useHead } from '@unhead/vue';
+import { urlBase } from '@/apiConfig';
 import StaticPage from '@/components/StaticPage/StaticPage.vue';
 import StaticSection from '@/components/StaticPage/StaticSection.vue';
 
@@ -116,152 +126,28 @@ const benefits = [
   },
 ];
 
-// Tier assignment synced from the users DB (organizations.plan) 2026-07-30,
-// restricted to names already published on this page — edit freely, it's just data.
-//
-// Legacy plan → marketed tier mapping (evidence: each legacy plan's daily API
-// budget matches exactly one column of the /pricing tier grid; see also
-// users-api plans.py, which calls institutional[-NM] "legacy plan names that we
-// treat as partner-equivalent"):
-//   member ($20/day)                        → Member   ($20/day column)
-//   institutional ($100/day + dashboard)    → Member+  ($100/day column)
-//   partner ($200/day)                      → Partner  ($200+/day column)
-//   institutional-1M/-2M ($1k–2k/day)       → Partner  (legacy high-volume deals)
-//   premium-* (enterprise API subs)         → not memberships, never listed
-// Orgs whose plan_expires_at has passed sit in Supporter until renewal — as of
-// 2026-07-30 that's ESCP (expired 07-02), U Kentucky (07-01), U Regina
-// (2025-12); bump them back up when they renew.
-const tiers = [
-  {
-    label: 'Partner',
-    names: [
-      'Boston University',
-      'Hong Kong University of Science and Technology',
-      'Imperial College London',
-      'KTH Royal Institute of Technology',
-      'Maastricht University',
-      'Sorbonne University',
-      'Stanford University',
-      'Statistics Denmark',
-      'Université de Lorraine',
-      'Université de Sherbrooke',
-      'Université Paris Cité',
-      'University of Amsterdam',
-      'University of California System',
-      'University of Cambridge',
-      'University of Rennes',
-      'Utrecht University',
-    ],
-  },
-  {
-    label: 'Member+',
-    names: [
-      'DePaul University',
-      'Karolinska Institutet',
-    ],
-  },
-  {
-    label: 'Member',
-    names: [
-      'Bath Spa University',
-      'Cardiff University',
-      'Carnegie Mellon University',
-      'CIRAD',
-      'École normale supérieure de Lyon',
-      'Francis Crick Institute',
-      'Geneva Graduate Institute',
-      'IESE Business School',
-      'INRAE',
-      'Inria',
-      'Inserm',
-      'James Madison University',
-      'Korea Institute of Science and Technology Information',
-      'Kyoto University',
-      'Leeds Beckett University',
-      'Loughborough University',
-      'Nantes Université',
-      'National Institute for Materials Science',
-      'Nesta',
-      'Newcastle University',
-      'Old Dominion University',
-      'Polytechnique Montréal',
-      'Technische Universität Dresden',
-      'The Open University',
-      'Universita Degli Studi Di Milano',
-      'Université de Limoges',
-      'Université de Montpellier',
-      'Université de Picardie Jules Verne',
-      'Université de Toulouse',
-      'Université Grenoble Alpes',
-      'Université Paris-Saclay',
-      'University Hospital Carl Gustav Carus',
-      'University Medical Centre Groningen',
-      'University of Birmingham',
-      'University of Bristol',
-      'University of Dundee',
-      'University of Groningen',
-      'University of Leeds',
-      'University of Liverpool',
-      'University of Minnesota',
-      'University of Ottawa',
-      'University of Sheffield',
-      'University of South Carolina',
-      'University of Southampton',
-      'University of Strathclyde',
-      'University of Victoria',
-      'Virginia Commonwealth University',
-      'Virginia Military Institute',
-      'Virginia Tech',
-      'William & Mary',
-    ],
-  },
-  {
-    label: 'Supporter',
-    names: [
-      'Austrian Science Fund',
-      'Autonomous University of Barcelona',
-      'Boston University School of Medicine',
-      'Chinese Academy of Science',
-      'Curtin University',
-      'Defence Science and Technology Laboratory (DSTL)',
-      'Delft University of Technology',
-      'Dutch Research Council (NWO)',
-      'EPFL',
-      'ESCP Business School',
-      'ETH Zurich',
-      'French Ministry of Higher Education & Research',
-      'Georgia Institute of Technology',
-      'Howard Hughes Medical Institute',
-      'Indiana University',
-      'Inist-CNRS',
-      'Institute of Electrical and Electronics Engineers',
-      'Japan Science and Technology Agency',
-      'Jisc',
-      'Konsortium der Sächsischen Hochschulbibliotheken (SLUB Dresden)',
-      'MIT',
-      'National Institute of Informatics',
-      'North Carolina State University',
-      'OA.Works',
-      'RAND Europe',
-      'Swedish Research Council',
-      'Technical University of Denmark (DTU)',
-      'Technische Informationsbibliothek (TIB)',
-      'The Chan Zuckerberg Initiative',
-      'Universiteit Leiden (CWTS)',
-      'University College London',
-      'University Hospital Sussex NHS Foundation Trust',
-      'University of Göttingen',
-      'University of Kentucky',
-      'University of Manchester',
-      'University of Plymouth',
-      'University of Queensland',
-      'University of Regina',
-      'Université de Montréal',
-      'Wellcome',
-      'Wellcome Trust',
-    ],
-  },
+// Live member lists from the users API (see users-api public_members.py for
+// the listing policy: legacy-plan -> tier mapping, commercial exclusions,
+// display names). Expired plans drop off automatically.
+const tierDefs = [
+  { key: 'partner', label: 'Partner' },
+  { key: 'member_plus', label: 'Member+' },
+  { key: 'member', label: 'Member' },
 ];
+const tiers = ref([]);
+const membersError = ref(false);
+
+onMounted(async () => {
+  try {
+    const resp = await axios.get(`${urlBase.userApi}/organizations/public-members`);
+    tiers.value = tierDefs
+      .map(t => ({ label: t.label, names: resp.data[t.key] || [] }))
+      .filter(t => t.names.length);
+    if (!tiers.value.length) { membersError.value = true; }
+  } catch (e) {
+    membersError.value = true;
+  }
+});
 
 // Proper alphabetical order (É with E, case-insensitive)
 function sorted(names) {
