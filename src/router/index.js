@@ -19,8 +19,6 @@ import OurStats from '@/views/OurStats.vue';
 import TestimonialsPage from "@/views/Testimonials.vue";
 import WorksCitingOpenAlex from "@/views/WorksCitingOpenAlex.vue";
 import TeamPage from "@/views/Team.vue";
-import TransparencyPage from "@/views/Transparency.vue";
-import LegalPage from "@/views/Legal.vue";
 import BrandPage from "@/views/Brand.vue";
 import OqlPlayground from "@/views/OqlPlayground.vue";
 import NlWorkbench from "@/views/NlWorkbench.vue";
@@ -388,8 +386,10 @@ const routes = [
     {path: '/about', name: 'About', component: AboutPage},
     {path: '/projects', redirect: {name: "About"}},  // help.openalex.org "About us" links here (zd#8351)
     {path: '/team', name: 'Team', component: TeamPage},
-    {path: '/transparency', name: 'Transparency', component: TransparencyPage},
-    {path: '/legal', name: 'Legal', component: LegalPage},
+    {path: '/transparency', redirect: {name: "About"}},  // transparency payload folded into /about (#685)
+    {path: '/legal', redirect: '/terms'},
+    {path: '/privacy', name: 'Privacy', component: () => import('@/views/Privacy.vue')},
+    {path: '/terms', name: 'Terms', component: () => import('@/views/Terms.vue')},
     {path: '/brand', name: 'Brand', component: BrandPage},
     // Query workbench: the OQL docs/reference. Lands on the Cheat sheet (the alpha
     // on-ramp, oxjob #530); editing OQL happens in the SERP panel. The natural-language
@@ -430,12 +430,13 @@ const routes = [
     {path: '/pricing-new', redirect: '/pricing'},
     {path: '/pricing-new/institutions', redirect: '/pricing#subscriptions'},
     {path: '/pricing-new/developers', redirect: '/pricing#subscriptions'},
-    {path: '/policies', redirect: {name: "Legal"}},
-    {path: '/accessibility', redirect: {name: "Legal"}},
+    {path: '/policies', redirect: '/terms'},
+    {path: '/accessibility', name: 'Accessibility', component: () => import('@/views/Accessibility.vue')},
     {path: '/users', redirect: {name: "testimonials"}},
     {path: '/testimonials', name: "testimonials", component: TestimonialsPage},
     {path: '/works-citing-openalex', name: "works-citing-openalex", component: WorksCitingOpenAlex},
     {path: '/stats', component: OurStats},
+    {path: '/events', name: 'Events', component: () => import('@/views/Events.vue')},
     {path: '/events/funders2026', name: 'Funders2026', component: Funders2026Page},
 
     // Vector search page
@@ -567,10 +568,10 @@ const routes = [
     redirect('/author-change-request', "https://docs.google.com/forms/d/e/1FAIpQLSel6otVekIyVOl46eh59mSkruIz32hAnGbJR6KM925E8wiCSg/viewform?usp=sf_link"),
     redirect('/authorChangeRequest', "https://docs.google.com/forms/d/e/1FAIpQLSel6otVekIyVOl46eh59mSkruIz32hAnGbJR6KM925E8wiCSg/viewform?usp=sf_link"),
     
-    // Help center
-    redirect('/webinars', "https://help.openalex.org/hc/en-us/articles/24428492324631-Webinars"),
-    redirect('/open-houses', "https://help.openalex.org/hc/en-us/articles/24428530346263-Open-houses"),
-    redirect('/user-meeting', "https://help.openalex.org/events/user-meeting"),
+    // Events (formerly help-center articles; migrated to /events in #685)
+    {path: '/webinars', redirect: '/events'},
+    {path: '/open-houses', redirect: '/events'},
+    {path: '/user-meeting', redirect: '/events'},
     
     // Support
     redirect('/help', "https://help.openalex.org"),

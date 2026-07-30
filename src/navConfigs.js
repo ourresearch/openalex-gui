@@ -1,19 +1,15 @@
 const navConfigs = [
     {
         name: "Product",
-        icon: "mdi-book-open-outline",
         links: [
             {
-                name: "Knowledge base",
-                href: "https://help.openalex.org/",
+                name: "Search",
+                to: "/",
             },
-            {
-                name: "API",
-                href: "https://developers.openalex.org/",
-            },
+            // Compare ships when /compare exists (oxjob stub; see #685 decision map D4)
             {
                 name: "Pricing",
-                href: "https://help.openalex.org/pricing",
+                to: "/pricing",
             },
             {
                 name: "Repositories",
@@ -28,68 +24,119 @@ const navConfigs = [
                 href: "https://unsub.org/",
             },
         ],
-
+    },
+    {
+        name: "Developers",
+        links: [
+            {
+                name: "API docs",
+                href: "https://developers.openalex.org/",
+            },
+            {
+                name: "Data snapshot",
+                href: "https://developers.openalex.org/download/overview",
+            },
+            {
+                name: "Status",
+                href: "https://status.openalex.org/",
+            },
+            {
+                name: "Source code",
+                href: "https://github.com/ourresearch",
+            },
+        ],
     },
     {
         name: "Organization",
-        icon: "mdi-information-outline",
         links: [
+            {
+                name: "About",
+                to: "/about",
+            },
             {
                 name: "Team",
                 to: "/team",
-            },
-            {
-                name: "Transparency",
-                to: "/transparency",
             },
             {
                 name: "Testimonials",
                 to: "/testimonials",
             },
             {
-                name: "Legal",
-                to: "/legal",
-            },
-            {
                 name: "Brand",
                 to: "/brand",
             },
+            // Careers ships when the jobs page lands (jobs-page oxjob)
         ],
-
     },
-
     {
-        name: "Connect",
-        icon: "mdi-chat-outline",
+        name: "Community",
         links: [
             {
+                name: "Help center",
+                href: "https://help.openalex.org/",
+            },
+            {
                 name: "Contact",
-                href: "https://openalex.zendesk.com/hc/requests/new",
+                to: "/contact",
+            },
+            {
+                name: "Events",
+                to: "/events",
+            },
+            {
+                name: "Blog",
+                href: "https://blog.openalex.org",
             },
             {
                 name: "Mailing list",
                 href: "https://groups.google.com/g/openalex-users",
             },
             {
-                name: "Twitter/X",
-                href: "https://twitter.com/openalex_org",
-            },
-            {
-                name: "GitHub",
-                href: "https://github.com/ourresearch",
-            },
-            {
-                name: "Blog",
-                href: "https://blog.openalex.org",
+                name: "Members",
+                to: "/members",
             },
         ],
-
     },
+    {
+        name: "Legal",
+        links: [
+            {
+                name: "Privacy",
+                to: "/privacy",
+            },
+            {
+                name: "Accessibility",
+                to: "/accessibility",
+            },
+            {
+                name: "Terms",
+                to: "/terms",
+            },
+        ],
+    },
+]
 
 
+const trustBadges = [
+    {
+        name: "Nonprofit",
+        icon: "mdi-charity",
+        to: "/about",
+    },
+    {
+        name: "Open Data (CC0)",
+        icon: "mdi-creative-commons",
+        href: "https://developers.openalex.org/",
+    },
+    {
+        name: "Open Source",
+        icon: "mdi-github",
+        href: "https://github.com/ourresearch",
+    },
 ]
 
 
 export {
     navConfigs,
+    trustBadges,
 }

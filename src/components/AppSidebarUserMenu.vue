@@ -81,7 +81,7 @@
             <v-list-item to="/pricing" @click="menuOpen = false">
               <v-list-item-title>Pricing</v-list-item-title>
             </v-list-item>
-            <v-list-item to="/legal" @click="menuOpen = false">
+            <v-list-item to="/terms" @click="menuOpen = false">
               <v-list-item-title>Terms and policies</v-list-item-title>
             </v-list-item>
           </v-list>

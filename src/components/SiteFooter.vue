@@ -1,31 +1,15 @@
 <template>
-  <v-footer  color="#fff" class="site-footer" style="padding:0 0 100px; z-index: 1500;">
+  <v-footer color="#fff" class="site-footer" style="padding: 0 0 100px; z-index: 1500;">
     <v-container>
       <v-row>
-        <v-col cols="12" sm="5" class="">
-          <div>
-            <img
-              src="@/assets/tricon.png"
-              class="logo-icon mt-1 mb-2 colorizable"
-              style="height: 25px;"
-              alt="OpenAlex"
-            />
-          </div>
-
-          Supported by
-
-          <a href="https://www.arcadiafund.org.uk/">Arcadia, </a> 
-           <a href="https://www.navigation.org/">The Navigation Fund, </a> 
-           and <a href="https://wellcome.org/">The Wellcome Trust</a>.
-        </v-col>
-        <v-spacer/>
         <v-col
-          cols="12"
-          sm="2"
+          cols="6"
+          sm="4"
+          md="2"
           v-for="col in navConfigs"
           :key="col.name"
         >
-          <div class="text-body-2  mb-4">{{ col.name }}</div>
+          <div class="text-body-2 mb-4">{{ col.name }}</div>
           <div
             v-for="link in col.links"
             :key="link.name"
@@ -37,23 +21,46 @@
               {{ link.name }}
             </router-link>
             <a
-              v-if="link.href"
+              v-else-if="link.href"
               :href="link.href"
               target="_blank"
+              rel="noopener"
             >
               {{ link.name }}
             </a>
           </div>
         </v-col>
-
       </v-row>
+
+      <div class="trust-badges mt-10">
+        <template v-for="badge in trustBadges" :key="badge.name">
+          <router-link
+            v-if="badge.to"
+            :to="badge.to"
+            class="trust-badge"
+          >
+            <v-icon class="trust-badge-icon mr-2">{{ badge.icon }}</v-icon>
+            <span>{{ badge.name }}</span>
+          </router-link>
+          <a
+            v-else
+            :href="badge.href"
+            target="_blank"
+            rel="noopener"
+            class="trust-badge"
+          >
+            <v-icon class="trust-badge-icon mr-2">{{ badge.icon }}</v-icon>
+            <span>{{ badge.name }}</span>
+          </a>
+        </template>
+      </div>
     </v-container>
   </v-footer>
 </template>
 
 
 <script setup>
-import {navConfigs} from "@/navConfigs";
+import {navConfigs, trustBadges} from "@/navConfigs";
 
 defineOptions({ name: 'SiteFooter' });
 </script>
@@ -62,17 +69,11 @@ defineOptions({ name: 'SiteFooter' });
 <style scoped lang="scss">
 .site-footer {
   line-height: 1.8;
-  //margin-top: 150px;
   border-top: 0.5px solid rgba(0, 0, 0, 0.12) !important;
   padding-top: 50px !important;
 
-  .body-2 {
-    font-family: Inconsolata;
-  }
-
   a {
     text-decoration: none;
-    //color: #fff;
 
     &:hover {
       text-decoration: underline;
@@ -80,9 +81,29 @@ defineOptions({ name: 'SiteFooter' });
   }
 }
 
-img.site-footer-logo {
-  width: 70px;
-  opacity: 1;
+.trust-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
 
+.site-footer .trust-badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.6) !important;
+
+  &:hover {
+    text-decoration: none;
+    border-color: rgba(0, 0, 0, 0.35);
+    color: rgba(0, 0, 0, 0.87) !important;
+  }
+
+  .trust-badge-icon {
+    color: inherit !important;
+  }
 }
 </style>
