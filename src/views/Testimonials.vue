@@ -1,14 +1,12 @@
 <template>
-  <v-container class="page">
+  <static-page title="Testimonials" :sections="sections">
+    <template #intro>
+      Here's what some of our users have to say about OpenAlex.
+    </template>
 
-    <v-card flat >
-      <div class="text-h1">Testimonials</div>
-      <div class="text-h5 mt-4">
-        Here's what some of our users have to say about OpenAlex:
-      </div>
-    </v-card>
+    <section id="testimonials" class="section compact-section">
 
-    <v-card color="blue-grey-lighten-5" flat class="d-flex align-center rounded-o py-4 px-4 mt-12 mb-6">
+    <v-card color="blue-grey-lighten-5" flat class="d-flex align-center rounded-o py-4 px-4 mb-6">
       <span class="mr-3 text-h5" v-if="!smAndDown">
         <span class="font-weight-bold">{{ filteredItems.length }} </span>
         testimonials
@@ -66,19 +64,17 @@
         </v-row>
       </v-col>
     </v-row>
-    <div>
-      <v-alert rounded type="info" variant="outlined" text class="mt-8">
-        <p>
-          Want to share a testimonial of your own? We'd love to hear it!
-        </p>
-        <div class="mt-4">
-          <v-btn rounded color="primary" href="https://wkf.ms/42RdSkP" target="_blank">
-            Share testimonial
-            <v-icon style="font-size: 20px;" end>mdi-open-in-new</v-icon>
-          </v-btn>
-        </div>
-      </v-alert> 
-    </div>
+    </section>
+
+    <static-section id="share" title="Share yours">
+      <p class="section-body">
+        Want to share a testimonial of your own? We'd love to hear it!
+      </p>
+      <v-btn rounded color="primary" href="https://wkf.ms/42RdSkP" target="_blank">
+        Share testimonial
+        <v-icon style="font-size: 20px;" end>mdi-open-in-new</v-icon>
+      </v-btn>
+    </static-section>
 
     <v-dialog scrollable v-model="isDialogOpen" max-width="600">
       <v-card v-if="dialogData">
@@ -108,19 +104,26 @@
       </v-card>
     </v-dialog>
 
-  </v-container>
+  </static-page>
 </template>
 
 
 <script setup>
 import { ref, computed } from 'vue';
 import { useDisplay } from 'vuetify'
+import StaticPage from '@/components/StaticPage/StaticPage.vue';
+import StaticSection from '@/components/StaticPage/StaticSection.vue';
 
 defineOptions({
   name: 'TestimonialsPage',
 });
 
 const { smAndDown } = useDisplay()
+
+const sections = [
+  { id: 'testimonials', label: 'Testimonials' },
+  { id: 'share', label: 'Share yours' },
+];
 
 // State
 const isDialogOpen = ref(false);

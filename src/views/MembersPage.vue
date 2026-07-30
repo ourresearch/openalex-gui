@@ -1,5 +1,8 @@
 <template>
   <div class="members-page">
+    <!-- Right-rail nav (shared static-page pattern) -->
+    <page-toc :sections="tocSections" />
+
     <!-- Hero Section -->
     <section class="hero">
       <h1 class="hero-headline">OpenAlex Members</h1>
@@ -188,8 +191,14 @@
 <script setup>
 import { ref } from 'vue';
 import { useHead } from '@unhead/vue';
+import PageToc from '@/components/StaticPage/PageToc.vue';
 
 defineOptions({ name: 'MembersPage' });
+
+const tocSections = [
+  { id: 'benefits', label: 'Member Benefits' },
+  { id: 'members', label: 'Current Members' },
+];
 
 useHead({
   title: 'Members - OpenAlex',
