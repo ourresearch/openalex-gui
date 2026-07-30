@@ -14,7 +14,9 @@
     <app-sidebar />
 
     <v-main class="ma-0 pb-0">
-      <router-view></router-view>
+      <div class="router-view-container">
+        <router-view></router-view>
+      </div>
       <site-footer/>
     </v-main>
 
@@ -212,6 +214,17 @@ $color-0: hsl(212, 77%, 82%);
   min-height: 100vh;
 }
 .v-main > :first-child {
+  flex: 1 0 auto;
+}
+/* Always-present wrapper around router-view: keeps the footer below the fold even
+   while a lazy route chunk is loading (empty router-view used to make the footer
+   v-main's first element child, flashing it to the top of the page). */
+.router-view-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.router-view-container > :first-child {
   flex: 1 0 auto;
 }
 .color-3 {

@@ -119,16 +119,19 @@ const navConfigs = [
 
 const trustBadges = [
     {
+        eyebrow: "501(c)(3)",
         name: "Nonprofit",
         icon: "mdi-charity",
         to: "/about",
     },
     {
-        name: "Open Data (CC0)",
+        eyebrow: "CC0",
+        name: "Open Data",
         icon: "mdi-creative-commons",
         href: "https://developers.openalex.org/",
     },
     {
+        eyebrow: "MIT",
         name: "Open Source",
         icon: "mdi-github",
         href: "https://github.com/ourresearch",
