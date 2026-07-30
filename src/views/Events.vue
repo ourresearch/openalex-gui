@@ -1,76 +1,92 @@
 <template>
-  <v-container class="mt-12 pt-12 events-page">
-    <div class="text-h3 mb-4">
-      Events
-    </div>
-    <p>
-      Webinars, office hours, conferences, and community meetings — all the ways to connect with the OpenAlex team and
-      community.
-    </p>
+  <static-page title="Events" :sections="sections">
+    <template #intro>
+      Webinars, office hours, conferences, and community meetings — all the ways to connect
+      with the OpenAlex team and community.
+    </template>
 
-    <div class="text-h4" id="webinars">Webinars</div>
-    <p>
-      30-minute presentations on topics of broad relevance (recorded), followed by 15 minutes of Q&amp;A. Recordings of
-      previous webinars are available on
-      <a href="https://www.youtube.com/@OurResearch" target="_blank">our YouTube channel</a>.
-    </p>
-    <h5 class="text-h5">Upcoming webinars</h5>
-    <p>
-      We're re-grouping for the summer and will post more webinars soon. If you have ideas for webinars you'd like to
-      see, send your suggestions to <a href="mailto:support@openalex.org">support@openalex.org</a>.
-    </p>
-    <h5 class="text-h5">Past webinars</h5>
-    <ul class="webinar-list">
-      <li v-for="w in pastWebinars" :key="w.title + w.date">
-        {{ w.title }} ({{ w.date }})
-        —
-        <template v-for="(link, i) in w.links" :key="link.name">
-          <template v-if="i > 0"> · </template>
-          <a :href="link.href" target="_blank">{{ link.name }}</a>
-        </template>
-        <template v-if="!w.links.length">video coming soon</template>
-      </li>
-    </ul>
+    <static-section id="webinars" title="Webinars">
+      <p class="section-body">
+        30-minute presentations on topics of broad relevance (recorded), followed by 15
+        minutes of Q&amp;A. Recordings of previous webinars are available on
+        <a href="https://www.youtube.com/@OurResearch" target="_blank" rel="noopener noreferrer">our YouTube channel</a>.
+      </p>
 
-    <div class="text-h4" id="user-meeting">User conference</div>
-    <p>
-      The 2024 OpenAlex Virtual User Conference was a great success! We had a fantastic showing of presentations from
-      around the world on May 30 and May 31, 2024 — more than thirty talks from users across five continents, on
-      everything from institutional analytics to citation networks to new tools built on OpenAlex. The video
-      recordings are available in
-      <a href="https://youtube.com/playlist?list=PLe06345JQjNbCjTTQjO8_62HLdDS-MV3n&si=0kuV14a-HzRyWMxr"
-        target="_blank">this YouTube playlist</a>.
-    </p>
+      <h3 class="subsection-header">Upcoming webinars</h3>
+      <p class="section-body">
+        We're re-grouping for the summer and will post more webinars soon. If you have
+        ideas for webinars you'd like to see, send your suggestions to
+        <a href="mailto:support@openalex.org">support@openalex.org</a>.
+      </p>
 
-    <div class="text-h4" id="office-hours">Office hours</div>
-    <p>
-      We have regular office hours on Zoom: 1-hour informal drop-in/drop-off sessions to have conversations about
-      using OpenAlex. Some are themed around OpenAlex developments and emerging topics; discussion on those topics is
-      given precedence.
-    </p>
-    <p>
-      We're taking a break from office hours at the moment, but will be back! Watch this page or the
-      <a href="https://groups.google.com/g/openalex-users" target="_blank">mailing list</a> for the next schedule.
-    </p>
+      <h3 class="subsection-header">Past webinars</h3>
+      <ul class="section-list">
+        <li v-for="w in pastWebinars" :key="w.title + w.date">
+          {{ w.title }} ({{ w.date }})
+          —
+          <template v-for="(link, i) in w.links" :key="link.name">
+            <template v-if="i > 0"> · </template>
+            <a :href="link.href" target="_blank" rel="noopener noreferrer">{{ link.name }}</a>
+          </template>
+          <template v-if="!w.links.length">video coming soon</template>
+        </li>
+      </ul>
+    </static-section>
 
-    <div class="text-h4" id="conferences">Conferences and other events</div>
-    <p>
-      We attend conferences and community events throughout the year — come say hi if you'll also be there! Recently
-      that has included the
-      <a href="https://analyticssummit.uky.edu/" target="_blank">Research Analytics Summit</a> and the Barcelona
-      Declaration Meeting. To hear where we'll be next, join the
-      <a href="https://groups.google.com/g/openalex-users" target="_blank">mailing list</a>.
-    </p>
-  </v-container>
+    <static-section id="user-meeting" title="User conference">
+      <p class="section-body">
+        The 2024 OpenAlex Virtual User Conference was a great success! We had a fantastic
+        showing of presentations from around the world on May 30 and May 31, 2024 — more
+        than thirty talks from users across five continents, on everything from
+        institutional analytics to citation networks to new tools built on OpenAlex. The
+        video recordings are available in
+        <a href="https://youtube.com/playlist?list=PLe06345JQjNbCjTTQjO8_62HLdDS-MV3n&si=0kuV14a-HzRyWMxr"
+          target="_blank" rel="noopener noreferrer">this YouTube playlist</a>.
+      </p>
+    </static-section>
+
+    <static-section id="office-hours" title="Office hours">
+      <p class="section-body">
+        We have regular office hours on Zoom: 1-hour informal drop-in/drop-off sessions to
+        have conversations about using OpenAlex. Some are themed around OpenAlex
+        developments and emerging topics; discussion on those topics is given precedence.
+      </p>
+      <p class="section-body">
+        We're taking a break from office hours at the moment, but will be back! Watch this
+        page or the
+        <a href="https://groups.google.com/g/openalex-users" target="_blank" rel="noopener noreferrer">mailing list</a>
+        for the next schedule.
+      </p>
+    </static-section>
+
+    <static-section id="conferences" title="Conferences and other events">
+      <p class="section-body">
+        We attend conferences and community events throughout the year — come say hi if
+        you'll also be there! Recently that has included the
+        <a href="https://analyticssummit.uky.edu/" target="_blank" rel="noopener noreferrer">Research Analytics Summit</a>
+        and the Barcelona Declaration Meeting. To hear where we'll be next, join the
+        <a href="https://groups.google.com/g/openalex-users" target="_blank" rel="noopener noreferrer">mailing list</a>.
+      </p>
+    </static-section>
+  </static-page>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { useHead } from '@unhead/vue';
+import StaticPage from '@/components/StaticPage/StaticPage.vue';
+import StaticSection from '@/components/StaticPage/StaticSection.vue';
 
 defineOptions({ name: 'EventsPage' });
 
 useHead({ title: 'Events' });
+
+const sections = [
+  { id: 'webinars', label: 'Webinars' },
+  { id: 'user-meeting', label: 'User conference' },
+  { id: 'office-hours', label: 'Office hours' },
+  { id: 'conferences', label: 'Conferences' },
+];
 
 const pastWebinars = ref([
   {
@@ -305,31 +321,3 @@ const pastWebinars = ref([
   },
 ]);
 </script>
-
-<style scoped lang="scss">
-.events-page {
-  max-width: 900px;
-}
-
-.text-h4 {
-  margin-top: 50px;
-  margin-bottom: 10px;
-}
-
-.text-h5 {
-  margin-top: 30px;
-  margin-bottom: 10px;
-}
-
-p {
-  margin-bottom: 20px;
-}
-
-.webinar-list {
-  padding-left: 15px;
-
-  li {
-    margin-bottom: 8px;
-  }
-}
-</style>
