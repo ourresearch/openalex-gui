@@ -118,7 +118,48 @@ const benefits = [
 
 // Tier assignment synced from the users DB (organizations.plan) 2026-07-30,
 // restricted to names already published on this page — edit freely, it's just data.
+//
+// Legacy plan → marketed tier mapping (evidence: each legacy plan's daily API
+// budget matches exactly one column of the /pricing tier grid; see also
+// users-api plans.py, which calls institutional[-NM] "legacy plan names that we
+// treat as partner-equivalent"):
+//   member ($20/day)                        → Member   ($20/day column)
+//   institutional ($100/day + dashboard)    → Member+  ($100/day column)
+//   partner ($200/day)                      → Partner  ($200+/day column)
+//   institutional-1M/-2M ($1k–2k/day)       → Partner  (legacy high-volume deals)
+//   premium-* (enterprise API subs)         → not memberships, never listed
+// Orgs whose plan_expires_at has passed sit in Supporter until renewal — as of
+// 2026-07-30 that's ESCP (expired 07-02), U Kentucky (07-01), U Regina
+// (2025-12); bump them back up when they renew.
 const tiers = [
+  {
+    label: 'Partner',
+    names: [
+      'Boston University',
+      'Hong Kong University of Science and Technology',
+      'Imperial College London',
+      'KTH Royal Institute of Technology',
+      'Maastricht University',
+      'Sorbonne University',
+      'Stanford University',
+      'Statistics Denmark',
+      'Université de Lorraine',
+      'Université de Sherbrooke',
+      'Université Paris Cité',
+      'University of Amsterdam',
+      'University of California System',
+      'University of Cambridge',
+      'University of Rennes',
+      'Utrecht University',
+    ],
+  },
+  {
+    label: 'Member+',
+    names: [
+      'DePaul University',
+      'Karolinska Institutet',
+    ],
+  },
   {
     label: 'Member',
     names: [
@@ -175,52 +216,33 @@ const tiers = [
     ],
   },
   {
-    label: 'Member+',
-    names: [
-      'Imperial College London',
-      'Maastricht University',
-      'Sorbonne University',
-      'Statistics Denmark',
-      'Université de Lorraine',
-      'Université de Sherbrooke',
-      'University of California System',
-      'University of Cambridge',
-    ],
-  },
-  {
     label: 'Supporter',
     names: [
       'Austrian Science Fund',
       'Autonomous University of Barcelona',
-      'Boston University',
       'Boston University School of Medicine',
       'Chinese Academy of Science',
       'Curtin University',
       'Defence Science and Technology Laboratory (DSTL)',
       'Delft University of Technology',
-      'DePaul University',
       'Dutch Research Council (NWO)',
       'EPFL',
       'ESCP Business School',
       'ETH Zurich',
       'French Ministry of Higher Education & Research',
       'Georgia Institute of Technology',
-      'Hong Kong University of Science and Technology',
       'Howard Hughes Medical Institute',
       'Indiana University',
       'Inist-CNRS',
       'Institute of Electrical and Electronics Engineers',
       'Japan Science and Technology Agency',
       'Jisc',
-      'Karolinska Institutet',
       'Konsortium der Sächsischen Hochschulbibliotheken (SLUB Dresden)',
-      'KTH Royal Institute of Technology',
       'MIT',
       'National Institute of Informatics',
       'North Carolina State University',
       'OA.Works',
       'RAND Europe',
-      'Stanford University',
       'Swedish Research Council',
       'Technical University of Denmark (DTU)',
       'Technische Informationsbibliothek (TIB)',
@@ -228,17 +250,13 @@ const tiers = [
       'Universiteit Leiden (CWTS)',
       'University College London',
       'University Hospital Sussex NHS Foundation Trust',
-      'University of Amsterdam',
       'University of Göttingen',
       'University of Kentucky',
       'University of Manchester',
       'University of Plymouth',
       'University of Queensland',
       'University of Regina',
-      'University of Rennes',
       'Université de Montréal',
-      'Université Paris Cité',
-      'Utrecht University',
       'Wellcome',
       'Wellcome Trust',
     ],
