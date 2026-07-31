@@ -1,52 +1,60 @@
 <template>
-  <static-page title="Members" :sections="tocSections">
+  <static-page title="Institutional supporters" :sections="tocSections">
     <template #intro>
-      Institutions committed to sustaining open research infrastructure.
+      OpenAlex is a nonprofit, and subscriptions are how we cover our costs.
+      Alongside our enterprise customers, we're proud to be sustained by a community of
+      academic institutions, libraries, and government agencies — this page is about them.
+      For these institutional supporters, a subscription is more than a purchase: it's
+      joining a movement of organizations united by shared values — openness, and a deep
+      commitment to inquiry and knowledge. Institutional support comes in three tiers:
+      <a href="#member" @click.prevent="scrollToTier('member')">Member</a>,
+      <a href="#member-plus" @click.prevent="scrollToTier('member-plus')">Member+</a>, and
+      <a href="#partner" @click.prevent="scrollToTier('partner')">Partner</a>.
     </template>
 
-    <static-section id="benefits" title="Member benefits">
-      <p class="section-body">
-        All OpenAlex Membership tiers include the core benefits below.
-        <router-link to="/pricing/institutions">Member+ and Partner tiers</router-link>
-        include these benefits and additional services. For details on activating each
-        benefit, see the <a href="https://help.openalex.org/" target="_blank" rel="noopener noreferrer">help center</a>
-        or <a href="mailto:kyle@openalex.org">contact us</a>.
-      </p>
-
-      <div class="benefits-grid">
-        <div v-for="benefit in benefits" :key="benefit.title" class="benefit-card">
-          <v-icon class="benefit-icon" size="22">{{ benefit.icon }}</v-icon>
-          <div class="benefit-title" v-html="benefit.title" />
-          <div class="benefit-description">{{ benefit.description }}</div>
-        </div>
+    <static-section
+      v-for="tier in tierConfigs"
+      :key="tier.id"
+      :id="tier.id"
+      :title="tier.label"
+    >
+      <div class="tier-price">
+        {{ tier.price }}
+        <span class="tier-price-period">per year</span>
       </div>
-    </static-section>
+      <p v-if="tier.priceNote" class="section-body tier-price-note">{{ tier.priceNote }}</p>
 
-    <static-section id="members" title="Our members">
-      <p class="section-body">
-        These institutions are helping keep OpenAlex free and open for everyone.
-      </p>
+      <p class="section-body tier-lead">{{ tier.lead }}</p>
+      <ul class="section-list">
+        <li v-for="benefit in tier.benefits" :key="benefit.title">
+          <a v-if="benefit.href" :href="benefit.href" target="_blank" rel="noopener noreferrer">
+            <span v-html="benefit.title" />
+          </a>
+          <strong v-else v-html="benefit.title" />
+          — {{ benefit.description }}
+        </li>
+      </ul>
 
-      <div v-if="membersError" class="section-body">
-        The member list is taking a break —
-        <a href="mailto:sales@openalex.org">contact us</a> and we'll happily tell you
-        who's on board.
-      </div>
-      <v-progress-circular v-else-if="!tiers.length" indeterminate size="24" class="mt-4" />
-
-      <div v-for="tier in tiers" :key="tier.label" class="member-tier">
-        <h3 class="subsection-header">{{ tier.label }}</h3>
+      <template v-if="orgsFor(tier.apiKey).length">
+        <p class="section-body tier-orgs-lead">
+          These institutions support OpenAlex at the {{ tier.label }} level:
+        </p>
         <div class="member-columns">
-          <div v-for="name in sorted(tier.names)" :key="name" class="member-name">
+          <div v-for="name in orgsFor(tier.apiKey)" :key="name" class="member-name">
             {{ name }}
           </div>
         </div>
-      </div>
+      </template>
+      <p v-else-if="membersError" class="section-body tier-orgs-lead">
+        The list of {{ tier.label }} institutions is taking a break —
+        <a href="mailto:sales@openalex.org">contact us</a> and we'll happily tell you who's on board.
+      </p>
+      <v-progress-circular v-else-if="!orgsLoaded" indeterminate size="20" class="mt-2" />
     </static-section>
 
-    <static-section id="join" title="Become a member">
+    <static-section id="join" title="Become a supporter">
       <p class="section-body">
-        Join the institutions supporting open research infrastructure.
+        Join the institutions sustaining open research infrastructure.
       </p>
       <div class="join-buttons">
         <v-btn
@@ -84,130 +92,184 @@ import StaticSection from '@/components/StaticPage/StaticSection.vue';
 
 defineOptions({ name: 'MembersPage' });
 
+// Rail = just the three tiers (each has its own section).
 const tocSections = [
-  { id: 'benefits', label: 'Member benefits' },
-  { id: 'members', label: 'Our members' },
-  { id: 'join', label: 'Become a member' },
+  { id: 'member', label: 'Member' },
+  { id: 'member-plus', label: 'Member+' },
+  { id: 'partner', label: 'Partner' },
 ];
 
 useHead({
-  title: 'Members',
+  title: 'Institutional supporters',
   meta: [
-    { name: 'description', content: 'OpenAlex institutional members supporting open research infrastructure. Learn about member benefits and how to join.' }
+    { name: 'description', content: 'The academic institutions, libraries, and government agencies supporting OpenAlex as open research infrastructure — Member, Member+, and Partner tiers, benefits, and pricing.' }
   ]
 });
 
-// Marketing blurbs only — activation how-tos live in the help center (#354).
-const benefits = [
+// Benefit how-tos live in the new help center (oxjob #354).
+// TODO(#354 cutover): flip to https://help.openalex.org when the new KB takes over the domain.
+const HELP_BASE = 'https://openalex-help.pages.dev/help';
+
+// Marketing blurbs only — activation how-tos live in the help center.
+// Prices + benefit matrix mirror /pricing (PricingPageNewer.vue) — keep in sync.
+const tierConfigs = [
   {
-    icon: 'mdi-view-dashboard-outline',
-    title: 'Admin Dashboard',
-    description: "See how many users at your institution are using OpenAlex and track your research community's API usage.",
+    id: 'member',
+    apiKey: 'member',
+    label: 'Member',
+    price: '$5,000',
+    lead: 'Every Member benefit is included in all three tiers:',
+    benefits: [
+      {
+        title: '$20 per day of API usage',
+        description: '20× the free daily budget ($7,300 in annual value).',
+      },
+      {
+        title: 'Admin Dashboard',
+        href: `${HELP_BASE}/activate-your-admin-dashboard/`,
+        description: "see how many users at your institution are using OpenAlex, and track your research community's API usage.",
+      },
+      {
+        title: 'Affiliation Editor',
+        href: `${HELP_BASE}/activate-the-affiliation-editor/`,
+        description: 'curate the affiliation strings OpenAlex matches to your institution — live in OpenAlex within 2 days.',
+      },
+      {
+        title: '<em>Unsub</em> access',
+        href: `${HELP_BASE}/activate-unsub/`,
+        description: 'data-driven forecasts of the true cost and value of your journal packages, to guide subscription decisions.',
+      },
+      {
+        title: 'Advisory Board nominations',
+        href: `${HELP_BASE}/advisory-board-nominations/`,
+        description: "nominate candidates for the 12-member Community Advisory Board that helps guide OpenAlex's direction.",
+      },
+      {
+        title: 'Quarterly supporter meetings',
+        href: `${HELP_BASE}/quarterly-supporter-meetings/`,
+        description: 'open-forum roundtables on roadmap priorities, directly with our product team.',
+      },
+    ],
   },
   {
-    icon: 'mdi-account-edit-outline',
-    title: 'Affiliation Editor',
-    description: 'Curate the affiliation strings OpenAlex matches to your institution — live in OpenAlex within 2 days.',
+    id: 'member-plus',
+    apiKey: 'member_plus',
+    label: 'Member+',
+    price: '$10,000',
+    lead: 'Everything in Member, plus:',
+    benefits: [
+      {
+        title: '$100 per day of API usage',
+        description: '$36,500 in annual value.',
+      },
+      {
+        title: 'Basic support',
+        description: 'help with critical API bugs.',
+      },
+    ],
   },
   {
-    icon: 'mdi-book-open-variant',
-    title: '<em>Unsub</em> access',
-    description: 'Data-driven forecasts of the true cost and value of your journal packages, to guide subscription decisions.',
-  },
-  {
-    icon: 'mdi-account-group-outline',
-    title: 'Advisory Board nominations',
-    description: "Nominate candidates for the 12-member Community Advisory Board that helps guide OpenAlex's direction.",
-  },
-  {
-    icon: 'mdi-calendar-account-outline',
-    title: 'Quarterly member meetings',
-    description: 'Open-forum meetings to discuss priorities for future development roadmaps directly with our product team.',
+    id: 'partner',
+    apiKey: 'partner',
+    label: 'Partner',
+    price: 'Starts at $20,000',
+    priceNote: 'Partner plans are custom — pricing goes up from $20,000 depending on the level of collaboration you want.',
+    lead: 'Everything in Member+, plus:',
+    benefits: [
+      {
+        title: '$200+ per day of API usage',
+        description: '$73,000+ in annual value.',
+      },
+      {
+        title: 'Full support',
+        description: 'ticket-based support for all issues.',
+      },
+      {
+        title: 'Data Sync Service',
+        href: 'https://openalex-help.pages.dev/docs/data-feed/',
+        description: 'a feed of daily change files, so you can run your own local, synced copy of OpenAlex.',
+      },
+      {
+        title: '3 power-user accounts',
+        description: 'extra-high API limits for three users at your organization.',
+      },
+      {
+        title: '5 hours of consulting per year',
+        description: 'expert advice, training, and exploration customized to your needs.',
+      },
+    ],
   },
 ];
 
-// Live member lists from the users API (see users-api public_members.py for
+// Live supporter lists from the users API (see users-api public_members.py for
 // the listing policy: legacy-plan -> tier mapping, commercial exclusions,
 // display names). Expired plans drop off automatically.
-const tierDefs = [
-  { key: 'partner', label: 'Partner' },
-  { key: 'member_plus', label: 'Member+' },
-  { key: 'member', label: 'Member' },
-];
-const tiers = ref([]);
+const orgsByTier = ref({});
+const orgsLoaded = ref(false);
 const membersError = ref(false);
 
 onMounted(async () => {
   try {
     const resp = await axios.get(`${urlBase.userApi}/organizations/public-members`);
-    tiers.value = tierDefs
-      .map(t => ({ label: t.label, names: resp.data[t.key] || [] }))
-      .filter(t => t.names.length);
-    if (!tiers.value.length) { membersError.value = true; }
+    orgsByTier.value = resp.data || {};
+    orgsLoaded.value = true;
+    if (!tierConfigs.some(t => (orgsByTier.value[t.apiKey] || []).length)) {
+      membersError.value = true;
+    }
   } catch (e) {
     membersError.value = true;
   }
 });
 
 // Proper alphabetical order (É with E, case-insensitive)
-function sorted(names) {
+function orgsFor(apiKey) {
+  const names = orgsByTier.value[apiKey] || [];
   return [...names].sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
+}
+
+function scrollToTier(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+  window.history.replaceState(null, '', `#${id}`);
 }
 </script>
 
 
 <style lang="scss" scoped>
-// Benefit cards — small, scannable; marketing, not how-to
-.benefits-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-top: 28px;
-}
-
-@media (max-width: 960px) {
-  .benefits-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 600px) {
-  .benefits-grid { grid-template-columns: 1fr; }
-}
-
-.benefit-card {
-  border: 1px solid #E4E4E7;
-  border-radius: 12px;
-  padding: 18px;
-  background: #fff;
-}
-
-.benefit-icon {
-  color: #0A0A0A;
-  margin-bottom: 10px;
-}
-
-.benefit-title {
-  font-size: 15px;
+.tier-price {
+  font-size: 22px;
   font-weight: 600;
   letter-spacing: -0.01em;
   color: #0A0A0A;
-  margin-bottom: 6px;
+  margin-bottom: 12px;
 }
 
-.benefit-description {
-  font-size: 13.5px;
-  line-height: 1.55;
-  color: #52525B;
+.tier-price-period {
+  font-size: 15px;
+  font-weight: 400;
+  color: #71717A;
+  margin-left: 2px;
 }
 
-// Member name lists — multi-column, quiet
-.member-tier {
-  margin-top: 8px;
+.tier-price-note {
+  font-size: 14.5px;
+  margin-bottom: 12px;
 }
 
+.tier-lead {
+  margin-bottom: 4px;
+}
+
+.tier-orgs-lead {
+  margin-top: 28px;
+  margin-bottom: 4px;
+}
+
+// Supporter name lists — multi-column, quiet
 .member-columns {
   column-count: 3;
   column-gap: 32px;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 @media (max-width: 960px) {
