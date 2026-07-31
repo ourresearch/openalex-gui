@@ -92,8 +92,8 @@ const navConfigs = [
                 href: "https://groups.google.com/g/openalex-users",
             },
             {
-                name: "Members",
-                to: "/members",
+                name: "Supporters",
+                to: "/institutional-supporters",
             },
         ],
     },

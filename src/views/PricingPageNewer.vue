@@ -442,7 +442,7 @@
             How do the Member benefits work and how do I activate them?
           </v-expansion-panel-title>
           <v-expansion-panel-text class="faq-answer">
-            For detailed information about each Member benefit and step-by-step activation instructions, please visit our <a href="/members">Members page</a>.
+            For detailed information about each Member benefit and step-by-step activation instructions, please visit our <a href="/institutional-supporters">Institutional supporters page</a>.
           </v-expansion-panel-text>
         </v-expansion-panel>
       </v-expansion-panels>

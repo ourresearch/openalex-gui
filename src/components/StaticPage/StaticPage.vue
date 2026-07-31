@@ -98,6 +98,22 @@ defineProps({
     }
 
     &:hover .permalink { opacity: 1; }
+
+    // Optional right-aligned aside (e.g. a price) — wraps below the title on mobile
+    &.has-aside {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 4px 16px;
+    }
+
+    .section-header-aside {
+      margin-left: auto;
+      font-size: 15px;
+      font-weight: 400;
+      letter-spacing: 0;
+      color: #71717A;
+    }
   }
 
   .subsection-header {
@@ -160,6 +176,11 @@ defineProps({
     .hero { padding: 60px 20px 20px; }
     .hero-headline { font-size: 32px; }
     .section { padding: 48px 20px; }
+
+    .section-header .section-header-aside {
+      margin-left: 0;
+      flex-basis: 100%;
+    }
   }
 }
 </style>

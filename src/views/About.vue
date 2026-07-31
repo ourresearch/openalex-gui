@@ -208,7 +208,7 @@
         especially the folks at <a href="https://aka.ms/msracad">MAG</a> for building a
         really audacious and cool thing, and providing us lots of help and support as we
         build its replacement. We're also grateful to our
-        <router-link to="/members">institutional members</router-link> and the countless
+        <router-link to="/institutional-supporters">institutional supporters</router-link> and the countless
         community members who contribute metadata corrections, bug reports, and feature
         requests.
       </p>

@@ -493,7 +493,7 @@ const institutionFaqs = [
   },
   {
     question: 'How do the Member benefits work and how do I activate them?',
-    answer: 'For details on each benefit, how they work, and how to activate them check out <a href="/members">openalex.org/members</a>.'
+    answer: 'For details on each benefit, how they work, and how to activate them check out <a href="/institutional-supporters">openalex.org/institutional-supporters</a>.'
   }
 ];
 

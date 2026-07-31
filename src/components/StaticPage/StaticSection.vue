@@ -1,8 +1,11 @@
 <template>
   <section :id="id" class="section compact-section">
-    <h2 class="section-header">
-      {{ title }}
-      <a :href="'#' + id" class="permalink" @click.prevent="scrollToSection(id)"><v-icon size="18">mdi-link-variant</v-icon></a>
+    <h2 class="section-header" :class="{ 'has-aside': $slots.aside }">
+      <span class="section-header-text">
+        {{ title }}
+        <a :href="'#' + id" class="permalink" @click.prevent="scrollToSection(id)"><v-icon size="18">mdi-link-variant</v-icon></a>
+      </span>
+      <span v-if="$slots.aside" class="section-header-aside"><slot name="aside" /></span>
     </h2>
     <slot />
   </section>

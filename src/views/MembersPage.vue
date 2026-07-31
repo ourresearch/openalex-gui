@@ -18,13 +18,12 @@
       :id="tier.id"
       :title="tier.label"
     >
-      <div class="tier-price">
-        {{ tier.price }}
-        <span class="tier-price-period">per year</span>
-      </div>
+      <template #aside>{{ tier.price }} annually</template>
+
       <p v-if="tier.priceNote" class="section-body tier-price-note">{{ tier.priceNote }}</p>
 
-      <p class="section-body tier-lead">{{ tier.lead }}</p>
+      <h3 class="subsection-header">Benefits</h3>
+      <p v-if="tier.lead" class="section-body tier-lead">{{ tier.lead }}</p>
       <ul class="section-list">
         <li v-for="benefit in tier.benefits" :key="benefit.title">
           <a v-if="benefit.href" :href="benefit.href" target="_blank" rel="noopener noreferrer">
@@ -35,21 +34,17 @@
         </li>
       </ul>
 
-      <template v-if="orgsFor(tier.apiKey).length">
-        <p class="section-body tier-orgs-lead">
-          These institutions support OpenAlex at the {{ tier.label }} level:
-        </p>
-        <div class="member-columns">
-          <div v-for="name in orgsFor(tier.apiKey)" :key="name" class="member-name">
-            {{ name }}
-          </div>
+      <h3 class="subsection-header">{{ tier.orgsHeading }}</h3>
+      <div v-if="orgsFor(tier.apiKey).length" class="member-columns">
+        <div v-for="name in orgsFor(tier.apiKey)" :key="name" class="member-name">
+          {{ name }}
         </div>
-      </template>
-      <p v-else-if="membersError" class="section-body tier-orgs-lead">
-        The list of {{ tier.label }} institutions is taking a break —
+      </div>
+      <p v-else-if="membersError || orgsLoaded" class="section-body">
+        This list is taking a break —
         <a href="mailto:sales@openalex.org">contact us</a> and we'll happily tell you who's on board.
       </p>
-      <v-progress-circular v-else-if="!orgsLoaded" indeterminate size="20" class="mt-2" />
+      <v-progress-circular v-else indeterminate size="20" class="mt-2" />
     </static-section>
 
     <static-section id="join" title="Become a supporter">
@@ -92,11 +87,12 @@ import StaticSection from '@/components/StaticPage/StaticSection.vue';
 
 defineOptions({ name: 'MembersPage' });
 
-// Rail = just the three tiers (each has its own section).
+// Rail = the three tier sections + the join CTA.
 const tocSections = [
   { id: 'member', label: 'Member' },
   { id: 'member-plus', label: 'Member+' },
   { id: 'partner', label: 'Partner' },
+  { id: 'join', label: 'Become a supporter' },
 ];
 
 useHead({
@@ -118,11 +114,11 @@ const tierConfigs = [
     apiKey: 'member',
     label: 'Member',
     price: '$5,000',
-    lead: 'Every Member benefit is included in all three tiers:',
+    orgsHeading: 'Institutional members',
     benefits: [
       {
         title: '$20 per day of API usage',
-        description: '20× the free daily budget ($7,300 in annual value).',
+        description: "for your organization's API key — 20× the free daily budget ($7,300 in annual value).",
       },
       {
         title: 'Admin Dashboard',
@@ -156,11 +152,12 @@ const tierConfigs = [
     apiKey: 'member_plus',
     label: 'Member+',
     price: '$10,000',
+    orgsHeading: 'Institutional member+ subscribers',
     lead: 'Everything in Member, plus:',
     benefits: [
       {
         title: '$100 per day of API usage',
-        description: '$36,500 in annual value.',
+        description: "for your organization's API key ($36,500 in annual value).",
       },
       {
         title: 'Basic support',
@@ -174,11 +171,12 @@ const tierConfigs = [
     label: 'Partner',
     price: 'Starts at $20,000',
     priceNote: 'Partner plans are custom — pricing goes up from $20,000 depending on the level of collaboration you want.',
+    orgsHeading: 'Institutional partners',
     lead: 'Everything in Member+, plus:',
     benefits: [
       {
         title: '$200+ per day of API usage',
-        description: '$73,000+ in annual value.',
+        description: "for your organization's API key ($73,000+ in annual value).",
       },
       {
         title: 'Full support',
@@ -191,7 +189,7 @@ const tierConfigs = [
       },
       {
         title: '3 power-user accounts',
-        description: 'extra-high API limits for three users at your organization.',
+        description: 'your admins can grant extra-high API limits to three individual users at your institution.',
       },
       {
         title: '5 hours of consulting per year',
@@ -236,32 +234,12 @@ function scrollToTier(id) {
 
 
 <style lang="scss" scoped>
-.tier-price {
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: #0A0A0A;
-  margin-bottom: 12px;
-}
-
-.tier-price-period {
-  font-size: 15px;
-  font-weight: 400;
-  color: #71717A;
-  margin-left: 2px;
-}
-
 .tier-price-note {
   font-size: 14.5px;
   margin-bottom: 12px;
 }
 
 .tier-lead {
-  margin-bottom: 4px;
-}
-
-.tier-orgs-lead {
-  margin-top: 28px;
   margin-bottom: 4px;
 }
 
