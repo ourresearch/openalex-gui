@@ -426,6 +426,8 @@ const routes = [
     {path: '/pricing/institutions', redirect: '/pricing#subscriptions'},
     {path: '/pricing/developers', redirect: '/pricing#subscriptions'},
     {path: '/pricing-newer', redirect: '/pricing'},
+    {path: '/compare', name: 'Compare', component: () => import('@/views/ComingSoonPage.vue'), props: {title: 'Compare', blurb: "We're building a side-by-side look at how OpenAlex stacks up against other scholarly data sources. It's coming soon."}},
+    {path: '/careers', name: 'Careers', component: () => import('@/views/ComingSoonPage.vue'), props: {title: 'Careers', blurb: "Our jobs page is coming soon."}},
     {path: '/institutional-supporters', name: 'InstitutionalSupporters', component: MembersPage},
     {path: '/members', redirect: '/institutional-supporters'},
     {path: '/pricing-new', redirect: '/pricing'},

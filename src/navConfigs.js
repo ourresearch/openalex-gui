@@ -6,7 +6,10 @@ const navConfigs = [
                 name: "Search",
                 to: "/",
             },
-            // Compare ships when /compare exists (oxjob stub; see #685 decision map D4)
+            {
+                name: "Compare",
+                to: "/compare",
+            },
             {
                 name: "Pricing",
                 to: "/pricing",
@@ -65,7 +68,10 @@ const navConfigs = [
                 name: "Brand",
                 to: "/brand",
             },
-            // Careers ships when the jobs page lands (jobs-page oxjob)
+            {
+                name: "Careers",
+                to: "/careers",
+            },
         ],
     },
     {
