@@ -184,8 +184,8 @@ const tierConfigs = [
       },
       {
         title: 'Data Sync Service',
-        href: 'https://openalex-help.pages.dev/docs/data-feed/',
-        description: 'a feed of daily change files, so you can run your own local, synced copy of OpenAlex.',
+        href: 'https://openalex-help.pages.dev/docs/snapshot-updates/',
+        description: 'a complete snapshot of OpenAlex published every day, so you can run your own local, synced copy.',
       },
       {
         title: '3 power-user accounts',
