@@ -163,6 +163,11 @@ const tierConfigs = [
         title: 'Basic support',
         description: 'help with critical API bugs.',
       },
+      {
+        title: 'Daily sync',
+        href: 'https://openalex-help.pages.dev/docs/snapshot-updates/',
+        description: 'keep your own synced copy of OpenAlex, via API filters (works created or updated since any date) and a complete daily snapshot partitioned by created/updated date.',
+      },
     ],
   },
   {
@@ -181,11 +186,6 @@ const tierConfigs = [
       {
         title: 'Full support',
         description: 'ticket-based support for all issues.',
-      },
-      {
-        title: 'Data Sync Service',
-        href: 'https://openalex-help.pages.dev/docs/snapshot-updates/',
-        description: 'a complete snapshot of OpenAlex published every day, so you can run your own local, synced copy.',
       },
       {
         title: '3 power-user accounts',

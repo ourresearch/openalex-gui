@@ -230,16 +230,16 @@
             </tr>
             <tr>
               <td class="feature-label">
-                Data Sync Service
-                <v-tooltip location="top" max-width="280" aria-label="Data Sync Service">
+                Daily sync
+                <v-tooltip location="top" max-width="280" aria-label="Daily sync">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
                   </template>
-                  Access to a feed of daily change files so that you can run your own local, synced copy of OpenAlex.
+                  Keep your own copy of OpenAlex in sync, two ways: API filters for works created or updated since any date, and a complete daily snapshot partitioned by created/updated date.
                 </v-tooltip>
               </td>
               <td><span class="dash">—</span></td>
-              <td><span class="dash">—</span></td>
+              <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
             </tr>
             <tr>
