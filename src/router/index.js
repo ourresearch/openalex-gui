@@ -6,6 +6,7 @@ import * as openalexId from "@/openalexId";
 import {url} from "@/url";
 
 import HomePage from '@/views/Home.vue'
+import HomeV2Page from '@/views/HomeV2.vue'  // #681 landing revision — test route, overwrites / when done
 import SerpPage from '@/views/Serp.vue';
 import EntityPage from '@/views/EntityPage.vue';
 
@@ -90,6 +91,12 @@ const routes = [
         path: '/',
         component: HomePage,
         name: 'Home',
+    },
+    {
+        // #681 landing-page revision — build/preview here, overwrite '/' when done.
+        path: '/v2',
+        component: HomeV2Page,
+        name: 'HomeV2',
     },
     // data pages
     {

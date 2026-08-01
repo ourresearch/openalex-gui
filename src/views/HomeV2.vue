@@ -1,0 +1,743 @@
+<template>
+  <div class="landing-v2">
+
+    <!-- ===================== HERO (#686) ===================== -->
+    <section class="hero">
+      <div class="hero-copy">
+        <!-- ⚠️ headline is the approved PLACEHOLDER (#686); Jason revisits it on the
+             assembled page. Don't reopen before assembly. -->
+        <h1 class="hero-headline">Unlock the world's research</h1>
+        <p class="hero-subhead">
+          Inspired by the Library of Alexandria, we index half a billion scholarly
+          works and make them easy to search, analyze, and&nbsp;reuse.
+        </p>
+        <div class="hero-search">
+          <search-box v-if="oqlFlag" single-row autofocus />
+          <search-box v-else show-examples autofocus />
+        </div>
+      </div>
+
+      <!-- live feed: rows are built imperatively in onMounted (faithful port of the
+           #686 C3 prototype — prototype wins ties). -->
+      <div class="hero-viz">
+        <div class="added">
+          <span class="live-dot"></span>
+          <span><b ref="addedRef">…</b> works added today</span>
+        </div>
+        <div class="feedport" ref="portRef"><div class="belt" ref="beltRef"></div></div>
+      </div>
+
+      <v-btn variant="text" class="scroll-indicator" @click="scrollToContent">
+        <v-icon>mdi-chevron-down</v-icon>
+      </v-btn>
+    </section>
+
+    <!-- ===================== SOCIAL PROOF (#404 supplies the list) ===================== -->
+    <section id="content" class="logos-section">
+      <p class="logos-label">Powering research at</p>
+      <div class="ribbon">
+        <!-- moving ribbon; final logo list is #404 (awaiting sign-off). Placeholder
+             set reuses the current partner logos, duplicated for a seamless loop. -->
+        <div class="ribbon-track">
+          <img v-for="(logo, i) in ribbonLogos.concat(ribbonLogos)" :key="i"
+               :src="logo.src" :alt="logo.alt" class="ribbon-logo" :class="logo.cls" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== FOUR KEY STATS ===================== -->
+    <section class="stats-section">
+      <div class="stats-row">
+        <div v-for="(s, i) in stats" :key="i" class="stat">
+          <div class="stat-num">{{ s.num }}</div>
+          <div class="stat-label">{{ s.label }}</div>
+          <div class="stat-sub">{{ s.sub }}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== WHAT IT IS (copy + #711 graphic) ===================== -->
+    <section class="whatis-section">
+      <div class="whatis-grid">
+        <div class="whatis-copy">
+          <h2 class="whatis-title">A library for the AI age</h2>
+          <p>
+            Humanity's research is the most valuable knowledge we have — and it's a
+            mess. Half a billion papers, datasets, and discoveries lie scattered
+            across thousands of disconnected silos, in formats built for the 17th
+            century, not the age of AI. OpenAlex fixes this. We gather the world's
+            scholarly work into one place, connect it into a single map of authors,
+            institutions, and ideas, and share it — so humans and AI can finally
+            build the next generation of research tools on a foundation that's whole.
+          </p>
+          <p>
+            And we do it in the open. Our data is free for anyone to use under a
+            <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">CC0 public-domain license</a>,
+            our code is open source, and we're a nonprofit — so our only obligation
+            is to the mission, not to shareholders. We keep the lights on by selling
+            <router-link to="/pricing">premium services</router-link> to the
+            organizations that can afford them, which keeps the open foundation free
+            for everyone else. A library this open can never be locked up, or
+            burned&nbsp;down.
+          </p>
+        </div>
+
+        <!-- #711 soil-core graphic. Markup + annot-css lifted near-verbatim from
+             work/label-drafts-v5.html; geometry is px-tuned to 900px art width and
+             scaled to fit via the wrapper. color-scheme:light required. -->
+        <div class="whatis-graphic">
+          <div class="cake-hero">
+            <div class="cake-art"><img :src="layerCake" alt="How OpenAlex works: raw scholarly works are gathered, organized, shared, and grow into the scholarly ecosystem" /></div>
+            <div class="cake-annot">
+              <div class="cake-wordmark">OpenAlex</div>
+              <div class="cake-bar l-eco"></div>
+              <div class="cake-bar l-share"></div>
+              <div class="cake-bar l-org"></div>
+              <div class="cake-bar l-gather"></div>
+              <div class="cake-bar l-works"></div>
+              <div class="cake-labels l-eco">
+                <div class="title">The scholarly ecosystem</div>
+                <div class="subtitle">Humans and agents collaborate at scale</div>
+              </div>
+              <div class="cake-labels l-share">
+                <div class="title">Share</div>
+                <div class="subtitle">Via website, API, and snapshot</div>
+              </div>
+              <div class="cake-labels l-org">
+                <div class="title">Organize</div>
+                <div class="subtitle">Disambiguate and connect</div>
+              </div>
+              <div class="cake-labels l-gather">
+                <div class="title">Gather</div>
+                <div class="subtitle">Find and ingest</div>
+              </div>
+              <div class="cake-labels l-works">
+                <div class="title">Raw scholarly works</div>
+                <div class="subtitle">Scattered over 250k journals and repositories</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== HOW TO ACCESS IT (vertical tabs) ===================== -->
+    <section class="access-section">
+      <h2 class="section-header">How to access it</h2>
+      <div class="access-grid">
+        <div class="access-tabs" role="tablist">
+          <button
+            v-for="(m, i) in accessMethods"
+            :key="i"
+            class="access-tab"
+            :class="{ active: activeMethod === i }"
+            role="tab"
+            :aria-selected="activeMethod === i"
+            @click="activeMethod = i"
+          >{{ m.name }}</button>
+        </div>
+        <div class="access-panel">
+          <h3 class="access-panel-title">{{ accessMethods[activeMethod].name }}</h3>
+          <p class="access-panel-body">{{ accessMethods[activeMethod].body }}</p>
+          <a class="access-learn" :href="accessMethods[activeMethod].href" target="_blank" rel="noopener">
+            Learn more <v-icon size="14">mdi-arrow-right</v-icon>
+          </a>
+        </div>
+      </div>
+      <p class="access-note">
+        The OpenAlex Query Language is in open beta.
+        <a href="https://help.openalex.org/" target="_blank" rel="noopener">Watch the intro video</a>
+        to see how to turn it on.
+      </p>
+    </section>
+
+    <!-- ===================== FAQ ===================== -->
+    <section class="faq-section">
+      <h2 class="section-header">Frequently asked questions</h2>
+      <div class="faq-list">
+        <div
+          v-for="(faq, index) in faqs"
+          :key="index"
+          class="faq-item"
+          :class="{ 'is-open': openFaq === index }"
+        >
+          <button class="faq-question" @click="toggleFaq(index)">
+            <span>{{ faq.question }}</span>
+            <v-icon class="faq-icon">{{ openFaq === index ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+          </button>
+          <div v-if="openFaq === index" class="faq-answer">
+            <p v-html="faq.answer"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- floating tooltip for the hero feed (mirrors App.vue TOOLTIP STYLES) -->
+    <div class="feed-tip" ref="tipRef"></div>
+  </div>
+</template>
+
+
+<script setup>
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { useGoTo } from 'vuetify';
+import { useHead } from '@unhead/vue';
+import { useStore } from 'vuex';
+import axios from 'axios';
+
+import SearchBox from '@/components/SearchBox.vue';
+import { getTypeIcon } from '@/typeIcons';
+import { feedRecords } from '@/landingFeedData';
+import { urlBase } from '@/apiConfig';
+
+const store = useStore();
+const goTo = useGoTo();
+
+// #598: flag-on landing renders the Basic-mode single-row bar.
+const oqlFlag = computed(() => !!store.getters.featureFlags['oql']);
+
+useHead({
+  title: 'OpenAlex: The open catalog to the global research system',
+  titleTemplate: undefined,
+});
+
+import layerCake from '@/assets/landing/layer-cake.webp';
+
+function scrollToContent() { goTo('#content'); }
+
+// ---------------------------------------------------------------------------
+// Social-proof ribbon (final list = #404). Placeholder logos, duplicated for
+// a seamless CSS marquee.
+// ---------------------------------------------------------------------------
+import sorbonneLogo from '@/assets/partner-logos/sorbonne-university.svg';
+import acsLogo from '@/assets/partner-logos/american-chemical-society.svg';
+import epflLogo from '@/assets/partner-logos/epfl.svg';
+import jiscLogo from '@/assets/partner-logos/jisc.png';
+import cziLogo from '@/assets/partner-logos/chan-zuckerberg-initiative.svg';
+const ribbonLogos = [
+  { src: sorbonneLogo, alt: 'Sorbonne University', cls: '' },
+  { src: acsLogo, alt: 'American Chemical Society', cls: 'tall' },
+  { src: epflLogo, alt: 'EPFL', cls: 'short' },
+  { src: jiscLogo, alt: 'Jisc', cls: '' },
+  { src: cziLogo, alt: 'Chan Zuckerberg Initiative', cls: '' },
+];
+
+// ---------------------------------------------------------------------------
+// Four key stats. works + PDFs go LIVE; connections + API-calls are static.
+// ---------------------------------------------------------------------------
+const MAILTO = 'mailto=ui@openalex.org';
+// "515 million" / "5.8 billion" style
+function humanBig(n, approx = false) {
+  if (!n) return null;
+  const p = approx ? '~' : '';
+  if (n >= 1e9) { const x = n / 1e9; return `${p}${x < 10 ? Math.round(x * 10) / 10 : Math.round(x)} billion`; }
+  if (n >= 1e6) return `${p}${Math.round(n / 1e6)} million`;
+  return p + n.toLocaleString();
+}
+
+const worksNum = ref('515 million');   // LIVE; fallback to a recent value
+const pdfsNum = ref('~49 million');     // LIVE; fallback to a recent value
+
+// works: xpac-inclusive count (all works, not just core) -> ~515M
+axios.get(`${urlBase.api}/works?filter=is_xpac:true|false&per-page=1&select=id&${MAILTO}`)
+  .then(r => { const c = r.data?.meta?.count; if (c) worksNum.value = humanBig(c); })
+  .catch(() => {});
+// PDFs: works with a downloadable PDF -> ~49M
+axios.get(`${urlBase.api}/works?filter=has_content.pdf:true&per-page=1&select=id&${MAILTO}`)
+  .then(r => { const c = r.data?.meta?.count; if (c) pdfsNum.value = humanBig(c, true); })
+  .catch(() => {});
+
+const stats = computed(() => [
+  { num: worksNum.value, label: 'scholarly works', sub: 'papers, datasets, and more' },
+  { num: '5.8 billion', label: 'connections', sub: 'citations, authorships, and more' },
+  { num: pdfsNum.value, label: 'PDFs', sub: 'ready for download' },
+  { num: '1.1 billion', label: 'API calls monthly', sub: 'from millions of users' },
+]);
+
+// ---------------------------------------------------------------------------
+// How to access it — 8 methods. learn-more links -> help.openalex.org (#354
+// ships first; trust it). OQL beta note lives below the section.
+// ---------------------------------------------------------------------------
+const activeMethod = ref(0);
+const accessMethods = [
+  { name: 'Website', body: 'Search and browse half a billion works right here — no code, no login. Filter by author, institution, topic, funder, and more, then export what you find.', href: 'https://help.openalex.org/' },
+  { name: 'Query language', body: 'Ask complex questions in plain, structured language and get answers back as tables and charts — the power of the API with none of the code.', href: 'https://help.openalex.org/' },
+  { name: 'API', body: 'A fast, thoroughly documented REST API built for automation. High throughput, transparent pricing, no lock-in — the same API that serves over a billion calls a month.', href: 'https://developers.openalex.org/' },
+  { name: 'Command line', body: 'Query OpenAlex straight from your terminal and pipe the results into your own scripts and data pipelines.', href: 'https://developers.openalex.org/' },
+  { name: 'Agents', body: 'OpenAlex is built for AI. Point your agents at our API and let them read across the whole literature — structured, connected, and machine-ready.', href: 'https://developers.openalex.org/' },
+  { name: 'Snapshot', body: 'Download the entire dataset — every work, author, source, and institution — as a free snapshot, and host your own copy.', href: 'https://developers.openalex.org/download-all-data/openalex-snapshot' },
+  { name: 'Daily sync', body: 'Keep your local copy current with daily change files, so it never falls behind the live index.', href: 'https://developers.openalex.org/download-all-data/openalex-snapshot' },
+  { name: 'PDF archive', body: 'Download full-text PDFs for tens of millions of open-access works — cached, deduplicated, and ready to process.', href: 'https://developers.openalex.org/' },
+];
+
+// ---------------------------------------------------------------------------
+// FAQ — 3 obligations ruled in (junk/curation-as-query, two-tier fulltext,
+// where-data-comes-from) + 2 from the current page's inventory.
+// ---------------------------------------------------------------------------
+const openFaq = ref(null);
+function toggleFaq(index) { openFaq.value = openFaq.value === index ? null : index; }
+const faqs = [
+  {
+    question: 'Is OpenAlex full of junk?',
+    answer: `OpenAlex indexes everything — not just a hand-picked "prestige" subset. That kind of selectivity was always a coping mechanism for scarce human attention; in the AI age, you no longer have to decide what's worth indexing up front. Instead, curation becomes a query: filter by peer-review status, citations, topic, source, or your own criteria at the moment you search, and get exactly the slice you want.`,
+  },
+  {
+    question: 'Do you have the full text, or just abstracts?',
+    answer: `For every open-access work, we index the full text — so you can search and analyze what papers actually say, not just their titles and abstracts. Where the full text isn't openly available, we still provide complete metadata: authors, affiliations, citations, topics, and more. You get full-text depth where it's open, and comprehensive coverage everywhere else.`,
+  },
+  {
+    question: 'Where does your data come from?',
+    answer: `We gather metadata from hundreds of sources — including Crossref, ORCID, PubMed, arXiv, DataCite, ROR, and the world's institutional repositories — then disambiguate, deduplicate, and connect it into one clean, unified dataset. Everything updates daily.`,
+  },
+  {
+    question: 'Is OpenAlex really free?',
+    answer: `Yes. The full dataset and API are free for everyone, forever, under a CC0 public-domain license. We offer premium tiers — higher rate limits, dedicated support, custom curation — for organizations that need them, and that revenue keeps the free tier free.`,
+  },
+  {
+    question: 'How is OpenAlex different from Scopus, Web of Science, or Google Scholar?',
+    answer: `Those are destinations: you visit them to look something up. OpenAlex is infrastructure: you build on it. Our entire dataset — over 500 million works, richly connected to authors, institutions, funders, and citations — is queryable by API and downloadable under CC0. And we cover far more of the world's research than the paywalled databases, openly.`,
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Hero live feed — faithful port of #686 work/prototypes/C3-live-feed.html.
+// Scroll mode, direction down, speed 0.75x. Imperative DOM (no reactivity in
+// the animation loop; acceptance test 4 = search must stay interactive).
+// ---------------------------------------------------------------------------
+const portRef = ref(null);
+const beltRef = ref(null);
+const tipRef = ref(null);
+const addedRef = ref(null);
+let cleanup = () => {};
+
+onMounted(() => {
+  const port = portRef.value, belt = beltRef.value, tip = tipRef.value;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const recs = feedRecords;
+
+  const ADDED_TODAY = 212411; // placeholder until #699 /stats ships
+  if (addedRef.value) addedRef.value.textContent = ADDED_TODAY.toLocaleString('en-US');
+
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  const fmt = n => {
+    const u = [[1e9, 'B'], [1e6, 'M'], [1e3, 'K']].find(([d]) => n >= d);
+    if (!u) return String(n);
+    const x = n / u[0];
+    return (x < 10 ? x.toFixed(1).replace(/\.0$/, '') : Math.round(x)) + u[1];
+  };
+  const TYPE_DEFS = {
+    'article': 'A paper published in a journal or repository, presenting original research.',
+    'preprint': 'A paper shared publicly before peer review.',
+    'review': 'A paper that surveys and evaluates existing research on a topic.',
+    'dataset': 'A collection of research data.',
+    'data-paper': 'A paper describing a research dataset.',
+    'software': 'Research software or code.',
+    'software-paper': 'A paper describing research software.',
+    'book': 'A scholarly book or monograph.',
+    'book-chapter': 'A chapter from a scholarly book.',
+    'book-review': 'A published review of a scholarly book.',
+    'reference-entry': 'An entry in an encyclopedia, dictionary, or other reference work.',
+    'dissertation': 'A thesis written for a graduate degree.',
+    'conference-paper': 'A paper presented at a scholarly conference.',
+    'conference-abstract': 'A short summary of a conference presentation.',
+    'report': 'A report from an institution, agency, or working group.',
+    'standard': 'A formal technical standard or specification.',
+    'editorial': "An opinion or commentary piece from a journal's editors.",
+    'letter': 'A short letter or communication published in a journal.',
+    'peer-review': 'A published peer review of another work.',
+    'erratum': 'A published correction to an earlier work.',
+    'retraction': 'A notice formally withdrawing a published work.',
+    'paratext': 'Publishing material about a venue or work, like covers and mastheads.',
+    'supplementary-materials': 'Extra files that support a published work.',
+    'libguides': 'A research guide curated by librarians.',
+    'other': "A work that doesn't fit any other category.",
+  };
+  const lastName = n => n.trim().split(/\s+/).pop();
+  const srcName = n => n.replace(/\s*\([^)]*\)\s*$/, '');
+  const AUTHOR_ICON = 'mdi-account-outline';
+  const SOURCE_ICON = 'mdi-book-open-outline';
+
+  function link(cls, href, text, tipText, inlIcon) {
+    const ic = inlIcon ? `<span class="inl mdi ${inlIcon}"></span>` : '';
+    return `<a class="${cls}" href="${esc(href)}" target="_blank" rel="noopener" data-tip="${esc(tipText)}">${ic}${esc(text)}</a>`;
+  }
+
+  let idx = 0;
+  function makeItem() {
+    const r = recs[idx++ % recs.length];
+    const typeName = r.type.replace(/-/g, ' ');
+    const typeTip = `data-tip-title="${esc(typeName[0].toUpperCase() + typeName.slice(1))}" data-tip="${esc(TYPE_DEFS[r.type] || '')}"`;
+    const eyebrow = `<span class="eyebrow" ${typeTip}>${esc(typeName)}</span>`;
+    const names = r.authors.map(a =>
+      link('w w-author', 'https://openalex.org/works?filter=authorships.author.id:' + a.id,
+        lastName(a.name), `View all ${fmt(a.count)} works by ${a.name}`, AUTHOR_ICON));
+    const etAl = r.nauthors > r.authors.length;
+    const authors = (names.length === 2 && !etAl)
+      ? names.join(' and ')
+      : names.join(', ') + (etAl ? ', et al.' : '');
+    const src = r.source
+      ? ` in ${link('w w-source', 'https://openalex.org/works?filter=primary_location.source.id:' + r.source.id,
+          srcName(r.source.name), `View all ${fmt(r.source.count)} works published in ${srcName(r.source.name)}`, SOURCE_ICON)}`
+      : '';
+    const pdf = r.pdf
+      ? `<a class="pdf" href="${esc(r.pdf)}" target="_blank" rel="noopener" data-tip="View PDF">PDF</a>`
+      : '';
+    const icon = `<span class="lead mdi ${getTypeIcon(r.type)}" ${typeTip}></span>`;
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.innerHTML = `${eyebrow}${icon}<a class="t" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a>${pdf}<span class="by">by ${authors}${src}</span>`;
+    return el;
+  }
+
+  // tooltips
+  const onOver = e => {
+    const a = e.target.closest('[data-tip]');
+    if (!a) return;
+    if (a.dataset.tipTitle) tip.innerHTML = `<b>${esc(a.dataset.tipTitle)}</b>${esc(a.dataset.tip)}`;
+    else tip.textContent = a.dataset.tip;
+    const r = a.getBoundingClientRect();
+    tip.classList.add('on');
+    const w = tip.offsetWidth;
+    tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
+    tip.style.top = (r.top - tip.offsetHeight - 7) + 'px';
+  };
+  const onOut = e => { if (e.target.closest('[data-tip]')) tip.classList.remove('on'); };
+  belt.addEventListener('pointerover', onOver);
+  belt.addEventListener('pointerout', onOut);
+
+  function makeSlot() {
+    const slot = document.createElement('div');
+    slot.className = 'slot';
+    slot.appendChild(makeItem());
+    return slot;
+  }
+
+  // initial fill
+  while (belt.offsetHeight < port.offsetHeight + 60) belt.appendChild(makeSlot());
+
+  // reduced motion: a static (non-scrolling) list is the correct behavior.
+  if (reduced) {
+    cleanup = () => { belt.removeEventListener('pointerover', onOver); belt.removeEventListener('pointerout', onOut); };
+    return;
+  }
+
+  let paused = false, y = 0, lastT = 0, rafId = null;
+  const SCROLL_BASE = 22, speed = 0.75; // px/s at 1x, 0.75x per #686
+  const onEnter = () => { paused = true; };
+  const onLeave = () => { paused = false; };
+  port.addEventListener('pointerenter', onEnter);
+  port.addEventListener('pointerleave', onLeave);
+
+  function scrollTick(now) {
+    const dt = Math.min(now - lastT, 100) / 1000; lastT = now;
+    if (!paused && !document.hidden) {
+      y -= SCROLL_BASE * speed * dt;
+      while (y < 60) { const s = makeSlot(); belt.prepend(s); y += s.offsetHeight; }
+      while (belt.offsetHeight - y > port.offsetHeight + 200) belt.removeChild(belt.lastElementChild);
+      belt.style.transform = `translateY(${-y}px)`;
+    }
+    rafId = requestAnimationFrame(scrollTick);
+  }
+  lastT = performance.now();
+  rafId = requestAnimationFrame(scrollTick);
+
+  cleanup = () => {
+    cancelAnimationFrame(rafId);
+    port.removeEventListener('pointerenter', onEnter);
+    port.removeEventListener('pointerleave', onLeave);
+    belt.removeEventListener('pointerover', onOver);
+    belt.removeEventListener('pointerout', onOut);
+  };
+});
+
+onBeforeUnmount(() => cleanup());
+
+// Reset state on mount (mirrors Home.vue)
+store.commit('user/setActiveSearchId', null);
+store.state.entityType = 'works';
+</script>
+
+
+<script>
+export default { name: 'HomeV2Page' };
+</script>
+
+
+<style lang="scss" scoped>
+// #711: force light so Chrome's Auto Dark Mode can't invert the art.
+.landing-v2 {
+  background: #fff;
+  color: #0A0A0A;
+  color-scheme: light;
+  --ink: #0A0A0A; --muted: #52525B; --faint: #A1A1AA; --hair: #F0F0F2;
+  --w-author: #047857; --w-source: #B45309;
+}
+
+// ===================== HERO =====================
+.hero {
+  position: relative;
+  min-height: calc(100vh - var(--app-bar-height));
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 48px;
+  align-items: center;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+.hero > * { min-width: 0; }
+
+.hero-headline {
+  font-size: 52px; font-weight: 700; line-height: 1.05;
+  letter-spacing: -0.03em; color: var(--ink); margin: 0 0 20px 0;
+}
+.hero-subhead {
+  font-size: 18px; line-height: 1.65; color: var(--muted);
+  max-width: 520px; margin: 0 0 40px 0;
+}
+.hero-search { width: 100%; max-width: 600px; }
+
+.scroll-indicator {
+  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+  color: var(--faint);
+  &:hover { color: #71717A; }
+}
+
+// live feed
+.hero-viz { display: flex; flex-direction: column; gap: 0; }
+.added {
+  font-size: 13px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); display: grid; grid-template-columns: 18px minmax(0, 1fr);
+  column-gap: 8px; align-items: center; padding: 0 2px 12px;
+  border-bottom: 1px solid #D4D4D8; position: relative; z-index: 2; background: #fff;
+  box-shadow: 0 5px 6px -5px rgba(0,0,0,.10);
+}
+:deep(.added b) { color: var(--muted); font-variant-numeric: tabular-nums; }
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: #43A047;
+  justify-self: center; animation: pulse 2s ease-out infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(67,160,71,.5); }
+  70% { box-shadow: 0 0 0 8px rgba(67,160,71,0); }
+  100% { box-shadow: none; }
+}
+.feedport {
+  height: min(66vh, 560px); overflow: hidden; position: relative;
+  -webkit-mask-image: linear-gradient(180deg, #000 0, #000 86%, transparent);
+          mask-image: linear-gradient(180deg, #000 0, #000 86%, transparent);
+}
+
+// feed row internals (imperative DOM -> :deep)
+:deep(.item) {
+  display: grid; grid-template-columns: 18px minmax(0, 1fr) 48px; gap: 2px 8px;
+  padding: 12px 2px; border-top: 1px solid var(--hair); align-items: start;
+}
+:deep(.eyebrow) {
+  grid-column: 2; grid-row: 1; font-size: 8px; font-weight: 400;
+  letter-spacing: .07em; text-transform: uppercase; color: var(--ink);
+}
+:deep(.lead) { grid-column: 1; grid-row: 2; padding-top: 2px; }
+:deep(.lead.mdi) { font-size: 16px; color: var(--ink); line-height: 1; }
+:deep(.t) {
+  grid-column: 2; grid-row: 2; font-size: 14.5px; font-weight: 550; line-height: 1.4;
+  color: var(--ink); text-decoration: none;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+}
+:deep(.t:hover) { text-decoration: underline; }
+:deep(.pdf) {
+  grid-column: 3; grid-row: 2; justify-self: end; font-size: 11px; font-weight: 600;
+  color: var(--ink); text-decoration: none; white-space: nowrap;
+  border: 1px solid var(--ink); border-radius: 6px; padding: 2px 8px;
+}
+:deep(.pdf:hover) { background: var(--ink); color: #fff; }
+:deep(.by) { grid-column: 2; grid-row: 3; font-size: 13px; line-height: 1.55; color: var(--ink); }
+:deep(.w) { font-weight: 600; text-decoration: none; }
+:deep(.w:hover) { text-decoration: underline; }
+:deep(.w-author) { color: var(--w-author); }
+:deep(.w-source) { color: var(--w-source); }
+:deep(.inl) {
+  font-size: 13px; line-height: 1; vertical-align: -0.5px; margin-right: 1px; display: inline-block;
+}
+
+// floating tooltip (mirrors App.vue TOOLTIP STYLES)
+.feed-tip {
+  position: fixed; z-index: 10; background: #fff; color: #1A1A1A;
+  border: 1px solid rgba(0,0,0,.15); box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  font-size: 12px; line-height: 1.35; padding: 6px 10px; border-radius: 6px;
+  max-width: 210px; pointer-events: none; opacity: 0; transform: translateY(3px);
+  transition: opacity .12s ease, transform .12s ease;
+  &.on { opacity: 1; transform: none; }
+}
+:deep(.feed-tip b) { display: block; margin-bottom: 1px; }
+
+// ===================== SOCIAL PROOF RIBBON =====================
+.logos-section {
+  padding: 48px 0 56px; border-bottom: 1px solid #F4F4F5; overflow: hidden;
+}
+.logos-label {
+  font-size: 14px; font-weight: 500; color: var(--faint);
+  text-align: center; margin-bottom: 32px;
+}
+.ribbon {
+  position: relative; width: 100%; overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.ribbon-track {
+  display: flex; align-items: center; gap: 64px; width: max-content;
+  animation: ribbon-scroll 40s linear infinite;
+}
+.ribbon:hover .ribbon-track { animation-play-state: paused; }
+@keyframes ribbon-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.ribbon-logo {
+  height: 40px; filter: grayscale(1); opacity: 0.5; flex: none;
+  &.tall { height: 50px; }
+  &.short { height: 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ribbon-track { animation: none; flex-wrap: wrap; justify-content: center; width: 100%; }
+}
+
+// ===================== STATS =====================
+.stats-section { padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
+.stats-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; text-align: center;
+}
+.stat-num {
+  font-size: 40px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
+  line-height: 1.1; font-variant-numeric: tabular-nums;
+}
+.stat-label { font-size: 16px; font-weight: 600; color: var(--ink); margin-top: 8px; }
+.stat-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+// ===================== WHAT IT IS =====================
+.whatis-section { padding: 80px 24px 100px; max-width: 1200px; margin: 0 auto; }
+.whatis-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center;
+}
+.whatis-title {
+  font-size: 34px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
+  margin: 0 0 24px 0; line-height: 1.1;
+}
+.whatis-copy p {
+  font-size: 17px; line-height: 1.7; color: var(--muted); margin: 0 0 20px 0;
+  &:last-child { margin-bottom: 0; }
+  a { color: #2563EB; text-decoration: none; &:hover { text-decoration: underline; } }
+}
+
+// #711 graphic — geometry px-tuned to 900px art; scaled to fit its column.
+.whatis-graphic { display: flex; justify-content: center; }
+.cake-hero {
+  display: flex; align-items: flex-start; background: #fff;
+  // art geometry is tuned to 900px; `zoom` (unlike transform:scale) shrinks the
+  // element's LAYOUT box too, so the grid column sizes to the scaled footprint.
+  width: 900px;
+  zoom: var(--cake-scale, 0.62);
+}
+.cake-art { width: 900px; flex: none; }
+.cake-art img { display: block; width: 100%; height: auto; }
+.cake-annot {
+  display: grid;
+  grid-template-columns: [wordmark] 24px [rail] 3px [bar] 5px [text] auto;
+  grid-template-rows: [eco] 124px [share] 50px [org] 51px [gather] 52px [works] 50px;
+  row-gap: 4px; column-gap: 8px; padding-top: 55px; margin-left: -300px;
+  font-family: Inter, -apple-system, sans-serif;
+}
+.cake-bar { grid-column: bar; border-radius: 2.5px; }
+.cake-bar.l-eco { grid-row: eco; background: #6E9446; }
+.cake-bar.l-share { grid-row: share; background: #745233; }
+.cake-bar.l-org { grid-row: org; background: #745233; }
+.cake-bar.l-gather { grid-row: gather; background: #745233; }
+.cake-bar.l-works { grid-row: works; background: #64645E; }
+.cake-wordmark {
+  grid-column: wordmark; grid-row: share / span 3;
+  writing-mode: vertical-rl; transform: rotate(180deg); place-self: center;
+  font-size: 21px; font-weight: 700; color: #745233; margin-right: -26px;
+}
+.cake-labels {
+  grid-column: text; align-self: end; display: flex; flex-direction: column; padding-left: 6px;
+  .title { font-size: 17px; font-weight: 700; letter-spacing: -.015em; line-height: 1.15; }
+  .subtitle { font-size: 12px; font-weight: 400; margin-top: 3px; }
+}
+.cake-labels.l-eco { grid-row: eco; color: #6E9446; }
+.cake-labels.l-share { grid-row: share; color: #745233; }
+.cake-labels.l-org { grid-row: org; color: #745233; }
+.cake-labels.l-gather { grid-row: gather; color: #745233; }
+.cake-labels.l-works { grid-row: works; color: #64645E; }
+
+// ===================== SHARED SECTION HEADER =====================
+.section-header {
+  font-size: 32px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink);
+  text-align: center; margin-bottom: 48px;
+}
+
+// ===================== HOW TO ACCESS =====================
+.access-section { padding: 80px 24px; max-width: 900px; margin: 0 auto; }
+.access-grid { display: grid; grid-template-columns: 220px 1fr; gap: 40px; }
+.access-tabs { display: flex; flex-direction: column; border-left: 2px solid #E4E4E7; }
+.access-tab {
+  text-align: left; background: none; border: none; cursor: pointer;
+  font: inherit; font-size: 15px; font-weight: 500; color: var(--muted);
+  padding: 12px 18px; margin-left: -2px; border-left: 2px solid transparent;
+  &:hover { color: var(--ink); }
+  &.active { color: var(--ink); font-weight: 600; border-left-color: var(--ink); }
+}
+.access-panel { padding-top: 4px; }
+.access-panel-title { font-size: 20px; font-weight: 600; color: var(--ink); margin: 0 0 12px 0; }
+.access-panel-body { font-size: 16px; line-height: 1.7; color: var(--muted); margin: 0 0 20px 0; }
+.access-learn {
+  font-size: 14px; font-weight: 600; color: #2563EB; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 4px;
+  &:hover { text-decoration: underline; }
+}
+.access-note {
+  text-align: center; font-size: 13px; color: var(--faint); margin-top: 48px;
+  a { color: #2563EB; text-decoration: none; &:hover { text-decoration: underline; } }
+}
+
+// ===================== FAQ =====================
+.faq-section { padding: 80px 24px 120px; max-width: 700px; margin: 0 auto; }
+.faq-item {
+  border-bottom: 1px solid #E4E4E7;
+  &:last-child { border-bottom: none; }
+}
+.faq-question {
+  width: 100%; display: flex; justify-content: space-between; align-items: center;
+  padding: 24px 0; background: none; border: none; cursor: pointer; text-align: left;
+  font-size: 16px; font-weight: 500; color: var(--ink); font-family: inherit;
+  &:hover { color: #000; }
+  &:focus { outline: none; }
+}
+.faq-icon { color: var(--faint); flex-shrink: 0; margin-left: 16px; }
+.faq-answer {
+  padding-bottom: 24px;
+  p { margin: 0; font-size: 15px; line-height: 1.7; color: var(--muted); }
+  :deep(a) { color: #2563EB; text-decoration: none; &:hover { text-decoration: underline; } }
+}
+
+// ===================== RESPONSIVE =====================
+@media (max-width: 960px) {
+  .hero { grid-template-columns: 1fr; padding-top: 80px; gap: 32px; }
+  .hero-viz { display: none; } // feed is decorative; keep search above the fold
+  .hero-headline { font-size: 42px; }
+  .whatis-grid { grid-template-columns: 1fr; gap: 40px; }
+  .whatis-graphic { --cake-scale: 0.5; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 40px 24px; }
+  .access-grid { grid-template-columns: 1fr; gap: 24px; }
+  .access-tabs { flex-direction: row; flex-wrap: wrap; border-left: none; }
+  .access-tab {
+    border-left: none; border-bottom: 2px solid transparent; margin-left: 0;
+    &.active { border-left-color: transparent; border-bottom-color: var(--ink); }
+  }
+}
+@media (max-width: 600px) {
+  .hero { padding: 80px 20px 0; }
+  .hero-headline { font-size: 34px; }
+  .stats-section, .access-section, .faq-section, .whatis-section { padding-left: 20px; padding-right: 20px; }
+  .stat-num { font-size: 32px; }
+}
+</style>
