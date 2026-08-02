@@ -83,18 +83,18 @@
               <div class="cake-arrow a-lower"></div>
               <div class="cake-labels l-eco">
                 <div class="num">3</div>
-                <div class="title">The scholarly ecosystem</div>
-                <div class="subtitle">Humans and agents collaborate at scale</div>
+                <div class="title">Humans and agents</div>
+                <div class="subtitle">collaborate at scale</div>
               </div>
               <div class="cake-labels l-openalex">
                 <div class="num">2</div>
                 <div class="title">OpenAlex</div>
-                <div class="subtitle"><b>gather</b>, <b>organize</b> and <b>share</b> metadata and fulltext</div>
+                <div class="subtitle"><b>gathers,</b> <b>organizes,</b> and <b>shares</b> knowledge graph</div>
               </div>
               <div class="cake-labels l-works">
                 <div class="num">1</div>
                 <div class="title">Research content</div>
-                <div class="subtitle">Scattered over 250k journals and repositories</div>
+                <div class="subtitle">is published across 250k journals and repositories</div>
               </div>
             </div>
           </div>
@@ -639,18 +639,21 @@ export default { name: 'HomeV2Page' };
   // the grid column sizes to the scaled footprint.
   zoom: var(--cake-scale, 0.4);
 }
-.cake-art { width: 907px; flex: none; }
+// Art at 85% (907 → 770); the freed width goes to the label column. Rows are
+// EQUAL thirds now (alignment-to-layers convention dropped — the numbers +
+// colors carry the correspondence).
+.cake-art { width: 770px; flex: none; }
 .cake-art img { display: block; width: 100%; height: auto; }
 .cake-annot {
   display: grid; position: relative;
-  // Three rows matching the art's layer spans: ecosystem / OpenAlex (the three
-  // soil layers combined: 156+12+160+12+163) / boulders.
-  grid-template-rows: [eco] 388px [openalex] 503px [works] 157px;
-  // Width budget: (column_px / --cake-scale) − art 907 − margin 24 ≈ 430 at
+  grid-template-rows: repeat(3, 1fr);
+  // height = art display height (1378 × 770/907)
+  height: 1170px;
+  // Width budget: (column_px / --cake-scale) − art 770 − margin 24 ≈ 576 at
   // desktop 1200px container. Wider overflows the grid column and clips.
-  width: 430px;
+  width: 576px;
   // padding-left = the number column (56px circle + 28px gap, numbered-list style)
-  row-gap: 12px; padding-top: 131px; padding-left: 84px; margin-left: 24px;
+  row-gap: 12px; padding-left: 84px; margin-left: 24px;
   font-family: Inter, -apple-system, sans-serif;
 }
 .cake-labels {
@@ -668,21 +671,25 @@ export default { name: 'HomeV2Page' };
     color: #fff; font-size: 34px; font-weight: 700;
   }
 }
-.cake-labels.l-eco { grid-row: eco; color: #6E9446; .num { background: #6E9446; } }
-.cake-labels.l-openalex { grid-row: openalex; color: #745233; .num { background: #745233; } }
-.cake-labels.l-works { grid-row: works; color: #64645E; .num { background: #64645E; } }
-// up-arrows between the circles (bottom-to-top reading cue); tops/heights are
-// px-tuned to the rendered circle positions — re-measure if labels rewrap.
+.cake-labels.l-eco { grid-row: 1; color: #6E9446; .num { background: #6E9446; } }
+.cake-labels.l-openalex { grid-row: 2; color: #745233; .num { background: #745233; } }
+.cake-labels.l-works { grid-row: 3; color: #64645E; .num { background: #64645E; } }
+// up-arrows between the circles (bottom-to-top reading cue), colored like their
+// SOURCE circle (lower comes from (1) grey, upper from (2) brown); tops/heights
+// are px-tuned to the rendered circle positions — re-measure if labels rewrap.
 .cake-arrow {
-  position: absolute; left: 26px; width: 4px; border-radius: 2px; background: #C6C1BA;
+  position: absolute; left: 8px; width: 40px; border-radius: 8px;
+  // arrowhead: 88w × 66h triangle overlapping the shaft top by 10px
   &::before {
-    content: ''; position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
-    border-left: 12px solid transparent; border-right: 12px solid transparent;
-    border-bottom: 18px solid #C6C1BA;
+    content: ''; position: absolute; top: -56px; left: 50%; transform: translateX(-50%);
+    border-left: 44px solid transparent; border-right: 44px solid transparent;
+    border-bottom: 66px solid;
   }
 }
-.cake-arrow.a-upper { top: 241px; height: 426px; }
-.cake-arrow.a-lower { top: 743px; height: 231px; }
+.cake-arrow.a-upper { background: #745233; &::before { border-bottom-color: #745233; } }
+.cake-arrow.a-lower { background: #64645E; &::before { border-bottom-color: #64645E; } }
+.cake-arrow.a-upper { top: 242px; height: 242px; }
+.cake-arrow.a-lower { top: 646px; height: 232px; }
 
 // ===================== SHARED SECTION HEADER =====================
 .section-header {
