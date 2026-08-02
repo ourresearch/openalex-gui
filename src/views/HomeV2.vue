@@ -76,32 +76,18 @@
              scaled to fit via the wrapper. color-scheme:light required. -->
         <div class="whatis-graphic">
           <div class="cake-hero">
-            <div class="cake-art"><img :src="layerCake" alt="How OpenAlex works: raw scholarly works are gathered, organized, shared, and grow into the scholarly ecosystem" /></div>
+            <div class="cake-art"><img :src="layerCake" alt="How OpenAlex works: research content is gathered, organized, and shared, growing into the scholarly ecosystem" /></div>
             <div class="cake-annot">
-              <div class="cake-wordmark">OpenAlex</div>
-              <div class="cake-bar l-eco"></div>
-              <div class="cake-bar l-share"></div>
-              <div class="cake-bar l-org"></div>
-              <div class="cake-bar l-gather"></div>
-              <div class="cake-bar l-works"></div>
               <div class="cake-labels l-eco">
                 <div class="title">The scholarly ecosystem</div>
                 <div class="subtitle">Humans and agents collaborate at scale</div>
               </div>
-              <div class="cake-labels l-share">
-                <div class="title">Share</div>
-                <div class="subtitle">Via website, API, and snapshot</div>
-              </div>
-              <div class="cake-labels l-org">
-                <div class="title">Organize</div>
-                <div class="subtitle">Disambiguate and connect</div>
-              </div>
-              <div class="cake-labels l-gather">
-                <div class="title">Gather</div>
-                <div class="subtitle">Find and ingest</div>
+              <div class="cake-labels l-openalex">
+                <div class="title">OpenAlex</div>
+                <div class="subtitle"><b>gather</b>, <b>organize</b> and <b>share</b> metadata and fulltext</div>
               </div>
               <div class="cake-labels l-works">
-                <div class="title">Raw scholarly works</div>
+                <div class="title">Research content</div>
                 <div class="subtitle">Scattered over 250k journals and repositories</div>
               </div>
             </div>
@@ -649,31 +635,24 @@ export default { name: 'HomeV2Page' };
 .cake-art img { display: block; width: 100%; height: auto; }
 .cake-annot {
   display: grid;
-  grid-template-columns: [wordmark] 40px [rail] 6px [bar] 10px [text] auto;
-  grid-template-rows: [eco] 388px [share] 156px [org] 160px [gather] 163px [works] 157px;
-  row-gap: 12px; column-gap: 12px; padding-top: 131px; margin-left: 16px;
+  // Three rows matching the art's layer spans: ecosystem / OpenAlex (the three
+  // soil layers combined: 156+12+160+12+163) / boulders.
+  grid-template-rows: [eco] 388px [openalex] 503px [works] 157px;
+  // Width budget: (column_px / --cake-scale) − art 907 − margin 24 ≈ 430 at
+  // desktop 1200px container. Wider overflows the grid column and clips.
+  width: 430px;
+  row-gap: 12px; padding-top: 131px; margin-left: 24px;
   font-family: Inter, -apple-system, sans-serif;
 }
-.cake-bar { grid-column: bar; border-radius: 5px; }
-.cake-bar.l-eco { grid-row: eco; background: #6E9446; }
-.cake-bar.l-share { grid-row: share; background: #745233; }
-.cake-bar.l-org { grid-row: org; background: #745233; }
-.cake-bar.l-gather { grid-row: gather; background: #745233; }
-.cake-bar.l-works { grid-row: works; background: #64645E; }
-.cake-wordmark {
-  grid-column: wordmark; grid-row: share / span 3;
-  writing-mode: vertical-rl; transform: rotate(180deg); place-self: center;
-  font-size: 40px; font-weight: 700; color: #745233; margin-right: -52px;
-}
 .cake-labels {
-  grid-column: text; align-self: end; display: flex; flex-direction: column; padding-left: 8px;
-  .title { font-size: 28px; font-weight: 700; letter-spacing: -.015em; line-height: 1.15; }
-  .subtitle { font-size: 20px; font-weight: 400; margin-top: 4px; }
+  align-self: center; display: flex; flex-direction: column;
+  // NOTE: the whole .cake-hero is zoom-scaled (0.4 desktop), so displayed size
+  // = these values × --cake-scale. 60px here ≈ 24px on screen.
+  .title { font-size: 60px; font-weight: 700; letter-spacing: -.015em; line-height: 1.15; }
+  .subtitle { font-size: 38px; font-weight: 400; line-height: 1.3; margin-top: 8px; }
 }
 .cake-labels.l-eco { grid-row: eco; color: #6E9446; }
-.cake-labels.l-share { grid-row: share; color: #745233; }
-.cake-labels.l-org { grid-row: org; color: #745233; }
-.cake-labels.l-gather { grid-row: gather; color: #745233; }
+.cake-labels.l-openalex { grid-row: openalex; color: #745233; }
 .cake-labels.l-works { grid-row: works; color: #64645E; }
 
 // ===================== SHARED SECTION HEADER =====================
