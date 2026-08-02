@@ -46,17 +46,6 @@
       </div>
     </section>
 
-    <!-- ===================== FOUR KEY STATS ===================== -->
-    <section class="stats-section">
-      <div class="stats-row">
-        <div v-for="(s, i) in stats" :key="i" class="stat">
-          <div class="stat-num">{{ s.num }}</div>
-          <div class="stat-label">{{ s.label }}</div>
-          <div class="stat-sub">{{ s.sub }}</div>
-        </div>
-      </div>
-    </section>
-
     <!-- ===================== WHAT IT IS (copy + #711 graphic) ===================== -->
     <section class="whatis-section">
       <div class="whatis-grid">
@@ -121,14 +110,27 @@
       </div>
     </section>
 
+    <!-- ===================== FOUR KEY STATS (after About: the numbers land as
+         proof of the claims the prose just made) ===================== -->
+    <section class="stats-section">
+      <div class="stats-row">
+        <div v-for="(s, i) in stats" :key="i" class="stat">
+          <div class="stat-num">{{ s.num }}</div>
+          <div class="stat-label">{{ s.label }}</div>
+          <div class="stat-sub">{{ s.sub }}</div>
+        </div>
+      </div>
+    </section>
+
     <!-- ===================== HOW TO ACCESS IT (cards) ===================== -->
     <section class="access-section">
       <h2 class="section-header">How to access it</h2>
       <div class="access-cards">
         <div v-for="(m, i) in accessMethods" :key="i" class="access-card">
-          <h3 class="access-card-title">
-            {{ m.name }} <span v-if="m.beta" class="beta-badge">Beta</span>
-          </h3>
+          <span class="access-chip" :class="'chip-' + m.level">{{ LEVEL_NAMES[m.level] }}</span>
+          <span class="access-icon mdi" :class="m.icon"></span>
+          <h3 class="access-card-title">{{ m.name }}</h3>
+          <span v-if="m.beta" class="beta-badge">Beta</span>
           <p class="access-card-body">{{ m.body }}</p>
           <a class="access-learn" :href="m.href" target="_blank" rel="noopener">
             Learn more <span class="mdi mdi-arrow-right"></span>
@@ -249,15 +251,16 @@ const stats = computed(() => [
 // How to access it — 8 methods, one card each. learn-more links ->
 // help.openalex.org (#354 ships first; trust it). OQL card carries a Beta badge.
 // ---------------------------------------------------------------------------
+const LEVEL_NAMES = { easy: 'Easy', med: 'Medium', hard: 'Hard' };
 const accessMethods = [
-  { name: 'Website', body: 'Search and browse half a billion works right here — no code, no login. Filter by author, institution, topic, funder, and more, then export what you find.', href: 'https://help.openalex.org/' },
-  { name: 'Query language', beta: true, body: 'Ask complex questions in plain, structured language and get answers back as tables and charts — the power of the API with none of the code.', href: 'https://help.openalex.org/' },
-  { name: 'API', body: 'A fast, thoroughly documented REST API built for automation. High throughput, transparent pricing, no lock-in — the same API that serves over a billion calls a month.', href: 'https://developers.openalex.org/' },
-  { name: 'Command line', body: 'Query OpenAlex straight from your terminal and pipe the results into your own scripts and data pipelines.', href: 'https://developers.openalex.org/' },
-  { name: 'Agents', body: 'OpenAlex is built for AI. Point your agents at our API and let them read across the whole literature — structured, connected, and machine-ready.', href: 'https://developers.openalex.org/' },
-  { name: 'Snapshot', body: 'Download the entire dataset — every work, author, source, and institution — as a free snapshot, and host your own copy.', href: 'https://developers.openalex.org/download-all-data/openalex-snapshot' },
-  { name: 'Daily sync', body: 'Keep your local copy current with daily change files, so it never falls behind the live index.', href: 'https://developers.openalex.org/download-all-data/openalex-snapshot' },
-  { name: 'PDF archive', body: 'Download full-text PDFs for tens of millions of open-access works — cached, deduplicated, and ready to process.', href: 'https://developers.openalex.org/' },
+  { name: 'Website', icon: 'mdi-magnify', level: 'easy', body: 'Search and browse half a billion works right here — no code, no login. Filter by author, institution, topic, funder, and more, then export what you find.', href: 'https://help.openalex.org/' },
+  { name: 'Query language', icon: 'mdi-code-braces', level: 'med', beta: true, body: 'Ask complex questions in plain, structured language and get answers back as tables and charts — the power of the API with none of the code.', href: 'https://help.openalex.org/' },
+  { name: 'API', icon: 'mdi-api', level: 'med', body: 'A fast, thoroughly documented REST API built for automation. High throughput, transparent pricing, no lock-in — the same API that serves over a billion calls a month.', href: 'https://developers.openalex.org/' },
+  { name: 'Command line', icon: 'mdi-console', level: 'med', body: 'Query OpenAlex straight from your terminal and pipe the results into your own scripts and data pipelines.', href: 'https://developers.openalex.org/' },
+  { name: 'Agents', icon: 'mdi-robot-outline', level: 'easy', body: 'OpenAlex is built for AI. Point your agents at our API and let them read across the whole literature — structured, connected, and machine-ready.', href: 'https://developers.openalex.org/' },
+  { name: 'Snapshot', icon: 'mdi-database-outline', level: 'hard', body: 'Download the entire dataset — every work, author, source, and institution — as a free snapshot, and host your own copy.', href: 'https://developers.openalex.org/download-all-data/openalex-snapshot' },
+  { name: 'Daily sync', icon: 'mdi-sync', level: 'hard', body: 'Keep your local copy current with daily change files, so it never falls behind the live index.', href: 'https://developers.openalex.org/download-all-data/openalex-snapshot' },
+  { name: 'PDF archive', icon: 'mdi-file-document-multiple-outline', level: 'hard', body: 'Download full-text PDFs for tens of millions of open-access works — cached, deduplicated, and ready to process.', href: 'https://developers.openalex.org/' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -489,15 +492,16 @@ export default { name: 'HomeV2Page' };
 }
 .hero-search { width: 100%; max-width: 600px; }
 
+// Linear-style ghost button: borderless; a soft rounded-rect bg appears on hover
 .scroll-indicator {
   position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
   display: inline-flex; align-items: center; gap: 6px;
   font: inherit; font-size: 14px; font-weight: 500; color: var(--muted);
-  background: transparent; border: 1px solid #D4D4D8; border-radius: 999px;
-  padding: 8px 18px; cursor: pointer;
-  transition: color .15s ease, border-color .15s ease, background .15s ease;
+  background: transparent; border: none; border-radius: 8px;
+  padding: 8px 14px; cursor: pointer;
+  transition: color .12s ease, background .12s ease;
   .mdi { font-size: 16px; line-height: 1; }
-  &:hover { color: var(--ink); border-color: #A1A1AA; background: #FAFAFA; }
+  &:hover { color: var(--ink); background: rgba(0, 0, 0, .05); }
 }
 
 // live feed
@@ -680,21 +684,30 @@ export default { name: 'HomeV2Page' };
 
 // ===================== HOW TO ACCESS =====================
 .access-section { padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
-.access-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.access-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+// Linear-style card: flat soft-grey fill, no border, no shadow
 .access-card {
-  border: 1px solid #E4E4E7; border-radius: 12px; padding: 24px;
+  position: relative; background: #F7F8F8; border-radius: 12px; padding: 24px;
   display: flex; flex-direction: column;
-  transition: border-color .15s ease, box-shadow .15s ease;
-  &:hover { border-color: #D4D4D8; box-shadow: 0 2px 12px rgba(0,0,0,.04); }
+  transition: background .12s ease;
+  &:hover { background: #F1F2F4; }
 }
-.access-card-title {
-  font-size: 17px; font-weight: 600; color: var(--ink); margin: 0 0 10px 0;
-  display: flex; align-items: center; gap: 8px;
+.access-chip {
+  position: absolute; top: 14px; right: 14px;
+  font-size: 10.5px; font-weight: 600; letter-spacing: .02em;
+  border-radius: 6px; padding: 2px 7px; line-height: 1.5;
 }
+.chip-easy { color: #0E7A46; background: #E4F3EA; }
+.chip-med  { color: #92600A; background: #F8EFDC; }
+.chip-hard { color: #A8382F; background: #F9E8E5; }
+.access-icon {
+  font-size: 22px; line-height: 1; color: var(--ink); margin-bottom: 14px;
+}
+.access-card-title { font-size: 16px; font-weight: 600; color: var(--ink); margin: 0 0 8px 0; }
 .beta-badge {
-  font-size: 11px; font-weight: 600; letter-spacing: .03em; color: #2563EB;
-  background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 999px;
-  padding: 1px 8px; line-height: 1.5;
+  align-self: flex-start; margin: -4px 0 8px;
+  font-size: 10px; font-weight: 600; letter-spacing: .03em; color: #2563EB;
+  background: #EFF6FF; border-radius: 5px; padding: 1px 6px; line-height: 1.5;
 }
 .access-card-body { font-size: 14px; line-height: 1.6; color: var(--muted); margin: 0 0 16px 0; flex: 1; }
 .access-learn {
