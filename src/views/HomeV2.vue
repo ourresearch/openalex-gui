@@ -652,7 +652,8 @@ export default { name: 'HomeV2Page' };
   // Width budget: (column_px / --cake-scale) − art 770 − margin 24 ≈ 576 at
   // desktop 1200px container. Wider overflows the grid column and clips.
   width: 576px;
-  // padding-left = the number column (96px circle + 28px gap, numbered-list style)
+  // padding-left = the number column; kept at 124 (arrows anchor to this text
+  // edge via their Jason-tuned left:124) — circles sit inside it with a 28px gap
   row-gap: 12px; padding-left: 124px; margin-left: 24px;
   font-family: Inter, -apple-system, sans-serif;
 }
@@ -663,12 +664,14 @@ export default { name: 'HomeV2Page' };
   .title { font-size: 60px; font-weight: 700; letter-spacing: -.015em; line-height: 1.15; }
   .subtitle { font-size: 38px; font-weight: 400; line-height: 1.3; margin-top: 8px; }
   // number circle hangs in the left column, centered on the title's first line
-  // (numbered-list hanging indent): (69px line-height − 96px circle) / 2 ≈ −14px
+  // (numbered-list hanging indent): (69px line-height − 80px circle) / 2 ≈ −6px;
+  // left keeps a 28px gap to the text (annot padding-left stays 124 — the
+  // arrows' Jason-tuned left:124 anchors to that text edge)
   .num {
-    position: absolute; left: -124px; top: -14px;
-    width: 96px; height: 96px; border-radius: 50%;
+    position: absolute; left: -108px; top: -6px;
+    width: 80px; height: 80px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    color: #fff; font-size: 52px; font-weight: 700;
+    color: #fff; font-size: 43px; font-weight: 700;
   }
 }
 .cake-labels.l-eco { grid-row: 1; color: #6E9446; .num { background: #6E9446; } }
