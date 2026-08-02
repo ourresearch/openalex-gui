@@ -629,25 +629,25 @@ export default { name: 'HomeV2Page' };
   a { color: #2563EB; text-decoration: none; &:hover { text-decoration: underline; } }
 }
 
-// #711 graphic — geometry px-tuned to 900px art; scaled to fit its column.
+// #711 graphic — art is tightly cropped (907x1378, no bleed); annot geometry is
+// px-tuned 1:1 to the cropped art's pixels. Overall size = --cake-scale alone.
 .whatis-graphic { display: flex; justify-content: center; }
 .cake-hero {
   display: flex; align-items: flex-start; background: #fff;
-  // art geometry is tuned to 900px; `zoom` (unlike transform:scale) shrinks the
-  // element's LAYOUT box too, so the grid column sizes to the scaled footprint.
-  width: 900px;
-  zoom: var(--cake-scale, 0.62);
+  // `zoom` (unlike transform:scale) shrinks the element's LAYOUT box too, so
+  // the grid column sizes to the scaled footprint.
+  zoom: var(--cake-scale, 0.4);
 }
-.cake-art { width: 900px; flex: none; }
+.cake-art { width: 907px; flex: none; }
 .cake-art img { display: block; width: 100%; height: auto; }
 .cake-annot {
   display: grid;
-  grid-template-columns: [wordmark] 24px [rail] 3px [bar] 5px [text] auto;
-  grid-template-rows: [eco] 124px [share] 50px [org] 51px [gather] 52px [works] 50px;
-  row-gap: 4px; column-gap: 8px; padding-top: 55px; margin-left: -300px;
+  grid-template-columns: [wordmark] 40px [rail] 6px [bar] 10px [text] auto;
+  grid-template-rows: [eco] 388px [share] 156px [org] 160px [gather] 163px [works] 157px;
+  row-gap: 12px; column-gap: 12px; padding-top: 131px; margin-left: 16px;
   font-family: Inter, -apple-system, sans-serif;
 }
-.cake-bar { grid-column: bar; border-radius: 2.5px; }
+.cake-bar { grid-column: bar; border-radius: 5px; }
 .cake-bar.l-eco { grid-row: eco; background: #6E9446; }
 .cake-bar.l-share { grid-row: share; background: #745233; }
 .cake-bar.l-org { grid-row: org; background: #745233; }
@@ -656,12 +656,12 @@ export default { name: 'HomeV2Page' };
 .cake-wordmark {
   grid-column: wordmark; grid-row: share / span 3;
   writing-mode: vertical-rl; transform: rotate(180deg); place-self: center;
-  font-size: 21px; font-weight: 700; color: #745233; margin-right: -26px;
+  font-size: 40px; font-weight: 700; color: #745233; margin-right: -52px;
 }
 .cake-labels {
-  grid-column: text; align-self: end; display: flex; flex-direction: column; padding-left: 6px;
-  .title { font-size: 17px; font-weight: 700; letter-spacing: -.015em; line-height: 1.15; }
-  .subtitle { font-size: 12px; font-weight: 400; margin-top: 3px; }
+  grid-column: text; align-self: end; display: flex; flex-direction: column; padding-left: 8px;
+  .title { font-size: 28px; font-weight: 700; letter-spacing: -.015em; line-height: 1.15; }
+  .subtitle { font-size: 20px; font-weight: 400; margin-top: 4px; }
 }
 .cake-labels.l-eco { grid-row: eco; color: #6E9446; }
 .cake-labels.l-share { grid-row: share; color: #745233; }
@@ -725,7 +725,7 @@ export default { name: 'HomeV2Page' };
   .hero-viz { display: none; } // feed is decorative; keep search above the fold
   .hero-headline { font-size: 42px; }
   .whatis-grid { grid-template-columns: 1fr; gap: 40px; }
-  .whatis-graphic { --cake-scale: 0.5; }
+  .whatis-graphic { --cake-scale: 0.32; }
   .stats-row { grid-template-columns: repeat(2, 1fr); gap: 40px 24px; }
   .access-grid { grid-template-columns: 1fr; gap: 24px; }
   .access-tabs { flex-direction: row; flex-wrap: wrap; border-left: none; }
