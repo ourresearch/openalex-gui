@@ -679,9 +679,9 @@ export default { name: 'HomeV2Page' };
 // circles' left edge (not past it); tops/heights are px-tuned to the rendered
 // circle positions — re-measure if labels rewrap.
 .cake-arrow {
-  // left 65 puts the 280px HEAD's left edge at x=0 (flush with the circles'
-  // left margin — nothing pokes left onto the art)
-  position: absolute; left: 65px; width: 150px; background: #EFEFED; z-index: 0;
+  // left 124 (Jason-tuned in DevTools) starts the shaft at the text edge; the
+  // 280px head spans from the circles' midline rightward
+  position: absolute; left: 124px; width: 150px; background: #EFEFED; z-index: 0;
   // arrowhead: 280w × 80h shallow triangle overlapping the shaft top by 10px
   &::before {
     content: ''; position: absolute; top: -70px; left: 50%; transform: translateX(-50%);
