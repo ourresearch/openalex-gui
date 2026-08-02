@@ -119,10 +119,10 @@
       <h2 class="section-header">How to access it</h2>
       <div class="access-cards">
         <div v-for="(m, i) in accessMethods" :key="i" class="access-card">
-          <span class="access-chip" :class="'chip-' + m.level">{{ LEVEL_NAMES[m.level] }}</span>
           <div class="access-card-head">
             <span class="access-icon mdi" :class="m.icon"></span>
             <h3 class="access-card-title">{{ m.name }}</h3>
+            <span class="access-chip" :class="'chip-' + m.level">{{ LEVEL_NAMES[m.level] }}</span>
           </div>
           <span v-if="m.beta" class="beta-badge">Beta</span>
           <p class="access-card-body">{{ m.body }}</p>
@@ -248,8 +248,8 @@ const stats = computed(() => [
 const LEVEL_NAMES = { easy: 'Easy', med: 'Medium', hard: 'Hard' };
 const accessMethods = [
   { name: 'Website', icon: 'mdi-magnify', level: 'easy', cta: 'Try it', body: 'Search and browse half a billion works right here — no code, no login. Filter by author, institution, topic, funder, and more, then export what you find.', href: 'https://help.openalex.org/' },
-  { name: 'Query', icon: 'mdi-code-parentheses', level: 'med', beta: true, body: 'Ask complex questions in plain, structured language and get answers back as tables and charts — the power of the API with none of the code.', href: 'https://help.openalex.org/' },
-  { name: 'API', icon: 'mdi-code-json', level: 'med', body: 'A fast, thoroughly documented REST API built for automation. High throughput, transparent pricing, no lock-in — the same API that serves over a billion calls a month.', href: 'https://developers.openalex.org/' },
+  { name: 'OQL', icon: 'mdi-code-braces', level: 'med', beta: true, body: 'Use the OpenAlex Query Language (beta) to build and share complex queries. Great for systematic reviews.', href: 'https://help.openalex.org/' },
+  { name: 'API', icon: 'mdi-api', level: 'med', body: 'A fast, thoroughly documented REST API built for automation. High throughput, transparent pricing, no lock-in — the same API that serves over a billion calls a month.', href: 'https://developers.openalex.org/' },
   { name: 'CLI', icon: 'mdi-console', level: 'med', body: 'Query OpenAlex straight from your terminal and pipe the results into your own scripts and data pipelines.', href: 'https://developers.openalex.org/' },
   { name: 'Agents', icon: 'mdi-robot-outline', level: 'easy', body: 'OpenAlex is built for AI. Point your agents at our API and let them read across the whole literature — structured, connected, and machine-ready.', href: 'https://developers.openalex.org/' },
   { name: 'Snapshot', icon: 'mdi-database-outline', level: 'hard', body: 'Download the entire dataset — every work, author, source, and institution — as a free snapshot, and host your own copy.', href: 'https://developers.openalex.org/download-all-data/openalex-snapshot' },
@@ -701,7 +701,7 @@ export default { name: 'HomeV2Page' };
   &:hover { background: #F1F2F4; }
 }
 .access-chip {
-  position: absolute; top: 14px; right: 14px;
+  margin-left: auto; flex: none;
   font-size: 10.5px; font-weight: 600; letter-spacing: .02em;
   border-radius: 6px; padding: 2px 7px; line-height: 1.5;
 }
