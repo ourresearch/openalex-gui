@@ -652,8 +652,8 @@ export default { name: 'HomeV2Page' };
   // Width budget: (column_px / --cake-scale) − art 770 − margin 24 ≈ 576 at
   // desktop 1200px container. Wider overflows the grid column and clips.
   width: 576px;
-  // padding-left = the number column (56px circle + 28px gap, numbered-list style)
-  row-gap: 12px; padding-left: 84px; margin-left: 24px;
+  // padding-left = the number column (96px circle + 28px gap, numbered-list style)
+  row-gap: 12px; padding-left: 124px; margin-left: 24px;
   font-family: Inter, -apple-system, sans-serif;
 }
 .cake-labels {
@@ -663,33 +663,35 @@ export default { name: 'HomeV2Page' };
   .title { font-size: 60px; font-weight: 700; letter-spacing: -.015em; line-height: 1.15; }
   .subtitle { font-size: 38px; font-weight: 400; line-height: 1.3; margin-top: 8px; }
   // number circle hangs in the left column, centered on the title's first line
-  // (numbered-list hanging indent): (69px line-height − 56px circle) / 2 ≈ 7px
+  // (numbered-list hanging indent): (69px line-height − 96px circle) / 2 ≈ −14px
   .num {
-    position: absolute; left: -84px; top: 7px;
-    width: 56px; height: 56px; border-radius: 50%;
+    position: absolute; left: -124px; top: -14px;
+    width: 96px; height: 96px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    color: #fff; font-size: 34px; font-weight: 700;
+    color: #fff; font-size: 52px; font-weight: 700;
   }
 }
 .cake-labels.l-eco { grid-row: 1; color: #6E9446; .num { background: #6E9446; } }
 .cake-labels.l-openalex { grid-row: 2; color: #745233; .num { background: #745233; } }
 .cake-labels.l-works { grid-row: 3; color: #64645E; .num { background: #64645E; } }
-// up-arrows between the circles (bottom-to-top reading cue), colored like their
-// SOURCE circle (lower comes from (1) grey, upper from (2) brown); tops/heights
-// are px-tuned to the rendered circle positions — re-measure if labels rewrap.
+// up-arrows between the circles (bottom-to-top reading cue): super-light-grey
+// BLOCK arrows sitting BEHIND the labels (z-index), left edge flush with the
+// circles' left edge (not past it); tops/heights are px-tuned to the rendered
+// circle positions — re-measure if labels rewrap.
 .cake-arrow {
-  position: absolute; left: 8px; width: 40px; border-radius: 8px;
-  // arrowhead: 88w × 66h triangle overlapping the shaft top by 10px
+  // left 65 puts the 280px HEAD's left edge at x=0 (flush with the circles'
+  // left margin — nothing pokes left onto the art)
+  position: absolute; left: 65px; width: 150px; background: #EFEFED; z-index: 0;
+  // arrowhead: 280w × 80h shallow triangle overlapping the shaft top by 10px
   &::before {
-    content: ''; position: absolute; top: -56px; left: 50%; transform: translateX(-50%);
-    border-left: 44px solid transparent; border-right: 44px solid transparent;
-    border-bottom: 66px solid;
+    content: ''; position: absolute; top: -70px; left: 50%; transform: translateX(-50%);
+    border-left: 140px solid transparent; border-right: 140px solid transparent;
+    border-bottom: 80px solid #EFEFED;
   }
 }
-.cake-arrow.a-upper { background: #745233; &::before { border-bottom-color: #745233; } }
-.cake-arrow.a-lower { background: #64645E; &::before { border-bottom-color: #64645E; } }
-.cake-arrow.a-upper { top: 242px; height: 242px; }
-.cake-arrow.a-lower { top: 646px; height: 232px; }
+.cake-labels { z-index: 1; }
+.cake-arrow.a-upper { top: 369px; height: 104px; }
+.cake-arrow.a-lower { top: 753px; height: 80px; }
 
 // ===================== SHARED SECTION HEADER =====================
 .section-header {
