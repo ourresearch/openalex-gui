@@ -78,15 +78,21 @@
           <div class="cake-hero">
             <div class="cake-art"><img :src="layerCake" alt="How OpenAlex works: research content is gathered, organized, and shared, growing into the scholarly ecosystem" /></div>
             <div class="cake-annot">
+              <!-- reading-order cue: (1) bottom → (2) → (3) top, up-arrows between -->
+              <div class="cake-arrow a-upper"></div>
+              <div class="cake-arrow a-lower"></div>
               <div class="cake-labels l-eco">
+                <div class="num">3</div>
                 <div class="title">The scholarly ecosystem</div>
                 <div class="subtitle">Humans and agents collaborate at scale</div>
               </div>
               <div class="cake-labels l-openalex">
+                <div class="num">2</div>
                 <div class="title">OpenAlex</div>
                 <div class="subtitle"><b>gather</b>, <b>organize</b> and <b>share</b> metadata and fulltext</div>
               </div>
               <div class="cake-labels l-works">
+                <div class="num">1</div>
                 <div class="title">Research content</div>
                 <div class="subtitle">Scattered over 250k journals and repositories</div>
               </div>
@@ -636,26 +642,47 @@ export default { name: 'HomeV2Page' };
 .cake-art { width: 907px; flex: none; }
 .cake-art img { display: block; width: 100%; height: auto; }
 .cake-annot {
-  display: grid;
+  display: grid; position: relative;
   // Three rows matching the art's layer spans: ecosystem / OpenAlex (the three
   // soil layers combined: 156+12+160+12+163) / boulders.
   grid-template-rows: [eco] 388px [openalex] 503px [works] 157px;
   // Width budget: (column_px / --cake-scale) − art 907 − margin 24 ≈ 430 at
   // desktop 1200px container. Wider overflows the grid column and clips.
   width: 430px;
-  row-gap: 12px; padding-top: 131px; margin-left: 24px;
+  // padding-left = the number column (56px circle + 28px gap, numbered-list style)
+  row-gap: 12px; padding-top: 131px; padding-left: 84px; margin-left: 24px;
   font-family: Inter, -apple-system, sans-serif;
 }
 .cake-labels {
-  align-self: center; display: flex; flex-direction: column;
+  align-self: center; display: flex; flex-direction: column; position: relative;
   // NOTE: the whole .cake-hero is zoom-scaled (0.4 desktop), so displayed size
   // = these values × --cake-scale. 60px here ≈ 24px on screen.
   .title { font-size: 60px; font-weight: 700; letter-spacing: -.015em; line-height: 1.15; }
   .subtitle { font-size: 38px; font-weight: 400; line-height: 1.3; margin-top: 8px; }
+  // number circle hangs in the left column, centered on the title's first line
+  // (numbered-list hanging indent): (69px line-height − 56px circle) / 2 ≈ 7px
+  .num {
+    position: absolute; left: -84px; top: 7px;
+    width: 56px; height: 56px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 34px; font-weight: 700;
+  }
 }
-.cake-labels.l-eco { grid-row: eco; color: #6E9446; }
-.cake-labels.l-openalex { grid-row: openalex; color: #745233; }
-.cake-labels.l-works { grid-row: works; color: #64645E; }
+.cake-labels.l-eco { grid-row: eco; color: #6E9446; .num { background: #6E9446; } }
+.cake-labels.l-openalex { grid-row: openalex; color: #745233; .num { background: #745233; } }
+.cake-labels.l-works { grid-row: works; color: #64645E; .num { background: #64645E; } }
+// up-arrows between the circles (bottom-to-top reading cue); tops/heights are
+// px-tuned to the rendered circle positions — re-measure if labels rewrap.
+.cake-arrow {
+  position: absolute; left: 26px; width: 4px; border-radius: 2px; background: #C6C1BA;
+  &::before {
+    content: ''; position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
+    border-left: 12px solid transparent; border-right: 12px solid transparent;
+    border-bottom: 18px solid #C6C1BA;
+  }
+}
+.cake-arrow.a-upper { top: 241px; height: 426px; }
+.cake-arrow.a-lower { top: 743px; height: 231px; }
 
 // ===================== SHARED SECTION HEADER =====================
 .section-header {
