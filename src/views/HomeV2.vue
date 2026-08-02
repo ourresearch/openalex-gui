@@ -114,12 +114,14 @@
       <div class="access-cards">
         <div v-for="(m, i) in accessMethods" :key="i" class="access-card">
           <span class="access-chip" :class="'chip-' + m.level">{{ LEVEL_NAMES[m.level] }}</span>
-          <span class="access-icon mdi" :class="m.icon"></span>
-          <h3 class="access-card-title">{{ m.name }}</h3>
+          <div class="access-card-head">
+            <span class="access-icon mdi" :class="m.icon"></span>
+            <h3 class="access-card-title">{{ m.name }}</h3>
+          </div>
           <span v-if="m.beta" class="beta-badge">Beta</span>
           <p class="access-card-body">{{ m.body }}</p>
           <a class="access-learn" :href="m.href" target="_blank" rel="noopener">
-            Learn more <span class="mdi mdi-arrow-right"></span>
+            {{ m.cta || 'Learn more' }} <span class="mdi mdi-arrow-right"></span>
           </a>
         </div>
       </div>
@@ -239,14 +241,14 @@ const stats = computed(() => [
 // ---------------------------------------------------------------------------
 const LEVEL_NAMES = { easy: 'Easy', med: 'Medium', hard: 'Hard' };
 const accessMethods = [
-  { name: 'Website', icon: 'mdi-magnify', level: 'easy', body: 'Search and browse half a billion works right here — no code, no login. Filter by author, institution, topic, funder, and more, then export what you find.', href: 'https://help.openalex.org/' },
-  { name: 'Query language', icon: 'mdi-code-braces', level: 'med', beta: true, body: 'Ask complex questions in plain, structured language and get answers back as tables and charts — the power of the API with none of the code.', href: 'https://help.openalex.org/' },
-  { name: 'API', icon: 'mdi-api', level: 'med', body: 'A fast, thoroughly documented REST API built for automation. High throughput, transparent pricing, no lock-in — the same API that serves over a billion calls a month.', href: 'https://developers.openalex.org/' },
-  { name: 'Command line', icon: 'mdi-console', level: 'med', body: 'Query OpenAlex straight from your terminal and pipe the results into your own scripts and data pipelines.', href: 'https://developers.openalex.org/' },
+  { name: 'Website', icon: 'mdi-magnify', level: 'easy', cta: 'Try it', body: 'Search and browse half a billion works right here — no code, no login. Filter by author, institution, topic, funder, and more, then export what you find.', href: 'https://help.openalex.org/' },
+  { name: 'Query', icon: 'mdi-code-parentheses', level: 'med', beta: true, body: 'Ask complex questions in plain, structured language and get answers back as tables and charts — the power of the API with none of the code.', href: 'https://help.openalex.org/' },
+  { name: 'API', icon: 'mdi-code-json', level: 'med', body: 'A fast, thoroughly documented REST API built for automation. High throughput, transparent pricing, no lock-in — the same API that serves over a billion calls a month.', href: 'https://developers.openalex.org/' },
+  { name: 'CLI', icon: 'mdi-console', level: 'med', body: 'Query OpenAlex straight from your terminal and pipe the results into your own scripts and data pipelines.', href: 'https://developers.openalex.org/' },
   { name: 'Agents', icon: 'mdi-robot-outline', level: 'easy', body: 'OpenAlex is built for AI. Point your agents at our API and let them read across the whole literature — structured, connected, and machine-ready.', href: 'https://developers.openalex.org/' },
   { name: 'Snapshot', icon: 'mdi-database-outline', level: 'hard', body: 'Download the entire dataset — every work, author, source, and institution — as a free snapshot, and host your own copy.', href: 'https://developers.openalex.org/download-all-data/openalex-snapshot' },
-  { name: 'Daily sync', icon: 'mdi-sync', level: 'hard', body: 'Keep your local copy current with daily change files, so it never falls behind the live index.', href: 'https://developers.openalex.org/download-all-data/openalex-snapshot' },
-  { name: 'PDF archive', icon: 'mdi-file-document-multiple-outline', level: 'hard', body: 'Download full-text PDFs for tens of millions of open-access works — cached, deduplicated, and ready to process.', href: 'https://developers.openalex.org/' },
+  { name: 'Sync', icon: 'mdi-sync', level: 'hard', body: 'Keep your local copy current with daily change files, so it never falls behind the live index.', href: 'https://developers.openalex.org/download-all-data/openalex-snapshot' },
+  { name: 'Fulltext', icon: 'mdi-file-pdf-box', level: 'hard', body: 'Download full-text PDFs for tens of millions of open-access works — cached, deduplicated, and ready to process.', href: 'https://developers.openalex.org/' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -679,10 +681,9 @@ export default { name: 'HomeV2Page' };
 .chip-easy { color: #0E7A46; background: #E4F3EA; }
 .chip-med  { color: #92600A; background: #F8EFDC; }
 .chip-hard { color: #A8382F; background: #F9E8E5; }
-.access-icon {
-  font-size: 22px; line-height: 1; color: var(--ink); margin-bottom: 14px;
-}
-.access-card-title { font-size: 16px; font-weight: 600; color: var(--ink); margin: 0 0 8px 0; }
+.access-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.access-icon { font-size: 20px; line-height: 1; color: var(--ink); }
+.access-card-title { font-size: 16px; font-weight: 600; color: var(--ink); margin: 0; }
 .beta-badge {
   align-self: flex-start; margin: -4px 0 8px;
   font-size: 10px; font-weight: 600; letter-spacing: .03em; color: #2563EB;
