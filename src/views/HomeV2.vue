@@ -27,9 +27,10 @@
         <div class="feedport" ref="portRef"><div class="belt" ref="beltRef"></div></div>
       </div>
 
-      <v-btn variant="text" class="scroll-indicator" @click="scrollToContent">
-        <v-icon>mdi-chevron-down</v-icon>
-      </v-btn>
+      <!-- plain <button>: dodges the global text-variant v-btn + .v-icon house rules -->
+      <button class="scroll-indicator" @click="scrollToContent">
+        Learn more <span class="mdi mdi-chevron-down"></span>
+      </button>
     </section>
 
     <!-- ===================== SOCIAL PROOF (#404 supplies the list) ===================== -->
@@ -60,7 +61,7 @@
     <section class="whatis-section">
       <div class="whatis-grid">
         <div class="whatis-copy">
-          <h2 class="whatis-title">A library for the AI age</h2>
+          <h2 class="whatis-title">Feeding the new scholarly ecosystem</h2>
           <p>
             Humanity's research is the most valuable knowledge we have — and it's a
             mess. Half a billion papers, datasets, and discoveries lie scattered
@@ -77,8 +78,7 @@
             is to the mission, not to shareholders. We keep the lights on by selling
             <router-link to="/pricing">premium services</router-link> to the
             organizations that can afford them, which keeps the open foundation free
-            for everyone else. A library this open can never be locked up, or
-            burned&nbsp;down.
+            for everyone else.
           </p>
         </div>
 
@@ -121,34 +121,20 @@
       </div>
     </section>
 
-    <!-- ===================== HOW TO ACCESS IT (vertical tabs) ===================== -->
+    <!-- ===================== HOW TO ACCESS IT (cards) ===================== -->
     <section class="access-section">
       <h2 class="section-header">How to access it</h2>
-      <div class="access-grid">
-        <div class="access-tabs" role="tablist">
-          <button
-            v-for="(m, i) in accessMethods"
-            :key="i"
-            class="access-tab"
-            :class="{ active: activeMethod === i }"
-            role="tab"
-            :aria-selected="activeMethod === i"
-            @click="activeMethod = i"
-          >{{ m.name }}</button>
-        </div>
-        <div class="access-panel">
-          <h3 class="access-panel-title">{{ accessMethods[activeMethod].name }}</h3>
-          <p class="access-panel-body">{{ accessMethods[activeMethod].body }}</p>
-          <a class="access-learn" :href="accessMethods[activeMethod].href" target="_blank" rel="noopener">
-            Learn more <v-icon size="14">mdi-arrow-right</v-icon>
+      <div class="access-cards">
+        <div v-for="(m, i) in accessMethods" :key="i" class="access-card">
+          <h3 class="access-card-title">
+            {{ m.name }} <span v-if="m.beta" class="beta-badge">Beta</span>
+          </h3>
+          <p class="access-card-body">{{ m.body }}</p>
+          <a class="access-learn" :href="m.href" target="_blank" rel="noopener">
+            Learn more <span class="mdi mdi-arrow-right"></span>
           </a>
         </div>
       </div>
-      <p class="access-note">
-        The OpenAlex Query Language is in open beta.
-        <a href="https://help.openalex.org/" target="_blank" rel="noopener">Watch the intro video</a>
-        to see how to turn it on.
-      </p>
     </section>
 
     <!-- ===================== FAQ ===================== -->
@@ -214,13 +200,17 @@ import acsLogo from '@/assets/partner-logos/american-chemical-society.svg';
 import epflLogo from '@/assets/partner-logos/epfl.svg';
 import jiscLogo from '@/assets/partner-logos/jisc.png';
 import cziLogo from '@/assets/partner-logos/chan-zuckerberg-initiative.svg';
-const ribbonLogos = [
+const baseLogos = [
   { src: sorbonneLogo, alt: 'Sorbonne University', cls: '' },
   { src: acsLogo, alt: 'American Chemical Society', cls: 'tall' },
   { src: epflLogo, alt: 'EPFL', cls: 'short' },
   { src: jiscLogo, alt: 'Jisc', cls: '' },
   { src: cziLogo, alt: 'Chan Zuckerberg Initiative', cls: '' },
 ];
+// The seamless -50% marquee needs each half of the track to be at least a
+// viewport wide, or a gap parades through. 5 logos ≈ 1040px, so the repeat
+// unit is the set twice (~2080px); the template doubles it again for the loop.
+const ribbonLogos = baseLogos.concat(baseLogos);
 
 // ---------------------------------------------------------------------------
 // Four key stats. works + PDFs go LIVE; connections + API-calls are static.
@@ -236,7 +226,7 @@ function humanBig(n, approx = false) {
 }
 
 const worksNum = ref('515 million');   // LIVE; fallback to a recent value
-const pdfsNum = ref('~49 million');     // LIVE; fallback to a recent value
+const pdfsNum = ref('49 million');     // LIVE; fallback to a recent value
 
 // works: xpac-inclusive count (all works, not just core) -> ~515M
 axios.get(`${urlBase.api}/works?filter=is_xpac:true|false&per-page=1&select=id&${MAILTO}`)
@@ -244,24 +234,24 @@ axios.get(`${urlBase.api}/works?filter=is_xpac:true|false&per-page=1&select=id&$
   .catch(() => {});
 // PDFs: works with a downloadable PDF -> ~49M
 axios.get(`${urlBase.api}/works?filter=has_content.pdf:true&per-page=1&select=id&${MAILTO}`)
-  .then(r => { const c = r.data?.meta?.count; if (c) pdfsNum.value = humanBig(c, true); })
+  .then(r => { const c = r.data?.meta?.count; if (c) pdfsNum.value = humanBig(c); })
   .catch(() => {});
 
+// descending order (Jason 2026-08-02)
 const stats = computed(() => [
-  { num: worksNum.value, label: 'scholarly works', sub: 'papers, datasets, and more' },
   { num: '5.8 billion', label: 'connections', sub: 'citations, authorships, and more' },
-  { num: pdfsNum.value, label: 'PDFs', sub: 'ready for download' },
-  { num: '1.1 billion', label: 'API calls monthly', sub: 'from millions of users' },
+  { num: '1.1 billion', label: 'API calls', sub: 'served monthly' },
+  { num: worksNum.value, label: 'scholarly works', sub: 'papers, datasets, and more' },
+  { num: pdfsNum.value, label: 'fulltext PDFs', sub: 'ready for download' },
 ]);
 
 // ---------------------------------------------------------------------------
-// How to access it — 8 methods. learn-more links -> help.openalex.org (#354
-// ships first; trust it). OQL beta note lives below the section.
+// How to access it — 8 methods, one card each. learn-more links ->
+// help.openalex.org (#354 ships first; trust it). OQL card carries a Beta badge.
 // ---------------------------------------------------------------------------
-const activeMethod = ref(0);
 const accessMethods = [
   { name: 'Website', body: 'Search and browse half a billion works right here — no code, no login. Filter by author, institution, topic, funder, and more, then export what you find.', href: 'https://help.openalex.org/' },
-  { name: 'Query language', body: 'Ask complex questions in plain, structured language and get answers back as tables and charts — the power of the API with none of the code.', href: 'https://help.openalex.org/' },
+  { name: 'Query language', beta: true, body: 'Ask complex questions in plain, structured language and get answers back as tables and charts — the power of the API with none of the code.', href: 'https://help.openalex.org/' },
   { name: 'API', body: 'A fast, thoroughly documented REST API built for automation. High throughput, transparent pricing, no lock-in — the same API that serves over a billion calls a month.', href: 'https://developers.openalex.org/' },
   { name: 'Command line', body: 'Query OpenAlex straight from your terminal and pipe the results into your own scripts and data pipelines.', href: 'https://developers.openalex.org/' },
   { name: 'Agents', body: 'OpenAlex is built for AI. Point your agents at our API and let them read across the whole literature — structured, connected, and machine-ready.', href: 'https://developers.openalex.org/' },
@@ -278,7 +268,7 @@ const openFaq = ref(null);
 function toggleFaq(index) { openFaq.value = openFaq.value === index ? null : index; }
 const faqs = [
   {
-    question: 'Is OpenAlex full of junk?',
+    question: "What's in OpenAlex?",
     answer: `OpenAlex indexes everything — not just a hand-picked "prestige" subset. That kind of selectivity was always a coping mechanism for scarce human attention; in the AI age, you no longer have to decide what's worth indexing up front. Instead, curation becomes a query: filter by peer-review status, citations, topic, source, or your own criteria at the moment you search, and get exactly the slice you want.`,
   },
   {
@@ -290,11 +280,11 @@ const faqs = [
     answer: `We gather metadata from hundreds of sources — including Crossref, ORCID, PubMed, arXiv, DataCite, ROR, and the world's institutional repositories — then disambiguate, deduplicate, and connect it into one clean, unified dataset. Everything updates daily.`,
   },
   {
-    question: 'Is OpenAlex really free?',
+    question: "If it's open, why do you charge money?",
     answer: `Yes. The full dataset and API are free for everyone, forever, under a CC0 public-domain license. We offer premium tiers — higher rate limits, dedicated support, custom curation — for organizations that need them, and that revenue keeps the free tier free.`,
   },
   {
-    question: 'How is OpenAlex different from Scopus, Web of Science, or Google Scholar?',
+    question: 'How is OpenAlex different from Scopus or Google Scholar?',
     answer: `Those are destinations: you visit them to look something up. OpenAlex is infrastructure: you build on it. Our entire dataset — over 500 million works, richly connected to authors, institutions, funders, and citations — is queryable by API and downloadable under CC0. And we cover far more of the world's research than the paywalled databases, openly.`,
   },
 ];
@@ -357,9 +347,11 @@ onMounted(() => {
   const AUTHOR_ICON = 'mdi-account-outline';
   const SOURCE_ICON = 'mdi-book-open-outline';
 
+  // "novice-link" exempts these from the global `.v-application a { color: blue
+  // !important }` house rule, so the feed's own colors apply.
   function link(cls, href, text, tipText, inlIcon) {
     const ic = inlIcon ? `<span class="inl mdi ${inlIcon}"></span>` : '';
-    return `<a class="${cls}" href="${esc(href)}" target="_blank" rel="noopener" data-tip="${esc(tipText)}">${ic}${esc(text)}</a>`;
+    return `<a class="novice-link ${cls}" href="${esc(href)}" target="_blank" rel="noopener" data-tip="${esc(tipText)}">${ic}${esc(text)}</a>`;
   }
 
   let idx = 0;
@@ -380,12 +372,12 @@ onMounted(() => {
           srcName(r.source.name), `View all ${fmt(r.source.count)} works published in ${srcName(r.source.name)}`, SOURCE_ICON)}`
       : '';
     const pdf = r.pdf
-      ? `<a class="pdf" href="${esc(r.pdf)}" target="_blank" rel="noopener" data-tip="View PDF">PDF</a>`
+      ? `<a class="novice-link pdf" href="${esc(r.pdf)}" target="_blank" rel="noopener" data-tip="View PDF">PDF</a>`
       : '';
     const icon = `<span class="lead mdi ${getTypeIcon(r.type)}" ${typeTip}></span>`;
     const el = document.createElement('div');
     el.className = 'item';
-    el.innerHTML = `${eyebrow}${icon}<a class="t" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a>${pdf}<span class="by">by ${authors}${src}</span>`;
+    el.innerHTML = `${eyebrow}${icon}<a class="novice-link t" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a>${pdf}<span class="by">by ${authors}${src}</span>`;
     return el;
   }
 
@@ -499,8 +491,13 @@ export default { name: 'HomeV2Page' };
 
 .scroll-indicator {
   position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
-  color: var(--faint);
-  &:hover { color: #71717A; }
+  display: inline-flex; align-items: center; gap: 6px;
+  font: inherit; font-size: 14px; font-weight: 500; color: var(--muted);
+  background: transparent; border: 1px solid #D4D4D8; border-radius: 999px;
+  padding: 8px 18px; cursor: pointer;
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
+  .mdi { font-size: 16px; line-height: 1; }
+  &:hover { color: var(--ink); border-color: #A1A1AA; background: #FAFAFA; }
 }
 
 // live feed
@@ -554,8 +551,10 @@ export default { name: 'HomeV2Page' };
 :deep(.by) { grid-column: 2; grid-row: 3; font-size: 13px; line-height: 1.55; color: var(--ink); }
 :deep(.w) { font-weight: 600; text-decoration: none; }
 :deep(.w:hover) { text-decoration: underline; }
-:deep(.w-author) { color: var(--w-author); }
-:deep(.w-source) { color: var(--w-source); }
+// the global `.v-application span a` house rule is blue !important with
+// specificity (0,3,2) and no .novice-link escape — outgun it.
+:deep(.by .w-author.novice-link) { color: var(--w-author) !important; }
+:deep(.by .w-source.novice-link) { color: var(--w-source) !important; }
 :deep(.inl) {
   font-size: 13px; line-height: 1; vertical-align: -0.5px; margin-right: 1px; display: inline-block;
 }
@@ -603,16 +602,20 @@ export default { name: 'HomeV2Page' };
 }
 
 // ===================== STATS =====================
-.stats-section { padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
+// sized to Jason's 2026-08-02 mock: big number, near-as-big bold label, grey sub
+.stats-section { padding: 96px 24px; max-width: 1200px; margin: 0 auto; }
 .stats-row {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; text-align: center;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; text-align: center;
 }
 .stat-num {
-  font-size: 40px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
+  font-size: 48px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
   line-height: 1.1; font-variant-numeric: tabular-nums;
 }
-.stat-label { font-size: 16px; font-weight: 600; color: var(--ink); margin-top: 8px; }
-.stat-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.stat-label {
+  font-size: 30px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink);
+  line-height: 1.15; margin-top: 8px;
+}
+.stat-sub { font-size: 15px; color: var(--muted); margin-top: 16px; }
 
 // ===================== WHAT IT IS =====================
 .whatis-section { padding: 80px 24px 100px; max-width: 1200px; margin: 0 auto; }
@@ -676,31 +679,34 @@ export default { name: 'HomeV2Page' };
 }
 
 // ===================== HOW TO ACCESS =====================
-.access-section { padding: 80px 24px; max-width: 900px; margin: 0 auto; }
-.access-grid { display: grid; grid-template-columns: 220px 1fr; gap: 40px; }
-.access-tabs { display: flex; flex-direction: column; border-left: 2px solid #E4E4E7; }
-.access-tab {
-  text-align: left; background: none; border: none; cursor: pointer;
-  font: inherit; font-size: 15px; font-weight: 500; color: var(--muted);
-  padding: 12px 18px; margin-left: -2px; border-left: 2px solid transparent;
-  &:hover { color: var(--ink); }
-  &.active { color: var(--ink); font-weight: 600; border-left-color: var(--ink); }
+.access-section { padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
+.access-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.access-card {
+  border: 1px solid #E4E4E7; border-radius: 12px; padding: 24px;
+  display: flex; flex-direction: column;
+  transition: border-color .15s ease, box-shadow .15s ease;
+  &:hover { border-color: #D4D4D8; box-shadow: 0 2px 12px rgba(0,0,0,.04); }
 }
-.access-panel { padding-top: 4px; }
-.access-panel-title { font-size: 20px; font-weight: 600; color: var(--ink); margin: 0 0 12px 0; }
-.access-panel-body { font-size: 16px; line-height: 1.7; color: var(--muted); margin: 0 0 20px 0; }
+.access-card-title {
+  font-size: 17px; font-weight: 600; color: var(--ink); margin: 0 0 10px 0;
+  display: flex; align-items: center; gap: 8px;
+}
+.beta-badge {
+  font-size: 11px; font-weight: 600; letter-spacing: .03em; color: #2563EB;
+  background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 999px;
+  padding: 1px 8px; line-height: 1.5;
+}
+.access-card-body { font-size: 14px; line-height: 1.6; color: var(--muted); margin: 0 0 16px 0; flex: 1; }
 .access-learn {
   font-size: 14px; font-weight: 600; color: #2563EB; text-decoration: none;
   display: inline-flex; align-items: center; gap: 4px;
+  .mdi { font-size: 15px; line-height: 1; }
   &:hover { text-decoration: underline; }
-}
-.access-note {
-  text-align: center; font-size: 13px; color: var(--faint); margin-top: 48px;
-  a { color: #2563EB; text-decoration: none; &:hover { text-decoration: underline; } }
 }
 
 // ===================== FAQ =====================
-.faq-section { padding: 80px 24px 120px; max-width: 700px; margin: 0 auto; }
+// full main-column width (matches stats/access sections)
+.faq-section { padding: 80px 24px 120px; max-width: 1100px; margin: 0 auto; }
 .faq-item {
   border-bottom: 1px solid #E4E4E7;
   &:last-child { border-bottom: none; }
@@ -727,17 +733,14 @@ export default { name: 'HomeV2Page' };
   .whatis-grid { grid-template-columns: 1fr; gap: 40px; }
   .whatis-graphic { --cake-scale: 0.32; }
   .stats-row { grid-template-columns: repeat(2, 1fr); gap: 40px 24px; }
-  .access-grid { grid-template-columns: 1fr; gap: 24px; }
-  .access-tabs { flex-direction: row; flex-wrap: wrap; border-left: none; }
-  .access-tab {
-    border-left: none; border-bottom: 2px solid transparent; margin-left: 0;
-    &.active { border-left-color: transparent; border-bottom-color: var(--ink); }
-  }
+  .access-cards { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 600px) {
   .hero { padding: 80px 20px 0; }
   .hero-headline { font-size: 34px; }
   .stats-section, .access-section, .faq-section, .whatis-section { padding-left: 20px; padding-right: 20px; }
   .stat-num { font-size: 32px; }
+  .stat-label { font-size: 20px; }
+  .access-cards { grid-template-columns: 1fr; }
 }
 </style>
