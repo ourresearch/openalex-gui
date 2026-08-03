@@ -383,6 +383,9 @@ const props = defineProps({
   // Landing page (#681): hide the in-box magnifier submit button. A standalone
   // "Search" button below the box drives submission instead (via exposed submit()).
   hideSubmit: Boolean,
+  // Landing page (#681): override the works placeholder with fixed copy instead of
+  // the live count (the count is confusing next to the xpac-inclusive "500M" claim).
+  placeholderOverride: String,
 });
 
 // --- Identifier extraction helpers ---
@@ -598,6 +601,8 @@ const resolvedSearchType = computed(() => {
 });
 
 const placeholder = computed(() => {
+  // #681: landing page pins a fixed works placeholder (no count) via prop.
+  if (props.placeholderOverride && isWorksEntity.value) return props.placeholderOverride;
   // #598 r5 (flag-on single-row only): live counts. Works honors the xpac toggle —
   // core count normally, the /entities (xpac-inclusive) count when xpac is on.
   if (props.singleRow) {

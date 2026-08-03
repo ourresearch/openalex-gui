@@ -12,9 +12,12 @@
           works and make them easy to search, analyze, and&nbsp;reuse.
         </p>
         <div class="hero-search">
-          <!-- hide-submit: no in-box magnifier; the Search CTA below drives it (#681) -->
-          <search-box v-if="oqlFlag" ref="searchBoxRef" single-row autofocus hide-submit />
-          <search-box v-else ref="searchBoxRef" show-examples autofocus hide-submit />
+          <!-- hide-submit: no in-box magnifier; the Search CTA below drives it (#681).
+               placeholder-override: fixed copy, no count (avoids the xpac-count confusion) -->
+          <search-box v-if="oqlFlag" ref="searchBoxRef" single-row autofocus hide-submit
+                      placeholder-override="Search papers, datasets, and more" />
+          <search-box v-else ref="searchBoxRef" show-examples autofocus hide-submit
+                      placeholder-override="Search papers, datasets, and more" />
         </div>
 
         <!-- primary Search + secondary Learn more CTAs; plain <button>s dodge the
@@ -551,16 +554,20 @@ export default { name: 'HomeV2Page' };
   background: var(--ink); color: #fff; border: 1.5px solid var(--ink);
   &:hover { background: #000; }
 }
+// borderless ghost so it doesn't compete with the search box + primary button
+// (Jason 2026-08-03): text-only until hover reveals a soft rounded-rect bg
 .cta-secondary {
-  background: transparent; color: var(--ink); border: 1.5px solid #D4D4D8;
-  &:hover { border-color: var(--ink); background: rgba(0, 0, 0, .03); }
+  background: transparent; color: var(--muted); border: 1.5px solid transparent;
+  &:hover { color: var(--ink); background: rgba(0, 0, 0, .05); }
 }
 
 // live feed — full above-the-fold height (Jason 2026-08-03): stretch to the
 // hero's viewport-height row instead of centering at a capped height
 .hero-viz {
   display: flex; flex-direction: column; gap: 0;
-  align-self: stretch; padding-top: 24px; // keep the ADDED TODAY bar off the app bar
+  // no top padding (Jason 2026-08-03): the cascade should read as coming straight
+  // from the very top of the viewport
+  align-self: stretch;
 }
 .added {
   font-size: 13px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
@@ -674,19 +681,20 @@ export default { name: 'HomeV2Page' };
 // height:width) on a full-bleed pale-grey stripe with a subtle gradient that
 // matches the logos band. Number = extra-heavy Inter, label = normal weight
 // for contrast, then a 1–2 sentence description.
+// full-bleed stripe: horizontal padding lives on the inner row (so its content
+// left-edge matches the non-full-bleed sections — shared section left margin)
 .stats-section {
-  padding: 96px 24px;
+  padding: 96px 0;
   background: linear-gradient(180deg, #FBFBFC 0%, #F7F7F8 100%);
   border-top: 1px solid #F4F4F5; border-bottom: 1px solid #F4F4F5;
 }
 .stats-row {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
-  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px;
+  max-width: 1200px; margin: 0 auto; padding: 0 24px;
 }
-.stat-card {
-  background: #fff; border-radius: 10px; padding: 32px 26px;
-  aspect-ratio: 1 / 2; display: flex; flex-direction: column;
-}
+// R12 (Jason 2026-08-03): flat left-aligned columns — no card box/aspect-ratio.
+// Big number, label, then a thin rule, then the muted description.
+.stat-card { display: flex; flex-direction: column; }
 .stat-num {
   font-size: 42px; font-weight: 800; letter-spacing: -0.03em; color: var(--ink);
   line-height: 1.05; font-variant-numeric: tabular-nums;
@@ -695,9 +703,11 @@ export default { name: 'HomeV2Page' };
   font-size: 19px; font-weight: 400; color: var(--ink);
   line-height: 1.3; margin-top: 6px;
 }
-// margin-top:auto anchors the description to the card bottom, so the 2:1
-// column shape reads deliberate instead of leaving a dead zone under the copy
-.stat-sub { font-size: 14px; line-height: 1.6; color: var(--muted); margin-top: auto; padding-top: 18px; }
+// description sits under a hairline rule (Jason's DevTools spec 2026-08-03)
+.stat-sub {
+  font-size: 14px; line-height: 1.6; color: var(--muted);
+  border-top: 1px solid #ddd; padding-top: 10px; margin-top: 7px;
+}
 
 // ===================== WHAT IT IS =====================
 .whatis-section { padding: 80px 24px 100px; max-width: 1200px; margin: 0 auto; }
@@ -709,7 +719,7 @@ export default { name: 'HomeV2Page' };
   display: grid; grid-template-columns: 1fr auto auto; gap: 0; align-items: start;
 }
 .whatis-title {
-  font-size: 34px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
+  font-size: 50px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
   margin: 0 0 24px 0; line-height: 1.1;
 }
 .whatis-copy p {
@@ -782,12 +792,13 @@ export default { name: 'HomeV2Page' };
 .cake-arrow.a-lower { top: 753px; height: 80px; }
 
 // ===================== OPENNESS =====================
-.openness-section { padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
+// max-width 1200 (was 1100) so its content left-edge matches every other section
+.openness-section { padding: 80px 24px; max-width: 1200px; margin: 0 auto; }
 .openness-grid {
   display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start;
 }
 .openness-title {
-  font-size: 34px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
+  font-size: 50px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
   margin: 0; line-height: 1.1;
 }
 .openness-copy p {
@@ -799,7 +810,7 @@ export default { name: 'HomeV2Page' };
 // consistent across sections (R10): same size/weight as the intro's
 // "A new kind of library" title, always left-aligned
 .section-header {
-  font-size: 34px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
+  font-size: 50px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
   text-align: left; margin: 0 0 40px 0; line-height: 1.1;
 }
 .section-intro {
@@ -811,11 +822,12 @@ export default { name: 'HomeV2Page' };
 // R10: white Linear-style cards (tight radius, subtle hairline border) on a
 // full-bleed pale-grey stripe matching the logos band, with a subtle gradient
 .access-section {
-  padding: 80px 24px;
+  padding: 80px 0;
   background: linear-gradient(180deg, #FBFBFC 0%, #F7F7F8 100%);
   border-top: 1px solid #F4F4F5; border-bottom: 1px solid #F4F4F5;
 }
-.access-inner { max-width: 1100px; margin: 0 auto; }
+// max-width 1200 + own side padding so its content aligns with the other sections
+.access-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 .access-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .access-card {
   position: relative; background: #fff; border: 1px solid #ECECEE;
@@ -866,7 +878,7 @@ export default { name: 'HomeV2Page' };
 
 // ===================== FAQ =====================
 // full main-column width (matches stats/access sections)
-.faq-section { padding: 80px 24px 120px; max-width: 1100px; margin: 0 auto; }
+.faq-section { padding: 80px 24px 120px; max-width: 1200px; margin: 0 auto; }
 .faq-item {
   border-bottom: 1px solid #E4E4E7;
   &:last-child { border-bottom: none; }
@@ -890,6 +902,7 @@ export default { name: 'HomeV2Page' };
   .hero { grid-template-columns: 1fr; padding-top: 80px; gap: 32px; }
   .hero-viz { display: none; } // feed is decorative; keep search above the fold
   .hero-headline { font-size: 42px; }
+  .whatis-title, .openness-title, .section-header { font-size: 38px; }
   .whatis-grid { grid-template-columns: 1fr; gap: 40px; }
   .whatis-graphic, .whatis-labels { --cake-scale: 0.32; }
   .stats-row { grid-template-columns: repeat(2, 1fr); gap: 40px 24px; }
@@ -899,7 +912,9 @@ export default { name: 'HomeV2Page' };
 @media (max-width: 600px) {
   .hero { padding: 80px 20px 0; }
   .hero-headline { font-size: 34px; }
-  .stats-section, .access-section, .faq-section, .whatis-section, .openness-section { padding-left: 20px; padding-right: 20px; }
+  .whatis-title, .openness-title, .section-header { font-size: 30px; }
+  .faq-section, .whatis-section, .openness-section { padding-left: 20px; padding-right: 20px; }
+  .stats-row, .access-inner { padding-left: 20px; padding-right: 20px; }
   .stat-num { font-size: 32px; }
   .stat-label { font-size: 20px; }
   .access-cards { grid-template-columns: 1fr; }
