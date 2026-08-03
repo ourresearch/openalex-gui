@@ -6,7 +6,7 @@
       <div class="hero-copy">
         <!-- ⚠️ headline is the approved PLACEHOLDER (#686); Jason revisits it on the
              assembled page. Don't reopen before assembly. -->
-        <h1 class="hero-headline">Unlock the world's research</h1>
+        <h1 class="hero-headline">Unlock the<br>world's research</h1>
         <p class="hero-subhead">
           Inspired by the Library of Alexandria, we index half a billion scholarly
           works and make them easy to search, analyze, and&nbsp;reuse.
@@ -139,7 +139,7 @@
     <!-- ===================== HOW TO ACCESS IT (cards) ===================== -->
     <section class="access-section">
       <div class="access-inner">
-        <h2 class="section-header">How to access it</h2>
+        <h2 class="section-header">Easy, powerful access</h2>
         <p class="section-intro">
           There's a route in for everyone — from a quick search on the website
           to running your own copy of the entire dataset.
@@ -155,7 +155,6 @@
               </span>
             </div>
             <div class="access-card-body">
-              <span v-if="m.beta" class="beta-badge">Beta</span>
               <p>{{ m.body }}</p>
             </div>
             <div class="access-card-foot">
@@ -295,15 +294,16 @@ const stats = computed(() => [
 // ---------------------------------------------------------------------------
 const LEVEL_NAMES = { easy: 'Easy', med: 'Medium', hard: 'Hard' };
 const LEVEL_FILL = { easy: 1, med: 2, hard: 3 };
+// card copy = Jason's 2026-08-03 wording (light spelling/punctuation polish)
 const accessMethods = [
-  { name: 'Website', icon: 'mdi-magnify', level: 'easy', cta: 'Try', body: 'Search and browse half a billion works right here — no code, no login. Filter by author, institution, topic, funder, and more, then export what you find.', href: 'https://help.openalex.org/' },
-  { name: 'OQL', icon: 'mdi-code-braces', level: 'med', beta: true, body: 'Use the OpenAlex Query Language (beta) to build and share complex queries. Great for systematic reviews.', href: 'https://help.openalex.org/' },
-  { name: 'API', icon: 'mdi-cogs', level: 'med', body: 'A fast, thoroughly documented REST API built for automation. High throughput, transparent pricing, no lock-in — the same API that serves over a billion calls a month.', href: 'https://developers.openalex.org/' },
-  { name: 'CLI', icon: 'mdi-console', level: 'med', body: 'Query OpenAlex straight from your terminal and pipe the results into your own scripts and data pipelines.', href: 'https://developers.openalex.org/' },
-  { name: 'Agents', icon: 'mdi-robot-outline', level: 'easy', body: 'OpenAlex is built for AI. Point your agents at our API and let them read across the whole literature — structured, connected, and machine-ready.', href: 'https://developers.openalex.org/' },
-  { name: 'Snapshot', icon: 'mdi-database-outline', level: 'hard', body: 'Download the entire dataset — every work, author, source, and institution — as a free snapshot, and host your own copy.', href: 'https://developers.openalex.org/download-all-data/openalex-snapshot' },
-  { name: 'Sync', icon: 'mdi-sync', level: 'hard', body: 'Keep your local copy current with daily change files, so it never falls behind the live index.', href: 'https://developers.openalex.org/download-all-data/openalex-snapshot' },
-  { name: 'Fulltext', icon: 'mdi-file-pdf-box', level: 'hard', body: 'Download full-text PDFs for tens of millions of open-access works — cached, deduplicated, and ready to process.', href: 'https://developers.openalex.org/' },
+  { name: 'Website', icon: 'mdi-magnify', level: 'easy', cta: 'Try', body: 'Search and filter by topic, date, full-text availability, and more, then export what you find.', href: 'https://help.openalex.org/' },
+  { name: 'OQL', icon: 'mdi-code-braces', level: 'med', body: 'Use the OpenAlex Query Language (beta) to build and share complex queries. Great for systematic reviews.', href: 'https://help.openalex.org/' },
+  { name: 'API', icon: 'mdi-cogs', level: 'med', body: 'Built for builders: fast and well-documented, with a generous free tier and pay-as-you-go after that.', href: 'https://developers.openalex.org/' },
+  { name: 'CLI', icon: 'mdi-console', level: 'med', body: 'Query from your terminal and pipe the results into your own scripts. Agents love using it.', href: 'https://developers.openalex.org/' },
+  { name: 'Agents', icon: 'mdi-robot-outline', level: 'easy', body: 'Just say "Use OpenAlex" to your agent and it\'ll handle the rest. Install the CLI for even better results.', href: 'https://developers.openalex.org/' },
+  { name: 'Snapshot', icon: 'mdi-database-outline', level: 'hard', body: 'Download our entire dataset for free. Updated quarterly.', href: 'https://developers.openalex.org/download-all-data/openalex-snapshot' },
+  { name: 'Sync', icon: 'mdi-sync', level: 'hard', body: 'Keep your database up to date with daily changes, via AWS or API.', href: 'https://developers.openalex.org/download-all-data/openalex-snapshot' },
+  { name: 'Fulltext', icon: 'mdi-file-pdf-box', level: 'hard', body: 'Download 50M full-text PDFs with license info — and get new ones daily.', href: 'https://developers.openalex.org/' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -530,7 +530,7 @@ export default { name: 'HomeV2Page' };
 .hero > * { min-width: 0; }
 
 .hero-headline {
-  font-size: 52px; font-weight: 700; line-height: 1.05;
+  font-size: 60px; font-weight: 700; line-height: 1.05;
   letter-spacing: -0.03em; color: var(--ink); margin: 0 0 20px 0;
 }
 .hero-subhead {
@@ -539,6 +539,13 @@ export default { name: 'HomeV2Page' };
 }
 // ~80% of the former 600px so the box doesn't crowd toward the feed (Jason 2026-08-03)
 .hero-search { width: 100%; max-width: 480px; }
+// Linear-style chrome on the landing search box (Jason 2026-08-03): tighter 8px
+// radius (was 16px — way too round) to match the CTA buttons, subtle 1px border.
+// Scoped to the hero so the SERP's SearchBox is unaffected.
+.hero-search :deep(.search-box) {
+  border-radius: 8px;
+  border-color: #E3E3E6;
+}
 
 // Primary "Search" + secondary "Learn more" CTAs under the box. Plain <button>s
 // so the global v-btn house rules don't touch them.
@@ -547,7 +554,8 @@ export default { name: 'HomeV2Page' };
 }
 .cta {
   font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
-  padding: 10px 24px; border-radius: 10px; line-height: 1;
+  // tighter 8px radius = Linear button shape (was 10px), matches the search box
+  padding: 10px 24px; border-radius: 8px; line-height: 1;
   transition: background .12s ease, border-color .12s ease, color .12s ease;
 }
 .cta-primary {
@@ -853,11 +861,6 @@ export default { name: 'HomeV2Page' };
 .level-easy .dot.filled { background: #14A056; }
 .level-med  .dot.filled { background: #D9A514; }
 .level-hard .dot.filled { background: #D14E42; }
-.beta-badge {
-  align-self: flex-start; margin: 0 0 8px;
-  font-size: 10px; font-weight: 600; letter-spacing: .03em; color: #2563EB;
-  background: #EFF6FF; border-radius: 5px; padding: 1px 6px; line-height: 1.5;
-}
 .access-card-body {
   padding: 0 16px; flex: 1; display: flex; flex-direction: column;
   p { font-size: 13.5px; line-height: 1.6; color: var(--muted); margin: 0; }
