@@ -515,8 +515,12 @@ export default { name: 'HomeV2Page' };
   &:hover { color: var(--ink); background: rgba(0, 0, 0, .05); }
 }
 
-// live feed
-.hero-viz { display: flex; flex-direction: column; gap: 0; }
+// live feed — full above-the-fold height (Jason 2026-08-03): stretch to the
+// hero's viewport-height row instead of centering at a capped height
+.hero-viz {
+  display: flex; flex-direction: column; gap: 0;
+  align-self: stretch; padding-top: 24px; // keep the ADDED TODAY bar off the app bar
+}
 .added {
   font-size: 13px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
   color: var(--faint); display: grid; grid-template-columns: 18px minmax(0, 1fr);
@@ -535,7 +539,9 @@ export default { name: 'HomeV2Page' };
   100% { box-shadow: none; }
 }
 .feedport {
-  height: min(66vh, 560px); overflow: hidden; position: relative;
+  // fills the stretched hero-viz below the ADDED TODAY bar (was min(66vh,560px));
+  // the mount-time belt fill + trim both read port.offsetHeight, so they adapt
+  flex: 1; min-height: 0; overflow: hidden; position: relative;
   -webkit-mask-image: linear-gradient(180deg, #000 0, #000 86%, transparent);
           mask-image: linear-gradient(180deg, #000 0, #000 86%, transparent);
 }
