@@ -33,15 +33,19 @@
       </button>
     </section>
 
-    <!-- ===================== SOCIAL PROOF (#404 supplies the list) ===================== -->
+    <!-- ===================== SOCIAL PROOF (#404 final 25, signed off 2026-08-02) ===================== -->
     <section id="content" class="logos-section">
       <p class="logos-label">Powering research at</p>
-      <div class="ribbon">
-        <!-- moving ribbon; final logo list is #404 (awaiting sign-off). Placeholder
-             set reuses the current partner logos, duplicated for a seamless loop. -->
+      <!-- tabindex lets keyboard users land on the ribbon; focus pauses it (WCAG 2.2.2) -->
+      <div class="ribbon" tabindex="0" role="group"
+           aria-label="Logos of organizations that use OpenAlex">
         <div class="ribbon-track">
-          <img v-for="(logo, i) in ribbonLogos.concat(ribbonLogos)" :key="i"
+          <img v-for="(logo, i) in ribbonLogos" :key="'a' + i"
                :src="logo.src" :alt="logo.alt" class="ribbon-logo" :class="logo.cls" />
+          <!-- second copy exists only for the seamless -50% loop; hidden from screen
+               readers, and display:none'd in the reduced-motion static fallback -->
+          <img v-for="(logo, i) in ribbonLogos" :key="'b' + i" aria-hidden="true"
+               :src="logo.src" alt="" class="ribbon-logo loop-copy" :class="logo.cls" />
         </div>
       </div>
     </section>
@@ -199,25 +203,68 @@ import layerCake from '@/assets/landing/layer-cake.webp';
 function scrollToContent() { goTo('#content'); }
 
 // ---------------------------------------------------------------------------
-// Social-proof ribbon (final list = #404). Placeholder logos, duplicated for
-// a seamless CSS marquee.
+// Social-proof ribbon — the FINAL 25-org band from #404 (signed off 2026-08-02),
+// in band order. Assets sourced/QA'd in oxjob #404 work/logos/ (manifest.csv has
+// per-file provenance). Grayscale + one-ink comes from CSS on .ribbon-logo, so
+// the SVGs keep their native fills — but they must be dark-on-transparent
+// (white-fill assets were recolored at source; keep any future swap-ins dark).
 // ---------------------------------------------------------------------------
-import sorbonneLogo from '@/assets/partner-logos/sorbonne-university.svg';
-import acsLogo from '@/assets/partner-logos/american-chemical-society.svg';
-import epflLogo from '@/assets/partner-logos/epfl.svg';
-import jiscLogo from '@/assets/partner-logos/jisc.png';
-import cziLogo from '@/assets/partner-logos/chan-zuckerberg-initiative.svg';
+import anthropicLogo from '@/assets/partner-logos/anthropic.svg';
+import clarivateLogo from '@/assets/partner-logos/clarivate.svg';
+import exaLogo from '@/assets/partner-logos/exa.svg';
+import cuspLogo from '@/assets/partner-logos/cusp-ai.svg';
+import grammarlyLogo from '@/assets/partner-logos/grammarly.svg';
+import samsungLogo from '@/assets/partner-logos/samsung.svg';
+import nestleLogo from '@/assets/partner-logos/nestle.svg';
+import astrazenecaLogo from '@/assets/partner-logos/astrazeneca.svg';
+import bayerLogo from '@/assets/partner-logos/bayer.svg';
+import stanfordLogo from '@/assets/partner-logos/stanford.svg';
+import oxfordLogo from '@/assets/partner-logos/oxford.svg';
+import cambridgeLogo from '@/assets/partner-logos/cambridge.svg';
+import princetonLogo from '@/assets/partner-logos/princeton.svg';
+import yaleLogo from '@/assets/partner-logos/yale.svg';
+import ucLogo from '@/assets/partner-logos/uc.svg';
+import sorbonneLogo from '@/assets/partner-logos/sorbonne.svg';
+import uvaLogo from '@/assets/partner-logos/uva.svg';
+import uncLogo from '@/assets/partner-logos/unc.svg';
+import ethLogo from '@/assets/partner-logos/eth-zurich.svg';
+import unpaywallLogo from '@/assets/partner-logos/unpaywall.png';
+import futurehouseLogo from '@/assets/partner-logos/futurehouse.svg';
+import bmsLogo from '@/assets/partner-logos/bms.svg';
+import jstLogo from '@/assets/partner-logos/jst.svg';
+import cziLogo from '@/assets/partner-logos/czi.svg';
+import wellcomeLogo from '@/assets/partner-logos/wellcome.svg';
 const baseLogos = [
-  { src: sorbonneLogo, alt: 'Sorbonne University', cls: '' },
-  { src: acsLogo, alt: 'American Chemical Society', cls: 'tall' },
-  { src: epflLogo, alt: 'EPFL', cls: 'short' },
-  { src: jiscLogo, alt: 'Jisc', cls: '' },
-  { src: cziLogo, alt: 'Chan Zuckerberg Initiative', cls: '' },
+  { src: anthropicLogo, alt: 'Anthropic', cls: 'short' },
+  { src: clarivateLogo, alt: 'Clarivate', cls: '' },
+  { src: exaLogo, alt: 'Exa', cls: '' },
+  { src: cuspLogo, alt: 'Cusp AI', cls: '' },
+  { src: grammarlyLogo, alt: 'Grammarly', cls: '' },
+  { src: samsungLogo, alt: 'Samsung', cls: 'short' },
+  { src: nestleLogo, alt: 'Nestlé', cls: '' },
+  { src: astrazenecaLogo, alt: 'AstraZeneca', cls: '' },
+  { src: bayerLogo, alt: 'Bayer', cls: 'tall' },
+  { src: stanfordLogo, alt: 'Stanford University', cls: '' },
+  { src: oxfordLogo, alt: 'University of Oxford', cls: '' },
+  { src: cambridgeLogo, alt: 'University of Cambridge', cls: '' },
+  { src: princetonLogo, alt: 'Princeton University', cls: '' },
+  { src: yaleLogo, alt: 'Yale University', cls: '' },
+  { src: ucLogo, alt: 'University of California', cls: 'tall' },
+  { src: sorbonneLogo, alt: 'Sorbonne Université', cls: '' },
+  { src: uvaLogo, alt: 'University of Virginia', cls: '' },
+  { src: uncLogo, alt: 'UNC-Chapel Hill', cls: 'tall' },
+  { src: ethLogo, alt: 'ETH Zürich', cls: '' },
+  { src: unpaywallLogo, alt: 'Unpaywall', cls: '' },
+  { src: futurehouseLogo, alt: 'FutureHouse', cls: '' },
+  { src: bmsLogo, alt: 'Bristol Myers Squibb', cls: '' },
+  { src: jstLogo, alt: 'Japan Science and Technology Agency', cls: 'tall' },
+  { src: cziLogo, alt: 'Chan Zuckerberg Initiative', cls: 'tall' },
+  { src: wellcomeLogo, alt: 'Wellcome', cls: 'tall' },
 ];
 // The seamless -50% marquee needs each half of the track to be at least a
-// viewport wide, or a gap parades through. 5 logos ≈ 1040px, so the repeat
-// unit is the set twice (~2080px); the template doubles it again for the loop.
-const ribbonLogos = baseLogos.concat(baseLogos);
+// viewport wide, or a gap parades through. 25 logos ≈ 5000px+, so one set per
+// half is plenty; the template renders the set twice for the loop.
+const ribbonLogos = baseLogos;
 
 // ---------------------------------------------------------------------------
 // Four key stats. works + PDFs go LIVE; connections + API-calls are static.
@@ -594,9 +641,14 @@ export default { name: 'HomeV2Page' };
 }
 .ribbon-track {
   display: flex; align-items: center; gap: 64px; width: max-content;
-  animation: ribbon-scroll 40s linear infinite;
+  // duration scales with track length: 25 logos ≈ 5x the placeholder set,
+  // same ~50px/s crawl
+  animation: ribbon-scroll 110s linear infinite;
 }
-.ribbon:hover .ribbon-track { animation-play-state: paused; }
+.ribbon:hover .ribbon-track,
+.ribbon:focus-visible .ribbon-track,
+.ribbon:focus-within .ribbon-track { animation-play-state: paused; }
+.ribbon:focus-visible { outline: 2px solid var(--faint); outline-offset: 4px; }
 @keyframes ribbon-scroll {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
@@ -608,6 +660,8 @@ export default { name: 'HomeV2Page' };
 }
 @media (prefers-reduced-motion: reduce) {
   .ribbon-track { animation: none; flex-wrap: wrap; justify-content: center; width: 100%; }
+  // static fallback shows each org once — the loop copy is only for the marquee
+  .ribbon-track .loop-copy { display: none; }
 }
 
 // ===================== STATS =====================

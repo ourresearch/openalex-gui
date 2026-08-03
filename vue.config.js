@@ -4,6 +4,10 @@ const webpack = require('webpack');
 
 module.exports = {
   lintOnSave: false,
+  // history-mode router: serve index.html for deep links (/v2 etc.) in dev
+  devServer: {
+    historyApiFallback: true,
+  },
   transpileDependencies: [
     'vuetify'
   ],
