@@ -69,8 +69,8 @@ const navConfigs = [
                 to: "/brand",
             },
             {
-                name: "Careers",
-                to: "/careers",
+                name: "Jobs",
+                to: "/jobs",
             },
         ],
     },
