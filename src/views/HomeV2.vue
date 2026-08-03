@@ -33,20 +33,12 @@
       </button>
     </section>
 
-    <!-- ===================== SOCIAL PROOF (#404 final 25, signed off 2026-08-02) ===================== -->
+    <!-- ===================== SOCIAL PROOF (#404 band, static grid per Jason 2026-08-03) ===================== -->
     <section id="content" class="logos-section">
       <p class="logos-label">Powering research at</p>
-      <!-- tabindex lets keyboard users land on the ribbon; focus pauses it (WCAG 2.2.2) -->
-      <div class="ribbon" tabindex="0" role="group"
-           aria-label="Logos of organizations that use OpenAlex">
-        <div class="ribbon-track">
-          <img v-for="(logo, i) in ribbonLogos" :key="'a' + i"
-               :src="logo.src" :alt="logo.alt" class="ribbon-logo" :class="logo.cls" />
-          <!-- second copy exists only for the seamless -50% loop; hidden from screen
-               readers, and display:none'd in the reduced-motion static fallback -->
-          <img v-for="(logo, i) in ribbonLogos" :key="'b' + i" aria-hidden="true"
-               :src="logo.src" alt="" class="ribbon-logo loop-copy" :class="logo.cls" />
-        </div>
+      <div class="logo-grid" role="group" aria-label="Logos of organizations that use OpenAlex">
+        <img v-for="(logo, i) in bandLogos" :key="i"
+             :src="logo.src" :alt="logo.alt" class="band-logo" :class="logo.cls" />
       </div>
     </section>
 
@@ -206,11 +198,13 @@ import layerCake from '@/assets/landing/layer-cake.webp';
 function scrollToContent() { goTo('#content'); }
 
 // ---------------------------------------------------------------------------
-// Social-proof ribbon — the FINAL 25-org band from #404 (signed off 2026-08-02),
-// in band order. Assets sourced/QA'd in oxjob #404 work/logos/ (manifest.csv has
-// per-file provenance). Grayscale + one-ink comes from CSS on .ribbon-logo, so
-// the SVGs keep their native fills — but they must be dark-on-transparent
-// (white-fill assets were recolored at source; keep any future swap-ins dark).
+// Social-proof band — the #404 list (signed off 2026-08-02; ETH Zürich cut by
+// Jason 2026-08-03 — "janky"), in band order, rendered as a static wrapped
+// grid (Jason 2026-08-03: static rows over marquee). Assets sourced/QA'd in
+// oxjob #404 work/logos/ (manifest.csv has per-file provenance). Grayscale +
+// one-ink comes from CSS on .band-logo, so the SVGs keep their native fills —
+// but they must be dark-on-transparent (white-fill assets were recolored at
+// source; keep any future swap-ins dark).
 // ---------------------------------------------------------------------------
 import anthropicLogo from '@/assets/partner-logos/anthropic.svg';
 import clarivateLogo from '@/assets/partner-logos/clarivate.svg';
@@ -230,7 +224,6 @@ import ucLogo from '@/assets/partner-logos/uc.svg';
 import sorbonneLogo from '@/assets/partner-logos/sorbonne.svg';
 import uvaLogo from '@/assets/partner-logos/uva.svg';
 import uncLogo from '@/assets/partner-logos/unc.svg';
-import ethLogo from '@/assets/partner-logos/eth-zurich.svg';
 import unpaywallLogo from '@/assets/partner-logos/unpaywall.png';
 import futurehouseLogo from '@/assets/partner-logos/futurehouse.svg';
 import bmsLogo from '@/assets/partner-logos/bms.svg';
@@ -256,7 +249,6 @@ const baseLogos = [
   { src: sorbonneLogo, alt: 'Sorbonne Université', cls: '' },
   { src: uvaLogo, alt: 'University of Virginia', cls: '' },
   { src: uncLogo, alt: 'UNC-Chapel Hill', cls: 'tall' },
-  { src: ethLogo, alt: 'ETH Zürich', cls: '' },
   { src: unpaywallLogo, alt: 'Unpaywall', cls: '' },
   { src: futurehouseLogo, alt: 'FutureHouse', cls: '' },
   { src: bmsLogo, alt: 'Bristol Myers Squibb', cls: '' },
@@ -264,10 +256,7 @@ const baseLogos = [
   { src: cziLogo, alt: 'Chan Zuckerberg Initiative', cls: 'tall' },
   { src: wellcomeLogo, alt: 'Wellcome', cls: 'tall' },
 ];
-// The seamless -50% marquee needs each half of the track to be at least a
-// viewport wide, or a gap parades through. 25 logos ≈ 5000px+, so one set per
-// half is plenty; the template renders the set twice for the loop.
-const ribbonLogos = baseLogos;
+const bandLogos = baseLogos;
 
 // ---------------------------------------------------------------------------
 // Four key stats. works + PDFs go LIVE; connections + API-calls are static.
@@ -637,34 +626,19 @@ export default { name: 'HomeV2Page' };
   font-size: 14px; font-weight: 500; color: var(--faint);
   text-align: center; margin-bottom: 32px;
 }
-.ribbon {
-  position: relative; width: 100%; overflow: hidden;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-          mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+.logo-grid {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  column-gap: 56px; row-gap: 36px;
+  max-width: 1200px; margin: 0 auto; padding: 0 32px;
 }
-.ribbon-track {
-  display: flex; align-items: center; gap: 64px; width: max-content;
-  // duration scales with track length: 25 logos ≈ 5x the placeholder set,
-  // same ~50px/s crawl
-  animation: ribbon-scroll 110s linear infinite;
-}
-.ribbon:hover .ribbon-track,
-.ribbon:focus-visible .ribbon-track,
-.ribbon:focus-within .ribbon-track { animation-play-state: paused; }
-.ribbon:focus-visible { outline: 2px solid var(--faint); outline-offset: 4px; }
-@keyframes ribbon-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-.ribbon-logo {
+.band-logo {
   height: 40px; filter: grayscale(1); opacity: 0.5; flex: none;
   &.tall { height: 50px; }
   &.short { height: 32px; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .ribbon-track { animation: none; flex-wrap: wrap; justify-content: center; width: 100%; }
-  // static fallback shows each org once — the loop copy is only for the marquee
-  .ribbon-track .loop-copy { display: none; }
+@media (max-width: 700px) {
+  .logo-grid { column-gap: 36px; row-gap: 28px; }
+  .band-logo { height: 32px; &.tall { height: 40px; } &.short { height: 26px; } }
 }
 
 // ===================== STATS =====================
