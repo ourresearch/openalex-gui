@@ -155,8 +155,11 @@
         </v-list>
       </v-menu>
 
-      <!-- Magnifier = submit button, at the right edge of the box (#440 r5). -->
+      <!-- Magnifier = submit button, at the right edge of the box (#440 r5).
+           hideSubmit drops it on the landing page, where a standalone "Search"
+           call-to-action button below the box takes over (#681). -->
       <v-btn
+        v-if="!hideSubmit"
         icon
         variant="text"
         size="small"
@@ -377,6 +380,9 @@ const props = defineProps({
   // the (white) body of a host card — e.g. the SERP Basic-mode search card, where
   // the box is the card body and the filter chips are the card footer (#440 r3).
   borderless: Boolean,
+  // Landing page (#681): hide the in-box magnifier submit button. A standalone
+  // "Search" button below the box drives submission instead (via exposed submit()).
+  hideSubmit: Boolean,
 });
 
 // --- Identifier extraction helpers ---
@@ -1018,9 +1024,10 @@ async function submitSearch(forceEntityType) {
     if (props.showExamples) {
       // Legacy landing box: empty Enter opens the entity's SERP (unchanged).
       url.pushToRoute(router, { name: 'Serp', params: { entityType: targetEntityType } });
-    } else if (props.singleRow && route.name === 'Home') {
+    } else if (props.singleRow && (route.name === 'Home' || route.name === 'HomeV2')) {
       // #598 r4: flag-on landing bar — empty Enter opens the entity's SERP in
-      // Basic mode with the search box focused, ready to type.
+      // Basic mode with the search box focused, ready to type. (#681: HomeV2 is
+      // the landing revision's test route, same behavior.)
       store.commit('setSerpModeOverride', 'basic');
       requestSearchBoxFocus();
       url.pushToRoute(router, { name: 'Serp', params: { entityType: targetEntityType } });
@@ -1079,6 +1086,10 @@ function clickSubmit() {
   dismissDropdown();
   submitSearch();
 }
+
+// Expose submit() so a host page (e.g. the #681 landing) can drive search from
+// its own "Search" call-to-action button, replacing the in-box magnifier.
+defineExpose({ submit: clickSubmit });
 
 // Vuetify's v-menu moves focus (to its activator, then <body>) while it
 // closes, which clobbers a single focus() call. Retry over a short window

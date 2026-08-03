@@ -12,25 +12,32 @@
           works and make them easy to search, analyze, and&nbsp;reuse.
         </p>
         <div class="hero-search">
-          <search-box v-if="oqlFlag" single-row autofocus />
-          <search-box v-else show-examples autofocus />
+          <!-- hide-submit: no in-box magnifier; the Search CTA below drives it (#681) -->
+          <search-box v-if="oqlFlag" ref="searchBoxRef" single-row autofocus hide-submit />
+          <search-box v-else ref="searchBoxRef" show-examples autofocus hide-submit />
+        </div>
+
+        <!-- primary Search + secondary Learn more CTAs; plain <button>s dodge the
+             global v-btn / .v-icon house rules. Search runs the box's submit()
+             (empty = show all works, same as the old magnifier). -->
+        <div class="hero-cta">
+          <button class="cta cta-primary" @click="runSearch">Search</button>
+          <button class="cta cta-secondary" @click="scrollToContent">Learn more</button>
         </div>
       </div>
 
       <!-- live feed: rows are built imperatively in onMounted (faithful port of the
            #686 C3 prototype — prototype wins ties). -->
       <div class="hero-viz">
-        <div class="added">
+        <!-- feed header intentionally removed (Jason 2026-08-03): the "N works added
+             today" bar made the column busier, and the feed is now a curated best-of
+             sample, not a live "today" claim. Kept commented in case it returns. -->
+        <!-- <div class="added">
           <span class="live-dot"></span>
           <span><b ref="addedRef">…</b> works added today</span>
-        </div>
+        </div> -->
         <div class="feedport" ref="portRef"><div class="belt" ref="beltRef"></div></div>
       </div>
-
-      <!-- plain <button>: dodges the global text-variant v-btn + .v-icon house rules -->
-      <button class="scroll-indicator" @click="scrollToContent">
-        Learn more <span class="mdi mdi-chevron-down"></span>
-      </button>
     </section>
 
     <!-- ===================== SOCIAL PROOF (#404 band, static grid per Jason 2026-08-03) ===================== -->
@@ -213,6 +220,11 @@ import layerCake from '@/assets/landing/layer-cake.webp';
 
 function scrollToContent() { goTo('#content'); }
 
+// Search CTA — drives the SearchBox's exposed submit() (empty input shows all
+// works, same as the removed in-box magnifier).
+const searchBoxRef = ref(null);
+function runSearch() { searchBoxRef.value?.submit(); }
+
 // ---------------------------------------------------------------------------
 // Social-proof band — Linear-style: 8 logos, ONE static row, small (Jason
 // 2026-08-03, follows linear.app's homepage row). Picked from the #404
@@ -393,22 +405,26 @@ onMounted(() => {
     const eyebrow = `<span class="eyebrow" ${typeTip}>${esc(typeName)}</span>`;
     const names = r.authors.map(a =>
       link('w w-author', 'https://openalex.org/works?filter=authorships.author.id:' + a.id,
-        lastName(a.name), `View all ${fmt(a.count)} works by ${a.name}`, AUTHOR_ICON));
+        lastName(a.name), a.count ? `View all ${fmt(a.count)} works by ${a.name}` : `View all works by ${a.name}`, AUTHOR_ICON));
     const etAl = r.nauthors > r.authors.length;
     const authors = (names.length === 2 && !etAl)
       ? names.join(' and ')
       : names.join(', ') + (etAl ? ', et al.' : '');
     const src = r.source
       ? ` in ${link('w w-source', 'https://openalex.org/works?filter=primary_location.source.id:' + r.source.id,
-          srcName(r.source.name), `View all ${fmt(r.source.count)} works published in ${srcName(r.source.name)}`, SOURCE_ICON)}`
+          srcName(r.source.name), r.source.count ? `View all ${fmt(r.source.count)} works published in ${srcName(r.source.name)}` : `View all works published in ${srcName(r.source.name)}`, SOURCE_ICON)}`
       : '';
+    // no tooltip on the PDF button — the "PDF" label already says what it is (#681)
     const pdf = r.pdf
-      ? `<a class="novice-link pdf" href="${esc(r.pdf)}" target="_blank" rel="noopener" data-tip="View PDF">PDF</a>`
+      ? `<a class="novice-link pdf" href="${esc(r.pdf)}" target="_blank" rel="noopener">PDF</a>`
       : '';
+    // lead the byline with the publication year (plain black, not a link) — works
+    // span multiple years now that the feed is a curated sample, not "today" (#681)
+    const yr = r.year ? `${esc(String(r.year))} ` : '';
     const icon = `<span class="lead mdi ${getTypeIcon(r.type)}" ${typeTip}></span>`;
     const el = document.createElement('div');
     el.className = 'item';
-    el.innerHTML = `${eyebrow}${icon}<a class="novice-link t" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a>${pdf}<span class="by">by ${authors}${src}</span>`;
+    el.innerHTML = `${eyebrow}${icon}<a class="novice-link t" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a>${pdf}<span class="by">${yr}by ${authors}${src}</span>`;
     return el;
   }
 
@@ -501,8 +517,8 @@ export default { name: 'HomeV2Page' };
   position: relative;
   min-height: calc(100vh - var(--app-bar-height));
   display: grid;
-  grid-template-columns: 1.05fr 1fr;
-  gap: 48px;
+  grid-template-columns: 1fr 1fr;
+  gap: 88px; // more air between the copy and the feed (Jason 2026-08-03)
   align-items: center;
   max-width: 1280px;
   margin: 0 auto;
@@ -518,18 +534,26 @@ export default { name: 'HomeV2Page' };
   font-size: 18px; line-height: 1.65; color: var(--muted);
   max-width: 520px; margin: 0 0 40px 0;
 }
-.hero-search { width: 100%; max-width: 600px; }
+// ~80% of the former 600px so the box doesn't crowd toward the feed (Jason 2026-08-03)
+.hero-search { width: 100%; max-width: 480px; }
 
-// Linear-style ghost button: borderless; a soft rounded-rect bg appears on hover
-.scroll-indicator {
-  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
-  display: inline-flex; align-items: center; gap: 6px;
-  font: inherit; font-size: 14px; font-weight: 500; color: var(--muted);
-  background: transparent; border: none; border-radius: 8px;
-  padding: 8px 14px; cursor: pointer;
-  transition: color .12s ease, background .12s ease;
-  .mdi { font-size: 16px; line-height: 1; }
-  &:hover { color: var(--ink); background: rgba(0, 0, 0, .05); }
+// Primary "Search" + secondary "Learn more" CTAs under the box. Plain <button>s
+// so the global v-btn house rules don't touch them.
+.hero-cta {
+  display: flex; align-items: center; gap: 12px; margin-top: 20px;
+}
+.cta {
+  font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+  padding: 10px 24px; border-radius: 10px; line-height: 1;
+  transition: background .12s ease, border-color .12s ease, color .12s ease;
+}
+.cta-primary {
+  background: var(--ink); color: #fff; border: 1.5px solid var(--ink);
+  &:hover { background: #000; }
+}
+.cta-secondary {
+  background: transparent; color: var(--ink); border: 1.5px solid #D4D4D8;
+  &:hover { border-color: var(--ink); background: rgba(0, 0, 0, .03); }
 }
 
 // live feed — full above-the-fold height (Jason 2026-08-03): stretch to the
