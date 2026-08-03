@@ -2,14 +2,15 @@
   <!-- No StaticPage title: this page brings its own centered hero. -->
   <static-page>
     <section class="jobs-hero">
-      <p class="jobs-eyebrow">Careers at OpenAlex</p>
+      <p class="jobs-eyebrow">Jobs at OpenAlex</p>
       <h1 class="jobs-headline">New roles,<br>coming soon.</h1>
       <p class="jobs-sub">
-        We're building the team behind the open catalog of the world's research.
-        Openings will be posted here — and announced first to our user group.
+        We're growing the team behind OpenAlex. Want to join? Openings will be
+        posted here and announced via our user group.
       </p>
       <div class="jobs-cta">
         <a
+          id="jobs-join-button"
           class="jobs-button"
           href="https://groups.google.com/g/openalex-users"
           target="_blank"
@@ -21,7 +22,6 @@
           </svg>
         </a>
       </div>
-      <p class="jobs-note">We'll post a notification there the moment new jobs go live.</p>
     </section>
   </static-page>
 </template>
@@ -84,15 +84,17 @@ useHead({
 }
 
 .jobs-cta {
-  margin: 0 0 20px 0;
+  margin: 0;
 }
 
-.jobs-button {
+// ID selector + !important: the app-wide `.v-application a:not(...)` rule sets a
+// blue link color with high specificity, so a plain class can't override the label.
+#jobs-join-button.jobs-button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   background: #0A0A0A;
-  color: #fff;
+  color: #fff !important;
   font-size: 15px;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -103,6 +105,7 @@ useHead({
 
   &:hover {
     background: #27272A;
+    color: #fff !important;
     transform: translateY(-1px);
   }
 }
@@ -113,13 +116,6 @@ useHead({
 
 .jobs-button:hover .jobs-button-arrow {
   transform: translate(1px, -1px);
-}
-
-.jobs-note {
-  font-size: 13px;
-  font-weight: 400;
-  color: #A1A1AA;
-  margin: 0;
 }
 
 @media (max-width: 600px) {
