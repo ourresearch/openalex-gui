@@ -53,9 +53,12 @@
           </p>
           <p>
             But an ecosystem needs nutrients. That's where we come in. OpenAlex
-            gathers, organizes, and shares all kinds of research content so others
-            can build on it. We're a new kind of library for a new kind of research:
-            we're the soil for the scholarly ecosystem.
+            <b>gathers,</b> <b>organizes,</b> and <b>shares</b> all kinds of
+            research content so others can build on it.
+          </p>
+          <p>
+            We're a new kind of library for a new kind of research: we're the
+            soil for the scholarly ecosystem.
           </p>
         </div>
 
@@ -97,7 +100,7 @@
          proof of the claims the prose just made) ===================== -->
     <section class="stats-section">
       <div class="stats-row">
-        <div v-for="(s, i) in stats" :key="i" class="stat">
+        <div v-for="(s, i) in stats" :key="i" class="stat-card">
           <div class="stat-num">{{ s.num }}</div>
           <div class="stat-label">{{ s.label }}</div>
           <div class="stat-sub">{{ s.sub }}</div>
@@ -125,19 +128,33 @@
 
     <!-- ===================== HOW TO ACCESS IT (cards) ===================== -->
     <section class="access-section">
-      <h2 class="section-header">How to access it</h2>
-      <div class="access-cards">
-        <div v-for="(m, i) in accessMethods" :key="i" class="access-card">
-          <div class="access-card-head">
-            <span class="access-icon mdi" :class="m.icon"></span>
-            <h3 class="access-card-title">{{ m.name }}</h3>
-            <span class="access-chip" :class="'chip-' + m.level">{{ LEVEL_NAMES[m.level] }}</span>
+      <div class="access-inner">
+        <h2 class="section-header">How to access it</h2>
+        <p class="section-intro">
+          There's a route in for everyone — from a quick search on the website
+          to running your own copy of the entire dataset.
+        </p>
+        <div class="access-cards">
+          <div v-for="(m, i) in accessMethods" :key="i" class="access-card">
+            <div class="access-card-head">
+              <span class="access-icon mdi" :class="m.icon"></span>
+              <h3 class="access-card-title">{{ m.name }}</h3>
+              <span class="difficulty-dots" :class="'level-' + m.level">
+                <v-tooltip activator="parent" location="top" content-class="linear-tooltip">Difficulty: {{ LEVEL_NAMES[m.level] }}</v-tooltip>
+                <span v-for="d in 3" :key="d" class="dot" :class="{ filled: d <= LEVEL_FILL[m.level] }"></span>
+              </span>
+            </div>
+            <div class="access-card-body">
+              <span v-if="m.beta" class="beta-badge">Beta</span>
+              <p>{{ m.body }}</p>
+            </div>
+            <div class="access-card-foot">
+              <!-- novice-link = official escape from the global blue-link !important rule -->
+              <a class="access-btn novice-link" :href="m.href" target="_blank" rel="noopener">
+                {{ m.cta || 'More' }} <span class="mdi mdi-arrow-right"></span>
+              </a>
+            </div>
           </div>
-          <span v-if="m.beta" class="beta-badge">Beta</span>
-          <p class="access-card-body">{{ m.body }}</p>
-          <a class="access-learn" :href="m.href" target="_blank" rel="noopener">
-            {{ m.cta || 'Learn more' }} <span class="mdi mdi-arrow-right"></span>
-          </a>
         </div>
       </div>
     </section>
@@ -249,12 +266,12 @@ axios.get(`${urlBase.api}/works?filter=has_content.pdf:true&per-page=1&select=id
   .then(r => { const c = r.data?.meta?.count; if (c) pdfsNum.value = humanBig(c); })
   .catch(() => {});
 
-// descending order (Jason 2026-08-02)
+// card content = Jason's 2026-08-03 wording (R10); works + PDFs numbers stay live
 const stats = computed(() => [
-  { num: '5.8 billion', label: 'connections', sub: 'citations, authorships, and more' },
-  { num: '1.1 billion', label: 'API calls', sub: 'served monthly' },
-  { num: worksNum.value, label: 'scholarly works', sub: 'papers, datasets, and more' },
-  { num: pdfsNum.value, label: 'fulltext PDFs', sub: 'ready for download' },
+  { num: '5.8 billion', label: 'relationships', sub: 'Our graph connects papers to disambiguated authors, institutions, funders, and (via citation) one another.' },
+  { num: '1.1 billion', label: 'API calls monthly', sub: 'Thousands of universities, governments, and businesses count on our data.' },
+  { num: worksNum.value, label: 'work records', sub: 'Rich metadata for papers, books, datasets, theses, preprints, and even software — updated daily.' },
+  { num: pdfsNum.value, label: 'fulltext PDFs', sub: 'Download full text of open-access papers and preprints, all with license information.' },
 ]);
 
 // ---------------------------------------------------------------------------
@@ -262,10 +279,11 @@ const stats = computed(() => [
 // help.openalex.org (#354 ships first; trust it). OQL card carries a Beta badge.
 // ---------------------------------------------------------------------------
 const LEVEL_NAMES = { easy: 'Easy', med: 'Medium', hard: 'Hard' };
+const LEVEL_FILL = { easy: 1, med: 2, hard: 3 };
 const accessMethods = [
-  { name: 'Website', icon: 'mdi-magnify', level: 'easy', cta: 'Try it', body: 'Search and browse half a billion works right here — no code, no login. Filter by author, institution, topic, funder, and more, then export what you find.', href: 'https://help.openalex.org/' },
+  { name: 'Website', icon: 'mdi-magnify', level: 'easy', cta: 'Try', body: 'Search and browse half a billion works right here — no code, no login. Filter by author, institution, topic, funder, and more, then export what you find.', href: 'https://help.openalex.org/' },
   { name: 'OQL', icon: 'mdi-code-braces', level: 'med', beta: true, body: 'Use the OpenAlex Query Language (beta) to build and share complex queries. Great for systematic reviews.', href: 'https://help.openalex.org/' },
-  { name: 'API', icon: 'mdi-api', level: 'med', body: 'A fast, thoroughly documented REST API built for automation. High throughput, transparent pricing, no lock-in — the same API that serves over a billion calls a month.', href: 'https://developers.openalex.org/' },
+  { name: 'API', icon: 'mdi-cogs', level: 'med', body: 'A fast, thoroughly documented REST API built for automation. High throughput, transparent pricing, no lock-in — the same API that serves over a billion calls a month.', href: 'https://developers.openalex.org/' },
   { name: 'CLI', icon: 'mdi-console', level: 'med', body: 'Query OpenAlex straight from your terminal and pipe the results into your own scripts and data pipelines.', href: 'https://developers.openalex.org/' },
   { name: 'Agents', icon: 'mdi-robot-outline', level: 'easy', body: 'OpenAlex is built for AI. Point your agents at our API and let them read across the whole literature — structured, connected, and machine-ready.', href: 'https://developers.openalex.org/' },
   { name: 'Snapshot', icon: 'mdi-database-outline', level: 'hard', body: 'Download the entire dataset — every work, author, source, and institution — as a free snapshot, and host your own copy.', href: 'https://developers.openalex.org/download-all-data/openalex-snapshot' },
@@ -596,8 +614,10 @@ export default { name: 'HomeV2Page' };
 :deep(.feed-tip b) { display: block; margin-bottom: 1px; }
 
 // ===================== SOCIAL PROOF RIBBON =====================
+// padding + top border = Jason's DevTools tuning 2026-08-03 (screenshot)
 .logos-section {
-  padding: 48px 0 56px; background: #fafafa; border-bottom: 1px solid #F4F4F5;
+  padding: 78px 0 86px; background: #fafafa;
+  border-top: 1px solid #F4F4F5; border-bottom: 1px solid #F4F4F5;
   overflow: hidden;
 }
 // Linear-style single row: 7 small logos, evenly spread, no motion, no header.
@@ -626,28 +646,43 @@ export default { name: 'HomeV2Page' };
 }
 
 // ===================== STATS =====================
-// sized to Jason's 2026-08-02 mock: big number, near-as-big bold label, grey sub
-.stats-section { padding: 96px 24px; max-width: 1200px; margin: 0 auto; }
+// R10 (Jason 2026-08-03): borderless white cards ("four short columns", ~2:1
+// height:width) on a full-bleed pale-grey stripe with a subtle gradient that
+// matches the logos band. Number = extra-heavy Inter, label = normal weight
+// for contrast, then a 1–2 sentence description.
+.stats-section {
+  padding: 96px 24px;
+  background: linear-gradient(180deg, #FBFBFC 0%, #F7F7F8 100%);
+  border-top: 1px solid #F4F4F5; border-bottom: 1px solid #F4F4F5;
+}
 .stats-row {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; text-align: center;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+  max-width: 1200px; margin: 0 auto;
+}
+.stat-card {
+  background: #fff; border-radius: 10px; padding: 32px 26px;
+  aspect-ratio: 1 / 2; display: flex; flex-direction: column;
 }
 .stat-num {
-  font-size: 48px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
-  line-height: 1.1; font-variant-numeric: tabular-nums;
+  font-size: 42px; font-weight: 800; letter-spacing: -0.03em; color: var(--ink);
+  line-height: 1.05; font-variant-numeric: tabular-nums;
 }
 .stat-label {
-  font-size: 30px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink);
-  line-height: 1.15; margin-top: 8px;
+  font-size: 19px; font-weight: 400; color: var(--ink);
+  line-height: 1.3; margin-top: 6px;
 }
-.stat-sub { font-size: 15px; color: var(--muted); margin-top: 16px; }
+// margin-top:auto anchors the description to the card bottom, so the 2:1
+// column shape reads deliberate instead of leaving a dead zone under the copy
+.stat-sub { font-size: 14px; line-height: 1.6; color: var(--muted); margin-top: auto; padding-top: 18px; }
 
 // ===================== WHAT IT IS =====================
 .whatis-section { padding: 80px 24px 100px; max-width: 1200px; margin: 0 auto; }
 // three columns: text / graphic / labels (Jason 2026-08-03 — the old 2-col layout
 // crammed art + labels into one column). Graphic + label columns size to their
 // zoomed content; text takes the rest.
+// zero gap + top alignment (Jason 2026-08-03: "smushed together pretty tightly")
 .whatis-grid {
-  display: grid; grid-template-columns: 1fr auto auto; gap: 56px; align-items: center;
+  display: grid; grid-template-columns: 1fr auto auto; gap: 0; align-items: start;
 }
 .whatis-title {
   font-size: 34px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
@@ -737,43 +772,72 @@ export default { name: 'HomeV2Page' };
 }
 
 // ===================== SHARED SECTION HEADER =====================
+// consistent across sections (R10): same size/weight as the intro's
+// "A new kind of library" title, always left-aligned
 .section-header {
-  font-size: 32px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink);
-  text-align: center; margin-bottom: 48px;
+  font-size: 34px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
+  text-align: left; margin: 0 0 40px 0; line-height: 1.1;
+}
+.section-intro {
+  font-size: 17px; line-height: 1.7; color: var(--muted);
+  max-width: 640px; margin: -28px 0 40px 0;
 }
 
 // ===================== HOW TO ACCESS =====================
-.access-section { padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
+// R10: white Linear-style cards (tight radius, subtle hairline border) on a
+// full-bleed pale-grey stripe matching the logos band, with a subtle gradient
+.access-section {
+  padding: 80px 24px;
+  background: linear-gradient(180deg, #FBFBFC 0%, #F7F7F8 100%);
+  border-top: 1px solid #F4F4F5; border-bottom: 1px solid #F4F4F5;
+}
+.access-inner { max-width: 1100px; margin: 0 auto; }
 .access-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-// Linear-style card: flat soft-grey fill, no border, no shadow
 .access-card {
-  position: relative; background: #F7F8F8; border-radius: 12px; padding: 24px;
+  position: relative; background: #fff; border: 1px solid #ECECEE;
+  border-radius: 8px; padding: 0;
   display: flex; flex-direction: column;
-  transition: background .12s ease;
-  &:hover { background: #F1F2F4; }
+  transition: border-color .12s ease, box-shadow .12s ease;
+  &:hover { border-color: #E0E0E3; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
 }
-.access-chip {
-  margin-left: auto; flex: none;
-  font-size: 10.5px; font-weight: 600; letter-spacing: .02em;
-  border-radius: 6px; padding: 2px 7px; line-height: 1.5;
+// header / body / footer each own their y-padding so they read as distinct
+// card regions (R10: no more one-size card padding)
+.access-card-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 16px 16px 12px;
 }
-.chip-easy { color: #0E7A46; background: #E4F3EA; }
-.chip-med  { color: #92600A; background: #F8EFDC; }
-.chip-hard { color: #A8382F; background: #F9E8E5; }
-.access-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.access-icon { font-size: 20px; line-height: 1; color: var(--ink); }
-.access-card-title { font-size: 16px; font-weight: 600; color: var(--ink); margin: 0; }
+.access-icon { font-size: 18px; line-height: 1; color: var(--ink); }
+.access-card-title { font-size: 15px; font-weight: 600; color: var(--ink); margin: 0; }
+// difficulty dots: 1/2/3 filled = easy/med/hard; unfilled grey; house tooltip
+.difficulty-dots {
+  margin-left: auto; flex: none; display: inline-flex; gap: 4px; align-items: center;
+  cursor: default;
+}
+.dot { width: 6px; height: 6px; border-radius: 50%; background: #E0E0E3; }
+.level-easy .dot.filled { background: #14A056; }
+.level-med  .dot.filled { background: #D9A514; }
+.level-hard .dot.filled { background: #D14E42; }
 .beta-badge {
-  align-self: flex-start; margin: -4px 0 8px;
+  align-self: flex-start; margin: 0 0 8px;
   font-size: 10px; font-weight: 600; letter-spacing: .03em; color: #2563EB;
   background: #EFF6FF; border-radius: 5px; padding: 1px 6px; line-height: 1.5;
 }
-.access-card-body { font-size: 14px; line-height: 1.6; color: var(--muted); margin: 0 0 16px 0; flex: 1; }
-.access-learn {
-  font-size: 14px; font-weight: 600; color: #2563EB; text-decoration: none;
+.access-card-body {
+  padding: 0 16px; flex: 1; display: flex; flex-direction: column;
+  p { font-size: 13.5px; line-height: 1.6; color: var(--muted); margin: 0; }
+}
+.access-card-foot {
+  display: flex; justify-content: flex-end;
+  padding: 12px 8px 8px 16px;
+}
+// Linear-style ghost button: black text, borderless, soft rounded hover bg
+.access-btn {
   display: inline-flex; align-items: center; gap: 4px;
-  .mdi { font-size: 15px; line-height: 1; }
-  &:hover { text-decoration: underline; }
+  font-size: 13.5px; font-weight: 600; color: var(--ink); text-decoration: none;
+  border-radius: 6px; padding: 5px 10px;
+  transition: background .12s ease;
+  .mdi { font-size: 14px; line-height: 1; }
+  &:hover { background: rgba(0, 0, 0, .05); text-decoration: none; }
 }
 
 // ===================== FAQ =====================
