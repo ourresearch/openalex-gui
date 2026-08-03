@@ -312,26 +312,28 @@ const accessMethods = [
 // ---------------------------------------------------------------------------
 const openFaq = ref(null);
 function toggleFaq(index) { openFaq.value = openFaq.value === index ? null : index; }
+// answers are PLACEHOLDER lorem ipsum (Jason 2026-08-03: dropping the old copy, will
+// rewrite from scratch later; lengths kept close to the intended final answers).
 const faqs = [
   {
     question: "What's in OpenAlex?",
-    answer: `OpenAlex indexes everything — not just a hand-picked "prestige" subset. That kind of selectivity was always a coping mechanism for scarce human attention; in the AI age, you no longer have to decide what's worth indexing up front. Instead, curation becomes a query: filter by peer-review status, citations, topic, source, or your own criteria at the moment you search, and get exactly the slice you want.`,
+    answer: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur, excepteur sint occaecat cupidatat non proident sunt in culpa.`,
   },
   {
     question: 'Do you have the full text, or just abstracts?',
-    answer: `For every open-access work, we index the full text — so you can search and analyze what papers actually say, not just their titles and abstracts. Where the full text isn't openly available, we still provide complete metadata: authors, affiliations, citations, topics, and more. You get full-text depth where it's open, and comprehensive coverage everywhere else.`,
+    answer: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat.`,
   },
   {
     question: 'Where does your data come from?',
-    answer: `We gather metadata from hundreds of sources — including Crossref, ORCID, PubMed, arXiv, DataCite, ROR, and the world's institutional repositories — then disambiguate, deduplicate, and connect it into one clean, unified dataset. Everything updates daily.`,
+    answer: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat quis.`,
   },
   {
     question: "If it's open, why do you charge money?",
-    answer: `Yes. The full dataset and API are free for everyone, forever, under a CC0 public-domain license. We offer premium tiers — higher rate limits, dedicated support, custom curation — for organizations that need them, and that revenue keeps the free tier free.`,
+    answer: `Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque ipsa. Quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo, nemo enim ipsam voluptatem.`,
   },
   {
     question: 'How is OpenAlex different from Scopus or Google Scholar?',
-    answer: `Those are destinations: you visit them to look something up. OpenAlex is infrastructure: you build on it. Our entire dataset — over 500 million works, richly connected to authors, institutions, funders, and citations — is queryable by API and downloadable under CC0. And we cover far more of the world's research than the paywalled databases, openly.`,
+    answer: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.`,
   },
 ];
 
