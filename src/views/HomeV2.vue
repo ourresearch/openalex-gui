@@ -35,7 +35,6 @@
 
     <!-- ===================== SOCIAL PROOF (#404 band, static grid per Jason 2026-08-03) ===================== -->
     <section id="content" class="logos-section">
-      <p class="logos-label">Powering research at</p>
       <div class="logo-grid" role="group" aria-label="Logos of organizations that use OpenAlex">
         <img v-for="(logo, i) in bandLogos" :key="i"
              :src="logo.src" :alt="logo.alt" class="band-logo" :class="logo.cls" />
@@ -598,16 +597,15 @@ export default { name: 'HomeV2Page' };
 
 // ===================== SOCIAL PROOF RIBBON =====================
 .logos-section {
-  padding: 48px 0 56px; border-bottom: 1px solid #F4F4F5; overflow: hidden;
+  padding: 48px 0 56px; background: #fafafa; border-bottom: 1px solid #F4F4F5;
+  overflow: hidden;
 }
-.logos-label {
-  font-size: 14px; font-weight: 500; color: var(--faint);
-  text-align: center; margin-bottom: 32px;
-}
-// Linear-style single row: 7 small logos, evenly spread, no motion.
+// Linear-style single row: 7 small logos, evenly spread, no motion, no header.
 // Sizes + full-black treatment (no opacity fade) = Jason's DevTools tuning 2026-08-03.
+// flex-end bottom-aligns the imgs = shared baseline for the wordmarks (none of the
+// seven has descenders; Bayer/Cambridge marks sit on the same line).
 .logo-grid {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: flex-end; justify-content: space-between;
   max-width: 1150px; margin: 0 auto; padding: 0;
 }
 .band-logo {
