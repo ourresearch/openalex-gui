@@ -50,7 +50,7 @@
     <section class="whatis-section">
       <div class="whatis-grid">
         <div class="whatis-copy">
-          <h2 class="whatis-title">Feeding the new scholarly ecosystem</h2>
+          <h2 class="whatis-title">A new kind of library for the new research ecosystem</h2>
           <p>
             Research is transforming: moving from siloed scholars paging through
             dusty journals, to a collaborative ecosystem of humans and agents that
@@ -61,15 +61,6 @@
             gathers, organizes, and shares all kinds of research content so others
             can build on it. We're a new kind of library for a new kind of research:
             we're the soil for the scholarly ecosystem.
-          </p>
-          <p>
-            And we do it in the open. Our data is free for anyone to use under a
-            <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">CC0 public-domain license</a>,
-            our code is open source, and we're a nonprofit — so our only obligation
-            is to the mission, not to shareholders. We keep the lights on by selling
-            <router-link to="/pricing">premium services</router-link> to the
-            organizations that can afford them, which keeps the open foundation free
-            for everyone else.
           </p>
         </div>
 
@@ -112,6 +103,24 @@
           <div class="stat-num">{{ s.num }}</div>
           <div class="stat-label">{{ s.label }}</div>
           <div class="stat-sub">{{ s.sub }}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== OPENNESS (headline left, copy right, no art) ===================== -->
+    <section class="openness-section">
+      <div class="openness-grid">
+        <h2 class="openness-title">Open for everyone</h2>
+        <div class="openness-copy">
+          <p>
+            We do it all in the open. Our data is free for anyone to use under a
+            <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">CC0 public-domain license</a>,
+            our code is open source, and we're a nonprofit — so our only obligation
+            is to the mission, not to shareholders. We keep the lights on by selling
+            <router-link to="/pricing">premium services</router-link> to the
+            organizations that can afford them, which keeps the open foundation free
+            for everyone else.
+          </p>
         </div>
       </div>
     </section>
@@ -698,6 +707,20 @@ export default { name: 'HomeV2Page' };
 .cake-arrow.a-upper { top: 369px; height: 104px; }
 .cake-arrow.a-lower { top: 753px; height: 80px; }
 
+// ===================== OPENNESS =====================
+.openness-section { padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
+.openness-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start;
+}
+.openness-title {
+  font-size: 34px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
+  margin: 0; line-height: 1.1;
+}
+.openness-copy p {
+  font-size: 17px; line-height: 1.7; color: var(--muted); margin: 0;
+  a { color: #2563EB; text-decoration: none; &:hover { text-decoration: underline; } }
+}
+
 // ===================== SHARED SECTION HEADER =====================
 .section-header {
   font-size: 32px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink);
@@ -767,12 +790,13 @@ export default { name: 'HomeV2Page' };
   .whatis-grid { grid-template-columns: 1fr; gap: 40px; }
   .whatis-graphic { --cake-scale: 0.32; }
   .stats-row { grid-template-columns: repeat(2, 1fr); gap: 40px 24px; }
+  .openness-grid { grid-template-columns: 1fr; gap: 24px; }
   .access-cards { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 600px) {
   .hero { padding: 80px 20px 0; }
   .hero-headline { font-size: 34px; }
-  .stats-section, .access-section, .faq-section, .whatis-section { padding-left: 20px; padding-right: 20px; }
+  .stats-section, .access-section, .faq-section, .whatis-section, .openness-section { padding-left: 20px; padding-right: 20px; }
   .stat-num { font-size: 32px; }
   .stat-label { font-size: 20px; }
   .access-cards { grid-template-columns: 1fr; }
