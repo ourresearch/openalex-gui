@@ -206,20 +206,20 @@ function scrollToContent() { goTo('#content'); }
 // but they must be dark-on-transparent (white-fill assets were recolored at
 // source; keep any future swap-ins dark).
 // ---------------------------------------------------------------------------
+// astrazeneca.svg + bayer.svg are recolored ALL-BLACK in assets (brand colors
+// grayscaled to mismatched greys next to the black wordmarks — Jason 2026-08-03)
 import anthropicLogo from '@/assets/partner-logos/anthropic.svg';
 import astrazenecaLogo from '@/assets/partner-logos/astrazeneca.svg';
-import yaleLogo from '@/assets/partner-logos/yale.svg';
-import exaLogo from '@/assets/partner-logos/exa.svg';
 import stanfordLogo from '@/assets/partner-logos/stanford.svg';
+import yaleLogo from '@/assets/partner-logos/yale.svg';
 import samsungLogo from '@/assets/partner-logos/samsung.svg';
 import bayerLogo from '@/assets/partner-logos/bayer.svg';
 import cambridgeLogo from '@/assets/partner-logos/cambridge.svg';
 const bandLogos = [
   { src: anthropicLogo, alt: 'Anthropic', cls: 'short' },
-  { src: astrazenecaLogo, alt: 'AstraZeneca', cls: '' },
-  { src: yaleLogo, alt: 'Yale University', cls: '' },
-  { src: exaLogo, alt: 'Exa', cls: '' },
+  { src: astrazenecaLogo, alt: 'AstraZeneca', cls: 'tall' },
   { src: stanfordLogo, alt: 'Stanford University', cls: '' },
+  { src: yaleLogo, alt: 'Yale University', cls: '' },
   { src: samsungLogo, alt: 'Samsung', cls: 'short' },
   { src: bayerLogo, alt: 'Bayer', cls: 'tall' },
   { src: cambridgeLogo, alt: 'University of Cambridge', cls: '' },
@@ -593,23 +593,27 @@ export default { name: 'HomeV2Page' };
   font-size: 14px; font-weight: 500; color: var(--faint);
   text-align: center; margin-bottom: 32px;
 }
-// Linear-style single row: 8 small logos, evenly spread, no motion
+// Linear-style single row: 7 small logos, evenly spread, no motion.
+// Sizes + full-black treatment (no opacity fade) = Jason's DevTools tuning 2026-08-03.
 .logo-grid {
   display: flex; align-items: center; justify-content: space-between;
-  max-width: 1150px; margin: 0 auto; padding: 0 32px;
+  max-width: 1150px; margin: 0 auto; padding: 0;
 }
 .band-logo {
-  height: 28px; filter: grayscale(1); opacity: 0.5; flex: none;
-  &.tall { height: 36px; }
-  &.short { height: 22px; }
+  height: 23px; filter: grayscale(1); flex: none;
+  &.tall { height: 42px; }
+  &.short { height: 16px; }
+}
+@media (max-width: 1200px) {
+  .logo-grid { padding: 0 32px; }
 }
 @media (max-width: 900px) {
-  // narrow screens: fall back to a centered 2x4 wrap
-  .logo-grid { flex-wrap: wrap; justify-content: center; column-gap: 40px; row-gap: 28px; }
+  // narrow screens: fall back to a centered wrap
+  .logo-grid { flex-wrap: wrap; justify-content: center; column-gap: 40px; row-gap: 24px; }
 }
 @media (max-width: 700px) {
-  .logo-grid { column-gap: 28px; row-gap: 22px; }
-  .band-logo { height: 22px; &.tall { height: 28px; } &.short { height: 18px; } }
+  .logo-grid { column-gap: 28px; row-gap: 18px; }
+  .band-logo { height: 18px; &.tall { height: 32px; } &.short { height: 13px; } }
 }
 
 // ===================== STATS =====================
