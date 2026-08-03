@@ -124,13 +124,17 @@
         <h2 class="openness-title">Open for everyone</h2>
         <div class="openness-copy">
           <p>
-            We do it all in the open. Our data is free for anyone to use under a
+            Ever since our start in an all-night hackathon, we've been obsessed with
+            opening access to research. The interlinked scholarly corpus is one of
+            humankind's most beautiful and powerful achievements. We built it together,
+            as humans, and it shouldn't &ldquo;belong&rdquo; to anyone.
+          </p>
+          <p>
+            That's why all our data is open under the
             <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">CC0 public-domain license</a>,
-            our code is open source, and we're a nonprofit — so our only obligation
-            is to the mission, not to shareholders. We keep the lights on by selling
-            <router-link to="/pricing">premium services</router-link> to the
-            organizations that can afford them, which keeps the open foundation free
-            for everyone else.
+            and it's why all our code is open. It's why we're a 501(c)(3) nonprofit. And
+            it's why we charge for <router-link to="/pricing">premium services</router-link>
+            on top of the data&mdash;to make sure we can keep this data open for the long term.
           </p>
         </div>
       </div>
@@ -812,7 +816,8 @@ export default { name: 'HomeV2Page' };
   margin: 0; line-height: 1.1;
 }
 .openness-copy p {
-  font-size: 17px; line-height: 1.7; color: var(--muted); margin: 0;
+  font-size: 17px; line-height: 1.7; color: var(--muted); margin: 0 0 20px 0;
+  &:last-child { margin-bottom: 0; }
   a { color: #2563EB; text-decoration: none; &:hover { text-decoration: underline; } }
 }
 
