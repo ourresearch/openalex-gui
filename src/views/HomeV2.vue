@@ -198,65 +198,32 @@ import layerCake from '@/assets/landing/layer-cake.webp';
 function scrollToContent() { goTo('#content'); }
 
 // ---------------------------------------------------------------------------
-// Social-proof band — the #404 list (signed off 2026-08-02; ETH Zürich cut by
-// Jason 2026-08-03 — "janky"), in band order, rendered as a static wrapped
-// grid (Jason 2026-08-03: static rows over marquee). Assets sourced/QA'd in
-// oxjob #404 work/logos/ (manifest.csv has per-file provenance). Grayscale +
+// Social-proof band — Linear-style: 8 logos, ONE static row, small (Jason
+// 2026-08-03, follows linear.app's homepage row). Picked from the #404
+// signed-off list; the other 16 sourced assets stay in assets/partner-logos/
+// as the bench (provenance: oxjob #404 work/logos/manifest.csv). Grayscale +
 // one-ink comes from CSS on .band-logo, so the SVGs keep their native fills —
 // but they must be dark-on-transparent (white-fill assets were recolored at
 // source; keep any future swap-ins dark).
 // ---------------------------------------------------------------------------
 import anthropicLogo from '@/assets/partner-logos/anthropic.svg';
-import clarivateLogo from '@/assets/partner-logos/clarivate.svg';
-import exaLogo from '@/assets/partner-logos/exa.svg';
-import cuspLogo from '@/assets/partner-logos/cusp-ai.svg';
-import grammarlyLogo from '@/assets/partner-logos/grammarly.svg';
-import samsungLogo from '@/assets/partner-logos/samsung.svg';
-import nestleLogo from '@/assets/partner-logos/nestle.svg';
 import astrazenecaLogo from '@/assets/partner-logos/astrazeneca.svg';
-import bayerLogo from '@/assets/partner-logos/bayer.svg';
-import stanfordLogo from '@/assets/partner-logos/stanford.svg';
-import oxfordLogo from '@/assets/partner-logos/oxford.svg';
-import cambridgeLogo from '@/assets/partner-logos/cambridge.svg';
-import princetonLogo from '@/assets/partner-logos/princeton.svg';
 import yaleLogo from '@/assets/partner-logos/yale.svg';
-import ucLogo from '@/assets/partner-logos/uc.svg';
-import sorbonneLogo from '@/assets/partner-logos/sorbonne.svg';
-import uvaLogo from '@/assets/partner-logos/uva.svg';
-import uncLogo from '@/assets/partner-logos/unc.svg';
-import unpaywallLogo from '@/assets/partner-logos/unpaywall.png';
-import futurehouseLogo from '@/assets/partner-logos/futurehouse.svg';
-import bmsLogo from '@/assets/partner-logos/bms.svg';
-import jstLogo from '@/assets/partner-logos/jst.svg';
-import cziLogo from '@/assets/partner-logos/czi.svg';
-import wellcomeLogo from '@/assets/partner-logos/wellcome.svg';
-const baseLogos = [
+import exaLogo from '@/assets/partner-logos/exa.svg';
+import stanfordLogo from '@/assets/partner-logos/stanford.svg';
+import samsungLogo from '@/assets/partner-logos/samsung.svg';
+import bayerLogo from '@/assets/partner-logos/bayer.svg';
+import cambridgeLogo from '@/assets/partner-logos/cambridge.svg';
+const bandLogos = [
   { src: anthropicLogo, alt: 'Anthropic', cls: 'short' },
-  { src: clarivateLogo, alt: 'Clarivate', cls: '' },
-  { src: exaLogo, alt: 'Exa', cls: '' },
-  { src: cuspLogo, alt: 'Cusp AI', cls: '' },
-  { src: grammarlyLogo, alt: 'Grammarly', cls: '' },
-  { src: samsungLogo, alt: 'Samsung', cls: 'short' },
-  { src: nestleLogo, alt: 'Nestlé', cls: '' },
   { src: astrazenecaLogo, alt: 'AstraZeneca', cls: '' },
-  { src: bayerLogo, alt: 'Bayer', cls: 'tall' },
-  { src: stanfordLogo, alt: 'Stanford University', cls: '' },
-  { src: oxfordLogo, alt: 'University of Oxford', cls: '' },
-  { src: cambridgeLogo, alt: 'University of Cambridge', cls: '' },
-  { src: princetonLogo, alt: 'Princeton University', cls: '' },
   { src: yaleLogo, alt: 'Yale University', cls: '' },
-  { src: ucLogo, alt: 'University of California', cls: 'tall' },
-  { src: sorbonneLogo, alt: 'Sorbonne Université', cls: '' },
-  { src: uvaLogo, alt: 'University of Virginia', cls: '' },
-  { src: uncLogo, alt: 'UNC-Chapel Hill', cls: 'tall' },
-  { src: unpaywallLogo, alt: 'Unpaywall', cls: '' },
-  { src: futurehouseLogo, alt: 'FutureHouse', cls: '' },
-  { src: bmsLogo, alt: 'Bristol Myers Squibb', cls: '' },
-  { src: jstLogo, alt: 'Japan Science and Technology Agency', cls: 'tall' },
-  { src: cziLogo, alt: 'Chan Zuckerberg Initiative', cls: 'tall' },
-  { src: wellcomeLogo, alt: 'Wellcome', cls: 'tall' },
+  { src: exaLogo, alt: 'Exa', cls: '' },
+  { src: stanfordLogo, alt: 'Stanford University', cls: '' },
+  { src: samsungLogo, alt: 'Samsung', cls: 'short' },
+  { src: bayerLogo, alt: 'Bayer', cls: 'tall' },
+  { src: cambridgeLogo, alt: 'University of Cambridge', cls: '' },
 ];
-const bandLogos = baseLogos;
 
 // ---------------------------------------------------------------------------
 // Four key stats. works + PDFs go LIVE; connections + API-calls are static.
@@ -626,19 +593,23 @@ export default { name: 'HomeV2Page' };
   font-size: 14px; font-weight: 500; color: var(--faint);
   text-align: center; margin-bottom: 32px;
 }
+// Linear-style single row: 8 small logos, evenly spread, no motion
 .logo-grid {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
-  column-gap: 56px; row-gap: 36px;
-  max-width: 1200px; margin: 0 auto; padding: 0 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  max-width: 1150px; margin: 0 auto; padding: 0 32px;
 }
 .band-logo {
-  height: 40px; filter: grayscale(1); opacity: 0.5; flex: none;
-  &.tall { height: 50px; }
-  &.short { height: 32px; }
+  height: 28px; filter: grayscale(1); opacity: 0.5; flex: none;
+  &.tall { height: 36px; }
+  &.short { height: 22px; }
+}
+@media (max-width: 900px) {
+  // narrow screens: fall back to a centered 2x4 wrap
+  .logo-grid { flex-wrap: wrap; justify-content: center; column-gap: 40px; row-gap: 28px; }
 }
 @media (max-width: 700px) {
-  .logo-grid { column-gap: 36px; row-gap: 28px; }
-  .band-logo { height: 32px; &.tall { height: 40px; } &.short { height: 26px; } }
+  .logo-grid { column-gap: 28px; row-gap: 22px; }
+  .band-logo { height: 22px; &.tall { height: 28px; } &.short { height: 18px; } }
 }
 
 // ===================== STATS =====================
