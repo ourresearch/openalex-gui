@@ -54,7 +54,7 @@
     <section class="whatis-section">
       <div class="whatis-grid">
         <div class="whatis-copy">
-          <h2 class="whatis-title">A new kind of library for the new research ecosystem</h2>
+          <h2 class="whatis-title">A new kind of library</h2>
           <p>
             Research is transforming: moving from siloed scholars paging through
             dusty journals, to a collaborative ecosystem of humans and agents that
@@ -70,11 +70,15 @@
 
         <!-- #711 soil-core graphic. Markup + annot-css lifted near-verbatim from
              work/label-drafts-v5.html; geometry is px-tuned to 900px art width and
-             scaled to fit via the wrapper. color-scheme:light required. -->
+             scaled to fit via the wrappers. color-scheme:light required.
+             Art and labels are SIBLING grid columns (text / graphic / labels, per
+             Jason 2026-08-03); both zoom by the same --cake-scale and have equal
+             pre-zoom heights (1170px), so align-items:center keeps rows aligned. -->
         <div class="whatis-graphic">
-          <div class="cake-hero">
-            <div class="cake-art"><img :src="layerCake" alt="How OpenAlex works: research content is gathered, organized, and shared, growing into the scholarly ecosystem" /></div>
-            <div class="cake-annot">
+          <div class="cake-art"><img :src="layerCake" alt="How OpenAlex works: research content is gathered, organized, and shared, growing into the scholarly ecosystem" /></div>
+        </div>
+        <div class="whatis-labels">
+          <div class="cake-annot">
               <!-- reading-order cue: (1) bottom → (2) → (3) top, up-arrows between -->
               <div class="cake-arrow a-upper"></div>
               <div class="cake-arrow a-lower"></div>
@@ -93,7 +97,6 @@
                 <div class="title">Research content</div>
                 <div class="subtitle">is published across 250k journals and repositories</div>
               </div>
-            </div>
           </div>
         </div>
       </div>
@@ -682,8 +685,11 @@ export default { name: 'HomeV2Page' };
 
 // ===================== WHAT IT IS =====================
 .whatis-section { padding: 80px 24px 100px; max-width: 1200px; margin: 0 auto; }
+// three columns: text / graphic / labels (Jason 2026-08-03 — the old 2-col layout
+// crammed art + labels into one column). Graphic + label columns size to their
+// zoomed content; text takes the rest.
 .whatis-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center;
+  display: grid; grid-template-columns: 1fr auto auto; gap: 56px; align-items: center;
 }
 .whatis-title {
   font-size: 34px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
@@ -697,34 +703,32 @@ export default { name: 'HomeV2Page' };
 
 // #711 graphic — art is tightly cropped (907x1378, no bleed); annot geometry is
 // px-tuned 1:1 to the cropped art's pixels. Overall size = --cake-scale alone.
-.whatis-graphic { display: flex; justify-content: center; }
-.cake-hero {
-  display: flex; align-items: flex-start; background: #fff;
-  // `zoom` (unlike transform:scale) shrinks the element's LAYOUT box too, so
-  // the grid column sizes to the scaled footprint.
-  zoom: var(--cake-scale, 0.4);
-}
-// Art at 85% (907 → 770); the freed width goes to the label column. Rows are
-// EQUAL thirds now (alignment-to-layers convention dropped — the numbers +
-// colors carry the correspondence).
-.cake-art { width: 770px; flex: none; }
+.whatis-graphic, .whatis-labels { display: flex; justify-content: center; }
+// Art at 85% (907 → 770); rows are EQUAL thirds (alignment-to-layers convention
+// dropped — the numbers + colors carry the correspondence). `zoom` (unlike
+// transform:scale) shrinks the LAYOUT box too, so the auto grid columns size to
+// the scaled footprint; art + annot share --cake-scale and equal pre-zoom
+// heights (1170px), keeping their rows aligned across the two columns.
+.cake-art { width: 770px; zoom: var(--cake-scale, 0.4); }
 .cake-art img { display: block; width: 100%; height: auto; }
 .cake-annot {
   display: grid; position: relative;
   grid-template-rows: repeat(3, 1fr);
-  // height = art display height (1378 × 770/907)
+  // height = art display height (1378 × 770/907) — must match .cake-art so the
+  // sibling columns' rows stay aligned
   height: 1170px;
-  // Width budget: (column_px / --cake-scale) − art 770 − margin 24 ≈ 576 at
-  // desktop 1200px container. Wider overflows the grid column and clips.
+  // 576 is now just the label wrap width (own auto column since the 3-col split;
+  // the old shared-column budget no longer applies)
   width: 576px;
   // padding-left = the number column; kept at 124 (arrows anchor to this text
   // edge via their Jason-tuned left:124) — circles sit inside it with a 28px gap
-  row-gap: 12px; padding-left: 124px; margin-left: 24px;
+  row-gap: 12px; padding-left: 124px;
+  zoom: var(--cake-scale, 0.4);
   font-family: Inter, -apple-system, sans-serif;
 }
 .cake-labels {
   align-self: center; display: flex; flex-direction: column; position: relative;
-  // NOTE: the whole .cake-hero is zoom-scaled (0.4 desktop), so displayed size
+  // NOTE: .cake-annot is zoom-scaled (0.4 desktop), so displayed size
   // = these values × --cake-scale. 60px here ≈ 24px on screen.
   .title { font-size: 60px; font-weight: 700; letter-spacing: -.015em; line-height: 1.15; }
   .subtitle { font-size: 38px; font-weight: 400; line-height: 1.3; margin-top: 8px; }
@@ -842,7 +846,7 @@ export default { name: 'HomeV2Page' };
   .hero-viz { display: none; } // feed is decorative; keep search above the fold
   .hero-headline { font-size: 42px; }
   .whatis-grid { grid-template-columns: 1fr; gap: 40px; }
-  .whatis-graphic { --cake-scale: 0.32; }
+  .whatis-graphic, .whatis-labels { --cake-scale: 0.32; }
   .stats-row { grid-template-columns: repeat(2, 1fr); gap: 40px 24px; }
   .openness-grid { grid-template-columns: 1fr; gap: 24px; }
   .access-cards { grid-template-columns: repeat(2, 1fr); }
