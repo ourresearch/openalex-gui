@@ -52,13 +52,15 @@
         <div class="whatis-copy">
           <h2 class="whatis-title">Feeding the new scholarly ecosystem</h2>
           <p>
-            Humanity's research is the most valuable knowledge we have — and it's a
-            mess. Half a billion papers, datasets, and discoveries lie scattered
-            across thousands of disconnected silos, in formats built for the 17th
-            century, not the age of AI. OpenAlex fixes this. We gather the world's
-            scholarly work into one place, connect it into a single map of authors,
-            institutions, and ideas, and share it — so humans and AI can finally
-            build the next generation of research tools on a foundation that's whole.
+            Research is transforming: moving from siloed scholars paging through
+            dusty journals, to a collaborative ecosystem of humans and agents that
+            analyze, create, review at network speed.
+          </p>
+          <p>
+            But an ecosystem needs nutrients. That's where we come in. OpenAlex
+            gathers, organizes, and shares all kinds of research content so others
+            can build on it. We're a new kind of library for a new kind of research:
+            we're the soil for the scholarly ecosystem.
           </p>
           <p>
             And we do it in the open. Our data is free for anyone to use under a
