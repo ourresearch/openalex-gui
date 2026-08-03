@@ -539,12 +539,17 @@ export default { name: 'HomeV2Page' };
   100% { box-shadow: none; }
 }
 .feedport {
-  // fills the stretched hero-viz below the ADDED TODAY bar (was min(66vh,560px));
-  // the mount-time belt fill + trim both read port.offsetHeight, so they adapt
+  // fills the stretched hero-viz below the ADDED TODAY bar (was min(66vh,560px))
   flex: 1; min-height: 0; overflow: hidden; position: relative;
   -webkit-mask-image: linear-gradient(180deg, #000 0, #000 86%, transparent);
           mask-image: linear-gradient(180deg, #000 0, #000 86%, transparent);
 }
+// belt MUST be absolutely positioned: the mount fill loop appends rows until
+// belt.offsetHeight >= port.offsetHeight + 60, and with the port flex-sized in
+// an auto-height column, an in-flow belt's height feeds back into the port's
+// size — the loop never terminates and the page hangs blank (R9 postmortem).
+// Taking the belt out of flow makes the port's height independent of its rows.
+.belt { position: absolute; top: 0; left: 0; width: 100%; }
 
 // feed row internals (imperative DOM -> :deep)
 :deep(.item) {
