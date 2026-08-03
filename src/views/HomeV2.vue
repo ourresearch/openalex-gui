@@ -662,9 +662,8 @@ export default { name: 'HomeV2Page' };
   // height = art display height (1378 × 770/907) — must match .cake-art so the
   // sibling columns' rows stay aligned
   height: 1170px;
-  // 576 is now just the label wrap width (own auto column since the 3-col split;
-  // the old shared-column budget no longer applies)
-  width: 576px;
+  // no fixed width (Jason 2026-08-03): the auto column sizes to the longest
+  // label line, so subtitles run unwrapped like the mock
   // padding-left = the number column; kept at 124 (arrows anchor to this text
   // edge via their Jason-tuned left:124) — circles sit inside it with a 28px gap
   row-gap: 12px; padding-left: 124px;
