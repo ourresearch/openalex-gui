@@ -699,7 +699,10 @@ export default { name: 'HomeV2Page' };
   padding: 12px 2px; border-top: 1px solid var(--hair); align-items: start;
 }
 :deep(.eyebrow) {
-  grid-column: 2; grid-row: 1; font-size: 8px; font-weight: 400;
+  // justify-self:start shrinks the grid item to its text so the tooltip (which
+  // centers on the hovered element's box) anchors over the label, not the whole
+  // column (Jason 2026-08-04). Without it the box spans col 2 and the tip drifts right.
+  grid-column: 2; grid-row: 1; justify-self: start; font-size: 8px; font-weight: 400;
   letter-spacing: .07em; text-transform: uppercase; color: var(--ink);
 }
 :deep(.lead) { grid-column: 1; grid-row: 2; padding-top: 2px; }
