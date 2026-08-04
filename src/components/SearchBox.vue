@@ -800,25 +800,26 @@ async function fetchSuggestions(query) {
     }));
 
   if (currentEntity === 'works') {
-    // Works SERP: suggest authors, institutions, keywords (as filters) + work titles
-    const calls = [
-      searchEntities('authors', query, signal),
-      searchEntities('institutions', query, signal),
-      api.getAutocomplete('keywords', { q: query }, { signal }),
-    ];
+    // Works SERP: suggest authors, institutions, keywords (as filters) + work
+    // titles. All four come back in ONE request via the GUI-only combo endpoint
+    // (see api.getFrontpageAutocomplete) — firing four parallel calls per
+    // keystroke-pause tripped the anon 10 req/s cap and popped the credit-limit
+    // modal mid-typing. Fails soft to empty lists; aborts with the stale signal.
     const includeWorks = countCompleteWords(query) >= 3;
-    if (includeWorks) {
-      calls.push(api.getAutocomplete('works', { q: query }, { signal }));
+    let combo;
+    try {
+      combo = await api.getFrontpageAutocomplete(query, { includeWorks, signal });
+    } catch (e) {
+      if (e?.code === "ERR_CANCELED") return;
+      combo = { authors: [], institutions: [], keywords: [], works: [] };
     }
-
-    const settled = await Promise.allSettled(calls);
     if (id !== fetchId) return;
 
-    let authors = settled[0].status === 'fulfilled' ? tag(settled[0].value, 'authors') : [];
+    let authors = tag(combo.authors, 'authors');
     authors = authors.filter(a => authorNameMatchesQuery(a.display_name, query));
-    let institutions = settled[1].status === 'fulfilled' ? tag(settled[1].value, 'institutions') : [];
-    let keywords = settled[2].status === 'fulfilled' ? tag(settled[2].value, 'keywords') : [];
-    let works = includeWorks && settled[3].status === 'fulfilled' ? tag(settled[3].value, 'works') : [];
+    let institutions = tag(combo.institutions, 'institutions');
+    let keywords = tag(combo.keywords, 'keywords');
+    let works = includeWorks ? tag(combo.works, 'works') : [];
 
     suggestions.value = topByWorksCount([...authors, ...institutions, ...keywords, ...works], 5);
   } else if (!config?.hasAutocomplete) {

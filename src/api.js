@@ -467,6 +467,29 @@ const api = (function () {
         return response.results;
     };
 
+    // Front-page basic-search autocomplete, in ONE request. Hits an ad-hoc,
+    // GUI-only combo endpoint in openalex-api-proxy (/gui/autocomplete) that
+    // fans out to author/institution search + keyword/work autocomplete
+    // server-side and returns { authors, institutions, keywords, works } (each a
+    // raw results array). We used to fire those four as parallel calls per
+    // keystroke-pause; anonymous clients are capped at 10 req/s, so fast typing
+    // tripped the per-second throttle and the resulting 429 popped the daily-
+    // credit-limit modal mid-typing (even though no credits were spent). One
+    // request per pause keeps us well under the cap. `includeWorks=false` (short
+    // queries) tells the endpoint to skip the work-title lookup. `config` carries
+    // the abort {signal} so a stale keystroke's request is cancelled.
+    const getFrontpageAutocomplete = async function(query, { includeWorks = true, signal } = {}) {
+        const params = new URLSearchParams({ q: query });
+        if (!includeWorks) params.set("works", "0");
+        const resp = await getUrl(`/gui/autocomplete?${params.toString()}`, signal ? { signal } : undefined);
+        return {
+            authors: resp.authors || [],
+            institutions: resp.institutions || [],
+            keywords: resp.keywords || [],
+            works: resp.works || [],
+        };
+    };
+
     // Cross-type collection filter (oxjob #273): the user's collections that can
     // be used as a VALUE of `filterKey` on this SERP — i.e. collections whose
     // entity_type matches the field's selected entity type. Pulled from the
@@ -672,6 +695,7 @@ const api = (function () {
         getCollectionDisplayName,
         post,
         getAutocomplete,
+        getFrontpageAutocomplete,
         makeUrl,
         createExport,
         getQuery,
