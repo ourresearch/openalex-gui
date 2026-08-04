@@ -208,7 +208,7 @@ import axios from 'axios';
 
 import SearchBox from '@/components/SearchBox.vue';
 import { getTypeIcon } from '@/typeIcons';
-import { feedRecords } from '@/landingFeedData';
+import { heroWorkIds } from '@/heroWorkIds';
 import { urlBase } from '@/apiConfig';
 
 const store = useStore();
@@ -345,6 +345,11 @@ const faqs = [
 // Hero live feed — faithful port of #686 work/prototypes/C3-live-feed.html.
 // Scroll mode, direction down, speed 0.75x. Imperative DOM (no reactivity in
 // the animation loop; acceptance test 4 = search must stay interactive).
+//
+// Data: a hand-curated ~100-work ID list (`@/heroWorkIds`, #686) is shuffled
+// client-side and lazy-fetched a chunk (~2-3 screens) at a time via
+// `ids.openalex:` pipe-OR, prefetching the next chunk before the belt drains.
+// Zero per-view cost beyond the visible works; no baked snapshot to go stale.
 // ---------------------------------------------------------------------------
 const portRef = ref(null);
 const beltRef = ref(null);
@@ -352,21 +357,68 @@ const tipRef = ref(null);
 const addedRef = ref(null);
 let cleanup = () => {};
 
+// select only what a row needs — NOT author/source works_count (dropped from the
+// tooltips, #686), so it's one clean /works call per chunk.
+const FEED_SELECT = 'id,display_name,publication_year,type,authorships,primary_location,best_oa_location';
+const FEED_CHUNK = 20;   // ~2-3 screens per fetch; well under the ids.openalex OR cap
+
+function shuffled(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+const shortId = u => (u || '').split('/').pop();
+function shapeWork(w) {
+  const pdf = (w.best_oa_location && w.best_oa_location.pdf_url)
+    || (w.primary_location && w.primary_location.pdf_url) || null;
+  const auths = (w.authorships || []).slice(0, 2)
+    .filter(a => a.author && a.author.id && a.author.display_name)
+    .map(a => ({ id: shortId(a.author.id), name: a.author.display_name }));
+  const s = w.primary_location && w.primary_location.source;
+  return {
+    type: w.type || 'other',
+    title: (w.display_name || '').trim(),
+    url: (w.id || '').replace('https://openalex.org/', 'https://openalex.org/works/'),
+    pdf,
+    authors: auths,
+    nauthors: (w.authorships || []).length,
+    source: (s && s.id && s.display_name) ? { id: shortId(s.id), name: s.display_name } : null,
+    year: w.publication_year || null,
+  };
+}
+
 onMounted(() => {
   const port = portRef.value, belt = beltRef.value, tip = tipRef.value;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const recs = feedRecords;
+
+  // lazy-loaded record buffer (grows as chunks arrive; cycles once all are in)
+  const ids = shuffled(heroWorkIds);
+  const records = [];
+  let fetchCursor = 0, fetching = false, allLoaded = false;
+  async function fetchChunk() {
+    if (fetching || allLoaded) return;
+    fetching = true;
+    const batch = ids.slice(fetchCursor, fetchCursor + FEED_CHUNK);
+    try {
+      const filter = 'ids.openalex:' + batch.join('|');
+      const url = `${urlBase.api}/works?filter=${filter}&per-page=${batch.length}&select=${FEED_SELECT}&${MAILTO}`;
+      const { data } = await axios.get(url);
+      const byId = {};
+      (data.results || []).forEach(w => { byId[shortId(w.id)] = w; });
+      batch.forEach(id => { const w = byId[id]; if (w && w.display_name) records.push(shapeWork(w)); }); // keep shuffle order
+      fetchCursor += FEED_CHUNK;
+      if (fetchCursor >= ids.length) allLoaded = true;
+    } catch (e) {
+      // leave cursor unadvanced; a later prefetch (or the mount retry) tries again
+    } finally {
+      fetching = false;
+    }
+  }
 
   const ADDED_TODAY = 212411; // placeholder until #699 /stats ships
   if (addedRef.value) addedRef.value.textContent = ADDED_TODAY.toLocaleString('en-US');
 
   const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
-  const fmt = n => {
-    const u = [[1e9, 'B'], [1e6, 'M'], [1e3, 'K']].find(([d]) => n >= d);
-    if (!u) return String(n);
-    const x = n / u[0];
-    return (x < 10 ? x.toFixed(1).replace(/\.0$/, '') : Math.round(x)) + u[1];
-  };
   const TYPE_DEFS = {
     'article': 'A paper published in a journal or repository, presenting original research.',
     'preprint': 'A paper shared publicly before peer review.',
@@ -408,20 +460,23 @@ onMounted(() => {
 
   let idx = 0;
   function makeItem() {
-    const r = recs[idx++ % recs.length];
+    if (!records.length) return null;                 // nothing loaded yet
+    // stay a few screens ahead: prefetch the next chunk before the belt drains it
+    if (!allLoaded && !fetching && idx >= records.length - FEED_CHUNK) fetchChunk();
+    const r = records[idx++ % records.length];
     const typeName = r.type.replace(/-/g, ' ');
     const typeTip = `data-tip-title="${esc(typeName[0].toUpperCase() + typeName.slice(1))}" data-tip="${esc(TYPE_DEFS[r.type] || '')}"`;
     const eyebrow = `<span class="eyebrow" ${typeTip}>${esc(typeName)}</span>`;
     const names = r.authors.map(a =>
       link('w w-author', 'https://openalex.org/works?filter=authorships.author.id:' + a.id,
-        lastName(a.name), a.count ? `View all ${fmt(a.count)} works by ${a.name}` : `View all works by ${a.name}`, AUTHOR_ICON));
+        lastName(a.name), `View all works by ${a.name}`, AUTHOR_ICON));
     const etAl = r.nauthors > r.authors.length;
     const authors = (names.length === 2 && !etAl)
       ? names.join(' and ')
       : names.join(', ') + (etAl ? ', et al.' : '');
     const src = r.source
       ? ` in ${link('w w-source', 'https://openalex.org/works?filter=primary_location.source.id:' + r.source.id,
-          srcName(r.source.name), r.source.count ? `View all ${fmt(r.source.count)} works published in ${srcName(r.source.name)}` : `View all works published in ${srcName(r.source.name)}`, SOURCE_ICON)}`
+          srcName(r.source.name), `View all works published in ${srcName(r.source.name)}`, SOURCE_ICON)}`
       : '';
     // no tooltip on the PDF button — the "PDF" label already says what it is (#681)
     const pdf = r.pdf
@@ -454,43 +509,62 @@ onMounted(() => {
   belt.addEventListener('pointerout', onOut);
 
   function makeSlot() {
+    const item = makeItem();
+    if (!item) return null;                    // buffer not ready yet
     const slot = document.createElement('div');
     slot.className = 'slot';
-    slot.appendChild(makeItem());
+    slot.appendChild(item);
     return slot;
   }
 
-  // initial fill
-  while (belt.offsetHeight < port.offsetHeight + 60) belt.appendChild(makeSlot());
-
-  // reduced motion: a static (non-scrolling) list is the correct behavior.
-  if (reduced) {
-    cleanup = () => { belt.removeEventListener('pointerover', onOver); belt.removeEventListener('pointerout', onOut); };
-    return;
-  }
-
-  let paused = false, y = 0, lastT = 0, rafId = null;
+  let rafId = null;
+  let paused = false, y = 0, lastT = 0;
   const SCROLL_BASE = 22, speed = 0.75; // px/s at 1x, 0.75x per #686
   const onEnter = () => { paused = true; };
   const onLeave = () => { paused = false; };
-  port.addEventListener('pointerenter', onEnter);
-  port.addEventListener('pointerleave', onLeave);
 
   function scrollTick(now) {
     const dt = Math.min(now - lastT, 100) / 1000; lastT = now;
     if (!paused && !document.hidden) {
       y -= SCROLL_BASE * speed * dt;
-      while (y < 60) { const s = makeSlot(); belt.prepend(s); y += s.offsetHeight; }
+      while (y < 60) { const s = makeSlot(); if (!s) break; belt.prepend(s); y += s.offsetHeight; }
       while (belt.offsetHeight - y > port.offsetHeight + 200) belt.removeChild(belt.lastElementChild);
       belt.style.transform = `translateY(${-y}px)`;
     }
     rafId = requestAnimationFrame(scrollTick);
   }
-  lastT = performance.now();
-  rafId = requestAnimationFrame(scrollTick);
+
+  let started = false;
+  function startFeed() {
+    if (started || !records.length) return;
+    started = true;
+    // initial fill (guarded — the belt is absolutely positioned so its height
+    // can't feed back into the port's, but cap iterations defensively anyway)
+    let guard = 0;
+    while (belt.offsetHeight < port.offsetHeight + 60 && guard++ < 200) {
+      const s = makeSlot(); if (!s) break; belt.appendChild(s);
+    }
+    // reduced motion: a static (non-scrolling) list is the correct behavior.
+    if (reduced) return;
+    port.addEventListener('pointerenter', onEnter);
+    port.addEventListener('pointerleave', onLeave);
+    lastT = performance.now();
+    rafId = requestAnimationFrame(scrollTick);
+  }
+
+  // bootstrap: load the first chunk (retry a few times on a network hiccup), then
+  // fill + animate. The feed is secondary to search, so a hard failure just leaves
+  // it empty rather than blocking anything.
+  (async () => {
+    for (let attempt = 0; attempt < 4 && !records.length; attempt++) {
+      await fetchChunk();
+      if (!records.length) await new Promise(r => setTimeout(r, 1200));
+    }
+    startFeed();
+  })();
 
   cleanup = () => {
-    cancelAnimationFrame(rafId);
+    if (rafId) cancelAnimationFrame(rafId);
     port.removeEventListener('pointerenter', onEnter);
     port.removeEventListener('pointerleave', onLeave);
     belt.removeEventListener('pointerover', onOver);
@@ -603,8 +677,10 @@ export default { name: 'HomeV2Page' };
 .feedport {
   // fills the stretched hero-viz below the ADDED TODAY bar (was min(66vh,560px))
   flex: 1; min-height: 0; overflow: hidden; position: relative;
-  -webkit-mask-image: linear-gradient(180deg, #000 0, #000 86%, transparent);
-          mask-image: linear-gradient(180deg, #000 0, #000 86%, transparent);
+  // fade at BOTH ends (Jason 2026-08-04): rows fade in at the top too, rather than
+  // popping in at the viewport edge. Top fade zone mirrors the bottom (14%).
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent);
+          mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent);
 }
 // belt MUST be absolutely positioned: the mount fill loop appends rows until
 // belt.offsetHeight >= port.offsetHeight + 60, and with the port flex-sized in
