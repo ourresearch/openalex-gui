@@ -379,7 +379,10 @@
             If OpenAlex is free, why are you charging money?
           </v-expansion-panel-title>
           <v-expansion-panel-text class="faq-answer">
-            Our data is open and free to share, remix, and use as you wish. And you can
+            Our data is open and free: everything is released under a
+            <a href="https://creativecommons.org/public-domain/cc0/" target="_blank">CC0</a>
+            public-domain license, with no "personal use only" carve-out and no permission to
+            ask. You can even
             <a href="https://developers.openalex.org/download-all-data" target="_blank">download the entire dataset for free</a>.
             However, the services on top of the data — the API, search, sync, and support — are
             expensive for us to provide, and so we charge for those services in order to keep

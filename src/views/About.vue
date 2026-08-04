@@ -140,6 +140,18 @@
         status.
       </p>
 
+      <h3 class="subsection-header">Open data</h3>
+      <p class="section-body">
+        All OpenAlex data is released under a
+        <a href="https://creativecommons.org/public-domain/cc0/">CC0</a> public-domain
+        license — no "personal use only" carve-out, no permission to ask. Beyond
+        generosity, that's insurance for the community: because the data and code are
+        open, and because as a nonprofit we're not an attractive takeover target, the
+        mission doesn't depend on us. If something happened to our team, or a future
+        board tried to sell off assets, anyone could take what we've built and continue
+        the work — several groups already have the capability to do exactly that.
+      </p>
+
       <h3 class="subsection-header">Open code</h3>
       <p class="section-body">
         All our projects are open-source from day one, even before they're released. We
