@@ -343,8 +343,9 @@ const faqs = [
 
 // ---------------------------------------------------------------------------
 // Hero live feed — faithful port of #686 work/prototypes/C3-live-feed.html.
-// Scroll mode, direction down, speed 0.75x. Imperative DOM (no reactivity in
-// the animation loop; acceptance test 4 = search must stay interactive).
+// Scroll mode, direction UP (rows rise; new rows enter at the bottom — Jason
+// 2026-08-04, was ↓), speed 0.75x. Imperative DOM (no reactivity in the
+// animation loop; acceptance test 4 = search must stay interactive).
 //
 // Data: a hand-curated ~100-work ID list (`@/heroWorkIds`, #686) is shuffled
 // client-side and lazy-fetched a chunk (~2-3 screens) at a time via
@@ -526,9 +527,12 @@ onMounted(() => {
   function scrollTick(now) {
     const dt = Math.min(now - lastT, 100) / 1000; lastT = now;
     if (!paused && !document.hidden) {
-      y -= SCROLL_BASE * speed * dt;
-      while (y < 60) { const s = makeSlot(); if (!s) break; belt.prepend(s); y += s.offsetHeight; }
-      while (belt.offsetHeight - y > port.offsetHeight + 200) belt.removeChild(belt.lastElementChild);
+      y += SCROLL_BASE * speed * dt;   // scroll UP: new rows enter at the bottom
+      // keep content below the fold to scroll into
+      while (belt.offsetHeight - y < port.offsetHeight + 60) { const s = makeSlot(); if (!s) break; belt.appendChild(s); }
+      // drop rows scrolled off the top, compensating y so the rest holds still
+      let first;
+      while ((first = belt.firstElementChild) && first.offsetHeight <= y - 200) { y -= first.offsetHeight; belt.removeChild(first); }
       belt.style.transform = `translateY(${-y}px)`;
     }
     rafId = requestAnimationFrame(scrollTick);
