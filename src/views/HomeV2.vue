@@ -254,8 +254,8 @@ const bandLogos = [
   { src: astrazenecaLogo, alt: 'AstraZeneca', cls: 'tall' },
   { src: stanfordLogo, alt: 'Stanford University', cls: '' },
   { src: ibmLogo, alt: 'IBM', cls: '' },
-  { src: sorbonneLogo, alt: 'Sorbonne University', cls: 'tall' },
-  { src: bayerLogo, alt: 'Bayer', cls: 'tall' },
+  { src: sorbonneLogo, alt: 'Sorbonne University', cls: 'tall centered' },
+  { src: bayerLogo, alt: 'Bayer', cls: 'tall centered' },
   { src: cambridgeLogo, alt: 'University of Cambridge', cls: '' },
 ];
 
@@ -668,7 +668,10 @@ export default { name: 'HomeV2Page' };
 // Linear-style single row: 7 small logos, evenly spread, no motion, no header.
 // Sizes + full-black treatment (no opacity fade) = Jason's DevTools tuning 2026-08-03.
 // flex-end bottom-aligns the imgs = shared baseline for the wordmarks (none of the
-// seven has descenders; Bayer/Cambridge marks sit on the same line).
+// seven has descenders; AstraZeneca's glyph is baseline-locked to its wordmark, so it
+// MUST stay on the baseline). `.centered` marks (Sorbonne, Bayer) are symmetric logos
+// whose art sits mid-box, so bottom-align floats them high — nudge them down by half the
+// tall/default height delta ((42-23)/2 = 9.5px) to optically center them on the text line.
 .logo-grid {
   display: flex; align-items: flex-end; justify-content: space-between;
   max-width: 1150px; margin: 0 auto; padding: 0;
@@ -677,6 +680,7 @@ export default { name: 'HomeV2Page' };
   height: 23px; filter: grayscale(1); flex: none;
   &.tall { height: 42px; }
   &.short { height: 16px; }
+  &.centered { transform: translateY(9.5px); }  // optical-center on the wordmark baseline
 }
 @media (max-width: 1200px) {
   .logo-grid { padding: 0 32px; }
@@ -687,7 +691,10 @@ export default { name: 'HomeV2Page' };
 }
 @media (max-width: 700px) {
   .logo-grid { column-gap: 28px; row-gap: 18px; }
-  .band-logo { height: 18px; &.tall { height: 32px; } &.short { height: 13px; } }
+  .band-logo {
+    height: 18px; &.tall { height: 32px; } &.short { height: 13px; }
+    &.centered { transform: translateY(7px); }  // (32-18)/2, scaled for the mobile sizes
+  }
 }
 
 // ===================== STATS =====================
