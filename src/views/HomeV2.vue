@@ -254,7 +254,7 @@ const bandLogos = [
   { src: astrazenecaLogo, alt: 'AstraZeneca', cls: 'tall' },
   { src: stanfordLogo, alt: 'Stanford University', cls: '' },
   { src: ibmLogo, alt: 'IBM', cls: '' },
-  { src: sorbonneLogo, alt: 'Sorbonne University', cls: '' },
+  { src: sorbonneLogo, alt: 'Sorbonne University', cls: 'tall' },
   { src: bayerLogo, alt: 'Bayer', cls: 'tall' },
   { src: cambridgeLogo, alt: 'University of Cambridge', cls: '' },
 ];
