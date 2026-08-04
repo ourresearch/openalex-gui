@@ -245,16 +245,16 @@ function runSearch() { searchBoxRef.value?.submit(); }
 import anthropicLogo from '@/assets/partner-logos/anthropic.svg';
 import astrazenecaLogo from '@/assets/partner-logos/astrazeneca.svg';
 import stanfordLogo from '@/assets/partner-logos/stanford.svg';
-import yaleLogo from '@/assets/partner-logos/yale.svg';
-import samsungLogo from '@/assets/partner-logos/samsung.svg';
+import ibmLogo from '@/assets/partner-logos/ibm.svg';
+import sorbonneLogo from '@/assets/partner-logos/sorbonne.svg';
 import bayerLogo from '@/assets/partner-logos/bayer.svg';
 import cambridgeLogo from '@/assets/partner-logos/cambridge.svg';
 const bandLogos = [
   { src: anthropicLogo, alt: 'Anthropic', cls: 'short' },
   { src: astrazenecaLogo, alt: 'AstraZeneca', cls: 'tall' },
   { src: stanfordLogo, alt: 'Stanford University', cls: '' },
-  { src: yaleLogo, alt: 'Yale University', cls: '' },
-  { src: samsungLogo, alt: 'Samsung', cls: 'short' },
+  { src: ibmLogo, alt: 'IBM', cls: '' },
+  { src: sorbonneLogo, alt: 'Sorbonne University', cls: '' },
   { src: bayerLogo, alt: 'Bayer', cls: 'tall' },
   { src: cambridgeLogo, alt: 'University of Cambridge', cls: '' },
 ];
