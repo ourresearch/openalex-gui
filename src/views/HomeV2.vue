@@ -208,7 +208,7 @@ import axios from 'axios';
 
 import SearchBox from '@/components/SearchBox.vue';
 import { getTypeIcon } from '@/typeIcons';
-import { heroWorkIds } from '@/heroWorkIds';
+import { heroWorks } from '@/heroWorks';
 import { urlBase } from '@/apiConfig';
 
 const store = useStore();
@@ -388,12 +388,45 @@ function shapeWork(w) {
   };
 }
 
+// Thumb-on-scale opening: from a fresh shuffle, greedily choose the first HEAD_N
+// works so the first screen always shows a pdf/non-pdf mix, a non-Latin-script
+// title, a current-year AND a pre-2000 work, and a spread of work types. The rest
+// stays randomly shuffled. Uses only the baked sort-key flags in heroWorks. Runs
+// every mount, so each page load differs. Returns the ordered id list.
+const HEAD_N = 8, OLD_BEFORE = 2000;
+function composeOpeningIds(works) {
+  const curYear = Math.max(...works.map(w => w.year || 0));
+  const pool = shuffled(works), head = [];
+  const has = pred => head.some(pred);
+  while (head.length < HEAD_N && pool.length) {
+    const needNL = !has(w => w.nonlatin);
+    const needCur = !has(w => w.year === curYear);
+    const needOld = !has(w => w.year && w.year < OLD_BEFORE);
+    const pdfs = head.filter(w => w.pdf).length;
+    const wantPdf = pdfs <= head.length - pdfs;          // keep pdf ≈ half
+    let best = 0, bestScore = -Infinity;
+    for (let i = 0; i < pool.length; i++) {
+      const w = pool[i];
+      let s = Math.random();                              // fresh tiebreak each load
+      if (needNL && w.nonlatin) s += 100;
+      if (needCur && w.year === curYear) s += 100;
+      if (needOld && w.year && w.year < OLD_BEFORE) s += 100;
+      if (w.pdf === wantPdf) s += 8;
+      if (has(h => h.type === w.type)) s -= 15;           // type spread in the opening
+      if (s > bestScore) { bestScore = s; best = i; }
+    }
+    head.push(pool.splice(best, 1)[0]);
+  }
+  return shuffled(head).concat(pool).map(w => w.id);      // shuffle head so slot order varies
+}
+
 onMounted(() => {
   const port = portRef.value, belt = beltRef.value, tip = tipRef.value;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // lazy-loaded record buffer (grows as chunks arrive; cycles once all are in)
-  const ids = shuffled(heroWorkIds);
+  // lazy-loaded record buffer (grows as chunks arrive; cycles once all are in).
+  // ids are ordered so the first screen hits the diversity constraints (composeOpeningIds).
+  const ids = composeOpeningIds(heroWorks);
   const records = [];
   let fetchCursor = 0, fetching = false, allLoaded = false;
   async function fetchChunk() {
