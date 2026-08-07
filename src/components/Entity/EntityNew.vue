@@ -20,6 +20,14 @@
         class="px-4 pb-1"
       />
     </template>
+    <!-- Every entity page ends with the entity's own OpenAlex ID. Rendered
+         directly (not via entity-datum-row) because it needs no facet config:
+         it's the same row for all entity types. Short display form: native
+         entities are self-namespacing (W123), external ones keep their
+         namespace (sdgs/2). -->
+    <div v-if="openAlexIdShort" class="px-4 pb-1">
+      <span class="font-weight-bold">OpenAlex ID:</span> <span>{{ openAlexIdShort }}</span>
+    </div>
   </div>
 </template>
 
@@ -92,4 +100,7 @@ const rowsToShow = computed(() => {
 // Index of the first null divider in the final rendered row list (or -1 if
 // none). The `after-first-divider` slot fires here exactly once.
 const firstDividerIndex = computed(() => rowsToShow.value.indexOf(null));
+
+// Null when the id doesn't parse, which hides the row.
+const openAlexIdShort = computed(() => openalexId.toDisplayFormat(props.data?.id, 'short'));
 </script>
