@@ -9,7 +9,10 @@
       commitment to inquiry and knowledge. Institutional support comes in three tiers:
       <a href="#member" @click.prevent="scrollToTier('member')">Member</a>,
       <a href="#member-plus" @click.prevent="scrollToTier('member-plus')">Member+</a>, and
-      <a href="#partner" @click.prevent="scrollToTier('partner')">Partner</a>.
+      <a href="#partner" @click.prevent="scrollToTier('partner')">Partner</a> —
+      see <a href="/pricing">pricing</a> and the
+      <a :href="`${HELP_DOCS_BASE}/pricing/`" target="_blank" rel="noopener noreferrer">pricing docs</a>
+      for what each includes.
     </template>
 
     <static-section
@@ -20,19 +23,11 @@
     >
       <template #aside>{{ tier.price }} annually</template>
 
-      <p v-if="tier.priceNote" class="section-body tier-price-note">{{ tier.priceNote }}</p>
-
-      <h3 class="subsection-header">Benefits</h3>
-      <p v-if="tier.lead" class="section-body tier-lead">{{ tier.lead }}</p>
-      <ul class="section-list">
-        <li v-for="benefit in tier.benefits" :key="benefit.title">
-          <a v-if="benefit.href" :href="benefit.href" target="_blank" rel="noopener noreferrer">
-            <span v-html="benefit.title" />
-          </a>
-          <strong v-else v-html="benefit.title" />
-          — {{ benefit.description }}
-        </li>
-      </ul>
+      <p class="section-body tier-docs-link">
+        <a :href="`${HELP_DOCS_BASE}/${tier.docsSlug}/`" target="_blank" rel="noopener noreferrer">
+          Benefits and details for {{ tier.label }} →
+        </a>
+      </p>
 
       <h3 class="subsection-header">{{ tier.orgsHeading }}</h3>
       <div v-if="orgsFor(tier.apiKey).length" class="member-columns">
@@ -102,100 +97,36 @@ useHead({
   ]
 });
 
-// Benefit how-tos live in the new help center (oxjob #354).
+// Benefits content lives in ONE place now: the help center's Pricing docs
+// (oxjob #750) — this page is just the supporters lists + join CTA, so there's
+// no benefit matrix to keep in sync with /pricing anymore.
 // TODO(#354 cutover): flip to https://help.openalex.org when the new KB takes over the domain.
-const HELP_BASE = 'https://openalex-help.pages.dev/help';
+const HELP_DOCS_BASE = 'https://openalex-help.pages.dev/docs';
 
-// Marketing blurbs only — activation how-tos live in the help center.
-// Prices + benefit matrix mirror /pricing (PricingPageNewer.vue) — keep in sync.
 const tierConfigs = [
   {
     id: 'member',
     apiKey: 'member',
     label: 'Member',
     price: '$5,000',
+    docsSlug: 'member',
     orgsHeading: 'Institutional members',
-    benefits: [
-      {
-        title: '$20 per day of API usage',
-        description: "for your organization's API key — 20× the free daily budget ($7,300 in annual value).",
-      },
-      {
-        title: 'Admin Dashboard',
-        href: `${HELP_BASE}/activate-your-admin-dashboard/`,
-        description: "see how many users at your institution are using OpenAlex, and track your research community's API usage.",
-      },
-      {
-        title: 'Affiliation Editor',
-        href: `${HELP_BASE}/activate-the-affiliation-editor/`,
-        description: 'curate the affiliation strings OpenAlex matches to your institution — live in OpenAlex within 2 days.',
-      },
-      {
-        title: '<em>Unsub</em> access',
-        href: `${HELP_BASE}/activate-unsub/`,
-        description: 'data-driven forecasts of the true cost and value of your journal packages, to guide subscription decisions.',
-      },
-      {
-        title: 'Advisory Board nominations',
-        href: `${HELP_BASE}/advisory-board-nominations/`,
-        description: "nominate candidates for the 12-member Community Advisory Board that helps guide OpenAlex's direction.",
-      },
-      {
-        title: 'Quarterly supporter meetings',
-        href: `${HELP_BASE}/quarterly-supporter-meetings/`,
-        description: 'open-forum roundtables on roadmap priorities, directly with our product team.',
-      },
-    ],
   },
   {
     id: 'member-plus',
     apiKey: 'member_plus',
     label: 'Member+',
     price: '$10,000',
+    docsSlug: 'member-plus',
     orgsHeading: 'Institutional member+ subscribers',
-    lead: 'Everything in Member, plus:',
-    benefits: [
-      {
-        title: '$100 per day of API usage',
-        description: "for your organization's API key ($36,500 in annual value).",
-      },
-      {
-        title: 'Basic support',
-        description: 'help with critical API bugs.',
-      },
-      {
-        title: 'Daily sync',
-        href: 'https://openalex-help.pages.dev/docs/snapshot-updates/',
-        description: 'keep your own synced copy of OpenAlex, via API filters (works created or updated since any date) and a complete daily snapshot partitioned by created/updated date.',
-      },
-    ],
   },
   {
     id: 'partner',
     apiKey: 'partner',
     label: 'Partner',
     price: 'Starts at $20,000',
-    priceNote: 'Partner plans are custom — pricing goes up from $20,000 depending on the level of collaboration you want.',
+    docsSlug: 'partner',
     orgsHeading: 'Institutional partners',
-    lead: 'Everything in Member+, plus:',
-    benefits: [
-      {
-        title: '$200+ per day of API usage',
-        description: "for your organization's API key ($73,000+ in annual value).",
-      },
-      {
-        title: 'Full support',
-        description: 'ticket-based support for all issues.',
-      },
-      {
-        title: '3 power-user accounts',
-        description: 'your admins can grant extra-high API limits to three individual users at your institution.',
-      },
-      {
-        title: '5 hours of consulting per year',
-        description: 'expert advice, training, and exploration customized to your needs.',
-      },
-    ],
   },
 ];
 
@@ -234,13 +165,8 @@ function scrollToTier(id) {
 
 
 <style lang="scss" scoped>
-.tier-price-note {
-  font-size: 14.5px;
+.tier-docs-link {
   margin-bottom: 12px;
-}
-
-.tier-lead {
-  margin-bottom: 4px;
 }
 
 // Supporter name lists — multi-column, quiet

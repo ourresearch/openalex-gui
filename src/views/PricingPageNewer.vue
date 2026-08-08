@@ -277,7 +277,7 @@
                   <template #activator="{ props }">
                     <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
                   </template>
-                  Sync our complete archive of ~60 million cached open-access full-text PDFs to your own S3-compatible storage, with new documents delivered continuously as they arrive.
+                  Sync our complete archive of 50+ million cached open-access full-text PDFs to your own S3-compatible storage, with new documents delivered continuously as they arrive.
                 </v-tooltip>
               </td>
               <td v-for="n in 3" :key="n">
@@ -435,7 +435,7 @@
           <v-expansion-panel-text class="faq-answer">
             No — full-archive access is sold as the <strong>PDF sync service</strong>, a paid
             add-on to any annual subscription. What you're buying is the ongoing service of
-            syncing our living archive (~60 million open-access PDFs, with new documents
+            syncing our living archive (50+ million open-access PDFs, with new documents
             arriving continuously) to your own S3-compatible storage, rather than a one-time
             copy of the files. For smaller-scale needs, anyone can download individual PDFs
             through the API on standard usage pricing.
