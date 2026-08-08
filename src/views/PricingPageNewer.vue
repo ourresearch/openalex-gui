@@ -25,12 +25,12 @@
       <p class="hero-body">
         The OpenAlex API uses simple, transparent pricing. Every account gets
         <strong>$1 per day for free</strong> — enough for most research and
-        personal projects. If you need more, there are a few ways to get it:
-        <a href="#prepaid-usage">add prepaid usage</a>,
-        get an <a href="#subscriptions">annual subscription</a>,
-        or purchase the <a href="#pdf-archive">PDF archive</a>.
-        For details on how pricing maps to API calls, see the
-        <a href="https://developers.openalex.org" target="_blank">API documentation</a>.
+        personal projects. If you need more, there are two ways to get it:
+        <a href="#prepaid-usage">add prepaid usage</a> or
+        get an <a href="#subscriptions">annual subscription</a> — optionally
+        with the PDF sync add-on.
+        For a full explanation of the plans and their benefits, see the
+        <a :href="`${HELP_DOCS_BASE}/pricing/`" target="_blank">pricing docs</a>.
       </p>
     </section>
 
@@ -270,6 +270,26 @@
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
               <td><v-icon size="18" class="check-icon">mdi-check</v-icon></td>
             </tr>
+            <tr>
+              <td class="feature-label">
+                PDF sync
+                <v-tooltip location="top" max-width="280" aria-label="PDF sync">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
+                  </template>
+                  Sync our complete archive of ~60 million cached open-access full-text PDFs to your own S3-compatible storage, with new documents delivered continuously as they arrive.
+                </v-tooltip>
+              </td>
+              <td v-for="n in 3" :key="n">
+                <span class="addon-value">Add-on</span>
+                <v-tooltip location="top" max-width="280" aria-label="PDF sync add-on">
+                  <template #activator="{ props }">
+                    <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
+                  </template>
+                  Available as a paid add-on.
+                </v-tooltip>
+              </td>
+            </tr>
 
             <!-- Academic & Government swimlane -->
             <tr class="swimlane-header">
@@ -353,20 +373,6 @@
 
     </section>
 
-    <!-- ==================== PDF ARCHIVE ==================== -->
-    <section id="pdf-archive" class="section compact-section">
-      <h2 class="section-header">
-        PDF archive
-        <a href="#pdf-archive" class="permalink"><v-icon size="18">mdi-link-variant</v-icon></a>
-      </h2>
-      <p class="section-body">
-        Get all 60 million of our cached open-access full-text PDFs delivered straight to
-        your S3 bucket. Perfect for building search indexes, training models, or running
-        large-scale text mining.
-        <a href="mailto:sales@openalex.org">Contact sales</a> to learn more.
-      </p>
-    </section>
-
     <!-- ==================== FAQ ==================== -->
     <section id="faq" class="section compact-section">
       <h2 class="section-header">
@@ -424,6 +430,21 @@
 
         <v-expansion-panel>
           <v-expansion-panel-title class="faq-question">
+            Can I get the PDF archive without a subscription?
+          </v-expansion-panel-title>
+          <v-expansion-panel-text class="faq-answer">
+            No — full-archive access is sold as the <strong>PDF sync service</strong>, a paid
+            add-on to any annual subscription. What you're buying is the ongoing service of
+            syncing our living archive (~60 million open-access PDFs, with new documents
+            arriving continuously) to your own S3-compatible storage, rather than a one-time
+            copy of the files. For smaller-scale needs, anyone can download individual PDFs
+            through the API on standard usage pricing.
+            <a href="mailto:sales@openalex.org">Contact sales</a> for a quote.
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+
+        <v-expansion-panel>
+          <v-expansion-panel-title class="faq-question">
             Can we trial membership models before purchasing?
           </v-expansion-panel-title>
           <v-expansion-panel-text class="faq-answer">
@@ -445,7 +466,7 @@
             How do the Member benefits work and how do I activate them?
           </v-expansion-panel-title>
           <v-expansion-panel-text class="faq-answer">
-            For detailed information about each Member benefit and step-by-step activation instructions, please visit our <a href="/institutional-supporters">Institutional supporters page</a>.
+            For detailed information about each plan and its benefits — including step-by-step activation instructions — see the <a :href="`${HELP_DOCS_BASE}/pricing/`" target="_blank">pricing docs</a> or our <a href="/institutional-supporters">Institutional supporters page</a>.
           </v-expansion-panel-text>
         </v-expansion-panel>
       </v-expansion-panels>
@@ -471,6 +492,10 @@ useHead({
   ]
 });
 
+// Docs live on the new help center (oxjob #354/#750); flip to
+// https://help.openalex.org/docs at cutover — MembersPage.vue HELP_BASE too.
+const HELP_DOCS_BASE = 'https://openalex-help.pages.dev/docs';
+
 const store = useStore();
 const router = useRouter();
 const showQuantityDialog = ref(false);
@@ -485,7 +510,6 @@ const isLoggedIn = computed(() => !!store.getters['user/userId']);
 const sections = [
   { id: 'prepaid-usage', label: 'Prepaid usage' },
   { id: 'subscriptions', label: 'Subscriptions' },
-  { id: 'pdf-archive', label: 'PDF archive' },
   { id: 'faq', label: 'FAQ' },
 ];
 const activeSection = ref('prepaid-usage');
@@ -864,6 +888,11 @@ async function startCheckout() {
 .savings-value {
   color: #15803D;
   font-weight: 600;
+}
+
+.addon-value {
+  font-weight: 500;
+  color: #52525B;
 }
 
 .check-icon {
