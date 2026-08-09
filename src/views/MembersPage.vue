@@ -101,7 +101,7 @@ useHead({
 // (oxjob #750) — this page is just the supporters lists + join CTA, so there's
 // no benefit matrix to keep in sync with /pricing anymore.
 // TODO(#354 cutover): flip to https://help.openalex.org when the new KB takes over the domain.
-const HELP_DOCS_BASE = 'https://openalex-help.pages.dev/docs';
+const HELP_DOCS_BASE = 'https://openalex-help.pages.dev/access';
 
 const tierConfigs = [
   {
