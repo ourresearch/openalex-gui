@@ -438,6 +438,8 @@ const routes = [
     // CTA to join the user group, where we'll push a notification when roles go up.
     // /careers kept as an alias so the old footer link + any external links still resolve.
     {path: '/jobs', alias: '/careers', name: 'Jobs', component: () => import('@/views/JobsPage.vue')},
+    // Temp iteration surface for the real jobs page (oxjob #662); noindex. Replaces /jobs when copy lands.
+    {path: '/jobs/draft', name: 'JobsDraft', component: () => import('@/views/JobsDraftPage.vue')},
     {path: '/institutional-supporters', name: 'InstitutionalSupporters', component: MembersPage},
     {path: '/members', redirect: '/institutional-supporters'},
     {path: '/pricing-new', redirect: '/pricing'},
