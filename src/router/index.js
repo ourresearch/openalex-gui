@@ -434,12 +434,12 @@ const routes = [
     {path: '/pricing/developers', redirect: '/pricing#subscriptions'},
     {path: '/pricing-newer', redirect: '/pricing'},
     {path: '/compare', name: 'Compare', component: () => import('@/views/ComingSoonPage.vue'), props: {title: 'Compare', blurb: "We're building a side-by-side look at how OpenAlex stacks up against other scholarly data sources. It's coming soon."}},
-    // Placeholder jobs page (informal Jason/Kyle spec): "new jobs here soon" + a
-    // CTA to join the user group, where we'll push a notification when roles go up.
-    // /careers kept as an alias so the old footer link + any external links still resolve.
-    {path: '/jobs', alias: '/careers', name: 'Jobs', component: () => import('@/views/JobsPage.vue')},
-    // Temp iteration surface for the real jobs page (oxjob #662); noindex. Replaces /jobs when copy lands.
-    {path: '/jobs/draft', name: 'JobsDraft', component: () => import('@/views/JobsDraftPage.vue')},
+    // Jobs page (oxjob #662): four-section pitch, stealth (noindex) until the listings launch.
+    {path: '/jobs', name: 'Jobs', component: () => import('@/views/JobsPage.vue')},
+    // "jobs is shorter and less pretentious, but there's a redirect from /careers to /jobs" (Jason)
+    {path: '/careers', redirect: '/jobs'},
+    // Old iteration surface for this page; keep the URL working since it was shared for review.
+    {path: '/jobs/draft', redirect: '/jobs'},
     {path: '/institutional-supporters', name: 'InstitutionalSupporters', component: MembersPage},
     {path: '/members', redirect: '/institutional-supporters'},
     {path: '/pricing-new', redirect: '/pricing'},

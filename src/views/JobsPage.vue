@@ -1,28 +1,139 @@
 <template>
-  <!-- No StaticPage title: this page brings its own centered hero. -->
+  <!-- Real jobs page (oxjob #662). Shipped in stealth: no announcement yet, noindex until launch. -->
   <static-page>
-    <section class="jobs-hero">
-      <p class="jobs-eyebrow">Jobs at OpenAlex</p>
-      <h1 class="jobs-headline">New roles,<br>coming soon.</h1>
-      <p class="jobs-sub">
-        We're growing the team behind OpenAlex. Want to join? Openings will be
-        posted here and announced via our user group.
-      </p>
-      <div class="jobs-cta">
-        <a
-          id="jobs-join-button"
-          class="jobs-button"
-          href="https://groups.google.com/g/openalex-users"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Join the user group
-          <svg class="jobs-button-arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path d="M4 10L10 4M10 4H5M10 4V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </a>
-      </div>
-    </section>
+    <article class="jobsp">
+      <header class="jobsp-hero">
+        <p class="jobsp-eyebrow">Working at OpenAlex</p>
+        <h1 class="jobsp-headline">Help us set research&nbsp;free.</h1>
+      </header>
+
+      <section>
+        <h2>About us</h2>
+        <p>OpenAlex is a comprehensive, open catalog of the world's research.</p>
+        <p>
+          We're a small team with a big impact, building the foundation of a new,
+          AI-powered science ecosystem. Your favorite AI tool probably uses OpenAlex;
+          your favorite university definitely does.
+        </p>
+      </section>
+
+      <section>
+        <h2>What's good about working here</h2>
+        <p>
+          You'll get a mission, enormous room, and a lot of trust — not a playbook, a
+          process, or a manager curating your calendar. Everyone here works with AI
+          agents every day, on everything. Your coworkers are smart, motivated, and
+          shipping constantly — and what we ship is live infrastructure the research
+          world runs on, so the impact starts your first week, not after you've paid
+          your dues.
+        </p>
+        <p>
+          We work hard and get a lot done, but we keep sane hours: that's how you
+          actually get things done long-term, and we're in this for the long haul.
+        </p>
+        <p>And we take care of people:</p>
+        <ul>
+          <li>Salary published on every listing</li>
+          <li>Work from anywhere with reasonable hours overlap</li>
+          <li>Any hardware or home-office gear you need, reimbursed — computer, monitors, desk, chair</li>
+          <li>20 days paid time off (rising to 22 in year 3 and 25 in year 5), plus 15 days sick leave you can also use to care for family</li>
+          <li>Health insurance and retirement benefits</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>What's hard about working here</h2>
+        <p>
+          The best thing and the hard thing are the same thing. All that room and trust
+          means nobody hands you a playbook: you'll own problems end to end, decide for
+          yourself what matters most, and live with ambiguity a bigger org would
+          committee away. We're a small team, so there's no department to hand things
+          off to — when something is yours, it's yours.
+        </p>
+        <p>
+          And when the site goes down on a Saturday, we fix it on Saturday. Then we
+          make sure that Saturday never happens again.
+        </p>
+      </section>
+
+      <section>
+        <h2>What we're looking for</h2>
+        <p>
+          One trait, above everything: people who are
+          <a href="https://paulgraham.com/relres.html" target="_blank" rel="noopener noreferrer">relentlessly resourceful</a>.
+        </p>
+        <p>
+          We measure results, not effort, and the bar here is delivering more in a
+          week than most people can. You don't clear that bar by grinding; you clear
+          it by figuring out which part of the job actually matters and doing only
+          that. By finding the clever hack. By
+          <a href="https://en.wikipedia.org/wiki/Gordian_Knot" target="_blank" rel="noopener noreferrer">cutting the knot</a>
+          instead of untying it. By
+          <a href="https://en.wikipedia.org/wiki/Kobayashi_Maru" target="_blank" rel="noopener noreferrer">redefining the rules of the game</a>.
+          And by knowing where the 20% of effort lives that gets 80% of the results —
+          then calling it
+          <a href="https://medium.com/@bre/the-cult-of-done-manifesto-724ca1c2ff13" target="_blank" rel="noopener noreferrer">done</a>
+          and moving on, instead of polishing. Perfectionists are miserable here. So
+          are people who love process.
+        </p>
+        <p>
+          We're all-in on AI — not because it's AI, but because it compounds what we
+          can get done for the mission: about 10x so far, and climbing. Most of what
+          we do all day is manage AI agents. We don't care how the work gets done,
+          only that it solves the problem — and that you understand it deeply. That
+          goes for your application, too.
+        </p>
+      </section>
+
+      <section>
+        <h2>How to apply</h2>
+        <p>
+          Use whatever AI tools you want, on the application and on the job. We don't
+          care whether a human or a model typed the words; we care whether the work is
+          actually good. But keep in mind: anybody can paste our questions into an AI.
+          If that's all you do, why would we hire you? We're looking for people who
+          add a ton of value on top — a sharper prompt, a faster loop, a better result.
+        </p>
+        <p>
+          Our process: apply with the listing's questions, a conversation or two, then
+          a paid work trial — about $1,000/day. Humans read everything you send, and
+          we'll always tell you where you stand.
+        </p>
+
+        <h3>Read up on us first</h3>
+        <p>
+          We want people who care about the mission, so before you apply, get to know
+          us:
+        </p>
+        <ul>
+          <li>
+            <a href="https://www.youtube.com/watch?v=CZ5Q9To1zCc" target="_blank" rel="noopener noreferrer">OpenAlex &amp; sustainability</a>
+            — how a free, open index pays its bills (video)
+          </li>
+          <li>
+            <a href="https://www.youtube.com/watch?v=q9KF_eARJaY" target="_blank" rel="noopener noreferrer">Our 2026 roadmap town hall</a>
+            — where we're headed, including making AI our main interface (video)
+          </li>
+          <li>
+            <a href="https://github.com/ourresearch/town-hall-notes" target="_blank" rel="noopener noreferrer">Our town-hall notes</a>
+            — quarterly retros and roadmaps, published as code
+          </li>
+          <li>
+            <a href="https://www.nature.com/articles/495437a" target="_blank" rel="noopener noreferrer">Scholarship: Beyond the paper</a>
+            — Jason's Nature essay on where scholarly communication is headed
+          </li>
+          <li>
+            <a href="https://blog.openalex.org" target="_blank" rel="noopener noreferrer">Our blog</a>
+            — what we've been shipping, in our own words
+          </li>
+        </ul>
+
+        <h3>Open positions</h3>
+        <p>
+          We're hiring for two roles — postings and applications land right here soon.
+        </p>
+      </section>
+    </article>
   </static-page>
 </template>
 
@@ -36,7 +147,7 @@ defineOptions({ name: 'JobsPage' });
 useHead({
   title: 'Jobs',
   meta: [
-    // Placeholder until real listings land — keep it out of the index for now.
+    // Stealth until the listings launch announcement — keep out of the index for now.
     { name: 'robots', content: 'noindex' },
   ],
 });
@@ -44,92 +155,79 @@ useHead({
 
 
 <style scoped lang="scss">
-.jobs-hero {
-  min-height: 72vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 96px 24px;
-  max-width: 620px;
+.jobsp {
+  max-width: 640px;
   margin: 0 auto;
+  padding: 72px 24px 120px;
+  color: #0A0A0A;
+
+  section {
+    margin-top: 56px;
+  }
+
+  h2 {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 16px 0;
+  }
+
+  h3 {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 28px 0 12px 0;
+  }
+
+  p, li {
+    font-size: 17px;
+    line-height: 1.7;
+    color: #3F3F46;
+  }
+
+  p {
+    margin: 0 0 16px 0;
+  }
+
+  ul {
+    margin: 0 0 16px 0;
+    padding-left: 22px;
+  }
+
+  li {
+    margin-bottom: 6px;
+  }
 }
 
-.jobs-eyebrow {
+.jobsp-hero {
+  padding-top: 24px;
+}
+
+.jobsp-eyebrow {
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #A1A1AA;
-  margin: 0 0 20px 0;
+  margin: 0 0 16px 0;
 }
 
-.jobs-headline {
-  font-size: 56px;
+.jobsp-headline {
+  font-size: 48px;
   font-weight: 600;
-  line-height: 1.04;
-  letter-spacing: -0.035em;
-  color: #0A0A0A;
-  margin: 0 0 24px 0;
-}
-
-.jobs-sub {
-  font-size: 18px;
-  font-weight: 400;
-  line-height: 1.65;
-  color: #52525B;
-  max-width: 460px;
-  margin: 0 0 36px 0;
-}
-
-.jobs-cta {
+  line-height: 1.06;
+  letter-spacing: -0.03em;
   margin: 0;
-}
-
-// ID selector + !important: the app-wide `.v-application a:not(...)` rule sets a
-// blue link color with high specificity, so a plain class can't override the label.
-#jobs-join-button.jobs-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #0A0A0A;
-  color: #fff !important;
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  padding: 12px 20px;
-  border-radius: 8px;
-  text-decoration: none;
-  transition: background 0.15s ease, transform 0.15s ease;
-
-  &:hover {
-    background: #27272A;
-    color: #fff !important;
-    transform: translateY(-1px);
-  }
-}
-
-.jobs-button-arrow {
-  transition: transform 0.15s ease;
-}
-
-.jobs-button:hover .jobs-button-arrow {
-  transform: translate(1px, -1px);
+  color: #0A0A0A;
 }
 
 @media (max-width: 600px) {
-  .jobs-hero {
-    min-height: 68vh;
-    padding: 72px 20px;
+  .jobsp {
+    padding-top: 48px;
   }
 
-  .jobs-headline {
-    font-size: 40px;
-  }
-
-  .jobs-sub {
-    font-size: 16px;
+  .jobsp-headline {
+    font-size: 34px;
   }
 }
 </style>
