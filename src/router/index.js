@@ -440,6 +440,8 @@ const routes = [
     {path: '/careers', redirect: '/jobs'},
     // Old iteration surface for this page; keep the URL working since it was shared for review.
     {path: '/jobs/draft', redirect: '/jobs'},
+    // Community Lead listing (oxjob #662): stealth iteration surface — noindex, not yet linked from /jobs.
+    {path: '/jobs/community-lead', name: 'JobsCommunityLead', component: () => import('@/views/JobsCommunityLeadPage.vue')},
     {path: '/institutional-supporters', name: 'InstitutionalSupporters', component: MembersPage},
     {path: '/members', redirect: '/institutional-supporters'},
     {path: '/pricing-new', redirect: '/pricing'},
