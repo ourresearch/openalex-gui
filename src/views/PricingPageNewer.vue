@@ -494,7 +494,7 @@ useHead({
 
 // Docs live on the new help center (oxjob #354/#750); flip to
 // https://help.openalex.org/access at cutover — MembersPage.vue HELP_BASE too.
-const HELP_DOCS_BASE = 'https://openalex-help.pages.dev/access';
+const HELP_DOCS_BASE = 'https://help.openalex.org/access';
 
 const store = useStore();
 const router = useRouter();
