@@ -121,7 +121,7 @@
     <!-- ===================== OPENNESS (headline left, copy right, no art) ===================== -->
     <section class="openness-section">
       <div class="openness-grid">
-        <h2 class="openness-title">Open for everyone</h2>
+        <h2 class="openness-title"><span class="openness-kicker">Driven by Mission,</span><br>Open for All</h2>
         <div class="openness-copy">
           <p>
             Ever since our start in an all-night hackathon, we've been obsessed with
@@ -153,10 +153,6 @@
             <div class="access-card-head">
               <span class="access-icon mdi" :class="m.icon"></span>
               <h3 class="access-card-title">{{ m.name }}</h3>
-              <span class="difficulty-dots" :class="'level-' + m.level">
-                <v-tooltip activator="parent" location="top" content-class="linear-tooltip">Difficulty: {{ LEVEL_NAMES[m.level] }}</v-tooltip>
-                <span v-for="d in 3" :key="d" class="dot" :class="{ filled: d <= LEVEL_FILL[m.level] }"></span>
-              </span>
             </div>
             <div class="access-card-body">
               <p>{{ m.body }}</p>
@@ -284,30 +280,28 @@ axios.get(`${urlBase.api}/works?filter=has_content.pdf:true&per-page=1&select=id
   .then(r => { const c = r.data?.meta?.count; if (c) pdfsNum.value = humanBig(c); })
   .catch(() => {});
 
-// card content = Jason's 2026-08-03 wording (R10); works + PDFs numbers stay live
+// card content = Jason's 2026-08-11 wording (R17); works + PDFs numbers stay live
 const stats = computed(() => [
-  { num: '5.8 billion', label: 'relationships', sub: 'Our graph connects papers to disambiguated authors, institutions, funders, and (via citation) one another.' },
-  { num: '1.1 billion', label: 'API calls monthly', sub: 'Thousands of universities, governments, and businesses count on our data.' },
-  { num: worksNum.value, label: 'work records', sub: 'Rich metadata for papers, books, datasets, theses, preprints, and even software — updated daily.' },
-  { num: pdfsNum.value, label: 'fulltext PDFs', sub: 'Download full text of open-access papers and preprints, all with license information.' },
+  { num: '5.8 billion', label: 'relationships', sub: 'Our graph connects papers to disambiguated authors, orgs, funders, and each other.' },
+  { num: '1.1 billion', label: 'API calls monthly', sub: 'Thousands of universities, governments, and businesses worldwide rely on our data.' },
+  { num: worksNum.value, label: 'work records', sub: 'Rich metadata for papers, books, datasets, theses, preprints, and more — updated daily.' },
+  { num: pdfsNum.value, label: 'fulltext PDFs', sub: 'Open-access papers and preprints with license data for each.' },
 ]);
 
 // ---------------------------------------------------------------------------
-// How to access it — 8 methods, one card each. learn-more links ->
-// help.openalex.org (#354 ships first; trust it). OQL card carries a Beta badge.
+// How to access it — 8 methods, one card each. learn-more links deep-link
+// into help.openalex.org (R16). Difficulty dots removed R17 (confusing).
 // ---------------------------------------------------------------------------
-const LEVEL_NAMES = { easy: 'Easy', med: 'Medium', hard: 'Hard' };
-const LEVEL_FILL = { easy: 1, med: 2, hard: 3 };
 // card copy = Jason's 2026-08-03 wording (light spelling/punctuation polish)
 const accessMethods = [
-  { name: 'Website', icon: 'mdi-magnify', level: 'easy', cta: 'Try', body: 'Search and filter by topic, date, full-text availability, and more, then export what you find.', href: 'https://help.openalex.org/access/website-basic/' },
-  { name: 'OQL', icon: 'mdi-code-braces', level: 'med', body: 'Use the OpenAlex Query Language (beta) to build and share complex queries. Great for systematic reviews.', href: 'https://help.openalex.org/access/oql/' },
-  { name: 'API', icon: 'mdi-cogs', level: 'med', body: 'Built for builders: fast and well-documented, with a generous free tier and pay-as-you-go after that.', href: 'https://help.openalex.org/api/' },
-  { name: 'CLI', icon: 'mdi-console', level: 'med', body: 'Query from your terminal and pipe the results into your own scripts. Agents love using it.', href: 'https://help.openalex.org/access/cli/' },
-  { name: 'Agents', icon: 'mdi-robot-outline', level: 'easy', body: 'Just say "Use OpenAlex" to your agent and it\'ll handle the rest. Install the CLI for even better results.', href: 'https://help.openalex.org/access/agents/' },
-  { name: 'Snapshot', icon: 'mdi-database-outline', level: 'hard', body: 'Download our entire dataset for free. Updated quarterly.', href: 'https://help.openalex.org/access/snapshot/' },
-  { name: 'Sync', icon: 'mdi-sync', level: 'hard', body: 'Keep your database up to date with daily changes, via AWS or API.', href: 'https://help.openalex.org/access/sync/' },
-  { name: 'Fulltext', icon: 'mdi-file-pdf-box', level: 'hard', body: 'Download 50M full-text PDFs with license info — and get new ones daily.', href: 'https://help.openalex.org/access/fulltext/' },
+  { name: 'Website', icon: 'mdi-magnify', cta: 'Try', body: 'Search and filter by topic, date, full-text availability, and more, then export what you find.', href: 'https://help.openalex.org/access/website-basic/' },
+  { name: 'OQL', icon: 'mdi-code-braces', body: 'Use the OpenAlex Query Language (beta) to build and share complex queries. Great for systematic reviews.', href: 'https://help.openalex.org/access/oql/' },
+  { name: 'API', icon: 'mdi-cogs', body: 'Built for builders: fast and well-documented, with a generous free tier and pay-as-you-go after that.', href: 'https://help.openalex.org/api/' },
+  { name: 'CLI', icon: 'mdi-console', body: 'Query from your terminal and pipe the results into your own scripts. Agents love using it.', href: 'https://help.openalex.org/access/cli/' },
+  { name: 'Agents', icon: 'mdi-robot-outline', body: 'Just say "Use OpenAlex" to your agent and it\'ll handle the rest. Install the CLI for even better results.', href: 'https://help.openalex.org/access/agents/' },
+  { name: 'Snapshot', icon: 'mdi-database-outline', body: 'Download our entire dataset for free. Updated quarterly.', href: 'https://help.openalex.org/access/snapshot/' },
+  { name: 'Sync', icon: 'mdi-sync', body: 'Keep your database up to date with daily changes, via AWS or API.', href: 'https://help.openalex.org/access/sync/' },
+  { name: 'Fulltext', icon: 'mdi-file-pdf-box', body: 'Download 50M full-text PDFs with license info — and get new ones daily.', href: 'https://help.openalex.org/access/fulltext/' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -715,9 +709,10 @@ export default { name: 'HomeV2Page' };
   // fills the stretched hero-viz below the ADDED TODAY bar (was min(66vh,560px))
   flex: 1; min-height: 0; overflow: hidden; position: relative;
   // fade at BOTH ends (Jason 2026-08-04): rows fade in at the top too, rather than
-  // popping in at the viewport edge. Top fade zone mirrors the bottom (14%).
-  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent);
-          mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent);
+  // popping in at the viewport edge. Fade zones widened 14% -> 24% per end
+  // (R17: less full-ink content on screen, more of the belt in a faded state).
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 24%, #000 76%, transparent);
+          mask-image: linear-gradient(180deg, transparent 0, #000 24%, #000 76%, transparent);
 }
 // belt MUST be absolutely positioned: the mount fill loop appends rows until
 // belt.offsetHeight >= port.offsetHeight + 60, and with the port flex-sized in
@@ -727,32 +722,34 @@ export default { name: 'HomeV2Page' };
 .belt { position: absolute; top: 0; left: 0; width: 100%; }
 
 // feed row internals (imperative DOM -> :deep)
+// R17: everything scaled ~1.2x (Jason: feed felt overwhelming — bigger type,
+// fewer rows on screen at once; proportions unchanged)
 :deep(.item) {
-  display: grid; grid-template-columns: 18px minmax(0, 1fr) 48px; gap: 2px 8px;
-  padding: 12px 2px; border-top: 1px solid var(--hair); align-items: start;
+  display: grid; grid-template-columns: 22px minmax(0, 1fr) 58px; gap: 3px 10px;
+  padding: 15px 2px; border-top: 1px solid var(--hair); align-items: start;
 }
 :deep(.eyebrow) {
   // justify-self:start shrinks the grid item to its text so the tooltip (which
   // centers on the hovered element's box) anchors over the label, not the whole
   // column (Jason 2026-08-04). Without it the box spans col 2 and the tip drifts right.
-  grid-column: 2; grid-row: 1; justify-self: start; font-size: 8px; font-weight: 400;
+  grid-column: 2; grid-row: 1; justify-self: start; font-size: 10px; font-weight: 400;
   letter-spacing: .07em; text-transform: uppercase; color: var(--ink);
 }
 :deep(.lead) { grid-column: 1; grid-row: 2; padding-top: 2px; }
-:deep(.lead.mdi) { font-size: 16px; color: var(--ink); line-height: 1; }
+:deep(.lead.mdi) { font-size: 19px; color: var(--ink); line-height: 1; }
 :deep(.t) {
-  grid-column: 2; grid-row: 2; font-size: 14.5px; font-weight: 550; line-height: 1.4;
+  grid-column: 2; grid-row: 2; font-size: 17.5px; font-weight: 550; line-height: 1.4;
   color: var(--ink); text-decoration: none;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
 }
 :deep(.t:hover) { text-decoration: underline; }
 :deep(.pdf) {
-  grid-column: 3; grid-row: 2; justify-self: end; font-size: 11px; font-weight: 600;
+  grid-column: 3; grid-row: 2; justify-self: end; font-size: 13px; font-weight: 600;
   color: var(--ink); text-decoration: none; white-space: nowrap;
-  border: 1px solid var(--ink); border-radius: 6px; padding: 2px 8px;
+  border: 1px solid var(--ink); border-radius: 6px; padding: 3px 10px;
 }
 :deep(.pdf:hover) { background: var(--ink); color: #fff; }
-:deep(.by) { grid-column: 2; grid-row: 3; font-size: 13px; line-height: 1.55; color: var(--ink); }
+:deep(.by) { grid-column: 2; grid-row: 3; font-size: 15.5px; line-height: 1.55; color: var(--ink); }
 :deep(.w) { font-weight: 600; text-decoration: none; }
 :deep(.w:hover) { text-decoration: underline; }
 // the global `.v-application span a` house rule is blue !important with
@@ -760,7 +757,7 @@ export default { name: 'HomeV2Page' };
 :deep(.by .w-author.novice-link) { color: var(--w-author) !important; }
 :deep(.by .w-source.novice-link) { color: var(--w-source) !important; }
 :deep(.inl) {
-  font-size: 13px; line-height: 1; vertical-align: -0.5px; margin-right: 1px; display: inline-block;
+  font-size: 15.5px; line-height: 1; vertical-align: -0.5px; margin-right: 1px; display: inline-block;
 }
 
 // floating tooltip (mirrors App.vue TOOLTIP STYLES)
@@ -938,6 +935,8 @@ export default { name: 'HomeV2Page' };
   font-size: 50px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
   margin: 0; line-height: 1.1;
 }
+// first line dark grey, second line black (R17: a little visual interest)
+.openness-kicker { color: var(--muted); }
 .openness-copy p {
   font-size: 17px; line-height: 1.7; color: var(--muted); margin: 0 0 20px 0;
   &:last-child { margin-bottom: 0; }
@@ -982,15 +981,6 @@ export default { name: 'HomeV2Page' };
 }
 .access-icon { font-size: 18px; line-height: 1; color: var(--ink); }
 .access-card-title { font-size: 15px; font-weight: 600; color: var(--ink); margin: 0; }
-// difficulty dots: 1/2/3 filled = easy/med/hard; unfilled grey; house tooltip
-.difficulty-dots {
-  margin-left: auto; flex: none; display: inline-flex; gap: 4px; align-items: center;
-  cursor: default;
-}
-.dot { width: 6px; height: 6px; border-radius: 50%; background: #E0E0E3; }
-.level-easy .dot.filled { background: #14A056; }
-.level-med  .dot.filled { background: #D9A514; }
-.level-hard .dot.filled { background: #D14E42; }
 .access-card-body {
   padding: 0 16px; flex: 1; display: flex; flex-direction: column;
   p { font-size: 13.5px; line-height: 1.6; color: var(--muted); margin: 0; }
