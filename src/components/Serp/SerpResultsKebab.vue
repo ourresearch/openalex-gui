@@ -48,17 +48,6 @@
             </v-list-item>
           </v-list>
         </v-menu>
-
-        <!-- OQL LAUNCH (oxjob #464 Phase 3): per-device opt-out back to the
-             legacy interface. If we're on an `?oql=` URL the legacy SERP can't
-             run it, so hop to the query's flat OXURL form (or /works). -->
-        <v-divider class="my-1" />
-        <v-list-item @click="switchToLegacyUi">
-          <template #prepend>
-            <v-icon>mdi-arrow-u-left-top</v-icon>
-          </template>
-          <v-list-item-title>Use legacy interface</v-list-item-title>
-        </v-list-item>
       </v-list>
     </v-menu>
   </div>
@@ -67,7 +56,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 
 import { url } from '@/url';
 
@@ -75,21 +64,7 @@ defineOptions({ name: 'SerpResultsKebab' });
 
 const store = useStore();
 const route = useRoute();
-const router = useRouter();
 const isMenuOpen = ref(false);
-
-// OQL LAUNCH (oxjob #464 Phase 3): opt this device out to the legacy interface.
-// The legacy SERP can't execute `?oql=` URLs, so when we're on one, navigate to
-// the query's flat OXURL form (server-echoed in meta.x_query.url); a query with
-// no flat form falls back to the bare /works SERP.
-function switchToLegacyUi() {
-  const oxurl = store.state.resultsObject?.meta?.x_query?.url;
-  store.commit('setLegacyUi', true);
-  if (route.query.oql) {
-    router.push(oxurl || '/works');
-  }
-  store.commit('snackbar', 'Switched to the legacy interface');
-}
 
 // OQL mode (#464 Phase 2b; #661): page size is owned by the canonical query
 // store's client-side paging slice (POSTed as a sibling param beside the OQO),

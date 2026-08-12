@@ -98,11 +98,6 @@ const stateDefaults = function () {
         rateLimitData: null,
         rateLimitLastFetchedAt: null,
         featureFlags: {},
-        // OQL LAUNCH (oxjob #464 Phase 3, 2026-08-12): the `oql` flag is ON by
-        // default for everyone; this per-device opt-out restores the legacy
-        // interface (ExpertSerp + old landing search box, no OQL surfaces).
-        // Toggled from the SERP kebab menus; the featureFlags getter enforces it.
-        legacyUi: localStorage.getItem('oax.legacyUi') === '1',
         creditLimitDialogIsOpen: false,
     }
     return ret;
@@ -116,6 +111,10 @@ const clearPerUserStateOnLogout = (store) => {
     store.subscribe((mutation) => {
         if (mutation.type === 'user/logout') {
             store.commit('collections/clear');
+            // Per-user feature flags must not outlive the session — since
+            // #464 Phase 3b the `legacy_ui` flag forks the whole interface,
+            // so a stale copy would keep the legacy UI after logout.
+            store.commit('setFeatureFlags', []);
         }
     });
 };
@@ -255,10 +254,6 @@ export default createStore({
                 }
             } catch (e) { /* ignore parse errors */ }
             state.featureFlags = flags;
-        },
-        setLegacyUi(state, on) {
-            state.legacyUi = !!on;
-            localStorage.setItem('oax.legacyUi', on ? '1' : '0');
         },
     },
     actions: {
@@ -417,11 +412,12 @@ export default createStore({
         featureFlags(state) {
             const flags = { ...state.featureFlags };
             delete flags.noviceMode;
-            // OQL LAUNCH (oxjob #464 Phase 3): `oql` is on for everyone — anon
-            // included — unless this device opted into the legacy interface.
-            // The server-side per-user flag (the old 168-user beta) is no longer
-            // consulted for oql; other flags pass through untouched.
-            flags.oql = !state.legacyUi;
+            // OQL LAUNCH (oxjob #464 Phase 3/3b): `oql` is on for everyone —
+            // anon included — unless the account opted into the legacy
+            // interface via the `legacy_ui` Labs experiment (Settings -> Labs).
+            // The old per-user `oql` beta flag is no longer consulted, and the
+            // launch-day per-device localStorage opt-out is retired.
+            flags.oql = !flags.legacy_ui;
             return flags;
         },
     },
