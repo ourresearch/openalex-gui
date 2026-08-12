@@ -300,14 +300,14 @@ const LEVEL_NAMES = { easy: 'Easy', med: 'Medium', hard: 'Hard' };
 const LEVEL_FILL = { easy: 1, med: 2, hard: 3 };
 // card copy = Jason's 2026-08-03 wording (light spelling/punctuation polish)
 const accessMethods = [
-  { name: 'Website', icon: 'mdi-magnify', level: 'easy', cta: 'Try', body: 'Search and filter by topic, date, full-text availability, and more, then export what you find.', href: 'https://help.openalex.org/' },
-  { name: 'OQL', icon: 'mdi-code-braces', level: 'med', body: 'Use the OpenAlex Query Language (beta) to build and share complex queries. Great for systematic reviews.', href: 'https://help.openalex.org/' },
-  { name: 'API', icon: 'mdi-cogs', level: 'med', body: 'Built for builders: fast and well-documented, with a generous free tier and pay-as-you-go after that.', href: 'https://developers.openalex.org/' },
-  { name: 'CLI', icon: 'mdi-console', level: 'med', body: 'Query from your terminal and pipe the results into your own scripts. Agents love using it.', href: 'https://developers.openalex.org/' },
-  { name: 'Agents', icon: 'mdi-robot-outline', level: 'easy', body: 'Just say "Use OpenAlex" to your agent and it\'ll handle the rest. Install the CLI for even better results.', href: 'https://developers.openalex.org/' },
-  { name: 'Snapshot', icon: 'mdi-database-outline', level: 'hard', body: 'Download our entire dataset for free. Updated quarterly.', href: 'https://developers.openalex.org/download-all-data/openalex-snapshot' },
-  { name: 'Sync', icon: 'mdi-sync', level: 'hard', body: 'Keep your database up to date with daily changes, via AWS or API.', href: 'https://developers.openalex.org/download-all-data/openalex-snapshot' },
-  { name: 'Fulltext', icon: 'mdi-file-pdf-box', level: 'hard', body: 'Download 50M full-text PDFs with license info — and get new ones daily.', href: 'https://developers.openalex.org/' },
+  { name: 'Website', icon: 'mdi-magnify', level: 'easy', cta: 'Try', body: 'Search and filter by topic, date, full-text availability, and more, then export what you find.', href: 'https://help.openalex.org/access/website-basic/' },
+  { name: 'OQL', icon: 'mdi-code-braces', level: 'med', body: 'Use the OpenAlex Query Language (beta) to build and share complex queries. Great for systematic reviews.', href: 'https://help.openalex.org/access/oql/' },
+  { name: 'API', icon: 'mdi-cogs', level: 'med', body: 'Built for builders: fast and well-documented, with a generous free tier and pay-as-you-go after that.', href: 'https://help.openalex.org/api/' },
+  { name: 'CLI', icon: 'mdi-console', level: 'med', body: 'Query from your terminal and pipe the results into your own scripts. Agents love using it.', href: 'https://help.openalex.org/access/cli/' },
+  { name: 'Agents', icon: 'mdi-robot-outline', level: 'easy', body: 'Just say "Use OpenAlex" to your agent and it\'ll handle the rest. Install the CLI for even better results.', href: 'https://help.openalex.org/access/agents/' },
+  { name: 'Snapshot', icon: 'mdi-database-outline', level: 'hard', body: 'Download our entire dataset for free. Updated quarterly.', href: 'https://help.openalex.org/access/snapshot/' },
+  { name: 'Sync', icon: 'mdi-sync', level: 'hard', body: 'Keep your database up to date with daily changes, via AWS or API.', href: 'https://help.openalex.org/access/sync/' },
+  { name: 'Fulltext', icon: 'mdi-file-pdf-box', level: 'hard', body: 'Download 50M full-text PDFs with license info — and get new ones daily.', href: 'https://help.openalex.org/access/fulltext/' },
 ];
 
 // ---------------------------------------------------------------------------
