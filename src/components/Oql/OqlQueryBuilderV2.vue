@@ -712,6 +712,15 @@ const validation = ref(null);
 const rendering = ref(false);
 const seedError = ref(null);
 let lastEmittedOql = null;
+// True once THIS instance has emitted an execution (`update:oqo`). Gates the
+// props.oql watcher's lastExecutedOql echo-skip (#603 round 26): the store's
+// lastExecutedOql is written by syncFromResponse after EVERY execution — including
+// ones this builder never initiated (an inbound legacy GET, the legacy-interface
+// flip refetch) — so "incoming === lastExecutedOql" only means "our own projection
+// echo" if we actually ran something. Without this gate, a virgin builder mounting
+// beside an already-executed query swallowed its own first seed and stayed empty
+// (#464 Phase 3 launch nit: legacy→new switch on a ?filter= URL).
+let hasEmittedRun = false;
 
 const openFieldMenuId = ref(null);
 const fieldDialogOpen = ref(false);
@@ -1633,6 +1642,7 @@ const renderQuery = async ({ swap, commit = swap, nav = swap ? "push" : "replace
   // bare `works`); suppress until the user commits the new value (Enter/blur clears
   // `editing`), so the half-built state never runs.
   if (commit && !drafts.value.some((d) => d.editing)) {
+    hasEmittedRun = true;
     emit("update:oqo", { oqo, oql: renderedOql.value, nav });
   }
 };
@@ -3715,8 +3725,10 @@ watch(() => props.oql, async (next) => {
   // either/or second-alternative draft-wipe). Recognise the projection exactly the way
   // the SERP's own fetch skip-guard does (Serp.vue): by the canonical string the store
   // recorded when OUR execution settled. Nothing goes stale by skipping — the display
-  // already renders this same query.
-  if (incoming === (store.state.query && store.state.query.lastExecutedOql)) return;
+  // already renders this same query. Gated on hasEmittedRun: lastExecutedOql is also
+  // set by executions this builder never initiated (inbound legacy GET / the
+  // legacy-interface flip), and a virgin builder must adopt that seed, not skip it.
+  if (hasEmittedRun && incoming === (store.state.query && store.state.query.lastExecutedOql)) return;
   // An external query change (the SERP dice, a shared link, back/forward) reseeds
   // us. Invalidate any in-flight renderQuery NOW so its late-resolving dispatch
   // can't fire a stale `update:oql` for the PREVIOUS query — which the SERP's
