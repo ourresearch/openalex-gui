@@ -13,10 +13,12 @@
         </p>
         <div class="hero-search">
           <!-- hide-submit: no in-box magnifier; the Search CTA below drives it (#681).
-               placeholder-override: fixed copy, no count (avoids the xpac-count confusion) -->
-          <search-box v-if="oqlFlag" ref="searchBoxRef" single-row autofocus hide-submit
-                      placeholder-override="Search papers, datasets, and more" />
-          <search-box v-else ref="searchBoxRef" show-examples autofocus hide-submit
+               placeholder-override: fixed copy, no count (avoids the xpac-count confusion).
+               Always the new single-row bar — OQL launched for everyone (#464); the old
+               oqlFlag fork to the legacy two-row box was dropped 2026-08-12 (Jason).
+               Legacy-opt-out devices get this box too; its OQL probe self-gates on the
+               flag, so their submits still route to the legacy SERP form. -->
+          <search-box ref="searchBoxRef" single-row autofocus hide-submit
                       placeholder-override="Search papers, datasets, and more" />
         </div>
 
@@ -209,9 +211,6 @@ import { urlBase } from '@/apiConfig';
 
 const store = useStore();
 const goTo = useGoTo();
-
-// #598: flag-on landing renders the Basic-mode single-row bar.
-const oqlFlag = computed(() => !!store.getters.featureFlags['oql']);
 
 useHead({
   title: 'OpenAlex: The open catalog to the global research system',
