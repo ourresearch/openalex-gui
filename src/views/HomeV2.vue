@@ -651,8 +651,7 @@ export default { name: 'HomeV2Page' };
   font-size: 18px; line-height: 1.65; color: var(--muted);
   max-width: 520px; margin: 0 0 40px 0;
 }
-// ~80% of the former 600px so the box doesn't crowd toward the feed (Jason 2026-08-03)
-.hero-search { width: 100%; max-width: 480px; }
+.hero-search { width: 100%; max-width: 500px; } // widened 480→500 (R24)
 // Linear-style chrome on the landing search box (Jason 2026-08-03): tighter 8px
 // radius (was 16px — way too round) to match the CTA buttons, subtle 1px border.
 // Scoped to the hero so the SERP's SearchBox is unaffected.
