@@ -5,8 +5,7 @@ import {getEntityConfigs} from "@/entityConfigs";
 import * as openalexId from "@/openalexId";
 import {url} from "@/url";
 
-import HomePage from '@/views/Home.vue'
-import HomeV2Page from '@/views/HomeV2.vue'  // #681 landing revision — test route, overwrites / when done
+import HomeV2Page from '@/views/HomeV2.vue'  // #681 landing revision — SHIPPED to / 2026-08-12 (old page: views/Home.vue, unrouted)
 import SerpPage from '@/views/Serp.vue';
 import EntityPage from '@/views/EntityPage.vue';
 
@@ -88,15 +87,16 @@ const redirect = (path, url) => ({
 
 const routes = [
     {
+        // #681 landing-page revision, shipped 2026-08-12. Keeps name 'Home' so every
+        // {name:'Home'} redirect/link in the app still works.
         path: '/',
-        component: HomePage,
+        component: HomeV2Page,
         name: 'Home',
     },
     {
-        // #681 landing-page revision — build/preview here, overwrite '/' when done.
+        // legacy preview URL for the #681 build — shared internally, keep it working
         path: '/v2',
-        component: HomeV2Page,
-        name: 'HomeV2',
+        redirect: '/',
     },
     // data pages
     {
