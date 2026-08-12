@@ -272,15 +272,14 @@ const pdfsNum = ref('66 million');     // LIVE; fallback to a recent all-corpus 
 
 // Both stats use the ALL corpus (core + expansion), same scope as the FAQ
 // numbers — Jason's R20 ruling: corpus=all scope for every number on the page.
-// ⚠️ include_xpac=true is the REST syntax for "all" TODAY; #763 (in progress)
-// adds corpus=all — swap these (and the FAQ-2 links) after #763 ships, BEFORE
-// the landing-page launch (tracked in #681 PLAN next-actions).
+// (#763 shipped 2026-08-12: corpus=all is the first-class REST spelling; the
+// legacy include_xpac usages here were swapped per the #681 launch gate.)
 // works: all corpus -> ~517M
-axios.get(`${urlBase.api}/works?include_xpac=true&per-page=1&select=id&${MAILTO}`)
+axios.get(`${urlBase.api}/works?corpus=all&per-page=1&select=id&${MAILTO}`)
   .then(r => { const c = r.data?.meta?.count; if (c) worksNum.value = humanBig(c); })
   .catch(() => {});
 // PDFs: works with a downloadable PDF, all corpus -> ~66M
-axios.get(`${urlBase.api}/works?filter=has_content.pdf:true&include_xpac=true&per-page=1&select=id&${MAILTO}`)
+axios.get(`${urlBase.api}/works?filter=has_content.pdf:true&corpus=all&per-page=1&select=id&${MAILTO}`)
   .then(r => { const c = r.data?.meta?.count; if (c) pdfsNum.value = humanBig(c); })
   .catch(() => {});
 
@@ -317,8 +316,8 @@ function toggleFaq(index) { openFaq.value = openFaq.value === index ? null : ind
 // answers = Jason's 2026-08-12 copy (R18), light polish + fact-checked numbers.
 // FAQ-2 numbers all use the ALL corpus (R20 ruling), matching the stats stripe:
 // fulltext 65.7M / abstracts 272.7M / metadata-only 244.1M, each linking to the
-// search that shows that count. Re-check counts pre-ship. ⚠️ #763 note: swap
-// include_xpac=true -> corpus=all in these links after #763 ships, pre-launch.
+// search that shows that count. Re-check counts pre-ship. (#763 launch gate
+// cleared 2026-08-12: links use the first-class corpus=all spelling.)
 const faqs = [
   {
     question: "What's in OpenAlex?",
@@ -326,7 +325,7 @@ const faqs = [
   },
   {
     question: 'Do you have the full text, or just abstracts?',
-    answer: `We find and share whatever's legally open for each work. In round numbers, that means open-access full text for <a href="/works?filter=has_content.pdf:true&amp;include_xpac=true" target="_blank">65 million</a> works, abstracts for <a href="/works?filter=has_abstract:true&amp;include_xpac=true" target="_blank">275 million</a>, and just metadata for another <a href="/works?filter=has_abstract:false&amp;include_xpac=true" target="_blank">250 million</a>.`,
+    answer: `We find and share whatever's legally open for each work. In round numbers, that means open-access full text for <a href="/works?filter=has_content.pdf:true&amp;corpus=all" target="_blank">65 million</a> works, abstracts for <a href="/works?filter=has_abstract:true&amp;corpus=all" target="_blank">275 million</a>, and just metadata for another <a href="/works?filter=has_abstract:false&amp;corpus=all" target="_blank">250 million</a>.`,
   },
   {
     question: 'Where does your data come from?',
