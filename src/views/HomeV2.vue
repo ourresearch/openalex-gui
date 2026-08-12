@@ -310,28 +310,31 @@ const accessMethods = [
 // ---------------------------------------------------------------------------
 const openFaq = ref(null);
 function toggleFaq(index) { openFaq.value = openFaq.value === index ? null : index; }
-// answers are PLACEHOLDER lorem ipsum (Jason 2026-08-03: dropping the old copy, will
-// rewrite from scratch later; lengths kept close to the intended final answers).
+// answers = Jason's 2026-08-12 copy (R18), light polish + fact-checked numbers.
+// FAQ-2 numbers deliberately match what each linked search displays: fulltext =
+// core corpus (54.9M, same scope as the stats-stripe PDF number); abstracts +
+// metadata-only = xpac-inclusive (272.7M / 244.1M via include_xpac=true), which
+// also sums to the "half a billion" total. Re-check counts pre-ship.
 const faqs = [
   {
     question: "What's in OpenAlex?",
-    answer: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur, excepteur sint occaecat cupidatat non proident sunt in culpa.`,
+    answer: `OpenAlex starts with scholarly <b>works</b> — papers, books, preprints, datasets, and so forth. From there, we map the whole ecosystem around those works: authors, organizations, funders, and all the relationships between them. <a href="https://help.openalex.org/data/" target="_blank" rel="noopener">Learn more about our data</a>.`,
   },
   {
     question: 'Do you have the full text, or just abstracts?',
-    answer: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat.`,
+    answer: `We find and share whatever's legally open for each work. In round numbers, that means open-access full text for <a href="/works?filter=has_content.pdf:true" target="_blank">55 million</a> works, abstracts for <a href="/works?filter=has_abstract:true&amp;include_xpac=true" target="_blank">275 million</a>, and just metadata for another <a href="/works?filter=has_abstract:false&amp;include_xpac=true" target="_blank">250 million</a>.`,
   },
   {
     question: 'Where does your data come from?',
-    answer: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat quis.`,
+    answer: `Where <i>doesn't</i> it come from? We gather data from the major scholarly indexes — Crossref, DataCite, PubMed, DOAJ, and arXiv — and we also harvest directly from repositories like HAL and thousands more worldwide. Learn more about <a href="https://help.openalex.org/data/how-its-built/" target="_blank" rel="noopener">how we gather and organize the data</a>.`,
   },
   {
     question: "If it's open, why do you charge money?",
-    answer: `Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque ipsa. Quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo, nemo enim ipsam voluptatem.`,
+    answer: `The OpenAlex <i>dataset</i> is free; we charge for some <i>services</i> built on that data, so that we can keep the project sustainable. <a href="/pricing">Learn more about pricing</a>.`,
   },
   {
-    question: 'How is OpenAlex different from Scopus or Google Scholar?',
-    answer: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.`,
+    question: 'How is OpenAlex different from other scholarly databases?',
+    answer: `First, OpenAlex is intentionally comprehensive — in fact, with over half a billion work records, we're the most complete scholarly index ever. And second, OpenAlex is fully open data, meaning you can build on it, analyze it, and remix it all you want — and share as you like.`,
   },
 ];
 
