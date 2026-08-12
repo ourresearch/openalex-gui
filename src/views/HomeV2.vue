@@ -268,15 +268,20 @@ function humanBig(n, approx = false) {
   return p + n.toLocaleString();
 }
 
-const worksNum = ref('515 million');   // LIVE; fallback to a recent value
-const pdfsNum = ref('49 million');     // LIVE; fallback to a recent value
+const worksNum = ref('517 million');   // LIVE; fallback to a recent all-corpus value
+const pdfsNum = ref('66 million');     // LIVE; fallback to a recent all-corpus value
 
-// works: xpac-inclusive count (all works, not just core) -> ~515M
-axios.get(`${urlBase.api}/works?filter=is_xpac:true|false&per-page=1&select=id&${MAILTO}`)
+// Both stats use the ALL corpus (core + expansion), same scope as the FAQ
+// numbers — Jason's R20 ruling: corpus=all scope for every number on the page.
+// ⚠️ include_xpac=true is the REST syntax for "all" TODAY; #763 (in progress)
+// adds corpus=all — swap these (and the FAQ-2 links) after #763 ships, BEFORE
+// the landing-page launch (tracked in #681 PLAN next-actions).
+// works: all corpus -> ~517M
+axios.get(`${urlBase.api}/works?include_xpac=true&per-page=1&select=id&${MAILTO}`)
   .then(r => { const c = r.data?.meta?.count; if (c) worksNum.value = humanBig(c); })
   .catch(() => {});
-// PDFs: works with a downloadable PDF -> ~49M
-axios.get(`${urlBase.api}/works?filter=has_content.pdf:true&per-page=1&select=id&${MAILTO}`)
+// PDFs: works with a downloadable PDF, all corpus -> ~66M
+axios.get(`${urlBase.api}/works?filter=has_content.pdf:true&include_xpac=true&per-page=1&select=id&${MAILTO}`)
   .then(r => { const c = r.data?.meta?.count; if (c) pdfsNum.value = humanBig(c); })
   .catch(() => {});
 
@@ -311,10 +316,10 @@ const accessMethods = [
 const openFaq = ref(null);
 function toggleFaq(index) { openFaq.value = openFaq.value === index ? null : index; }
 // answers = Jason's 2026-08-12 copy (R18), light polish + fact-checked numbers.
-// FAQ-2 numbers deliberately match what each linked search displays: fulltext =
-// core corpus (54.9M, same scope as the stats-stripe PDF number); abstracts +
-// metadata-only = xpac-inclusive (272.7M / 244.1M via include_xpac=true), which
-// also sums to the "half a billion" total. Re-check counts pre-ship.
+// FAQ-2 numbers all use the ALL corpus (R20 ruling), matching the stats stripe:
+// fulltext 65.7M / abstracts 272.7M / metadata-only 244.1M, each linking to the
+// search that shows that count. Re-check counts pre-ship. ⚠️ #763 note: swap
+// include_xpac=true -> corpus=all in these links after #763 ships, pre-launch.
 const faqs = [
   {
     question: "What's in OpenAlex?",
@@ -322,7 +327,7 @@ const faqs = [
   },
   {
     question: 'Do you have the full text, or just abstracts?',
-    answer: `We find and share whatever's legally open for each work. In round numbers, that means open-access full text for <a href="/works?filter=has_content.pdf:true" target="_blank">55 million</a> works, abstracts for <a href="/works?filter=has_abstract:true&amp;include_xpac=true" target="_blank">275 million</a>, and just metadata for another <a href="/works?filter=has_abstract:false&amp;include_xpac=true" target="_blank">250 million</a>.`,
+    answer: `We find and share whatever's legally open for each work. In round numbers, that means open-access full text for <a href="/works?filter=has_content.pdf:true&amp;include_xpac=true" target="_blank">65 million</a> works, abstracts for <a href="/works?filter=has_abstract:true&amp;include_xpac=true" target="_blank">275 million</a>, and just metadata for another <a href="/works?filter=has_abstract:false&amp;include_xpac=true" target="_blank">250 million</a>.`,
   },
   {
     question: 'Where does your data come from?',
@@ -749,7 +754,7 @@ export default { name: 'HomeV2Page' };
 :deep(.lead) { grid-column: 1; grid-row: 2; padding-top: 2px; }
 :deep(.lead.mdi) { font-size: 19px; color: var(--ink); line-height: 1; }
 :deep(.t) {
-  grid-column: 2; grid-row: 2; font-size: 17.5px; font-weight: 500; line-height: 1.4;
+  grid-column: 2; grid-row: 2; font-size: 16px; font-weight: 400; line-height: 1.4;
   color: var(--ink); text-decoration: none;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
 }
@@ -760,7 +765,7 @@ export default { name: 'HomeV2Page' };
   border: 1px solid var(--ink); border-radius: 6px; padding: 3px 10px;
 }
 :deep(.pdf:hover) { background: var(--ink); color: #fff; }
-:deep(.by) { grid-column: 2; grid-row: 3; font-size: 15.5px; line-height: 1.55; color: var(--ink); }
+:deep(.by) { grid-column: 2; grid-row: 3; font-size: 14px; line-height: 1.55; color: var(--ink); }
 :deep(.w) { font-weight: 600; text-decoration: none; }
 :deep(.w:hover) { text-decoration: underline; }
 // the global `.v-application span a` house rule is blue !important with
@@ -768,7 +773,7 @@ export default { name: 'HomeV2Page' };
 :deep(.by .w-author.novice-link) { color: var(--w-author) !important; }
 :deep(.by .w-source.novice-link) { color: var(--w-source) !important; }
 :deep(.inl) {
-  font-size: 15.5px; line-height: 1; vertical-align: -0.5px; margin-right: 1px; display: inline-block;
+  font-size: 14px; line-height: 1; vertical-align: -0.5px; margin-right: 1px; display: inline-block;
 }
 
 // floating tooltip (mirrors App.vue TOOLTIP STYLES)
