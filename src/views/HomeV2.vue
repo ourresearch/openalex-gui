@@ -306,7 +306,7 @@ const accessMethods = [
   { name: 'Agents', icon: 'mdi-robot-outline', body: 'Just say "Use OpenAlex" to your agent and it\'ll handle the rest. Install the CLI for even better results.', href: 'https://help.openalex.org/access/agents/' },
   { name: 'Snapshot', icon: 'mdi-database-outline', body: 'Download our entire dataset for free. Updated quarterly.', href: 'https://help.openalex.org/access/snapshot/' },
   { name: 'Sync', icon: 'mdi-sync', body: 'Keep your database up to date with daily changes, via AWS or API.', href: 'https://help.openalex.org/access/sync/' },
-  { name: 'Fulltext', icon: 'mdi-file-pdf-box', body: 'Download 50M full-text PDFs with license info — and get new ones daily.', href: 'https://help.openalex.org/access/fulltext/' },
+  { name: 'Fulltext', icon: 'mdi-file-pdf-box', body: 'Download 65M full-text PDFs with license info — and get new ones daily.', href: 'https://help.openalex.org/access/fulltext/' },
 ];
 
 // ---------------------------------------------------------------------------
