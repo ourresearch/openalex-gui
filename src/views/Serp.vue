@@ -143,8 +143,12 @@ watch(
   // cited_by_count_sum) — those feed makeApiUrl, so toggling one must re-fetch even
   // though the group-by list no longer rides the URL (the store change alone wouldn't
   // move route.fullPath). Regular group-bys self-fetch per widget, so they're not here.
+  // OQL LAUNCH (#464 Phase 3): also key on the oql flag — the legacy-interface
+  // toggle flips it without moving the route, and the newly-forked SERP must
+  // fetch through its own path (e.g. a dead `/q?oql=` under legacy mode comes
+  // alive the moment the device switches back to the new interface).
   [() => route.fullPath, () => store.state.serpPageSize, () => store.state.serpTablePageSize,
-   () => url.groupByMoneySignature(route)],
+   () => url.groupByMoneySignature(route), () => oqlFlag.value],
   async () => {
     // Phase 2a self-projection skip-guard (#464): a store-driven OQL edit executes
     // via POST-OQO (the executionOqo watcher below), then projects the canonical
@@ -218,6 +222,15 @@ watch(
       store.state.resultsObject = null;
       resultsFilters.value = [];
       store.state.isLoading = false;
+      // OQL LAUNCH (#464 Phase 3): a device opted into the legacy interface
+      // can land on a shared `?oql=` link the legacy SERP can't run. Say so
+      // instead of rendering a silent dead SERP (the ⋮ menu has the way back).
+      if (route.query.oql && !oqlFlag.value) {
+        searchError.value =
+          'This link uses the new OpenAlex search interface, which is turned ' +
+          'off on this device. To view it, choose "Use new interface" from ' +
+          'the ⋮ menu.';
+      }
       return;
     }
 

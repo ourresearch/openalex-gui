@@ -98,6 +98,11 @@ const stateDefaults = function () {
         rateLimitData: null,
         rateLimitLastFetchedAt: null,
         featureFlags: {},
+        // OQL LAUNCH (oxjob #464 Phase 3, 2026-08-12): the `oql` flag is ON by
+        // default for everyone; this per-device opt-out restores the legacy
+        // interface (ExpertSerp + old landing search box, no OQL surfaces).
+        // Toggled from the SERP kebab menus; the featureFlags getter enforces it.
+        legacyUi: localStorage.getItem('oax.legacyUi') === '1',
         creditLimitDialogIsOpen: false,
     }
     return ret;
@@ -250,6 +255,10 @@ export default createStore({
                 }
             } catch (e) { /* ignore parse errors */ }
             state.featureFlags = flags;
+        },
+        setLegacyUi(state, on) {
+            state.legacyUi = !!on;
+            localStorage.setItem('oax.legacyUi', on ? '1' : '0');
         },
     },
     actions: {
@@ -408,6 +417,11 @@ export default createStore({
         featureFlags(state) {
             const flags = { ...state.featureFlags };
             delete flags.noviceMode;
+            // OQL LAUNCH (oxjob #464 Phase 3): `oql` is on for everyone — anon
+            // included — unless this device opted into the legacy interface.
+            // The server-side per-user flag (the old 168-user beta) is no longer
+            // consulted for oql; other flags pass through untouched.
+            flags.oql = !state.legacyUi;
             return flags;
         },
     },

@@ -155,6 +155,19 @@
             <v-list-item-title>{{ showOql ? 'Hide OQL' : 'Show OQL' }}</v-list-item-title>
           </v-list-item>
         </template>
+
+        <!-- OQL LAUNCH (oxjob #464 Phase 3): the legacy SERP renders only for
+             devices opted into legacy mode — offer the way back. NOT flag-gated
+             (in legacy mode the oql flag reads false by construction). -->
+        <template v-if="isLegacyUi">
+          <v-divider />
+          <v-list-item @click="switchToNewUi">
+            <template #prepend>
+              <v-icon>mdi-creation</v-icon>
+            </template>
+            <v-list-item-title>Use new interface</v-list-item-title>
+          </v-list-item>
+        </template>
       </v-list>
     </v-menu>
 
@@ -278,6 +291,14 @@ const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 const activeSearchObj = computed(() => store.getters['user/activeSearchObj']);
 const userId = computed(() => store.getters['user/userId']);
 const oqlFlag = computed(() => !!store.getters.featureFlags['oql']);
+
+// OQL LAUNCH (oxjob #464 Phase 3): switch this device back to the new (OQL)
+// interface. No navigation needed — the OQL SERP handles the current OXURL.
+const isLegacyUi = computed(() => !!store.state.legacyUi);
+function switchToNewUi() {
+  store.commit('setLegacyUi', false);
+  store.commit('snackbar', 'Switched to the new interface');
+}
 
 // Results count
 const formattedResultsCount = computed(() => {
