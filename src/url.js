@@ -713,6 +713,23 @@ const setSearch = function (entityType, searchString) {
 }
 
 
+// Corpus selection helpers (#763). The first-class `?corpus=core|expansion|all`
+// route param wins over the legacy `?include_xpac=true`; the two never ride to
+// the API together (it 400s the combination).
+const VALID_CORPUS_VALUES = ['core', 'expansion', 'all'];
+const corpusFromRouteQuery = function (query) {
+    const corpus = String(query?.corpus || '').toLowerCase();
+    return VALID_CORPUS_VALUES.includes(corpus) ? corpus : null;
+}
+// True when the route's corpus selection includes expansion (xpac) works —
+// via either vocabulary.
+const xpacIncludedInRoute = function (query) {
+    const corpus = corpusFromRouteQuery(query);
+    if (corpus) return corpus !== 'core';
+    return query?.include_xpac === 'true';
+}
+
+
 // Search param helpers
 const searchParamKeys = [
     'search', 'search.exact', 'search.semantic',
@@ -1167,7 +1184,9 @@ const makeAutocompleteUrl = function (entityId, searchString) {
     url.searchParams.set("q", searchString)
     url.searchParams.set("mailto", "ui@openalex.org")
     if (store.state.useV2) url.searchParams.set("data-version", "2")
-    if (router.currentRoute.value.query.include_xpac === 'true') url.searchParams.set("include_xpac", "true")
+    const acCorpus = corpusFromRouteQuery(router.currentRoute.value.query)
+    if (acCorpus) url.searchParams.set("corpus", acCorpus)
+    else if (router.currentRoute.value.query.include_xpac === 'true') url.searchParams.set("include_xpac", "true")
     return url.toString().replace("mailto=ui%40openalex.org", "mailto=ui@openalex.org")
 }
 
@@ -1196,8 +1215,12 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         query.cited_by_count_sum = activeGroupBys.includes("cited_by_count_sum")
     }
 
-    // Add include_xpac if present in URL
-    if (currentRoute.query.include_xpac === 'true') {
+    // Corpus selection (#763): corpus= wins; the legacy include_xpac only
+    // rides when corpus is absent (the API 400s the combination).
+    const corpus = corpusFromRouteQuery(currentRoute.query)
+    if (corpus) {
+        query.corpus = corpus
+    } else if (currentRoute.query.include_xpac === 'true') {
         query.include_xpac = 'true'
     }
 
@@ -1219,6 +1242,7 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         "apc_sum",
         "cited_by_count_sum",
         "include_xpac",
+        "corpus",
         ...searchParamKeys,
     ]
     const searchParams = new URLSearchParams()
@@ -1267,7 +1291,9 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
     if (options.formatCsv) url.searchParams.set("format", "csv");
     if (options.includeEmail) url.searchParams.set("mailto", "ui@openalex.org")
     if (store.state.useV2) url.searchParams.set("data-version", "2")
-    if (router.currentRoute.value.query.include_xpac === 'true') url.searchParams.set("include_xpac", "true")
+    const gbCorpus = corpusFromRouteQuery(router.currentRoute.value.query)
+    if (gbCorpus) url.searchParams.set("corpus", gbCorpus)
+    else if (router.currentRoute.value.query.include_xpac === 'true') url.searchParams.set("include_xpac", "true")
 
     // copy top-level search params from the current route so group-by results
     // match the same search as the main SERP query
@@ -1289,6 +1315,8 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
 const url = {
     pushToRoute,
     replaceToRoute,
+    corpusFromRouteQuery,
+    xpacIncludedInRoute,
     pushSearchUrlToRoute,
     addToQuery,
     oqlForUrl,

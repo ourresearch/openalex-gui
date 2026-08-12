@@ -567,14 +567,19 @@ const entityType = computed({
   },
 });
 
-// Xpac toggle (route query driven)
-const isXpacEnabled = computed(() => route.query.include_xpac === 'true');
+// Xpac toggle (route query driven). READS both corpus vocabularies (a
+// `?corpus=all|expansion` route shows as enabled, #763) but still WRITES the
+// legacy `?include_xpac=true` when enabling: the is_xpac facet workflow
+// (GroupBySidebar/ActionMenu/AddFilter gates) is only legal under the legacy
+// vocabulary — the API 400s a `filter=is_xpac:` on a `corpus=` route.
+// Migrating that whole workflow to the corpus vocabulary is follow-up work.
+const isXpacEnabled = computed(() => url.xpacIncludedInRoute(route.query));
 
 function toggleXpac() {
   const newQuery = { ...route.query };
-  if (isXpacEnabled.value) {
-    delete newQuery.include_xpac;
-  } else {
+  delete newQuery.include_xpac;
+  delete newQuery.corpus;
+  if (!isXpacEnabled.value) {
     newQuery.include_xpac = 'true';
   }
   url.pushToRoute(router, {

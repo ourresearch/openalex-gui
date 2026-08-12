@@ -518,9 +518,19 @@ async function startExport() {
     }
   }
 
-  // Include XPAC works if the parameter is set in the URL
-  if (route.query.include_xpac === 'true') {
+  // Corpus scope: the export service speaks the legacy controls, so translate
+  // a `?corpus=` route (#763) faithfully — all -> include_xpac alone;
+  // expansion -> include_xpac + is_xpac:true filter (the exact legacy recipe).
+  const exportCorpus = url.corpusFromRouteQuery(route.query);
+  if (exportCorpus === 'all' || route.query.include_xpac === 'true') {
     body.include_xpac = 'true';
+  } else if (exportCorpus === 'expansion') {
+    body.include_xpac = 'true';
+    if (body.filter) {
+      body.filter += ',is_xpac:true';
+    } else if (!body.oql) {
+      body.filter = 'is_xpac:true';
+    }
   }
 
   try {
