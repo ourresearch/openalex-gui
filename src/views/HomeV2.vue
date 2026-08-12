@@ -18,16 +18,8 @@
                oqlFlag fork to the legacy two-row box was dropped 2026-08-12 (Jason).
                Legacy-opt-out devices get this box too; its OQL probe self-gates on the
                flag, so their submits still route to the legacy SERP form. -->
-          <search-box ref="searchBoxRef" single-row autofocus hide-submit
+          <search-box single-row two-deck autofocus hide-submit
                       placeholder-override="Search papers, datasets, and more" />
-        </div>
-
-        <!-- primary Search + secondary Learn more CTAs; plain <button>s dodge the
-             global v-btn / .v-icon house rules. Search runs the box's submit()
-             (empty = show all works, same as the old magnifier). -->
-        <div class="hero-cta">
-          <button class="cta cta-primary" @click="runSearch">Search</button>
-          <button class="cta cta-secondary" @click="scrollToContent">Learn more</button>
         </div>
       </div>
 
@@ -43,6 +35,12 @@
         </div> -->
         <div class="feedport" ref="portRef"><div class="belt" ref="beltRef"></div></div>
       </div>
+
+      <!-- bottom-center Learn more (R22): ghost + down chevron, scrolls one screen.
+           Raw span.mdi (not v-icon) dodges the global 18px !important icon rule. -->
+      <button class="cta cta-secondary hero-learnmore" @click="scrollToContent">
+        Learn more <span class="mdi mdi-chevron-down"></span>
+      </button>
     </section>
 
     <!-- ===================== SOCIAL PROOF (#404 band, static grid per Jason 2026-08-03) ===================== -->
@@ -72,6 +70,10 @@
             We're a new kind of library for a new kind of research: we're the
             soil for the scholarly ecosystem.
           </p>
+          <!-- ghost CTA (R22) → help-center data reference -->
+          <a class="whatis-cta novice-link" href="https://help.openalex.org/data/" target="_blank" rel="noopener">
+            Learn about our data <span class="mdi mdi-arrow-right"></span>
+          </a>
         </div>
 
         <!-- #711 soil-core graphic. Markup + annot-css lifted near-verbatim from
@@ -123,7 +125,7 @@
     <!-- ===================== OPENNESS (headline left, copy right, no art) ===================== -->
     <section class="openness-section">
       <div class="openness-grid">
-        <h2 class="openness-title"><span class="openness-kicker">Driven by Mission,</span><br>Open for All</h2>
+        <h2 class="openness-title"><span class="openness-kicker">Driven by Mission,</span>Open for All</h2>
         <div class="openness-copy">
           <p>
             Ever since our start in an all-night hackathon, we've been obsessed with
@@ -221,11 +223,6 @@ import layerCake from '@/assets/landing/layer-cake.webp';
 
 function scrollToContent() { goTo('#content'); }
 
-// Search CTA — drives the SearchBox's exposed submit() (empty input shows all
-// works, same as the removed in-box magnifier).
-const searchBoxRef = ref(null);
-function runSearch() { searchBoxRef.value?.submit(); }
-
 // ---------------------------------------------------------------------------
 // Social-proof band — Linear-style: 8 logos, ONE static row, small (Jason
 // 2026-08-03, follows linear.app's homepage row). Picked from the #404
@@ -285,9 +282,9 @@ axios.get(`${urlBase.api}/works?filter=has_content.pdf:true&corpus=all&per-page=
 
 // card content = Jason's 2026-08-11 wording (R17); works + PDFs numbers stay live
 const stats = computed(() => [
-  { num: '5.8 billion', label: 'relationships', sub: 'Our graph connects papers to disambiguated authors, orgs, funders, and each other.' },
+  { num: '5.8 billion', label: 'relationships', sub: 'Our graph connects papers to each other and disambiguated authors, orgs, funders, and more.' },
   { num: '1.1 billion', label: 'API calls monthly', sub: 'Thousands of universities, governments, and businesses worldwide rely on our data.' },
-  { num: worksNum.value, label: 'work records', sub: 'Rich metadata for papers, books, datasets, theses, preprints, and more — updated daily.' },
+  { num: worksNum.value, label: 'work records', sub: 'Rich metadata for papers, books, datasets, theses, preprints, and more, updated daily.' },
   { num: pdfsNum.value, label: 'fulltext PDFs', sub: 'Open-access papers and preprints with license data for each.' },
 ]);
 
@@ -664,35 +661,32 @@ export default { name: 'HomeV2Page' };
   border-color: #E3E3E6;
 }
 
-// Primary "Search" + secondary "Learn more" CTAs under the box. Plain <button>s
-// so the global v-btn house rules don't touch them.
-.hero-cta {
-  display: flex; align-items: center; gap: 12px; margin-top: 20px;
-}
+// Ghost button (plain <button>/<a> so the global v-btn house rules don't touch it)
 .cta {
   font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
   // tighter 8px radius = Linear button shape (was 10px), matches the search box
   padding: 10px 24px; border-radius: 8px; line-height: 1;
   transition: background .12s ease, border-color .12s ease, color .12s ease;
 }
-.cta-primary {
-  background: var(--ink); color: #fff; border: 1.5px solid var(--ink);
-  &:hover { background: #000; }
-}
-// borderless ghost so it doesn't compete with the search box + primary button
-// (Jason 2026-08-03): text-only until hover reveals a soft rounded-rect bg
+// borderless ghost: text-only until hover reveals a soft rounded-rect bg
 .cta-secondary {
   background: transparent; color: var(--muted); border: 1.5px solid transparent;
   &:hover { color: var(--ink); background: rgba(0, 0, 0, .05); }
 }
+// bottom-center of the first screen (R22): Learn more + down chevron
+.hero-learnmore {
+  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 2px; z-index: 2;
+  .mdi { font-size: 18px; line-height: 1; }
+}
 
-// live feed — full above-the-fold height (Jason 2026-08-03): stretch to the
-// hero's viewport-height row instead of centering at a capped height
+// live feed — R22: 15vh of top+bottom padding shrinks the cascade so it no
+// longer runs the full viewport (was edge-to-edge; the bottom-center Learn
+// more needs the room, and the shorter column reads calmer)
 .hero-viz {
   display: flex; flex-direction: column; gap: 0;
-  // no top padding (Jason 2026-08-03): the cascade should read as coming straight
-  // from the very top of the viewport
   align-self: stretch;
+  padding: 15vh 0;
 }
 .added {
   font-size: 13px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
@@ -714,7 +708,8 @@ export default { name: 'HomeV2Page' };
 .feedport {
   // fills the stretched hero-viz below the ADDED TODAY bar (was min(66vh,560px))
   flex: 1; min-height: 0; overflow: hidden; position: relative;
-  // fade at BOTH ends (Jason 2026-08-04; zones widened 14% -> 24% in R17).
+  // fade at BOTH ends (Jason 2026-08-04; 24% in R17, back to 15% in R22 — the
+  // port is shorter now and full-ink text needs the room).
   // R19 PERF: was a mask-image on this container — that forced Chrome to
   // re-rasterize the entire masked column on EVERY frame of the belt's
   // translateY (constant high CPU; DevTools unusable). White gradient overlays
@@ -722,7 +717,7 @@ export default { name: 'HomeV2Page' };
   // animate on the compositor with no per-frame paint. Don't reintroduce a
   // mask (or any filter/opacity wrapper) around the moving belt.
   &::before, &::after {
-    content: ''; position: absolute; left: 0; right: 0; height: 24%;
+    content: ''; position: absolute; left: 0; right: 0; height: 15%;
     z-index: 1; pointer-events: none;
   }
   &::before { top: 0; background: linear-gradient(180deg, #fff, rgba(255,255,255,0)); }
@@ -875,6 +870,17 @@ export default { name: 'HomeV2Page' };
   &:last-child { margin-bottom: 0; }
   a { color: #2563EB; text-decoration: none; &:hover { text-decoration: underline; } }
 }
+// ghost CTA under the story grafs (R22) — house ghost style; negative left
+// margin keeps the label's left edge on the text column's edge at rest
+.whatis-cta {
+  display: inline-flex; align-items: center; gap: 6px; margin: 24px 0 0 -16px;
+  font-size: 15px; font-weight: 600; line-height: 1;
+  color: var(--muted); text-decoration: none;
+  padding: 10px 16px; border-radius: 8px;
+  transition: background .12s ease, color .12s ease;
+  .mdi { font-size: 16px; line-height: 1; }
+  &:hover { color: var(--ink); background: rgba(0, 0, 0, .05); }
+}
 
 // #711 graphic — art is tightly cropped (907x1378, no bleed); annot geometry is
 // px-tuned 1:1 to the cropped art's pixels. Overall size = --cake-scale alone.
@@ -949,8 +955,11 @@ export default { name: 'HomeV2Page' };
   font-size: 50px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
   margin: 0; line-height: 1.1;
 }
-// first line dark grey, second line black (R17: a little visual interest)
-.openness-kicker { color: var(--muted); }
+// first line: black but LIGHT (300) to set it off from the 700 second line
+// (R22, was muted grey); own block + 30px breathing room below (was cramped)
+.openness-kicker {
+  color: var(--ink); font-weight: 300; display: block; margin-bottom: 30px;
+}
 .openness-copy p {
   font-size: 17px; line-height: 1.7; color: var(--muted); margin: 0 0 20px 0;
   &:last-child { margin-bottom: 0; }

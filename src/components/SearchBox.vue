@@ -4,9 +4,11 @@
     :class="{ 'search-box--focused': isFocused, 'search-box--single': singleRow, 'search-box--borderless': borderless }"
     ref="searchBoxRef"
   >
-    <!-- Single-row variant (flag-on): [entity][query][xpac pill][⋮ kebab] -->
-    <div v-if="singleRow" class="search-row-single d-flex align-center">
-      <entity-selector-button class="ml-1" @entity-selected="focusSearchInput" />
+    <!-- Single-row variant (flag-on): [entity][query][xpac pill][⋮ kebab].
+         two-deck (#681 landing): same children re-laid on a grid — row 1 = bare
+         input, row 2 = entity selector left / pill + kebab + Search right. -->
+    <div v-if="singleRow" class="search-row-single" :class="twoDeck ? 'search-row-deck' : 'd-flex align-center'">
+      <entity-selector-button class="ml-1 entity-slot" @entity-selected="focusSearchInput" />
       <textarea
         ref="inputRef"
         v-model="searchString"
@@ -30,6 +32,7 @@
         icon
         variant="text"
         size="small"
+        class="clear-btn"
         aria-label="Clear search"
         @click="clearSearch"
       >
@@ -59,7 +62,7 @@
             icon
             variant="text"
             size="small"
-            class="control-btn"
+            class="control-btn kebab-slot"
             aria-label="Search options"
           >
             <v-icon size="20">mdi-dots-vertical</v-icon>
@@ -169,6 +172,9 @@
       >
         <v-icon size="20">mdi-magnify</v-icon>
       </v-btn>
+
+      <!-- two-deck submit (#681 landing): black in-box Search button, row 2 right -->
+      <button v-if="twoDeck" type="button" class="deck-submit" @click="clickSubmit">Search</button>
     </div>
 
     <!-- Row 1: Input + clear (two-row variant, flag-off) -->
@@ -376,6 +382,8 @@ const props = defineProps({
   // strategy/xpac) into the kebab and showing an xpac pill only when xpac is on.
   // Default false → today's two-row box (flag-off path) is byte-for-byte unchanged.
   singleRow: Boolean,
+  // #681 landing: lay the single-row children out as two decks (input over controls)
+  twoDeck: Boolean,
   // Embedded variant: drop the box's own border/radius/background so it can sit as
   // the (white) body of a host card — e.g. the SERP Basic-mode search card, where
   // the box is the card body and the filter chips are the card footer (#440 r3).
@@ -1154,6 +1162,34 @@ function focusSearchInput() {
 }
 .search-box--single .search-input {
   padding: 8px 10px;
+}
+/* Two-deck variant (#681 landing R22, Claude.ai-style): grid re-lays the shared
+   single-row children — row 1 is the bare input (+ clear), row 2 is entity
+   selector left, xpac pill / kebab / Search button right. */
+.search-row-deck {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  grid-template-areas:
+    "q q q q q"
+    "e . x k s";
+  align-items: center;
+  row-gap: 2px;
+  padding: 6px 8px 8px;
+}
+/* right padding clears the absolutely-positioned clear button */
+.search-row-deck .search-input { grid-area: q; width: 100%; padding: 10px 40px 6px 10px; }
+.search-row-deck .clear-btn { position: absolute; top: 9px; right: 10px; }
+.search-row-deck .entity-slot { grid-area: e; justify-self: start; }
+.search-row-deck .xpac-pill { grid-area: x; }
+.search-row-deck .kebab-slot { grid-area: k; }
+.deck-submit {
+  grid-area: s;
+  font: inherit; font-size: 14px; font-weight: 600; line-height: 1;
+  color: #fff; background: #1a1a1a;
+  border: 1px solid #000; border-radius: 8px; /* darker outline than the fill */
+  padding: 9px 18px; margin-left: 6px; cursor: pointer;
+  transition: background .12s ease;
+  &:hover { background: #000; }
 }
 /* Entity selector chip matches the filter chips' height (32px, v-chip
    size=default) — it rendered shorter than the chips below it (#440 r5). */
