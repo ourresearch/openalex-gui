@@ -326,7 +326,7 @@ const faqs = [
   },
   {
     question: 'Where does your data come from?',
-    answer: `Where <i>doesn't</i> it come from? We gather data from the major scholarly indexes — Crossref, DataCite, PubMed, DOAJ, and arXiv — and we also harvest directly from repositories like HAL and thousands more worldwide. Learn more about <a href="https://help.openalex.org/data/how-its-built/" target="_blank" rel="noopener">how we gather and organize the data</a>.`,
+    answer: `Where <i>doesn't</i> it come from? We gather data from indexes like Crossref, DataCite, DOAJ, ORCID, and ROR, and we harvest directly from repositories like arXiv, PubMed, and HAL — plus thousands more worldwide. Learn more about <a href="https://help.openalex.org/data/how-its-built/" target="_blank" rel="noopener">how we gather and organize the data</a>.`,
   },
   {
     question: "If it's open, why do you charge money?",
@@ -711,18 +711,26 @@ export default { name: 'HomeV2Page' };
 .feedport {
   // fills the stretched hero-viz below the ADDED TODAY bar (was min(66vh,560px))
   flex: 1; min-height: 0; overflow: hidden; position: relative;
-  // fade at BOTH ends (Jason 2026-08-04): rows fade in at the top too, rather than
-  // popping in at the viewport edge. Fade zones widened 14% -> 24% per end
-  // (R17: less full-ink content on screen, more of the belt in a faded state).
-  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 24%, #000 76%, transparent);
-          mask-image: linear-gradient(180deg, transparent 0, #000 24%, #000 76%, transparent);
+  // fade at BOTH ends (Jason 2026-08-04; zones widened 14% -> 24% in R17).
+  // R19 PERF: was a mask-image on this container — that forced Chrome to
+  // re-rasterize the entire masked column on EVERY frame of the belt's
+  // translateY (constant high CPU; DevTools unusable). White gradient overlays
+  // are visually identical on this white page, but leave the belt free to
+  // animate on the compositor with no per-frame paint. Don't reintroduce a
+  // mask (or any filter/opacity wrapper) around the moving belt.
+  &::before, &::after {
+    content: ''; position: absolute; left: 0; right: 0; height: 24%;
+    z-index: 1; pointer-events: none;
+  }
+  &::before { top: 0; background: linear-gradient(180deg, #fff, rgba(255,255,255,0)); }
+  &::after { bottom: 0; background: linear-gradient(0deg, #fff, rgba(255,255,255,0)); }
 }
 // belt MUST be absolutely positioned: the mount fill loop appends rows until
 // belt.offsetHeight >= port.offsetHeight + 60, and with the port flex-sized in
 // an auto-height column, an in-flow belt's height feeds back into the port's
 // size — the loop never terminates and the page hangs blank (R9 postmortem).
 // Taking the belt out of flow makes the port's height independent of its rows.
-.belt { position: absolute; top: 0; left: 0; width: 100%; }
+.belt { position: absolute; top: 0; left: 0; width: 100%; will-change: transform; }
 
 // feed row internals (imperative DOM -> :deep)
 // R17: everything scaled ~1.2x (Jason: feed felt overwhelming — bigger type,
@@ -741,7 +749,7 @@ export default { name: 'HomeV2Page' };
 :deep(.lead) { grid-column: 1; grid-row: 2; padding-top: 2px; }
 :deep(.lead.mdi) { font-size: 19px; color: var(--ink); line-height: 1; }
 :deep(.t) {
-  grid-column: 2; grid-row: 2; font-size: 17.5px; font-weight: 550; line-height: 1.4;
+  grid-column: 2; grid-row: 2; font-size: 17.5px; font-weight: 500; line-height: 1.4;
   color: var(--ink); text-decoration: none;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
 }
