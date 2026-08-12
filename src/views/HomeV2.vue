@@ -658,7 +658,7 @@ export default { name: 'HomeV2Page' };
 // Scoped to the hero so the SERP's SearchBox is unaffected.
 .hero-search :deep(.search-box) {
   border-radius: 8px;
-  border-color: #E3E3E6;
+  border-color: #333; // darker chrome on the two-deck box (R23, was #E3E3E6)
 }
 
 // Ghost button (plain <button>/<a> so the global v-btn house rules don't touch it)
@@ -748,7 +748,7 @@ export default { name: 'HomeV2Page' };
 :deep(.lead.mdi) { font-size: 19px; color: var(--ink); line-height: 1; }
 :deep(.t) {
   grid-column: 2; grid-row: 2; font-size: 16px; font-weight: 400; line-height: 1.4;
-  color: var(--ink); text-decoration: none;
+  color: #2563EB; text-decoration: none; // link-blue trial (R23) — was var(--ink)
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
 }
 :deep(.t:hover) { text-decoration: underline; }
@@ -958,7 +958,7 @@ export default { name: 'HomeV2Page' };
 // first line: black but LIGHT (300) to set it off from the 700 second line
 // (R22, was muted grey); own block + 30px breathing room below (was cramped)
 .openness-kicker {
-  color: var(--ink); font-weight: 300; display: block; margin-bottom: 30px;
+  color: var(--ink); font-weight: 300; display: block; margin-bottom: 15px;
 }
 .openness-copy p {
   font-size: 17px; line-height: 1.7; color: var(--muted); margin: 0 0 20px 0;
