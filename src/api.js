@@ -642,41 +642,6 @@ const api = (function () {
         return resp.data;
     }
 
-    const discoverWorks = async function(query, filters = {}, count = 25) {
-        // Vector search for semantically similar works
-        const params = new URLSearchParams({ query, count });
-        // Backend expects filter=key1:value1,key2:value2 format
-        const filterParts = Object.entries(filters)
-            .filter(([k, v]) => v != null && v !== '')
-            .map(([k, v]) => `${k}:${v}`);
-        if (filterParts.length > 0) {
-            params.set('filter', filterParts.join(','));
-        }
-        const url = `${urlBase.api}/discover/works?${params}`;
-        const resp = await axios.get(url, axiosConfig());
-        return resp.data;
-    }
-
-    const discoverWorksHealth = async function() {
-        // Check health of vector search endpoint
-        const url = `${urlBase.api}/discover/works/health`;
-        const resp = await axios.get(url, axiosConfig());
-        return resp.data;
-    }
-
-    const makeDiscoverWorksUrl = function(query, filters = {}, count = 25) {
-        // Build the URL for discoverWorks (useful for "View API" link)
-        const params = new URLSearchParams({ query, count });
-        // Backend expects filter=key1:value1,key2:value2 format
-        const filterParts = Object.entries(filters)
-            .filter(([k, v]) => v != null && v !== '')
-            .map(([k, v]) => `${k}:${v}`);
-        if (filterParts.length > 0) {
-            params.set('filter', filterParts.join(','));
-        }
-        return `${urlBase.api}/discover/works?${params}`;
-    }
-
     return {
         getEntityDisplayName,
         getFilterValueDisplayName,
@@ -701,9 +666,6 @@ const api = (function () {
         getQuery,
         executeOql,
         executeOqo,
-        discoverWorks,
-        discoverWorksHealth,
-        makeDiscoverWorksUrl,
     }
 })();
 

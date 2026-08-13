@@ -398,23 +398,26 @@ const routes = [
     {path: '/privacy', name: 'Privacy', component: () => import('@/views/Privacy.vue')},
     {path: '/terms', name: 'Terms', component: () => import('@/views/Terms.vue')},
     {path: '/brand', name: 'Brand', component: BrandPage},
-    // Query workbench: the OQL docs/reference. Lands on the Cheat sheet (the alpha
-    // on-ramp, oxjob #530); editing OQL happens in the SERP panel. The natural-language
-    // tools moved to their own /nl page (#630 Phase 2), so /query is OQL-only now.
-    {path: '/query', redirect: '/query/oql/cheatsheet'},
+    // The OQL doc pages that used to live under /query/oql/* (cheatsheet, guide, api,
+    // spec, grammar, schema) moved to the help center (oxjob #778; content migrated in
+    // #354/#750) — old links redirect to their help.openalex.org equivalents below.
+    // The one survivor is the Cases browser: its corpus was never migrated, and the
+    // help center links to it (access/oql, access/oql-spec).
     // The standalone Builder tab was REMOVED (oxjob #475): it was a second, divergent
     // copy of the SERP's OQL builder (it preserved value order while the real SERP path
     // alphabetized), which masked the reorder bug. The SERP advanced-mode builder is the
     // only one now — redirect any old `/query/oql/builder?oql=…` link there.
     {path: '/query/oql/builder', redirect: to => ({name: 'OqlQuery', query: {...to.query, mode: 'advanced'}})},
-    // The standalone OQL Editor page was REMOVED (oxjob #530): you now compose & run
-    // OQL in the SERP's "Show as OQL" panel + no-code builder. Send old links to the
-    // OQL home (Cheat sheet).
-    {path: '/query/oql/playground', redirect: '/query/oql/cheatsheet'},
-    // /query is OQL-only now; the path keeps the literal `oql` segment for link
-    // stability, but it's no longer a param (the NL axis moved to /nl).
-    {path: '/query/oql/:section(cheatsheet|cases|guide|api|spec|grammar|schema)', name: 'Query', component: OqlPlayground, props: true},
+    {path: '/query/oql/cases', name: 'Query', component: OqlPlayground},
     {path: '/query/oql/cases/:id', name: 'QueryOqlCase', component: () => import('@/components/OqlPlayground/PlaygroundCaseDetail.vue'), props: true},
+    redirect('/query', "https://help.openalex.org/access/oql"),
+    redirect('/query/oql/cheatsheet', "https://help.openalex.org/access/oql"),
+    redirect('/query/oql/guide', "https://help.openalex.org/access/oql"),
+    redirect('/query/oql/playground', "https://help.openalex.org/access/oql"),  // editor removed in #530; docs now in help center
+    redirect('/query/oql/api', "https://help.openalex.org/api/oql"),
+    redirect('/query/oql/spec', "https://help.openalex.org/access/oql-spec"),
+    redirect('/query/oql/grammar', "https://help.openalex.org/access/oql-spec"),
+    redirect('/query/oql/schema', "https://help.openalex.org/access/oqo-schema"),
     // Natural-language tools, now at their own top-level /nl page (#630 Phase 2).
     {path: '/nl', redirect: '/nl/cases'},
     {path: '/nl/:section(cases|annotate|playground)', name: 'Nl', component: NlWorkbench, props: true},
@@ -424,8 +427,8 @@ const routes = [
     {path: '/query/nl/annotate/:id', redirect: to => `/nl/annotate/${to.params.id}`},
     {path: '/query/nl/:section(cases|annotate|playground)', redirect: to => `/nl/${to.params.section}`},
     {path: '/query/nl', redirect: '/nl/cases'},
-    // Legacy /oql-playground paths → new /query structure.
-    {path: '/oql-playground', redirect: '/query/oql/cheatsheet'},
+    // Legacy /oql-playground paths.
+    redirect('/oql-playground', "https://help.openalex.org/access/oql"),
     {path: '/oql-playground/cases/:id', redirect: to => `/query/oql/cases/${to.params.id}`},
     {path: '/dev/pricing', name: 'Pricing', component: PricingPage},
     {path: '/dev/pricing-new', name: 'PricingNew', component: PricingPageNew},
@@ -455,10 +458,9 @@ const routes = [
     {path: '/stats', component: OurStats},
     {path: '/events', name: 'Events', component: () => import('@/views/Events.vue')},
     {path: '/events/funders2026', name: 'Funders2026', component: Funders2026Page},
-
-    // Vector search page
-    {path: '/discover', name: 'Discover', component: () => import('@/views/DiscoverPage.vue')},
-    {path: '/find', redirect: '/discover'},  // Legacy redirect
+    // /discover (vector search, né /find) DELETED in oxjob #778 (2026-08-13): its
+    // backing API (api.openalex.org/discover/works/*) was gone — the page had been
+    // silently broken in prod — and nothing linked to it.
 
     // Admin Pages
     {

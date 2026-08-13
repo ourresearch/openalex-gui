@@ -1,157 +1,47 @@
+<!--
+  ⚠️ ORPHAN PAGE (/query/oql/cases). Nothing in the app links here — the only way in
+  is from the help center, which links to this cases browser from its OQL pages
+  (help.openalex.org/access/oql and /access/oql-spec, "the worked-example corpus,
+  browsable"). All the other /query/oql/* doc sections (cheatsheet, guide, api, spec,
+  grammar, schema) were deleted in oxjob #778 — their content lives in the help
+  center now, and the old URLs redirect there (see router/index.js). This page
+  survives only because the cases corpus was never migrated. If it ever does migrate,
+  delete this view, PlaygroundCases.vue, PlaygroundCaseDetail.vue, and the two
+  /query/oql/cases routes — and update the help-center links.
+-->
 <template>
-  <div class="query-workbench">
-    <!-- Sidebar -->
-    <nav class="workbench-sidebar">
-      <div class="sidebar-head">
-        <div class="d-flex align-center">
-          <div class="text-h6">Query</div>
-          <v-chip color="amber-darken-2" variant="tonal" size="x-small" class="ml-2 alpha-chip">alpha</v-chip>
-        </div>
-        <div class="text-caption text-medium-emphasis">OpenAlex Query Language</div>
+  <div class="cases-page">
+    <div class="cases-head">
+      <div class="d-flex align-center">
+        <div class="text-h6">OQL Cases</div>
       </div>
-      <v-list density="compact" nav>
-        <v-list-item
-          v-for="page in sections"
-          :key="page.section"
-          :active="section === page.section"
-          :disabled="page.disabled"
-          @click="go(page.section, page.disabled)"
-        >
-          <template #prepend>
-            <v-icon :icon="page.icon" />
-          </template>
-          <v-list-item-title>{{ page.label }}</v-list-item-title>
-          <template #append>
-            <v-chip v-if="page.disabled" size="x-small" variant="tonal">soon</v-chip>
-          </template>
-        </v-list-item>
-      </v-list>
-    </nav>
-
-    <!-- Content -->
-    <main class="workbench-content">
-      <v-alert
-        type="info"
-        variant="tonal"
-        density="comfortable"
-        class="alpha-alert mb-6"
-        icon="mdi-flask-outline"
-      >
-        The OpenAlex Query Language is in <strong>alpha</strong>, expected to launch in summer
-        2026. It may change without warning — build against it at your own risk, and
-        <a href="mailto:support@openalex.org">tell us what you think</a>.
-      </v-alert>
-
-      <PlaygroundMarkdownDoc v-if="section === 'cheatsheet'" slug="cheatsheet" />
-      <PlaygroundCases v-else-if="section === 'cases'" />
-      <PlaygroundMarkdownDoc v-else-if="section === 'guide'" slug="guide" />
-      <PlaygroundMarkdownDoc v-else-if="section === 'api'" slug="api" />
-      <PlaygroundMarkdownDoc v-else-if="section === 'spec'" slug="oql" />
-      <PlaygroundGrammar v-else-if="section === 'grammar'" />
-      <PlaygroundOqoSchema v-else-if="section === 'schema'" />
-      <div v-else class="placeholder">
-        <v-icon size="48" color="grey-lighten-1">mdi-tools</v-icon>
-        <p class="text-body-1 mt-3">{{ activeLabel }} coming soon.</p>
+      <div class="text-caption text-medium-emphasis">
+        Worked examples for the OpenAlex Query Language — see the
+        <a href="https://help.openalex.org/access/oql">OQL docs</a> for the language itself.
       </div>
-    </main>
+    </div>
+    <PlaygroundCases />
   </div>
 </template>
 
 <script setup>
-import { computed } from "vue";
-import { useRouter } from "vue-router";
 import { useHead } from "@unhead/vue";
 import PlaygroundCases from "@/components/OqlPlayground/PlaygroundCases.vue";
-import PlaygroundMarkdownDoc from "@/components/OqlPlayground/PlaygroundMarkdownDoc.vue";
-import PlaygroundGrammar from "@/components/OqlPlayground/PlaygroundGrammar.vue";
-import PlaygroundOqoSchema from "@/components/OqlPlayground/PlaygroundOqoSchema.vue";
 
-defineOptions({ name: "QueryWorkbench" });
+defineOptions({ name: "OqlCasesPage" });
 
-// section ∈ {cheatsheet, cases, guide, api, spec, grammar, schema} — supplied as a
-// route param (validated by the route's regex constraint) so the URL is the source
-// of truth. The natural-language tools moved to their own /nl page, so the sidebar
-// is now a single flat OQL section list (no category header).
-const props = defineProps({
-  section: { type: String, required: true },
-});
-
-const router = useRouter();
-
-// The sidebar sections: user-facing docs first (Cheat sheet / Cases / Guide / API)
-// then the deeper reference pages (Spec / Grammar / OQO schema, #361 + #530).
-// Editing OQL itself happens in the SERP (the "Show as OQL" panel + no-code
-// builder), so there is no standalone editor page here (#530).
-const sections = [
-  { section: "cheatsheet", label: "Cheat sheet", icon: "mdi-card-text-outline", disabled: false },
-  { section: "cases", label: "Cases", icon: "mdi-table", disabled: false },
-  { section: "guide", label: "Guide", icon: "mdi-book-open-variant", disabled: false },
-  { section: "api", label: "API", icon: "mdi-api", disabled: false },
-  { section: "spec", label: "Spec", icon: "mdi-file-document-outline", disabled: false },
-  { section: "grammar", label: "Grammar", icon: "mdi-sitemap-outline", disabled: false },
-  { section: "schema", label: "OQO schema", icon: "mdi-code-json", disabled: false },
-];
-
-const activeLabel = computed(
-  () => sections.find((s) => s.section === props.section)?.label || "Query"
-);
-
-useHead({ title: computed(() => `${activeLabel.value} — Query`) });
-
-const go = (section, disabled) => {
-  if (disabled || section === props.section) return;
-  router.push({ name: "Query", params: { section } });
-};
+useHead({ title: "Cases — OQL" });
 </script>
 
 <style scoped>
-.query-workbench {
-  display: flex;
+.cases-page {
   min-height: calc(100vh - 64px);
-}
-.workbench-sidebar {
-  width: 220px;
-  flex-shrink: 0;
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
-  padding: 16px 8px;
-}
-.sidebar-head {
-  padding: 8px 12px 12px;
-}
-.alpha-chip {
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-.workbench-content {
-  flex: 1;
-  min-width: 0;
   padding: 24px 28px;
 }
-.alpha-alert {
-  max-width: 820px;
-  font-size: 0.9rem;
+.cases-head {
+  margin-bottom: 16px;
 }
-.alpha-alert :deep(a) {
+.cases-head a {
   color: inherit;
-  font-weight: 600;
-  text-decoration: underline;
-}
-.placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 60vh;
-  color: rgba(0, 0, 0, 0.5);
-}
-@media (max-width: 700px) {
-  .query-workbench {
-    flex-direction: column;
-  }
-  .workbench-sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  }
 }
 </style>
