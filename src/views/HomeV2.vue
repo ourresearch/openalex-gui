@@ -556,10 +556,15 @@ onMounted(() => {
 
   function scrollTick(now) {
     const dt = Math.min(now - lastT, 100) / 1000; lastT = now;
-    if (!paused && !document.hidden) {
+    // port.offsetHeight === 0 when the feed is hidden (<960px hides .hero-viz):
+    // both offsetHeights read 0, the refill condition below is then always true,
+    // and makeSlot never runs dry — an unguarded loop appends DOM forever and
+    // freezes the tab on phones. Skip the frame entirely while hidden.
+    if (!paused && !document.hidden && port.offsetHeight > 0) {
       y += SCROLL_BASE * speed * dt;   // scroll UP: new rows enter at the bottom
-      // keep content below the fold to scroll into
-      while (belt.offsetHeight - y < port.offsetHeight + 60) { const s = makeSlot(); if (!s) break; belt.appendChild(s); }
+      // keep content below the fold to scroll into (capped like the mount fill)
+      let guard = 0;
+      while (belt.offsetHeight - y < port.offsetHeight + 60 && guard++ < 200) { const s = makeSlot(); if (!s) break; belt.appendChild(s); }
       // drop rows scrolled off the top, compensating y so the rest holds still
       let first;
       while ((first = belt.firstElementChild) && first.offsetHeight <= y - 200) { y -= first.offsetHeight; belt.removeChild(first); }
