@@ -437,12 +437,13 @@ const routes = [
     {path: '/pricing/developers', redirect: '/pricing#subscriptions'},
     {path: '/pricing-newer', redirect: '/pricing'},
     {path: '/compare', name: 'Compare', component: () => import('@/views/ComingSoonPage.vue'), props: {title: 'Compare', blurb: "We're building a side-by-side look at how OpenAlex stacks up against other scholarly data sources. It's coming soon."}},
-    // Jobs page (oxjob #662): four-section pitch, stealth (noindex) until the listings launch.
+    // Jobs page (oxjob #662): coming-soon placeholder (footer-linked). The real pitch page
+    // is parked on the unlinked /jobs/draft until it's ready to launch.
     {path: '/jobs', name: 'Jobs', component: () => import('@/views/JobsPage.vue')},
     // "jobs is shorter and less pretentious, but there's a redirect from /careers to /jobs" (Jason)
     {path: '/careers', redirect: '/jobs'},
-    // Old iteration surface for this page; keep the URL working since it was shared for review.
-    {path: '/jobs/draft', redirect: '/jobs'},
+    // Unlinked draft of the full pitch page (the #675-driven rewrite): noindex, not announced.
+    {path: '/jobs/draft', name: 'JobsDraft', component: () => import('@/views/JobsDraftPage.vue')},
     // Community Lead listing (oxjob #662): stealth iteration surface — noindex, not yet linked from /jobs.
     {path: '/jobs/community-lead', name: 'JobsCommunityLead', component: () => import('@/views/JobsCommunityLeadPage.vue')},
     {path: '/institutional-supporters', name: 'InstitutionalSupporters', component: MembersPage},
