@@ -51,8 +51,23 @@
         </v-tooltip>
       </div>
 
-      <!-- Bottom section: credits + avatar/login -->
+      <!-- Bottom section: help + credits + avatar/login -->
       <div class="sidebar-bottom">
+        <v-tooltip location="right" text="Help" aria-label="Help">
+          <template #activator="{ props }">
+            <a
+              href="https://help.openalex.org"
+              target="_blank"
+              rel="noopener"
+              class="sidebar-icon-link"
+              v-bind="props"
+              aria-label="Help"
+            >
+              <v-icon class="sidebar-help-icon">mdi-help-circle-outline</v-icon>
+            </a>
+          </template>
+        </v-tooltip>
+
         <CreditIndicator
           v-if="userId && rateLimitData"
           :used-usd="rateLimitData.daily_used_usd"
@@ -64,8 +79,8 @@
 
         <v-tooltip v-else location="right" text="Log in" aria-label="Log in">
           <template #activator="{ props }">
-            <router-link to="/login" class="sidebar-icon-link" v-bind="props" aria-label="Log in">
-              <v-icon class="sidebar-login-icon">mdi-login</v-icon>
+            <router-link to="/login" class="sidebar-signin-btn" v-bind="props" aria-label="Log in">
+              <v-icon class="sidebar-signin-icon">mdi-login</v-icon>
             </router-link>
           </template>
         </v-tooltip>
@@ -176,8 +191,30 @@ function newSearch() {
   background-color: #F0F0F0 !important;
 }
 
-.sidebar-login-icon {
+.sidebar-help-icon {
   color: #555 !important;
+}
+
+/* Logged-out sign-in: accent-filled so it reads as "you can log in here",
+   not another anonymous grey glyph (oxjob #778, Decision 3). */
+.sidebar-signin-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: var(--ox-accent);
+  text-decoration: none !important;
+  transition: background-color 0.15s;
+}
+
+.sidebar-signin-btn:hover {
+  background-color: var(--ox-accent-hover);
+}
+
+.sidebar-signin-icon {
+  color: #fff !important;
 }
 
 .mobile-hamburger {

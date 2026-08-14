@@ -1,7 +1,7 @@
 <template>
-  <v-menu v-model="menuOpen" location="right" :close-on-content-click="false">
+  <v-menu v-model="menuOpen" :location="location" :close-on-content-click="false">
     <template #activator="{ props: menuProps }">
-      <v-tooltip location="right" text="Account" aria-label="Account">
+      <v-tooltip :location="tooltipLocation" text="Account" aria-label="Account">
         <template #activator="{ props: tooltipProps }">
           <div
             class="sidebar-avatar-btn"
@@ -110,8 +110,18 @@ import { useStore } from 'vuex';
 
 defineOptions({ name: 'AppSidebarUserMenu' });
 
+// 'right' in the 56px rail (its home); SiteTopBar passes 'bottom' (oxjob #778).
+const props = defineProps({
+  location: {
+    type: String,
+    default: 'right',
+  },
+});
+
 const store = useStore();
 const menuOpen = ref(false);
+
+const tooltipLocation = computed(() => (props.location === 'right' ? 'right' : 'bottom'));
 
 const userId = computed(() => store.getters['user/userId']);
 const userName = computed(() => store.getters['user/userName']);

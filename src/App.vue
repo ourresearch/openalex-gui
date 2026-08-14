@@ -10,14 +10,23 @@
       :style="{ position: 'fixed', top: progressBarOffset, left: 0, width: '100%', zIndex: 9999 }"
       v-if="globalIsLoading"
     />
-    <!-- Alice: sidebar instead of app bar -->
-    <app-sidebar />
+    <!-- Contextual chrome (oxjob #778): site pages get the marketing top bar +
+         fat footer; app pages get the rail; auth pages get neither (just a
+         logo over the centered card). `chrome` is null until the router has
+         resolved the first route, so neither chrome flashes on load. -->
+    <site-top-bar v-if="chrome === 'site'" :top-offset="progressBarOffset" />
+    <app-sidebar v-if="chrome === 'app'" />
+    <div v-if="chrome === 'bare'" class="bare-chrome-logo">
+      <router-link to="/" aria-label="OpenAlex home">
+        <img src="/brand-assets/openalex-lockup.png" alt="OpenAlex" />
+      </router-link>
+    </div>
 
     <v-main class="ma-0 pb-0">
       <div class="router-view-container">
         <router-view></router-view>
       </div>
-      <site-footer/>
+      <site-footer v-if="chrome === 'site'" />
     </v-main>
 
     <entity-drawer />
@@ -53,29 +62,27 @@
 defineOptions({ name: 'App' });
 
 import { ref, computed, onMounted, onBeforeMount, getCurrentInstance } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify';
 import { useHead } from '@unhead/vue';
 import axios from 'axios';
 
-import UserToolbarMenu from '@/components/User/UserToolbarMenu.vue';
 import SavedSearchRenameDialog from '@/components/SavedSearch/SavedSearchRenameDialog.vue';
 import SavedSearchEditAlertDialog from '@/components/SavedSearch/SavedSearchEditAlertDialog.vue';
 import CreditLimitDialog from '@/components/CreditLimitDialog.vue';
 import SiteFooter from './components/SiteFooter.vue';
 
-import SearchBox from '@/components/SearchBox.vue';
 import EntityDrawer from '@/components/Entity/EntityDrawer.vue';
-import EntityTypeSelector from '@/components/EntityTypeSelector.vue';
-import WaldenToggle from '@/components/WaldenToggle.vue';
 import ImpersonationBanner from '@/components/ImpersonationBanner.vue';
 import ThrottleBanner from '@/components/ThrottleBanner.vue';
 import VerifyEmailBanner from '@/components/VerifyEmailBanner.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
+import SiteTopBar from '@/components/SiteTopBar.vue';
 
 const store = useStore();
 const router = useRouter();
+const route = useRoute();
 
 const { mobile, smAndDown } = useDisplay();
 
@@ -102,6 +109,13 @@ const progressBarOffset = computed(() => {
   return count === 0 ? '0' : `${count * 28}px`;
 });
 
+
+// Which chrome this page gets (oxjob #778). Null until the first route has
+// resolved (route.matched is empty at boot) so we don't flash the wrong chrome.
+const chrome = computed(() => {
+  if (route.matched.length === 0) return null;
+  return route.meta.chrome ?? 'app';
+});
 
 const homeRoute = computed(() => {
   const route = { name: 'Home' };
@@ -226,6 +240,18 @@ $color-0: hsl(212, 77%, 82%);
 }
 .router-view-container > :first-child {
   flex: 1 0 auto;
+}
+/* Auth pages (chrome: 'bare'): just a logo floated over the centered card. */
+.bare-chrome-logo {
+  position: absolute;
+  top: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  img {
+    height: 28px;
+    display: block;
+  }
 }
 .color-3 {
   background-color: $color-3 !important;

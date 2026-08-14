@@ -85,6 +85,10 @@ const redirect = (path, url) => ({
     }
 });
 
+// Contextual chrome (oxjob #778): `meta.chrome` picks the page's chrome in App.vue.
+//   'site' — marketing/read-about-us pages: SiteTopBar + SiteFooter, no rail
+//   'bare' — auth pages: centered card only, no chrome
+//   (unset) — defaults to 'app': the rail, no top bar, no footer
 const routes = [
     {
         // #681 landing-page revision, shipped 2026-08-12. Keeps name 'Home' so every
@@ -92,6 +96,7 @@ const routes = [
         path: '/',
         component: HomeV2Page,
         name: 'Home',
+        meta: {chrome: 'site'},
     },
     {
         // legacy preview URL for the #681 build — shared internally, keep it working
@@ -179,10 +184,10 @@ const routes = [
     },
 
     // user pages and routes
-    {path: '/signup', name: 'Signup', component: SignupPage},
-    {path: '/login', name: 'Login', component: LoginPage},
-    {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
-    {path: '/verify-email', name: 'VerifyEmail', component: UserVerifyEmail},
+    {path: '/signup', name: 'Signup', component: SignupPage, meta: {chrome: 'bare'}},
+    {path: '/login', name: 'Login', component: LoginPage, meta: {chrome: 'bare'}},
+    {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken, meta: {chrome: 'bare'}},
+    {path: '/verify-email', name: 'VerifyEmail', component: UserVerifyEmail, meta: {chrome: 'bare'}},
     // Legacy route - redirect old password reset links to login
     {path: '/reset-password', redirect: { name: 'Login' }},
 
@@ -376,7 +381,7 @@ const routes = [
 
     // CAB nominee confirm/decline landing page — target of the links in the
     // cab_nominee_confirmation email. Public: the emailed token is the auth.
-    {path: '/cab/confirm', name: 'CabNominationConfirm', component: () => import('@/views/CabNominationConfirm.vue')},
+    {path: '/cab/confirm', name: 'CabNominationConfirm', component: () => import('@/views/CabNominationConfirm.vue'), meta: {chrome: 'site'}},
 
     // Collection detail page (owner + admin only since QA-040). Backend pattern
     // is `col_<10-char-base58>` (oxjob #228 QA-042 / migration 047). Constrain
@@ -390,14 +395,14 @@ const routes = [
     {path: '/repositories/:sourceId', name: 'RepositoryDashboard', component: () => import('@/views/Repositories/RepositoryDashboard.vue'), props: true},
 
     // static pages
-    {path: '/about', name: 'About', component: AboutPage},
+    {path: '/about', name: 'About', component: AboutPage, meta: {chrome: 'site'}},
     {path: '/projects', redirect: {name: "About"}},  // help.openalex.org "About us" links here (zd#8351)
-    {path: '/team', name: 'Team', component: TeamPage},
+    {path: '/team', name: 'Team', component: TeamPage, meta: {chrome: 'site'}},
     {path: '/transparency', redirect: {name: "About"}},  // transparency payload folded into /about (#685)
     {path: '/legal', redirect: '/terms'},
-    {path: '/privacy', name: 'Privacy', component: () => import('@/views/Privacy.vue')},
-    {path: '/terms', name: 'Terms', component: () => import('@/views/Terms.vue')},
-    {path: '/brand', name: 'Brand', component: BrandPage},
+    {path: '/privacy', name: 'Privacy', component: () => import('@/views/Privacy.vue'), meta: {chrome: 'site'}},
+    {path: '/terms', name: 'Terms', component: () => import('@/views/Terms.vue'), meta: {chrome: 'site'}},
+    {path: '/brand', name: 'Brand', component: BrandPage, meta: {chrome: 'site'}},
     // The OQL doc pages that used to live under /query/oql/* (cheatsheet, guide, api,
     // spec, grammar, schema) moved to the help center (oxjob #778; content migrated in
     // #354/#750) — old links redirect to their help.openalex.org equivalents below.
@@ -430,35 +435,35 @@ const routes = [
     // Legacy /oql-playground paths.
     redirect('/oql-playground', "https://help.openalex.org/access/oql"),
     {path: '/oql-playground/cases/:id', redirect: to => `/query/oql/cases/${to.params.id}`},
-    {path: '/dev/pricing', name: 'Pricing', component: PricingPage},
-    {path: '/dev/pricing-new', name: 'PricingNew', component: PricingPageNew},
-    {path: '/pricing', name: 'PricingNewer', component: () => import('@/views/PricingPageNewer.vue')},
+    {path: '/dev/pricing', name: 'Pricing', component: PricingPage, meta: {chrome: 'site'}},
+    {path: '/dev/pricing-new', name: 'PricingNew', component: PricingPageNew, meta: {chrome: 'site'}},
+    {path: '/pricing', name: 'PricingNewer', component: () => import('@/views/PricingPageNewer.vue'), meta: {chrome: 'site'}},
     {path: '/pricing/institutions', redirect: '/pricing#subscriptions'},
     {path: '/pricing/developers', redirect: '/pricing#subscriptions'},
     {path: '/pricing-newer', redirect: '/pricing'},
-    {path: '/compare', name: 'Compare', component: () => import('@/views/ComingSoonPage.vue'), props: {title: 'Compare', blurb: "We're building a side-by-side look at how OpenAlex stacks up against other scholarly data sources. It's coming soon."}},
+    {path: '/compare', name: 'Compare', component: () => import('@/views/ComingSoonPage.vue'), meta: {chrome: 'site'}, props: {title: 'Compare', blurb: "We're building a side-by-side look at how OpenAlex stacks up against other scholarly data sources. It's coming soon."}},
     // Jobs page (oxjob #662): coming-soon placeholder (footer-linked). The real pitch page
     // is parked on the unlinked /jobs/draft until it's ready to launch.
-    {path: '/jobs', name: 'Jobs', component: () => import('@/views/JobsPage.vue')},
+    {path: '/jobs', name: 'Jobs', component: () => import('@/views/JobsPage.vue'), meta: {chrome: 'site'}},
     // "jobs is shorter and less pretentious, but there's a redirect from /careers to /jobs" (Jason)
     {path: '/careers', redirect: '/jobs'},
     // Unlinked draft of the full pitch page (the #675-driven rewrite): noindex, not announced.
-    {path: '/jobs/draft', name: 'JobsDraft', component: () => import('@/views/JobsDraftPage.vue')},
+    {path: '/jobs/draft', name: 'JobsDraft', component: () => import('@/views/JobsDraftPage.vue'), meta: {chrome: 'site'}},
     // Community Lead listing (oxjob #662): stealth iteration surface — noindex, not yet linked from /jobs.
-    {path: '/jobs/community-lead', name: 'JobsCommunityLead', component: () => import('@/views/JobsCommunityLeadPage.vue')},
-    {path: '/institutional-supporters', name: 'InstitutionalSupporters', component: MembersPage},
+    {path: '/jobs/community-lead', name: 'JobsCommunityLead', component: () => import('@/views/JobsCommunityLeadPage.vue'), meta: {chrome: 'site'}},
+    {path: '/institutional-supporters', name: 'InstitutionalSupporters', component: MembersPage, meta: {chrome: 'site'}},
     {path: '/members', redirect: '/institutional-supporters'},
     {path: '/pricing-new', redirect: '/pricing'},
     {path: '/pricing-new/institutions', redirect: '/pricing#subscriptions'},
     {path: '/pricing-new/developers', redirect: '/pricing#subscriptions'},
     {path: '/policies', redirect: '/terms'},
-    {path: '/accessibility', name: 'Accessibility', component: () => import('@/views/Accessibility.vue')},
+    {path: '/accessibility', name: 'Accessibility', component: () => import('@/views/Accessibility.vue'), meta: {chrome: 'site'}},
     {path: '/users', redirect: {name: "testimonials"}},
-    {path: '/testimonials', name: "testimonials", component: TestimonialsPage},
-    {path: '/works-citing-openalex', name: "works-citing-openalex", component: WorksCitingOpenAlex},
-    {path: '/stats', component: OurStats},
-    {path: '/events', name: 'Events', component: () => import('@/views/Events.vue')},
-    {path: '/events/funders2026', name: 'Funders2026', component: Funders2026Page},
+    {path: '/testimonials', name: "testimonials", component: TestimonialsPage, meta: {chrome: 'site'}},
+    {path: '/works-citing-openalex', name: "works-citing-openalex", component: WorksCitingOpenAlex, meta: {chrome: 'site'}},
+    {path: '/stats', component: OurStats, meta: {chrome: 'site'}},
+    {path: '/events', name: 'Events', component: () => import('@/views/Events.vue'), meta: {chrome: 'site'}},
+    {path: '/events/funders2026', name: 'Funders2026', component: Funders2026Page, meta: {chrome: 'site'}},
     // /discover (vector search, né /find) DELETED in oxjob #778 (2026-08-13): its
     // backing API (api.openalex.org/discover/works/*) was gone — the page had been
     // silently broken in prod — and nothing linked to it.
@@ -602,7 +607,7 @@ const routes = [
     // Resources
     redirect('/webinars/api-notebook-01', "https://github.com/ourresearch/openalex-api-tutorials/blob/main/notebooks/getting-started/api-webinar-apr2024/tutorial01.ipynb"),
     
-    {path: '/:pathMatch(.*)*', name: "PageNotFound", component: PageNotFound},
+    {path: '/:pathMatch(.*)*', name: "PageNotFound", component: PageNotFound, meta: {chrome: 'site'}},
 ];
 
 
