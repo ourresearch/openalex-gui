@@ -12,11 +12,59 @@
         />
       </router-link>
 
+      <!-- Round 3 (oxjob #778): Product · Pricing · Help · About. No top-level
+           API link — API lives inside BOTH dropdowns (intentional un-ship of
+           the r1 link; don't "restore" it). -->
       <nav class="top-bar-nav" aria-label="Site">
-        <router-link to="/about" class="top-bar-link">About</router-link>
+        <site-top-bar-dropdown
+          label="Product"
+          :open="openDropdown === 'product'"
+          @open="openDropdown = 'product'"
+          @close="closeDropdown('product')"
+        >
+          <div class="mega-grid-product">
+            <component
+              :is="item.to ? 'router-link' : 'a'"
+              v-for="item in siteNavProduct"
+              :key="item.name"
+              class="mega-item mega-link"
+              v-bind="item.to ? { to: item.to } : { href: item.href, target: '_blank', rel: 'noopener' }"
+            >
+              <span class="mega-item-icon">
+                <v-icon>{{ item.icon }}</v-icon>
+              </span>
+              <span class="mega-item-text">
+                <span class="mega-item-name">{{ item.name }}</span>
+                <span class="mega-item-desc">{{ item.desc }}</span>
+              </span>
+            </component>
+          </div>
+        </site-top-bar-dropdown>
+
         <router-link to="/pricing" class="top-bar-link">Pricing</router-link>
-        <a href="https://help.openalex.org" target="_blank" rel="noopener" class="top-bar-link">Help</a>
-        <a href="https://help.openalex.org/api/" target="_blank" rel="noopener" class="top-bar-link">API</a>
+
+        <site-top-bar-dropdown
+          label="Help"
+          :open="openDropdown === 'help'"
+          @open="openDropdown = 'help'"
+          @close="closeDropdown('help')"
+        >
+          <div class="mega-grid-help">
+            <div v-for="col in siteNavHelp" :key="col.label" class="mega-help-col">
+              <div class="mega-col-label">{{ col.label }}</div>
+              <a
+                v-for="link in col.links"
+                :key="link.name"
+                class="mega-help-link mega-link"
+                :href="link.href"
+                target="_blank"
+                rel="noopener"
+              >{{ link.name }}</a>
+            </div>
+          </div>
+        </site-top-bar-dropdown>
+
+        <router-link to="/about" class="top-bar-link">About</router-link>
       </nav>
 
       <div class="top-bar-right">
@@ -35,7 +83,7 @@
           <v-btn color="primary" variant="flat" to="/signup">Get started</v-btn>
         </template>
 
-        <v-menu location="bottom end">
+        <v-menu v-model="mobileMenuOpen" location="bottom end" :close-on-content-click="false">
           <template #activator="{ props }">
             <v-btn
               icon
@@ -47,20 +95,59 @@
               <v-icon>mdi-menu</v-icon>
             </v-btn>
           </template>
-          <v-list>
-            <v-list-item to="/about"><v-list-item-title>About</v-list-item-title></v-list-item>
-            <v-list-item to="/pricing"><v-list-item-title>Pricing</v-list-item-title></v-list-item>
-            <v-list-item href="https://help.openalex.org" target="_blank" rel="noopener">
-              <v-list-item-title>Help</v-list-item-title>
+          <!-- opened is controlled: without it Vuetify auto-opens any group
+               containing the active route (Product holds "/" so it would
+               start expanded on the landing page). -->
+          <v-list v-model:opened="mobileOpenGroups" class="mobile-site-menu" density="compact">
+            <v-list-group value="product">
+              <template #activator="{ props }">
+                <v-list-item v-bind="props"><v-list-item-title>Product</v-list-item-title></v-list-item>
+              </template>
+              <!-- Internal links use plain href here (full page load): a
+                   router-link child that matches the active route makes
+                   Vuetify auto-open the group at mount, defeating the
+                   compact-menu default. -->
+              <v-list-item
+                v-for="item in siteNavProduct"
+                :key="item.name"
+                v-bind="item.to ? { href: item.to } : { href: item.href, target: '_blank', rel: 'noopener' }"
+                @click="mobileMenuOpen = false"
+              >
+                <template #prepend><v-icon class="mobile-item-icon">{{ item.icon }}</v-icon></template>
+                <v-list-item-title>{{ item.name }}</v-list-item-title>
+              </v-list-item>
+            </v-list-group>
+            <v-list-item to="/pricing" @click="mobileMenuOpen = false">
+              <v-list-item-title>Pricing</v-list-item-title>
             </v-list-item>
-            <v-list-item href="https://help.openalex.org/api/" target="_blank" rel="noopener">
-              <v-list-item-title>API</v-list-item-title>
+            <v-list-group value="help">
+              <template #activator="{ props }">
+                <v-list-item v-bind="props"><v-list-item-title>Help</v-list-item-title></v-list-item>
+              </template>
+              <template v-for="col in siteNavHelp" :key="col.label">
+                <v-list-subheader class="mobile-col-label">{{ col.label }}</v-list-subheader>
+                <v-list-item
+                  v-for="link in col.links"
+                  :key="link.name"
+                  :href="link.href"
+                  target="_blank"
+                  rel="noopener"
+                  @click="mobileMenuOpen = false"
+                >
+                  <v-list-item-title>{{ link.name }}</v-list-item-title>
+                </v-list-item>
+              </template>
+            </v-list-group>
+            <v-list-item to="/about" @click="mobileMenuOpen = false">
+              <v-list-item-title>About</v-list-item-title>
             </v-list-item>
             <v-divider class="my-1" />
-            <v-list-item v-if="showLoggedIn" :to="{name: 'Serp', params: {entityType: 'works'}}">
+            <v-list-item v-if="showLoggedIn" :to="{name: 'Serp', params: {entityType: 'works'}}" @click="mobileMenuOpen = false">
               <v-list-item-title>Open app</v-list-item-title>
             </v-list-item>
-            <v-list-item v-else to="/login"><v-list-item-title>Log in</v-list-item-title></v-list-item>
+            <v-list-item v-else to="/login" @click="mobileMenuOpen = false">
+              <v-list-item-title>Log in</v-list-item-title>
+            </v-list-item>
           </v-list>
         </v-menu>
       </div>
@@ -69,9 +156,12 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
 import AppSidebarUserMenu from '@/components/AppSidebarUserMenu.vue';
+import SiteTopBarDropdown from '@/components/SiteTopBarDropdown.vue';
+import { siteNavProduct, siteNavHelp } from '@/navConfigs';
 
 defineOptions({ name: 'SiteTopBar' });
 
@@ -85,6 +175,7 @@ const props = defineProps({
 });
 
 const store = useStore();
+const route = useRoute();
 
 const userId = computed(() => store.getters['user/userId']);
 
@@ -92,6 +183,26 @@ const userId = computed(() => store.getters['user/userId']);
 // object has been fetched, and user/logout removes it. Depending on userId in
 // the same computed keeps this reactive across login/logout transitions.
 const showLoggedIn = computed(() => !!userId.value || !!localStorage.getItem('token'));
+
+// 'product' | 'help' | null — parent-owned so only one panel is open and
+// hovering between triggers switches instantly.
+const openDropdown = ref(null);
+const mobileMenuOpen = ref(false);
+const mobileOpenGroups = ref([]);
+
+function closeDropdown(which) {
+  if (openDropdown.value === which) openDropdown.value = null;
+}
+
+watch(() => route.fullPath, () => {
+  openDropdown.value = null;
+  mobileMenuOpen.value = false;
+});
+
+// Fresh compact menu each time it closes (accordions collapsed on reopen).
+watch(mobileMenuOpen, (open) => {
+  if (!open) mobileOpenGroups.value = [];
+});
 </script>
 
 <style scoped lang="scss">
@@ -138,6 +249,7 @@ const showLoggedIn = computed(() => !!userId.value || !!localStorage.getItem('to
 .top-bar-nav {
   display: flex;
   align-items: center;
+  align-self: stretch;
   gap: 8px;
 }
 
@@ -147,6 +259,107 @@ const showLoggedIn = computed(() => !!userId.value || !!localStorage.getItem('to
   font-size: 14px;
   font-weight: 500;
   transition: background-color 0.15s;
+
+  &:hover {
+    background-color: var(--ox-bg-muted);
+  }
+}
+
+/* ---- Mega-dropdown panel contents (slotted into SiteTopBarDropdown; slot
+        content compiles in this component's scope) ---- */
+
+.mega-grid-product {
+  display: grid;
+  /* Column-major 2×4 so the table reads down each column, comps-style. */
+  grid-template-rows: repeat(4, auto);
+  grid-auto-flow: column;
+  grid-auto-columns: 300px;
+  gap: 2px;
+}
+
+.mega-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--ox-radius-md);
+  transition: background-color var(--ox-duration-fast) var(--ox-ease-default);
+
+  &:hover {
+    background-color: var(--ox-bg-muted);
+  }
+}
+
+.mega-item-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-top: 1px;
+  border-radius: var(--ox-radius-md);
+  background-color: var(--ox-bg-muted);
+  border: 1px solid var(--ox-border-subtle);
+  transition: background-color var(--ox-duration-fast) var(--ox-ease-default);
+
+  .v-icon {
+    color: var(--ox-text-secondary);
+  }
+}
+
+.mega-item:hover .mega-item-icon {
+  background-color: var(--ox-bg-base);
+}
+
+.mega-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.mega-item-name {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--ox-text-primary);
+}
+
+.mega-item-desc {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 17px;
+  color: var(--ox-text-tertiary);
+}
+
+.mega-grid-help {
+  display: flex;
+  gap: var(--ox-space-2);
+}
+
+.mega-help-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 160px;
+}
+
+.mega-col-label {
+  padding: 6px 12px 4px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ox-text-muted);
+}
+
+.mega-help-link {
+  padding: 7px 12px;
+  border-radius: var(--ox-radius-sm);
+  font-size: 14px;
+  font-weight: 400;
+  transition: background-color var(--ox-duration-fast) var(--ox-ease-default);
 
   &:hover {
     background-color: var(--ox-bg-muted);
@@ -166,6 +379,20 @@ const showLoggedIn = computed(() => !!userId.value || !!localStorage.getItem('to
 
 .avatar-placeholder {
   cursor: default;
+}
+
+.mobile-item-icon {
+  margin-inline-end: 12px;
+  color: var(--ox-text-tertiary);
+}
+
+@media (max-width: 1000px) {
+  /* Narrow viewports (>700px, so no hamburger yet): single-column Product
+     panel so it can't overflow the right edge of the viewport. */
+  .mega-grid-product {
+    grid-template-rows: repeat(8, auto);
+    grid-auto-columns: 300px;
+  }
 }
 
 @media (max-width: 700px) {
@@ -196,5 +423,29 @@ const showLoggedIn = computed(() => !!userId.value || !!localStorage.getItem('to
   &:hover {
     color: #1a1a1a !important;
   }
+}
+
+/* Same b=7 recipe for every anchor inside the mega panels. The color has to
+   live HERE (not in the scoped rules — the !important would beat them):
+   help links read secondary→primary on hover; product items' name/desc spans
+   carry their own colors, so the anchor color is inert there. */
+.v-application .site-top-bar a.mega-link.mega-link.mega-link.mega-link.mega-link {
+  color: var(--ox-text-secondary) !important;
+  text-decoration: none !important;
+
+  &:hover {
+    color: var(--ox-text-primary) !important;
+  }
+}
+
+/* Mobile site menu: subtle column labels inside the Help accordion. */
+.mobile-site-menu .mobile-col-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ox-text-muted);
+  min-height: 28px;
+  padding-inline-start: 24px !important;
 }
 </style>

@@ -123,6 +123,87 @@ const navConfigs = [
 ]
 
 
+// ---------------------------------------------------------------------------
+// Site top bar mega-dropdowns (oxjob #778 round 3).
+//
+// Product rows mirror the help center's own curated "Products" section:
+// https://help.openalex.org/access/overview/ — the "Best for" descriptions are
+// copied verbatim from that page; if it changes, update these to match.
+// Static on purpose (no fetch). "Website" points at this site's own root, not
+// a help page.
+// ---------------------------------------------------------------------------
+const siteNavProduct = [
+    {
+        name: "Website",
+        desc: "Exploring, one-off questions, exporting result lists",
+        to: "/",
+        icon: "mdi-magnify",
+    },
+    {
+        name: "Agents",
+        desc: "Letting your AI agent query OpenAlex for you",
+        href: "https://help.openalex.org/access/agents/",
+        icon: "mdi-robot-outline",
+    },
+    {
+        name: "API",
+        desc: "Apps, scripts, and analyses that need live data",
+        href: "https://help.openalex.org/api/",
+        icon: "mdi-code-braces",
+    },
+    {
+        name: "CLI",
+        desc: "Bulk downloads from your terminal, with retries and resume built in",
+        href: "https://help.openalex.org/access/cli/",
+        icon: "mdi-console",
+    },
+    {
+        name: "Snapshot",
+        desc: "Your own copy of the entire database, updated quarterly",
+        href: "https://help.openalex.org/access/snapshot/",
+        icon: "mdi-database-outline",
+    },
+    {
+        name: "Sync",
+        desc: "Keeping your copy fresh with daily updates",
+        href: "https://help.openalex.org/access/sync/",
+        icon: "mdi-autorenew",
+    },
+    {
+        name: "Fulltext",
+        desc: "Full-text PDFs and TEI XML, per-file or the whole archive",
+        href: "https://help.openalex.org/access/fulltext/",
+        icon: "mdi-file-document-outline",
+    },
+    {
+        name: "Unpaywall",
+        desc: "Legacy Unpaywall integrations and OA lookups by DOI",
+        href: "https://help.openalex.org/access/unpaywall/",
+        icon: "mdi-lock-open-outline",
+    },
+]
+
+// Help dropdown columns mirror help.openalex.org's top tabs (Learn / Reference).
+const siteNavHelp = [
+    {
+        label: "Learn",
+        links: [
+            { name: "Quickstart", href: "https://help.openalex.org/quickstart/" },
+            { name: "How-to", href: "https://help.openalex.org/how-to/" },
+            { name: "Tutorials", href: "https://help.openalex.org/tutorials/" },
+        ],
+    },
+    {
+        label: "Reference",
+        links: [
+            { name: "Data", href: "https://help.openalex.org/data/" },
+            { name: "API", href: "https://help.openalex.org/api/" },
+            { name: "Access", href: "https://help.openalex.org/access/" },
+        ],
+    },
+]
+
+
 import ccZeroIcon from "@/assets/cc-zero.svg"
 
 // Plain text + logo marks, not links (Jason 2026-07-30)
@@ -145,4 +226,6 @@ const trustBadges = [
 export {
     navConfigs,
     trustBadges,
+    siteNavProduct,
+    siteNavHelp,
 }
