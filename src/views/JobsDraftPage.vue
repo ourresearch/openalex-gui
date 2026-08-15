@@ -56,7 +56,45 @@
     </static-section>
 
     <static-section id="who-were-looking-for" title="Who we're looking for">
-      <p class="section-body"><em>Draft in progress &mdash; this section is coming.</em></p>
+      <p class="section-body">
+        One trait, above everything: people who are
+        <a href="https://paulgraham.com/relres.html" target="_blank" rel="noopener noreferrer">relentlessly resourceful</a>.
+      </p>
+      <p class="section-body">
+        We measure results, not effort, and the bar here is delivering more in a
+        week than most people can. You don't clear that bar by grinding; you clear
+        it by figuring out which part of the job actually matters and doing only
+        that. By finding the clever hack. By
+        <a href="https://en.wikipedia.org/wiki/Gordian_Knot" target="_blank" rel="noopener noreferrer">cutting the knot</a>
+        instead of untying it. By
+        <a href="https://en.wikipedia.org/wiki/Kobayashi_Maru" target="_blank" rel="noopener noreferrer">redefining the rules of the game</a>.
+        And by knowing where the 20% of effort lives that gets 80% of the results &mdash;
+        then calling it
+        <a href="https://medium.com/@bre/the-cult-of-done-manifesto-724ca1c2ff13" target="_blank" rel="noopener noreferrer">done</a>
+        and moving on, instead of polishing. Perfectionists are miserable here. So
+        are people who love process.
+      </p>
+      <p class="section-body">
+        We're all-in on AI &mdash; not because it's AI, but because it compounds what we
+        can get done for the mission: about 10x so far, and climbing. Most of what
+        we do all day is manage AI agents. We don't care how the work gets done,
+        only that it solves the problem &mdash; and that you understand it deeply. That
+        goes for your application, too.
+      </p>
+      <p class="section-body">
+        So here's who thrives at OpenAlex: high-agency people who teach themselves,
+        manage themselves, and are energized rather than rattled by fast, high-stakes,
+        public work. And here's who doesn't: people who need a settled roadmap, a
+        structured ladder, or a room full of colleagues to do their best work. There's
+        no shame in the second list &mdash; most great people are on it. But if you're
+        squarely on the first, this might be the best job you ever have.
+      </p>
+    </static-section>
+
+    <static-section id="open-positions" title="Open positions">
+      <p class="section-body">
+        We're hiring for two roles &mdash; postings and applications land right here soon.
+      </p>
     </static-section>
   </static-page>
 </template>
@@ -81,5 +119,6 @@ const sections = [
   { id: 'what-rocks', label: 'What rocks about this job' },
   { id: 'whats-hard', label: "What's hard about this job" },
   { id: 'who-were-looking-for', label: "Who we're looking for" },
+  { id: 'open-positions', label: 'Open positions' },
 ];
 </script>
