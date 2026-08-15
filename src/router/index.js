@@ -15,9 +15,7 @@ import UserMagicToken from '@/components/User/UserMagicToken.vue';
 import UserVerifyEmail from '@/components/User/UserVerifyEmail.vue';
 
 import AboutPage from '@/views/About.vue';
-import OurStats from '@/views/OurStats.vue';
 import TestimonialsPage from "@/views/Testimonials.vue";
-import WorksCitingOpenAlex from "@/views/WorksCitingOpenAlex.vue";
 import TeamPage from "@/views/Team.vue";
 import BrandPage from "@/views/Brand.vue";
 import OqlPlayground from "@/views/OqlPlayground.vue";
@@ -460,8 +458,8 @@ const routes = [
     {path: '/accessibility', name: 'Accessibility', component: () => import('@/views/Accessibility.vue'), meta: {chrome: 'site'}},
     {path: '/users', redirect: {name: "testimonials"}},
     {path: '/testimonials', name: "testimonials", component: TestimonialsPage, meta: {chrome: 'site'}},
-    {path: '/works-citing-openalex', name: "works-citing-openalex", component: WorksCitingOpenAlex, meta: {chrome: 'site'}},
-    {path: '/stats', component: OurStats, meta: {chrome: 'site'}},
+    // /stats + /works-citing-openalex DELETED in oxjob #778 review (2026-08-15):
+    // orphan pages Jason chose to remove rather than link from the footer.
     {path: '/events', name: 'Events', component: () => import('@/views/Events.vue'), meta: {chrome: 'site'}},
     {path: '/events/funders2026', name: 'Funders2026', component: Funders2026Page, meta: {chrome: 'site'}},
     // /discover (vector search, né /find) DELETED in oxjob #778 (2026-08-13): its

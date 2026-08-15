@@ -10,10 +10,11 @@
       :style="{ position: 'fixed', top: progressBarOffset, left: 0, width: '100%', zIndex: 9999 }"
       v-if="globalIsLoading"
     />
-    <!-- Contextual chrome (oxjob #778): site pages get the marketing top bar +
-         fat footer; app pages get the rail; auth pages get neither (just a
-         logo over the centered card). `chrome` is null until the router has
-         resolved the first route, so neither chrome flashes on load. -->
+    <!-- Contextual chrome (oxjob #778): site pages get the marketing top bar;
+         app pages get the rail; auth pages get neither (just a logo over the
+         centered card). The fat footer renders on ALL pages. `chrome` is null
+         until the router has resolved the first route, so neither chrome
+         flashes on load. -->
     <site-top-bar v-if="chrome === 'site'" :top-offset="progressBarOffset" />
     <app-sidebar v-if="chrome === 'app'" />
     <div v-if="chrome === 'bare'" class="bare-chrome-logo">
@@ -26,7 +27,10 @@
       <div class="router-view-container">
         <router-view></router-view>
       </div>
-      <site-footer v-if="chrome === 'site'" />
+      <!-- The footer is on EVERY page, all chromes — Jason's call in the #778
+           review (2026-08-15), overturning the site-chrome-only default. Only
+           gated on `chrome` being resolved to avoid a first-paint flash. -->
+      <site-footer v-if="chrome" />
     </v-main>
 
     <entity-drawer />

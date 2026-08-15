@@ -18,33 +18,29 @@
     </template>
 
     <v-card min-width="240">
+      <!-- No avatar here: the user just clicked their avatar to open this. -->
       <div class="menu-header pa-3">
-        <div class="d-flex align-center">
-          <v-avatar size="28" :color="avatarColor" class="mr-2">
-            <span class="text-white" style="font-size: 12px; font-weight: 500;">{{ userInitial }}</span>
-          </v-avatar>
-          <div>
-            <div class="d-flex align-center">
-              <span class="font-weight-bold" style="font-size: 14px;">{{ userName }}</span>
-              <v-chip
-                v-if="isAdmin"
-                size="x-small"
-                variant="tonal"
-                class="ml-2"
-              >
-                Site admin
-              </v-chip>
-              <v-chip
-                v-else-if="isSiteCurator"
-                size="x-small"
-                variant="tonal"
-                class="ml-2"
-              >
-                Site curator
-              </v-chip>
-            </div>
-            <div style="font-size: 12px; color: #6B7280;">{{ userEmail }}</div>
+        <div>
+          <div class="d-flex align-center">
+            <span class="font-weight-bold" style="font-size: 14px;">{{ userName }}</span>
+            <v-chip
+              v-if="isAdmin"
+              size="x-small"
+              variant="tonal"
+              class="ml-2"
+            >
+              Site admin
+            </v-chip>
+            <v-chip
+              v-else-if="isSiteCurator"
+              size="x-small"
+              variant="tonal"
+              class="ml-2"
+            >
+              Site curator
+            </v-chip>
           </div>
+          <div style="font-size: 12px; color: #6B7280;">{{ userEmail }}</div>
         </div>
       </div>
 
@@ -61,10 +57,6 @@
           <v-list-item-title>Help center</v-list-item-title>
         </v-list-item>
 
-        <v-list-item href="https://developers.openalex.org/" target="_blank" prepend-icon="mdi-code-tags" @click="menuOpen = false">
-          <v-list-item-title>Developer center</v-list-item-title>
-        </v-list-item>
-
         <v-menu location="right" open-on-hover :close-on-content-click="false">
           <template #activator="{ props: subMenuProps }">
             <v-list-item v-bind="subMenuProps" prepend-icon="mdi-information-outline">
@@ -76,13 +68,16 @@
           </template>
           <v-list density="compact">
             <v-list-item to="/about" @click="menuOpen = false">
-              <v-list-item-title>About OpenAlex</v-list-item-title>
+              <v-list-item-title>About us</v-list-item-title>
             </v-list-item>
             <v-list-item to="/pricing" @click="menuOpen = false">
               <v-list-item-title>Pricing</v-list-item-title>
             </v-list-item>
-            <v-list-item to="/terms" @click="menuOpen = false">
-              <v-list-item-title>Terms and policies</v-list-item-title>
+            <v-list-item href="https://help.openalex.org/data/" target="_blank" @click="menuOpen = false">
+              <v-list-item-title>Data reference</v-list-item-title>
+            </v-list-item>
+            <v-list-item href="https://help.openalex.org/api/" target="_blank" @click="menuOpen = false">
+              <v-list-item-title>API</v-list-item-title>
             </v-list-item>
           </v-list>
         </v-menu>

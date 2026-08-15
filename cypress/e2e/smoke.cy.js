@@ -88,11 +88,6 @@ describe('OpenAlex loads', () => {
     cy.contains('Top works');
   });
 
-  it('Stats page loads', () => {
-    cy.visit('/stats');
-    cy.contains('Data Stats');
-    cy.contains(/\d{3}M/);
-  });
 
   it('About page loads', () => {
     cy.visit('/about');

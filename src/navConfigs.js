@@ -11,10 +11,6 @@ const navConfigs = [
                 to: "/compare",
             },
             {
-                name: "Stats",
-                to: "/stats",
-            },
-            {
                 name: "Pricing",
                 to: "/pricing",
             },
@@ -104,10 +100,6 @@ const navConfigs = [
             {
                 name: "Supporters",
                 to: "/institutional-supporters",
-            },
-            {
-                name: "Works citing OpenAlex",
-                to: "/works-citing-openalex",
             },
         ],
     },
