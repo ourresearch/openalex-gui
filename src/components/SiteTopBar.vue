@@ -1,4 +1,7 @@
 <template>
+  <!-- Spacer keeps page content out from under the fixed bar (same 56px the
+       bar occupied when it was in-flow, so page geometry is unchanged). -->
+  <div class="site-top-bar-spacer" aria-hidden="true" />
   <header class="site-top-bar" :style="{ top: topOffset }">
     <div class="site-top-bar-inner">
       <router-link to="/" class="top-bar-logo-link" aria-label="OpenAlex home">
@@ -93,20 +96,32 @@ const showLoggedIn = computed(() => !!userId.value || !!localStorage.getItem('to
 
 <style scoped lang="scss">
 .site-top-bar {
-  position: sticky;
+  /* Fixed, not sticky — sticky silently never pinned inside the Vuetify
+     layout (Jason review r2, 2026-08-15; comps pin theirs too). */
+  position: fixed;
+  left: 0;
+  right: 0;
   z-index: 1004;
   background-color: #fff;
   border-bottom: 0.5px solid rgba(0, 0, 0, 0.12);
+}
+
+.site-top-bar-spacer {
+  height: 56px;
+  flex-shrink: 0;
 }
 
 .site-top-bar-inner {
   display: flex;
   align-items: center;
   gap: 32px;
-  max-width: 1200px;
+  /* Match the landing hero container EXACTLY (HomeV2 .hero: 1280px + 40px
+     padding) so the logo's left edge lines up with the headline's left edge
+     and the avatar/CTA right edge with the content's right edge (review r2). */
+  max-width: 1280px;
   margin: 0 auto;
   height: 56px;
-  padding: 0 24px;
+  padding: 0 40px;
 }
 
 .top-bar-logo-link {

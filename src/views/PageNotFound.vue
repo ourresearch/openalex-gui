@@ -7,7 +7,7 @@
       </div>
       <h1 class="nf-title">Page not found</h1>
       <p class="nf-lead">
-        We index over 300&nbsp;million scholarly works — but this page
+        We index half a billion scholarly works — but this page
         isn&rsquo;t one of them. It may have moved, or the link may be broken.
       </p>
       <div class="nf-actions">
