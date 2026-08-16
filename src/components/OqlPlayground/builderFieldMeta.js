@@ -23,6 +23,7 @@
 // bridge the dialog's select path uses, so the two pickers can never diverge.
 
 import { facetsByCategory } from "@/facetConfigUtils";
+import { onCatalogUpdated } from "@/metaCatalog";
 import filters from "@/filters";
 
 // The curated facets eligible to be an OQL filter LHS — the SAME set
@@ -30,6 +31,11 @@ import filters from "@/filters";
 // types, `actions: filter`, and minus the soft-retired `is_xpac` (oxjob #498).
 // `hideFromPicker` facets are already dropped by facetsByCategory. Cached per entity.
 const _curatedCache = {};
+// Facet labels derive from the live-refreshed /meta catalog (oxjob #424);
+// drop the memo when it updates so cached labels can't go stale.
+onCatalogUpdated(() => {
+  for (const k of Object.keys(_curatedCache)) delete _curatedCache[k];
+});
 function curatedFacets(entity) {
   if (!_curatedCache[entity]) {
     const m = {};

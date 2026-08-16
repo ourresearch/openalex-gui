@@ -80,3 +80,7 @@ import('@/uiProvenance').then(({ initUiProvenance }) => initUiProvenance());
 
 // Live entity counts for the search placeholder (#598 r5). Fire-and-forget.
 import('@/entityCounts').then(({ fetchEntityCounts }) => fetchEntityCounts());
+
+// Live refresh of the /meta catalog that entity/facet labels derive from
+// (oxjob #424). Fire-and-forget — the committed snapshot already seeded it.
+import('@/metaCatalog').then(({ fetchMetaCatalog }) => fetchMetaCatalog());

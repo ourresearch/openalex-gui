@@ -2,17 +2,22 @@
 // https://www.heavy.ai/blog/12-color-palettes-for-telling-better-stories-with-your-data
 // https://carbondesignsystem.com/data-visualization/color-palettes/
 
+import {reactive} from "vue";
 import countryCodeLookup from "country-code-lookup";
 import * as openalexId from "@/openalexId";
+import {getEntityIdentity, onCatalogUpdated} from "@/metaCatalog";
 
-const entityConfigs = {
+// Entity identity labels (displayName, displayNameSingular) derive from the
+// server /meta catalog — see the merge below the literal (oxjob #424). An
+// authored value in an entry is a deliberate client override and always wins.
+// Reactive so the post-boot live-catalog refresh propagates into rendered
+// components.
+const entityConfigs = reactive({
     works: {
         icon: "mdi-file-document-outline",
         name: "works",
         entityType: "works",
         nameSingular: "work",
-        displayName: "works",
-        displayNameSingular: "work",
         exportMode: "async",
         category: "research-output",
         descr: "Scholarly papers, books, datasets, etc.",
@@ -83,8 +88,6 @@ const entityConfigs = {
         name: "awards",
         entityType: "awards",
         nameSingular: "award",
-        displayName: "awards",
-        displayNameSingular: "award",
         exportMode: "async",
         category: "funding",
         descr: "Grants funding scholarly research",
@@ -130,8 +133,6 @@ const entityConfigs = {
         name: "authors",
         entityType: "authors",
         nameSingular: "author",
-        displayName: "authors",
-        displayNameSingular: "author",
         exportMode: "async",
         category: "people-orgs",
         descr: "Creators of scholarly works",
@@ -178,8 +179,6 @@ const entityConfigs = {
         name: "sources",
         entityType: "sources",
         nameSingular: "source",
-        displayName: "sources",
-        displayNameSingular: "source",
         exportMode: "async",
         category: "publishing",
         descr: "Journals, conferences, and repositories",
@@ -231,8 +230,6 @@ const entityConfigs = {
         name: "publishers",
         entityType: "publishers",
         nameSingular: "publisher",
-        displayName: "publishers",
-        displayNameSingular: "publisher",
         exportMode: "async",
         category: "publishing",
         descr: "Organizations that publish scholarly journals and books",
@@ -259,8 +256,6 @@ const entityConfigs = {
         name: "funders",
         entityType: "funders",
         nameSingular: "funder",
-        displayName: "funders",
-        displayNameSingular: "funder",
         exportMode: "async",
         category: "funding",
         descr: "Organization that funds research",
@@ -306,8 +301,6 @@ const entityConfigs = {
         name: "institutions",
         entityType: "institutions",
         nameSingular: "institution",
-        displayName: "institutions",
-        displayNameSingular: "institution",
         exportMode: "async",
         category: "people-orgs",
         descr: "Universities and research centers",
@@ -343,8 +336,6 @@ const entityConfigs = {
         name: "concepts",
         entityType: "concepts",
         nameSingular: "concept",
-        displayName: "concepts",
-        displayNameSingular: "concept",
         category: "topics",
         descr: "Topics and fields of study",
         placeholder: "Search topics",
@@ -364,8 +355,6 @@ const entityConfigs = {
         name: "keywords",
         entityType: "keywords",
         nameSingular: "keyword",
-        displayName: "keywords",
-        displayNameSingular: "keyword",
         exportMode: "async",
         category: "topics",
         descr: "Author-assigned and extracted terms describing research content",
@@ -382,7 +371,8 @@ const entityConfigs = {
         name: "topics",
         entityType: "topics",
         nameSingular: "topic",
-        displayName: "topics",
+        // Override: the server catalog wrongly serves display_name_singular
+        // "topics" for this entity — drop this once that's fixed upstream.
         displayNameSingular: "topic",
         exportMode: "async",
         category: "topics",
@@ -418,8 +408,6 @@ const entityConfigs = {
         name: "subfields",
         entityType: "subfields",
         nameSingular: "subfield",
-        displayName: "subfields",
-        displayNameSingular: "subfield",
         exportMode: "client",
         exportColumns: [
             { key: "id", label: "ID" },
@@ -455,8 +443,6 @@ const entityConfigs = {
         name: "fields",
         entityType: "fields",
         nameSingular: "field",
-        displayName: "fields",
-        displayNameSingular: "field",
         exportMode: "client",
         exportColumns: [
             { key: "id", label: "ID" },
@@ -489,8 +475,6 @@ const entityConfigs = {
         name: "domains",
         entityType: "domains",
         nameSingular: "domain",
-        displayName: "domains",
-        displayNameSingular: "domain",
         exportMode: "client",
         exportColumns: [
             { key: "id", label: "ID" },
@@ -518,8 +502,6 @@ const entityConfigs = {
         name: "sdgs",
         entityType: "sdgs",
         nameSingular: "sdg",
-        displayName: "Sustainable Development Goals",
-        displayNameSingular: "Sustainable Development Goal",
         exportMode: "client",
         exportColumns: [
             { key: "id", label: "ID" },
@@ -543,8 +525,6 @@ const entityConfigs = {
         name: "countries",
         entityType: "countries",
         nameSingular: "country",
-        displayName: "countries",
-        displayNameSingular: "country",
         exportMode: "client",
         exportColumns: [
             { key: "id", label: "ID" },
@@ -573,8 +553,6 @@ const entityConfigs = {
         name: "continents",
         entityType: "continents",
         nameSingular: "continent",
-        displayName: "continents",
-        displayNameSingular: "continent",
         exportMode: "client",
         exportColumns: [
             { key: "id", label: "ID" },
@@ -595,8 +573,6 @@ const entityConfigs = {
         name: "languages",
         entityType: "languages",
         nameSingular: "language",
-        displayName: "languages",
-        displayNameSingular: "language",
         exportMode: "client",
         exportColumns: [
             { key: "id", label: "ID" },
@@ -617,6 +593,8 @@ const entityConfigs = {
         name: "types",
         entityType: "types",
         nameSingular: "type",
+        // Override: the server entity is "work-types" ("work types"/"work
+        // type"); the GUI deliberately uses the shorter label.
         displayName: "types",
         displayNameSingular: "type",
         exportMode: "client",
@@ -643,8 +621,6 @@ const entityConfigs = {
         name: "source-types",
         entityType: "source-types",
         nameSingular: "source type",
-        displayName: "source types",
-        displayNameSingular: "source type",
         exportMode: "client",
         exportColumns: [
             { key: "id", label: "ID" },
@@ -668,8 +644,6 @@ const entityConfigs = {
         name: "institution-types",
         entityType: "institution-types",
         nameSingular: "institution type",
-        displayName: "institution types",
-        displayNameSingular: "institution type",
         exportMode: "client",
         exportColumns: [
             { key: "id", label: "ID" },
@@ -693,8 +667,6 @@ const entityConfigs = {
         name: "licenses",
         entityType: "licenses",
         nameSingular: "license",
-        displayName: "licenses",
-        displayNameSingular: "license",
         exportMode: "client",
         exportColumns: [
             { key: "id", label: "ID" },
@@ -718,8 +690,6 @@ const entityConfigs = {
         name: "oa-statuses",
         entityType: "oa-statuses",
         nameSingular: "oa status",
-        displayName: "Open Access statuses",
-        displayNameSingular: "Open Access status",
         exportMode: "client",
         exportColumns: [
             { key: "id", label: "ID" },
@@ -743,6 +713,8 @@ const entityConfigs = {
         name: "indexes",
         entityType: "indexes",
         nameSingular: "index",
+        // Override: the server catalog serves capitalized "Indexes"/"Index",
+        // inconsistent with every other (lowercase) entity label.
         displayName: "indexes",
         displayNameSingular: "index",
         exportMode: "client",
@@ -768,6 +740,8 @@ const entityConfigs = {
         name: "locations",
         entityType: "locations",
         nameSingular: "location",
+        // Kept authored: /meta/entities doesn't serve the locations
+        // pseudo-entity.
         displayName: "locations",
         displayNameSingular: "work location",
         descr: "Work location",
@@ -790,7 +764,30 @@ const entityConfigs = {
         ],
         metricsToShowOnEntityPage: [],
     },
-}
+})
+
+// Derive entity identity labels from the /meta catalog (snapshot-seeded, then
+// live-refreshed — see metaCatalog.js). Authored keys captured here first are
+// client overrides and are never overwritten.
+const derivedIdentityKeys = ["displayName", "displayNameSingular"];
+const authoredIdentityKeys = new Map(
+    Object.values(entityConfigs).map(c =>
+        [c.name, new Set(derivedIdentityKeys.filter(k => k in c))]
+    )
+);
+const applyEntityIdentity = () => {
+    for (const c of Object.values(entityConfigs)) {
+        const identity = getEntityIdentity(c.name);
+        if (!identity) continue;
+        for (const key of derivedIdentityKeys) {
+            if (identity[key] && !authoredIdentityKeys.get(c.name).has(key)) {
+                c[key] = identity[key];
+            }
+        }
+    }
+};
+applyEntityIdentity();
+onCatalogUpdated(applyEntityIdentity);
 
 
 const metricsPriorityOrder = [
