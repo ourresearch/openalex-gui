@@ -49,18 +49,26 @@
           @open="openDropdown = 'help'"
           @close="closeDropdown('help')"
         >
+          <!-- Same icon-tile + description layout as the Product panel above
+               (oxjob #778 follow-up): flat 2×3 column-major grid, so the Learn
+               items land in column 1 and Reference in column 2. -->
           <div class="mega-grid-help">
-            <div v-for="col in siteNavHelp" :key="col.label" class="mega-help-col">
-              <div class="mega-col-label">{{ col.label }}</div>
-              <a
-                v-for="link in col.links"
-                :key="link.name"
-                class="mega-help-link mega-link"
-                :href="link.href"
-                target="_blank"
-                rel="noopener"
-              >{{ link.name }}</a>
-            </div>
+            <a
+              v-for="item in siteNavHelp"
+              :key="item.name"
+              class="mega-item mega-link"
+              :href="item.href"
+              target="_blank"
+              rel="noopener"
+            >
+              <span class="mega-item-icon">
+                <v-icon>{{ item.icon }}</v-icon>
+              </span>
+              <span class="mega-item-text">
+                <span class="mega-item-name">{{ item.name }}</span>
+                <span class="mega-item-desc">{{ item.desc }}</span>
+              </span>
+            </a>
           </div>
         </site-top-bar-dropdown>
 
@@ -124,19 +132,17 @@
               <template #activator="{ props }">
                 <v-list-item v-bind="props"><v-list-item-title>Help</v-list-item-title></v-list-item>
               </template>
-              <template v-for="col in siteNavHelp" :key="col.label">
-                <v-list-subheader class="mobile-col-label">{{ col.label }}</v-list-subheader>
-                <v-list-item
-                  v-for="link in col.links"
-                  :key="link.name"
-                  :href="link.href"
-                  target="_blank"
-                  rel="noopener"
-                  @click="mobileMenuOpen = false"
-                >
-                  <v-list-item-title>{{ link.name }}</v-list-item-title>
-                </v-list-item>
-              </template>
+              <v-list-item
+                v-for="item in siteNavHelp"
+                :key="item.name"
+                :href="item.href"
+                target="_blank"
+                rel="noopener"
+                @click="mobileMenuOpen = false"
+              >
+                <template #prepend><v-icon class="mobile-item-icon">{{ item.icon }}</v-icon></template>
+                <v-list-item-title>{{ item.name }}</v-list-item-title>
+              </v-list-item>
             </v-list-group>
             <v-list-item to="/about" @click="mobileMenuOpen = false">
               <v-list-item-title>About</v-list-item-title>
@@ -333,37 +339,14 @@ watch(mobileMenuOpen, (open) => {
   color: var(--ox-text-tertiary);
 }
 
+/* Help panel reuses the Product panel's .mega-item cards; column-major 2×3 so
+   the Learn items fill column 1 and Reference column 2 (oxjob #778 follow-up). */
 .mega-grid-help {
-  display: flex;
-  gap: var(--ox-space-2);
-}
-
-.mega-help-col {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: repeat(3, auto);
+  grid-auto-flow: column;
+  grid-auto-columns: 300px;
   gap: 2px;
-  min-width: 160px;
-}
-
-.mega-col-label {
-  padding: 6px 12px 4px;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--ox-text-muted);
-}
-
-.mega-help-link {
-  padding: 7px 12px;
-  border-radius: var(--ox-radius-sm);
-  font-size: 14px;
-  font-weight: 400;
-  transition: background-color var(--ox-duration-fast) var(--ox-ease-default);
-
-  &:hover {
-    background-color: var(--ox-bg-muted);
-  }
 }
 
 .top-bar-right {
@@ -387,10 +370,14 @@ watch(mobileMenuOpen, (open) => {
 }
 
 @media (max-width: 1000px) {
-  /* Narrow viewports (>700px, so no hamburger yet): single-column Product
-     panel so it can't overflow the right edge of the viewport. */
+  /* Narrow viewports (>700px, so no hamburger yet): single-column panels so
+     they can't overflow the right edge of the viewport. */
   .mega-grid-product {
     grid-template-rows: repeat(8, auto);
+    grid-auto-columns: 300px;
+  }
+  .mega-grid-help {
+    grid-template-rows: repeat(6, auto);
     grid-auto-columns: 300px;
   }
 }
@@ -425,10 +412,10 @@ watch(mobileMenuOpen, (open) => {
   }
 }
 
-/* Same b=7 recipe for every anchor inside the mega panels. The color has to
-   live HERE (not in the scoped rules — the !important would beat them):
-   help links read secondary→primary on hover; product items' name/desc spans
-   carry their own colors, so the anchor color is inert there. */
+/* Same b=7 recipe for every anchor inside the mega panels: strips the global
+   blue-anchor rule + underline. Both panels' items now carry their own
+   name/desc span colors, so this anchor color is effectively inert — it just
+   defeats the house blue and the underline. */
 .v-application .site-top-bar a.mega-link.mega-link.mega-link.mega-link.mega-link {
   color: var(--ox-text-secondary) !important;
   text-decoration: none !important;
@@ -436,16 +423,5 @@ watch(mobileMenuOpen, (open) => {
   &:hover {
     color: var(--ox-text-primary) !important;
   }
-}
-
-/* Mobile site menu: subtle column labels inside the Help accordion. */
-.mobile-site-menu .mobile-col-label {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--ox-text-muted);
-  min-height: 28px;
-  padding-inline-start: 24px !important;
 }
 </style>

@@ -183,23 +183,47 @@ const siteNavProduct = [
     },
 ]
 
-// Help dropdown columns mirror help.openalex.org's top tabs (Learn / Reference).
+// Help dropdown mirrors the Product panel exactly (oxjob #778 follow-up, Jason
+// 2026-08-16): a flat grid of icon-tile items each with a short description,
+// instead of the old plain Learn/Reference link columns. Items still mirror
+// help.openalex.org's top tabs; the column-major grid keeps the Learn items
+// (col 1) and Reference items (col 2) grouped spatially without needing labels.
 const siteNavHelp = [
     {
-        label: "Learn",
-        links: [
-            { name: "Quickstart", href: "https://help.openalex.org/quickstart/" },
-            { name: "How-to", href: "https://help.openalex.org/how-to/" },
-            { name: "Tutorials", href: "https://help.openalex.org/tutorials/" },
-        ],
+        name: "Quickstart",
+        desc: "Get your first results in a few minutes",
+        href: "https://help.openalex.org/quickstart/",
+        icon: "mdi-rocket-launch-outline",
     },
     {
-        label: "Reference",
-        links: [
-            { name: "Data", href: "https://help.openalex.org/data/" },
-            { name: "API", href: "https://help.openalex.org/api/" },
-            { name: "Access", href: "https://help.openalex.org/access/" },
-        ],
+        name: "How-to",
+        desc: "Short recipes for common tasks",
+        href: "https://help.openalex.org/how-to/",
+        icon: "mdi-format-list-checks",
+    },
+    {
+        name: "Tutorials",
+        desc: "Longer, worked walkthroughs end to end",
+        href: "https://help.openalex.org/tutorials/",
+        icon: "mdi-school-outline",
+    },
+    {
+        name: "Data",
+        desc: "How OpenAlex data is structured and defined",
+        href: "https://help.openalex.org/data/",
+        icon: "mdi-file-tree-outline",
+    },
+    {
+        name: "API",
+        desc: "Endpoints, parameters, and query syntax",
+        href: "https://help.openalex.org/api/",
+        icon: "mdi-api",
+    },
+    {
+        name: "Access",
+        desc: "Every way to get OpenAlex data",
+        href: "https://help.openalex.org/access/",
+        icon: "mdi-download-outline",
     },
 ]
 
