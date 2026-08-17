@@ -371,9 +371,6 @@ const entityConfigs = reactive({
         name: "topics",
         entityType: "topics",
         nameSingular: "topic",
-        // Override: the server catalog wrongly serves display_name_singular
-        // "topics" for this entity — drop this once that's fixed upstream.
-        displayNameSingular: "topic",
         exportMode: "async",
         category: "topics",
         descr: "Algorithmically clustered research areas (~4,500 entries)",
@@ -713,10 +710,6 @@ const entityConfigs = reactive({
         name: "indexes",
         entityType: "indexes",
         nameSingular: "index",
-        // Override: the server catalog serves capitalized "Indexes"/"Index",
-        // inconsistent with every other (lowercase) entity label.
-        displayName: "indexes",
-        displayNameSingular: "index",
         exportMode: "client",
         exportColumns: [
             { key: "id", label: "ID" },

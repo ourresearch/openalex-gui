@@ -1,7 +1,7 @@
 {
- "version": "8.3.0",
+ "version": "8.4.0",
  "fingerprint": "84c5bb932ba90399429809d5ac0b2e815834c7fadd2ffb647664f8ced341e009",
- "generatedAt": "2026-08-16T21:41:37.390Z",
+ "generatedAt": "2026-08-17T18:37:28.816Z",
  "entities": {
   "authors": {
    "displayName": "authors",
@@ -36,8 +36,8 @@
    "displayNameSingular": "funder"
   },
   "indexes": {
-   "displayName": "Indexes",
-   "displayNameSingular": "Index"
+   "displayName": "indexes",
+   "displayNameSingular": "index"
   },
   "institution-types": {
    "displayName": "institution types",
@@ -85,7 +85,7 @@
   },
   "topics": {
    "displayName": "topics",
-   "displayNameSingular": "topics"
+   "displayNameSingular": "topic"
   },
   "work-types": {
    "displayName": "work types",
