@@ -447,8 +447,10 @@ const routes = [
     {path: '/careers', redirect: '/jobs'},
     // Unlinked draft of the full pitch page (the #675-driven rewrite): noindex, not announced.
     {path: '/jobs/draft', name: 'JobsDraft', component: () => import('@/views/JobsDraftPage.vue'), meta: {chrome: 'site'}},
-    // Community Lead listing (oxjob #662): stealth iteration surface — noindex, not yet linked from /jobs.
+    // Community Lead listing (oxjob #662/#812): stealth iteration surface — noindex, not yet linked from /jobs.
     {path: '/jobs/community-lead', name: 'JobsCommunityLead', component: () => import('@/views/JobsCommunityLeadPage.vue'), meta: {chrome: 'site'}},
+    // Software & Data Engineer listing (oxjob #812): stealth — noindex, not yet linked from /jobs.
+    {path: '/jobs/software-data-engineer', name: 'JobsSoftwareDataEngineer', component: () => import('@/views/JobsSoftwareDataEngineerPage.vue'), meta: {chrome: 'site'}},
     {path: '/institutional-supporters', name: 'InstitutionalSupporters', component: MembersPage, meta: {chrome: 'site'}},
     {path: '/members', redirect: '/institutional-supporters'},
     {path: '/pricing-new', redirect: '/pricing'},

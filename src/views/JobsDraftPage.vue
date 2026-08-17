@@ -87,8 +87,20 @@
 
     <static-section id="open-positions" title="Open positions">
       <p class="section-body">
-        We're hiring for two roles &mdash; postings and applications land right here soon.
+        We're hiring for two roles. Read the full posting and apply:
       </p>
+      <div class="job-cards">
+        <router-link class="job-card" to="/jobs/software-data-engineer">
+          <span class="job-card-title">Software &amp; Data Engineer</span>
+          <span class="job-card-sub">Full-time &middot; Remote</span>
+          <span class="job-card-arrow" aria-hidden="true">&rarr;</span>
+        </router-link>
+        <router-link class="job-card" to="/jobs/community-lead">
+          <span class="job-card-title">Community Lead</span>
+          <span class="job-card-sub">Full-time &middot; Remote</span>
+          <span class="job-card-arrow" aria-hidden="true">&rarr;</span>
+        </router-link>
+      </div>
     </static-section>
   </static-page>
 </template>
@@ -116,3 +128,48 @@ const sections = [
   { id: 'open-positions', label: 'Open positions' },
 ];
 </script>
+
+
+<style scoped lang="scss">
+.job-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.job-card {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 18px 20px;
+  border: 1px solid #E4E4E7;
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+
+  &:hover {
+    border-color: #A1A1AA;
+    background: #FAFAFA;
+  }
+}
+
+.job-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #0A0A0A;
+}
+
+.job-card-sub {
+  font-size: 14px;
+  color: #71717A;
+}
+
+.job-card-arrow {
+  margin-left: auto;
+  font-size: 18px;
+  color: #A1A1AA;
+}
+</style>

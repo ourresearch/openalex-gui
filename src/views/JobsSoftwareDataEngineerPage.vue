@@ -1,82 +1,44 @@
 <template>
-  <!-- Community Lead listing (oxjob #662 → restructured in #812). Stealth: noindex, not
-       yet linked from /jobs. Structure now matches the Software & Data Engineer page
-       (The role / About us / About you / Application). The role + "about you" prose is
-       PRESERVED from the original #662 copy (Jason: don't lorem-ipsum what we already have);
-       only the shared org-level "About us" summary and the decided 3 questions are new. -->
+  <!-- Software & Data Engineer listing (oxjob #812). Stealth: noindex, not yet linked
+       from /jobs. Structure mirrors the Community Lead page (About Us / About You /
+       Application) so the two read as siblings. Role description + role-specific bullets
+       are LOREM IPSUM placeholders per Jason (we don't have the real copy yet). -->
   <static-page>
     <article class="joblp">
       <header class="joblp-hero">
         <p class="joblp-eyebrow">Working at OpenAlex</p>
-        <h1 class="joblp-headline">Community&nbsp;Lead</h1>
+        <h1 class="joblp-headline">Software&nbsp;&amp;&nbsp;Data&nbsp;Engineer</h1>
         <p class="joblp-meta">
-          <span class="joblp-tag">$100,000–$150,000 USD</span>
+          <span class="joblp-tag">Competitive salary</span>
           <span class="joblp-tag">Full-time</span>
           <span class="joblp-tag">Remote, anywhere with reasonable hours overlap</span>
-          <span class="joblp-tag">Reports to our COO</span>
+        </p>
+        <p class="joblp-note">
+          Draft note: hero meta (comp band, reporting line) is placeholder — confirm before launch.
         </p>
       </header>
 
       <section>
         <h2>The role</h2>
-        <p>
-          OpenAlex is a technical organization whose product is, increasingly,
-          relationships. The data is free; what institutions join and support is a
-          relationship with us — and today those relationships are held together by our
-          founders, one conversation at a time. That doesn't scale. This role is where it
-          starts to.
+        <p class="joblp-note">
+          Draft note: role description is lorem ipsum — real copy pending.
         </p>
         <p>
-          The honest headline: <strong>you'll own everything nontechnical.</strong> Put
-          another way, you'll own working with all the people who aren't us:
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer et libero eget
+          nunc dignissim porttitor. Sed vitae velit at arcu tincidunt commodo. You'll own
+          Praesent feugiat, ligula ut faucibus dignissim, justo urna volutpat nisl, nec
+          venenatis odio metus a lacus.
         </p>
         <ul>
-          <li>
-            Being a public face and voice of OpenAlex — webinars, conference talks,
-            community calls.
-          </li>
-          <li>
-            Building relationships with the institutions that support us: onboarding new
-            members, keeping current ones happy, and yes, owning the contracts and
-            renewals that come with them. (This is not a sales job. But in a small org,
-            the person who owns the relationship owns the paperwork too.)
-          </li>
-          <li>
-            Running the machinery of community: our advisory board, governance and
-            elections, user groups, meetups.
-          </li>
-          <li>
-            Whatever else needs doing that doesn't require writing code. Some weeks
-            that's a launch webinar; some weeks it's untangling a member's billing
-            question. If that grab-bag sounds chaotic, this is the wrong job. If it
-            sounds like ownership, keep reading.
-          </li>
+          <li>Curabitur pretium tincidunt lacus — building and running data pipelines at scale.</li>
+          <li>Nulla facilisi. Donec ac quam vitae — shipping product features end to end.</li>
+          <li>Etiam porta sem malesuada — owning reliability, performance, and cost.</li>
+          <li>Whatever else needs doing that requires writing code and thinking clearly.</li>
         </ul>
         <p>
-          This is not the community-manager role you've seen at other
-          scholarly-infrastructure organizations. We're not looking for someone to
-          schedule the webinars and keep the community from being a problem. We're
-          looking for someone who sees a once-in-a-generation shakeup of how research
-          works — open data, AI, the fall of the old gatekeepers — and wants to be the
-          person lighting fires in the middle of it: a leader, an evangelist, an
-          organizer. The kind of person who makes promises to a community and keeps them.
-        </p>
-        <p>
-          Community work has a reputation as the soft side of the org chart — the place
-          where effort is the product, where a full calendar of well-attended webinars
-          counts as a good quarter. Not here. Results in this job look like a community
-          that's measurably bigger, warmer, and more committed: the member who was
-          drifting away renews because you heard what was actually bothering them and
-          fixed it; the advisory board meeting that used to be a status readout produces a
-          decision; the conference talk turns into three new member conversations because
-          you followed up the same day — not a longer list of things you did.
-        </p>
-        <p>
-          And in this job, patience <em>is</em> resourcefulness. Relationships compound the
-          way ideas do: slowly, then suddenly. Staying warm with a member who's being
-          difficult, following up in month six of a conversation that won't pay off until
-          next year — that's not the opposite of moving fast; it's how this kind of work
-          gets results. You like people, including difficult ones. This job is 90% people.
+          Vestibulum id ligula porta felis euismod semper. Cras mattis consectetur purus
+          sit amet fermentum. This is not the engineering role you've seen elsewhere:
+          Maecenas sed diam eget risus varius blandit sit amet non magna.
         </p>
       </section>
 
@@ -133,26 +95,13 @@
             You believe in our mission: to build the future of science on an open, universal
             research library.
           </li>
-          <!-- Role-specific bullets — preserved from the #662 "You probably have" copy. -->
-          <li>
-            You've spent years in the scholarly-communication world — a library, a research
-            office, a publisher, a funder, research support. You know what the REF is, you
-            have opinions about research evaluation, and when a librarian vents about
-            metadata, you can vent along knowledgeably.
-          </li>
-          <li>
-            You have a track record of making things happen without being asked: programs
-            you started, events you willed into existence, communities that exist because
-            of you.
-          </li>
-          <li>
-            You write and speak in a way people remember — enthusiasm that's contagious
-            rather than exhausting.
-          </li>
+          <!-- Role-specific bullets — LOREM IPSUM placeholders (Jason: best-guess for now). -->
+          <li>Lorem ipsum: deep experience with Python and large-scale data systems.</li>
+          <li>Nulla porttitor: comfortable across the stack, from SQL to production services.</li>
+          <li>Curabitur: you sweat data quality the way others sweat pixels.</li>
         </ul>
-        <p>
-          You don't need a PhD (our CEO doesn't have one), a bench-research past, or to have
-          ever had "community" in your job title.
+        <p class="joblp-note">
+          Draft note: the last three bullets are lorem ipsum role-specific placeholders.
         </p>
       </section>
 
@@ -164,10 +113,6 @@
           fit in with everybody else&mdash;and you're probably not the right fit for this
           role. We encourage you to use AI; but if you use AI the same way everybody else
           does, that's not the kind of person we're looking for.
-        </p>
-        <p>
-          Our process is short: apply below, a conversation or two, then a paid work
-          trial &mdash; about $1,000/day.
         </p>
 
         <h3>The basics</h3>
@@ -203,10 +148,10 @@
 import { useHead } from '@unhead/vue';
 import StaticPage from '@/components/StaticPage/StaticPage.vue';
 
-defineOptions({ name: 'JobsCommunityLeadPage' });
+defineOptions({ name: 'JobsSoftwareDataEngineerPage' });
 
 useHead({
-  title: 'Community Lead',
+  title: 'Software & Data Engineer',
   meta: [
     // Stealth until the listings launch announcement — keep out of the index for now.
     { name: 'robots', content: 'noindex' },
