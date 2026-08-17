@@ -122,7 +122,7 @@
           <li>Location + timezone</li>
           <li>LinkedIn</li>
           <li>GitHub</li>
-          <li>Resume (as Markdown &mdash; paste it into any AI and ask for clean Markdown, or use a PDF&rarr;Markdown converter)</li>
+          <li>Resume (Markdown only &mdash; optional)</li>
           <li>Education (institution + degree; add a row per entry)</li>
           <li>Anything else we should know (free text)</li>
         </ul>
@@ -133,6 +133,10 @@
           <li>What will you do in your first week?</li>
           <li>What's the coolest thing you've ever built?</li>
         </ol>
+        <p>
+          Answer at whatever length you like &mdash; we're looking for thoughtful answers,
+          and three to six paragraphs is often a good fit.
+        </p>
 
         <p class="joblp-note">
           Draft note: the interactive application form (fields above + these questions,
