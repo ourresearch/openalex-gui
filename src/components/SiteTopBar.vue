@@ -3,6 +3,18 @@
        bar occupied when it was in-flow, so page geometry is unchanged). -->
   <div class="site-top-bar-spacer" aria-hidden="true" />
   <header class="site-top-bar" :style="{ top: topOffset }">
+    <!-- Stripe-style page dim behind an open mega-panel; starts just under the
+         bar so the bar itself stays crisp. Click closes. -->
+    <transition name="scrim">
+      <div
+        v-if="openDropdown"
+        class="mega-scrim"
+        :style="{ top: barBottom }"
+        aria-hidden="true"
+        @click="openDropdown = null"
+      />
+    </transition>
+
     <div class="site-top-bar-inner">
       <router-link to="/" class="top-bar-logo-link" aria-label="OpenAlex home">
         <img
@@ -12,66 +24,109 @@
         />
       </router-link>
 
-      <!-- Round 3 (oxjob #778): Product · Pricing · Help · About. No top-level
-           API link — API lives inside BOTH dropdowns (intentional un-ship of
-           the r1 link; don't "restore" it). -->
+      <!-- Round 3 (oxjob #778): the two dropdowns (Product, Help) sit next to
+           each other so a single shared panel can MORPH between them (Stripe
+           pattern) — it slides + resizes + cross-fades instead of unmount/mount.
+           Order: Product · Help · Pricing · About. No top-level API link — API
+           lives inside BOTH dropdowns (don't "restore" it). -->
       <nav class="top-bar-nav" aria-label="Site">
-        <site-top-bar-dropdown
-          label="Product"
-          :open="openDropdown === 'product'"
-          @open="openDropdown = 'product'"
-          @close="closeDropdown('product')"
+        <div
+          ref="zoneEl"
+          class="mega-zone"
+          @mouseenter="cancelClose"
+          @mouseleave="scheduleClose"
+          @focusout="onZoneFocusOut"
         >
-          <div class="mega-grid-product">
-            <component
-              :is="item.to ? 'router-link' : 'a'"
-              v-for="item in siteNavProduct"
-              :key="item.name"
-              class="mega-item mega-link"
-              v-bind="item.to ? { to: item.to } : { href: item.href, target: '_blank', rel: 'noopener' }"
+          <button
+            ref="productTriggerEl"
+            type="button"
+            class="mega-trigger"
+            :class="{ 'is-open': openDropdown === 'product' }"
+            aria-haspopup="true"
+            :aria-expanded="openDropdown === 'product' ? 'true' : 'false'"
+            @mouseenter="onTriggerEnter('product')"
+            @click="onTriggerClick('product')"
+          >
+            <span>Product</span>
+            <v-icon class="mega-caret" :class="{ 'is-flipped': openDropdown === 'product' }">mdi-chevron-down</v-icon>
+          </button>
+
+          <button
+            ref="helpTriggerEl"
+            type="button"
+            class="mega-trigger"
+            :class="{ 'is-open': openDropdown === 'help' }"
+            aria-haspopup="true"
+            :aria-expanded="openDropdown === 'help' ? 'true' : 'false'"
+            @mouseenter="onTriggerEnter('help')"
+            @click="onTriggerClick('help')"
+          >
+            <span>Help</span>
+            <v-icon class="mega-caret" :class="{ 'is-flipped': openDropdown === 'help' }">mdi-chevron-down</v-icon>
+          </button>
+
+          <!-- One shared panel for both triggers. It's absolutely positioned
+               against .site-top-bar-inner; `left` animates (slide between
+               triggers), the clip's `height` animates (grow/shrink), and the
+               keyed content cross-fades. -->
+          <transition name="mega" @after-leave="onSurfaceAfterLeave">
+            <div
+              v-if="openDropdown"
+              class="mega-surface-wrap"
+              :style="{ left: panelLeft }"
+              @mouseenter="cancelClose"
             >
-              <span class="mega-item-icon">
-                <v-icon>{{ item.icon }}</v-icon>
-              </span>
-              <span class="mega-item-text">
-                <span class="mega-item-name">{{ item.name }}</span>
-                <span class="mega-item-desc">{{ item.desc }}</span>
-              </span>
-            </component>
-          </div>
-        </site-top-bar-dropdown>
+              <div class="mega-surface">
+                <div class="mega-surface-clip" :style="{ height: panelHeight }">
+                  <transition name="mega-swap" @enter="onSwapEnter">
+                    <div :key="openDropdown" class="mega-swap-content">
+                      <div v-if="openDropdown === 'product'" class="mega-grid-product">
+                        <component
+                          :is="item.to ? 'router-link' : 'a'"
+                          v-for="item in siteNavProduct"
+                          :key="item.name"
+                          class="mega-item mega-link"
+                          v-bind="item.to ? { to: item.to } : { href: item.href, target: '_blank', rel: 'noopener' }"
+                        >
+                          <span class="mega-item-icon">
+                            <v-icon>{{ item.icon }}</v-icon>
+                          </span>
+                          <span class="mega-item-text">
+                            <span class="mega-item-name">{{ item.name }}</span>
+                            <span class="mega-item-desc">{{ item.desc }}</span>
+                          </span>
+                        </component>
+                      </div>
+
+                      <!-- Help mirrors Product: flat 2×3 column-major grid, so
+                           the Learn items land in column 1, Reference in col 2. -->
+                      <div v-else class="mega-grid-help">
+                        <a
+                          v-for="item in siteNavHelp"
+                          :key="item.name"
+                          class="mega-item mega-link"
+                          :href="item.href"
+                          target="_blank"
+                          rel="noopener"
+                        >
+                          <span class="mega-item-icon">
+                            <v-icon>{{ item.icon }}</v-icon>
+                          </span>
+                          <span class="mega-item-text">
+                            <span class="mega-item-name">{{ item.name }}</span>
+                            <span class="mega-item-desc">{{ item.desc }}</span>
+                          </span>
+                        </a>
+                      </div>
+                    </div>
+                  </transition>
+                </div>
+              </div>
+            </div>
+          </transition>
+        </div>
 
         <router-link to="/pricing" class="top-bar-link">Pricing</router-link>
-
-        <site-top-bar-dropdown
-          label="Help"
-          :open="openDropdown === 'help'"
-          @open="openDropdown = 'help'"
-          @close="closeDropdown('help')"
-        >
-          <!-- Same icon-tile + description layout as the Product panel above
-               (oxjob #778 follow-up): flat 2×3 column-major grid, so the Learn
-               items land in column 1 and Reference in column 2. -->
-          <div class="mega-grid-help">
-            <a
-              v-for="item in siteNavHelp"
-              :key="item.name"
-              class="mega-item mega-link"
-              :href="item.href"
-              target="_blank"
-              rel="noopener"
-            >
-              <span class="mega-item-icon">
-                <v-icon>{{ item.icon }}</v-icon>
-              </span>
-              <span class="mega-item-text">
-                <span class="mega-item-name">{{ item.name }}</span>
-                <span class="mega-item-desc">{{ item.desc }}</span>
-              </span>
-            </a>
-          </div>
-        </site-top-bar-dropdown>
-
         <router-link to="/about" class="top-bar-link">About</router-link>
       </nav>
 
@@ -125,9 +180,6 @@
                 <v-list-item-title>{{ item.name }}</v-list-item-title>
               </v-list-item>
             </v-list-group>
-            <v-list-item to="/pricing" @click="mobileMenuOpen = false">
-              <v-list-item-title>Pricing</v-list-item-title>
-            </v-list-item>
             <v-list-group value="help">
               <template #activator="{ props }">
                 <v-list-item v-bind="props"><v-list-item-title>Help</v-list-item-title></v-list-item>
@@ -144,6 +196,9 @@
                 <v-list-item-title>{{ item.name }}</v-list-item-title>
               </v-list-item>
             </v-list-group>
+            <v-list-item to="/pricing" @click="mobileMenuOpen = false">
+              <v-list-item-title>Pricing</v-list-item-title>
+            </v-list-item>
             <v-list-item to="/about" @click="mobileMenuOpen = false">
               <v-list-item-title>About</v-list-item-title>
             </v-list-item>
@@ -162,11 +217,10 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, nextTick, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import AppSidebarUserMenu from '@/components/AppSidebarUserMenu.vue';
-import SiteTopBarDropdown from '@/components/SiteTopBarDropdown.vue';
 import { siteNavProduct, siteNavHelp } from '@/navConfigs';
 
 defineOptions({ name: 'SiteTopBar' });
@@ -190,15 +244,117 @@ const userId = computed(() => store.getters['user/userId']);
 // the same computed keeps this reactive across login/logout transitions.
 const showLoggedIn = computed(() => !!userId.value || !!localStorage.getItem('token'));
 
-// 'product' | 'help' | null — parent-owned so only one panel is open and
-// hovering between triggers switches instantly.
+// Where the fixed bar ends — the scrim starts here so it never dims the bar.
+const barBottom = computed(() => `${(parseInt(props.topOffset, 10) || 0) + 56}px`);
+
+// 'product' | 'help' | null. One shared panel; switching triggers morphs it.
 const openDropdown = ref(null);
 const mobileMenuOpen = ref(false);
 const mobileOpenGroups = ref([]);
 
-function closeDropdown(which) {
-  if (openDropdown.value === which) openDropdown.value = null;
+const zoneEl = ref(null);
+const productTriggerEl = ref(null);
+const helpTriggerEl = ref(null);
+
+// Panel geometry (px strings for style binding). left animates on switch via a
+// CSS transition; height animates on the clip.
+const panelLeft = ref('0px');
+const panelHeight = ref(null);
+
+function triggerFor(which) {
+  return which === 'product' ? productTriggerEl.value : helpTriggerEl.value;
 }
+
+// Position the panel's left edge just left of the active trigger, measured
+// against .site-top-bar-inner (its positioned ancestor).
+function measurePosition(which) {
+  const trigger = triggerFor(which);
+  const inner = trigger?.closest('.site-top-bar-inner');
+  if (!trigger || !inner) return;
+  const left = trigger.getBoundingClientRect().left - inner.getBoundingClientRect().left;
+  panelLeft.value = `${Math.max(left - 12, 0)}px`;
+}
+
+function setOpen(which) {
+  measurePosition(which);
+  openDropdown.value = which;
+}
+
+// Hover intent: skimming the bar shouldn't pop a panel (short open delay), and
+// leaving briefly shouldn't lose it (longer close grace). When a panel is
+// already open, moving to the other trigger switches instantly (Stripe feel).
+let openTimer = null;
+let closeTimer = null;
+
+function onTriggerEnter(which) {
+  clearTimeout(closeTimer);
+  closeTimer = null;
+  if (openDropdown.value === which) return;
+  if (openDropdown.value) {
+    setOpen(which); // already open → morph immediately
+  } else {
+    clearTimeout(openTimer);
+    openTimer = setTimeout(() => setOpen(which), 60);
+  }
+}
+function onTriggerClick(which) {
+  clearTimeout(openTimer);
+  if (openDropdown.value === which) openDropdown.value = null;
+  else setOpen(which);
+}
+function scheduleClose() {
+  clearTimeout(openTimer);
+  openTimer = null;
+  clearTimeout(closeTimer);
+  closeTimer = setTimeout(() => { openDropdown.value = null; }, 150);
+}
+function cancelClose() {
+  clearTimeout(closeTimer);
+  closeTimer = null;
+}
+
+// Measure the freshly-entered content and drive the clip height to it. First
+// open: panelHeight was null (auto) → no transition, just renders at size.
+// Switch: previous px value → the height animates from old to new.
+function onSwapEnter(el) {
+  panelHeight.value = `${el.offsetHeight}px`;
+}
+function onSurfaceAfterLeave() {
+  panelHeight.value = null; // reset so the next open re-measures cleanly
+}
+
+// Close when keyboard focus tabs out of the trigger+panel zone entirely.
+function onZoneFocusOut(e) {
+  if (zoneEl.value && !zoneEl.value.contains(e.relatedTarget)) openDropdown.value = null;
+}
+
+function onDocMousedown(e) {
+  if (zoneEl.value && !zoneEl.value.contains(e.target)) openDropdown.value = null;
+}
+// Esc must work wherever focus is (hover-open leaves focus on <body>) — listen
+// at the document while open.
+function onDocKeydown(e) {
+  if (e.key === 'Escape') {
+    const active = triggerFor(openDropdown.value);
+    openDropdown.value = null;
+    active?.focus();
+  }
+}
+function onWindowResize() {
+  if (openDropdown.value) measurePosition(openDropdown.value);
+}
+
+watch(openDropdown, (isOpen) => {
+  if (isOpen) {
+    document.addEventListener('mousedown', onDocMousedown);
+    document.addEventListener('keydown', onDocKeydown);
+    window.addEventListener('resize', onWindowResize);
+  } else {
+    document.removeEventListener('mousedown', onDocMousedown);
+    document.removeEventListener('keydown', onDocKeydown);
+    window.removeEventListener('resize', onWindowResize);
+  }
+});
 
 watch(() => route.fullPath, () => {
   openDropdown.value = null;
@@ -208,6 +364,14 @@ watch(() => route.fullPath, () => {
 // Fresh compact menu each time it closes (accordions collapsed on reopen).
 watch(mobileMenuOpen, (open) => {
   if (!open) mobileOpenGroups.value = [];
+});
+
+onBeforeUnmount(() => {
+  clearTimeout(openTimer);
+  clearTimeout(closeTimer);
+  document.removeEventListener('mousedown', onDocMousedown);
+  document.removeEventListener('keydown', onDocKeydown);
+  window.removeEventListener('resize', onWindowResize);
 });
 </script>
 
@@ -228,7 +392,17 @@ watch(mobileMenuOpen, (open) => {
   flex-shrink: 0;
 }
 
+.mega-scrim {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(17, 17, 17, 0.06);
+  z-index: -1; /* below the bar's own content, above the page */
+}
+
 .site-top-bar-inner {
+  position: relative; /* positioning context for the shared mega-panel */
   display: flex;
   align-items: center;
   gap: 32px;
@@ -259,6 +433,13 @@ watch(mobileMenuOpen, (open) => {
   gap: 8px;
 }
 
+.mega-zone {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  gap: 8px;
+}
+
 .top-bar-link {
   padding: 6px 10px;
   border-radius: 6px;
@@ -271,8 +452,74 @@ watch(mobileMenuOpen, (open) => {
   }
 }
 
-/* ---- Mega-dropdown panel contents (slotted into SiteTopBarDropdown; slot
-        content compiles in this component's scope) ---- */
+/* ---- Trigger buttons ---- */
+
+.mega-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 6px 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: normal;
+  color: #374151;
+  cursor: pointer;
+  transition: background-color 0.15s;
+
+  &:hover,
+  &.is-open {
+    background-color: var(--ox-bg-muted);
+    color: #1a1a1a;
+  }
+}
+
+/* App.vue forces every .v-icon to 18px !important; win with higher
+   specificity (see AGENTS.md "global CSS overrides"). */
+.mega-trigger .mega-caret {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  color: var(--ox-text-muted);
+  transition: transform var(--ox-duration-base) var(--ox-ease-default);
+
+  &.is-flipped {
+    transform: rotate(180deg);
+  }
+}
+
+/* ---- Shared morphing panel ---- */
+
+.mega-surface-wrap {
+  position: absolute;
+  top: 100%;
+  padding-top: 4px; /* small gap that's still a hoverable bridge to the panel */
+  transform-origin: top left;
+  /* `left` slides the panel between triggers when switching (the open/close
+     transition below overrides `transition` while entering/leaving). */
+  transition: left var(--ox-duration-emph) var(--ox-ease-out);
+}
+
+.mega-surface {
+  background: var(--ox-bg-base);
+  border: 1px solid var(--ox-border-default);
+  border-radius: var(--ox-radius-lg);
+  box-shadow: var(--ox-elev-overlay);
+}
+
+.mega-surface-clip {
+  overflow: hidden;
+  transition: height var(--ox-duration-emph) var(--ox-ease-out);
+}
+
+.mega-swap-content {
+  padding: var(--ox-space-2);
+}
+
+/* ---- Panel grids + items ---- */
 
 .mega-grid-product {
   display: grid;
@@ -317,10 +564,9 @@ watch(mobileMenuOpen, (open) => {
 }
 
 /* On row hover the icon tile darkens WITH the row — a subtle darker gray, not
-   an inversion to white (which read as confusing) and not black (too dramatic,
-   stole focus from the row). One step darker than the row's own hover bg, with
-   a slightly firmer border and darker glyph so it stays a legible tile.
-   (Jason, 2026-08-16.) */
+   an inversion to white (confusing) and not black (too dramatic, stole focus).
+   One step darker than the row's own hover bg, firmer border, darker glyph, so
+   it stays a legible tile. (Jason, 2026-08-16.) */
 .mega-item:hover .mega-item-icon {
   background-color: var(--ox-bg-emphasis);
   border-color: var(--ox-border-strong);
@@ -352,13 +598,59 @@ watch(mobileMenuOpen, (open) => {
 }
 
 /* Help panel reuses the Product panel's .mega-item cards; column-major 2×3 so
-   the Learn items fill column 1 and Reference column 2 (oxjob #778 follow-up). */
+   the Learn items fill column 1 and Reference column 2. */
 .mega-grid-help {
   display: grid;
   grid-template-rows: repeat(3, auto);
   grid-auto-flow: column;
   grid-auto-columns: 300px;
   gap: 2px;
+}
+
+/* ---- Transitions ---- */
+
+/* Open / close of the whole panel: soft rise + fade + a touch of scale. */
+.mega-enter-active {
+  transition: opacity var(--ox-duration-slow) var(--ox-ease-out),
+    transform var(--ox-duration-slow) var(--ox-ease-out);
+}
+.mega-leave-active {
+  transition: opacity var(--ox-duration-base) var(--ox-ease-in),
+    transform var(--ox-duration-base) var(--ox-ease-in);
+}
+.mega-enter-from {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.985);
+}
+.mega-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/* Content cross-fade when morphing between Product and Help: the leaving panel
+   overlays (absolute) so the entering one alone drives the clip height. */
+.mega-swap-enter-active,
+.mega-swap-leave-active {
+  transition: opacity var(--ox-duration-base) var(--ox-ease-default);
+}
+.mega-swap-leave-active {
+  position: absolute;
+  top: var(--ox-space-2);
+  left: var(--ox-space-2);
+  right: var(--ox-space-2);
+}
+.mega-swap-enter-from,
+.mega-swap-leave-to {
+  opacity: 0;
+}
+
+.scrim-enter-active,
+.scrim-leave-active {
+  transition: opacity var(--ox-duration-base) var(--ox-ease-default);
+}
+.scrim-enter-from,
+.scrim-leave-to {
+  opacity: 0;
 }
 
 .top-bar-right {
