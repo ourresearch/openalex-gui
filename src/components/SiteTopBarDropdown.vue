@@ -150,7 +150,10 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 100%;
   left: -12px;
-  padding-top: 10px;
+  /* Small gap: panel hangs just under the bar, close to its trigger. The
+     padding is still the hoverable bridge so the pointer never leaves the
+     dropdown crossing into the panel (Jason 2026-08-16: keep it tight). */
+  padding-top: 4px;
 }
 
 .mega-panel {

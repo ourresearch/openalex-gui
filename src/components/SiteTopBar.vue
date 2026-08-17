@@ -307,15 +307,25 @@ watch(mobileMenuOpen, (open) => {
   border-radius: var(--ox-radius-md);
   background-color: var(--ox-bg-muted);
   border: 1px solid var(--ox-border-subtle);
-  transition: background-color var(--ox-duration-fast) var(--ox-ease-default);
+  transition: background-color var(--ox-duration-fast) var(--ox-ease-default),
+    border-color var(--ox-duration-fast) var(--ox-ease-default);
 
   .v-icon {
     color: var(--ox-text-secondary);
+    transition: color var(--ox-duration-fast) var(--ox-ease-default);
   }
 }
 
+/* On row hover the icon tile darkens WITH the row (dark chip + white glyph),
+   never inverts to white — going light while the row goes dark reads as
+   confusing (Jason, 2026-08-16). */
 .mega-item:hover .mega-item-icon {
-  background-color: var(--ox-bg-base);
+  background-color: var(--ox-bg-inverse);
+  border-color: var(--ox-bg-inverse);
+
+  .v-icon {
+    color: var(--ox-text-inverse);
+  }
 }
 
 .mega-item-text {
