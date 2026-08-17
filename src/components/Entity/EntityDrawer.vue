@@ -9,11 +9,13 @@
   >
     <v-card min-height="100" flat tile :loading="isLoading" class="drawer-card">
       <template v-if="entityData">
-        <!-- Single padded body: control bar, title, type-label, linkouts,
-             metrics, and metadata all share one left margin (Notion-style). The
-             control bar is the first in-flow row (no more absolutely-positioned
-             corner buttons), so the header no longer stacks two rows. #641 -->
-        <div class="drawer-body pt-6 px-8 pb-6">
+        <!-- Notion-style layout: the control bar (rendered first, inside
+             EntityHeader) breaks out via negative margins to hug the drawer's
+             top corners like a real toolbar, while the work content — title,
+             linkouts, metrics, metadata — sits in from a generous left margin.
+             Padding lives in CSS (.drawer-body / .drawer-controlbar) rather than
+             utility classes so the breakout math stays in one place. #641 -->
+        <div class="drawer-body">
           <entity-header
             :entity-data="entityData"
             :show-back-button="false"
@@ -203,7 +205,22 @@ onBeforeUnmount(() => {
   top: 0 !important;
   z-index: 10000 !important;
 }
-/* All content rows share the drawer-body's px-8 (32px) left margin. The
+/* Notion-style padding. No top padding — the control bar hugs the top edge.
+   A generous 48px left margin (vs 24px right) gives the work content room to
+   breathe and sets it clearly apart from the drawer chrome above. */
+.v-navigation-drawer .drawer-body {
+  padding: 0 24px 24px 48px;
+}
+/* The control bar breaks out of the body's padding to reach the drawer's top
+   corners (negative margins cancel the body's L/R padding), then its own tight
+   padding tucks the icons into those corners like a real toolbar. The 20px
+   bottom margin is the whitespace that separates chrome from work info. */
+.v-navigation-drawer .drawer-controlbar {
+  margin: 0 -24px 20px -48px;
+  padding: 6px 12px;
+}
+
+/* All content rows share the drawer-body's 48px left margin. The
    utility-class horizontal padding/margin that EntityNew + EntityMetrics
    bake into rows and dividers is neutralized inside the drawer so the
    wrapper governs alignment; the body remains shared-and-flush from
