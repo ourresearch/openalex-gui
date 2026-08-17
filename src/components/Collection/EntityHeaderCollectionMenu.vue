@@ -87,7 +87,9 @@
       <template v-if="showCloseItem">
         <v-divider class="my-1" />
         <div class="kebab-row" @click="onClose">
-          <v-icon size="18" class="mr-2">mdi-close</v-icon>
+          <!-- Same double-chevron as the toolbar's close button, to reinforce
+               that that icon closes the panel. #641 -->
+          <v-icon size="18" class="mr-2">mdi-chevron-double-right</v-icon>
           <span class="flex-grow-1">Close panel</span>
         </div>
       </template>
