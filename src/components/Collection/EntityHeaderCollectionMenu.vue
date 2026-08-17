@@ -78,6 +78,17 @@
           </div>
         </v-card>
       </v-menu>
+
+      <!-- Close panel — only in the fly-in drawer, which has no other in-menu
+           close affordance. Suppressed on the full entity page (showCloseItem
+           defaults false). -->
+      <template v-if="showCloseItem">
+        <v-divider class="my-1" />
+        <div class="kebab-row" @click="onClose">
+          <v-icon size="18" class="mr-2">mdi-close</v-icon>
+          <span class="flex-grow-1">Close panel</span>
+        </div>
+      </template>
     </v-card>
   </v-menu>
 
@@ -114,7 +125,13 @@ defineOptions({ name: "EntityHeaderCollectionMenu" });
 const props = defineProps({
   entityType: { type: String, required: true },
   entityId: { type: String, required: true },
+  // Drawer-only: append a "Close panel" item to the menu. The fly-in reuses
+  // this kebab as its only right-side action menu, so it needs an in-menu
+  // close; the full entity page has no panel to close and leaves this false.
+  showCloseItem: { type: Boolean, default: false },
 });
+
+const emit = defineEmits(["close"]);
 
 const store = useStore();
 
@@ -210,6 +227,11 @@ watch(
   fetchMyEntityCollections,
   { immediate: true }
 );
+
+function onClose() {
+  menuOpen.value = false;
+  emit("close");
+}
 
 function onActivatorClick() {
   menuOpen.value = !menuOpen.value;

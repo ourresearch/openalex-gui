@@ -9,43 +9,44 @@
   >
     <v-card min-height="100" flat tile :loading="isLoading" class="drawer-card">
       <template v-if="entityData">
-        <!-- Corner controls are absolutely positioned so they don't push the
-             title and linkouts out of the body's shared left margin. The expand
-             button sits at the very left edge (the column under it is empty for
-             the rest of the panel — there's no reason to give it more space). -->
-        <v-tooltip location="bottom" text="Open as full page">
-          <template v-slot:activator="{props: tipProps}">
-            <v-btn
-              v-bind="tipProps"
-              v-if="fullPageRoute"
-              class="drawer-expand-btn"
-              icon
-              variant="plain"
-              size="small"
-              :to="fullPageRoute"
-              aria-label="Open as full page"
-              @click="setZoomId(null)"
-            >
-              <v-icon>mdi-arrow-expand</v-icon>
-            </v-btn>
-          </template>
-        </v-tooltip>
-        <v-btn
-          class="drawer-close-btn"
-          icon
-          variant="plain"
-          size="small"
-          @click="isOpen = !isOpen"
-          aria-label="Close"
-        >
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-
-        <!-- Single padded body: title, type-label, linkouts, metrics, and
-             metadata all share one left margin. pt-12 leaves room for the
-             absolutely-positioned corner buttons above. -->
-        <div class="drawer-body pt-12 px-8 pb-6">
-          <entity-header :entity-data="entityData" :show-back-button="false" />
+        <!-- Single padded body: control bar, title, type-label, linkouts,
+             metrics, and metadata all share one left margin (Notion-style). The
+             control bar is the first in-flow row (no more absolutely-positioned
+             corner buttons), so the header no longer stacks two rows. #641 -->
+        <div class="drawer-body pt-6 px-8 pb-6">
+          <entity-header
+            :entity-data="entityData"
+            :show-back-button="false"
+            layout="drawer"
+            @close="isOpen = false"
+          >
+            <!-- Left side of the control bar: close (double-chevron, replaces
+                 the old top-right X) + expand (→ full entity page). -->
+            <template #leading-controls>
+              <v-btn
+                icon
+                variant="plain"
+                size="small"
+                aria-label="Close"
+                @click="isOpen = false"
+              >
+                <v-icon>mdi-chevron-double-right</v-icon>
+                <v-tooltip activator="parent" location="bottom">Close</v-tooltip>
+              </v-btn>
+              <v-btn
+                v-if="fullPageRoute"
+                icon
+                variant="plain"
+                size="small"
+                :to="fullPageRoute"
+                aria-label="Open as full page"
+                @click="setZoomId(null)"
+              >
+                <v-icon>mdi-arrow-expand</v-icon>
+                <v-tooltip activator="parent" location="bottom">Open as full page</v-tooltip>
+              </v-btn>
+            </template>
+          </entity-header>
 
           <v-divider class="my-3"/>
 
@@ -201,22 +202,6 @@ onBeforeUnmount(() => {
   max-height: 100vh !important;
   top: 0 !important;
   z-index: 10000 !important;
-}
-/* Make the inner v-card the positioning context for the corner buttons. */
-.v-navigation-drawer .drawer-card {
-  position: relative;
-}
-.v-navigation-drawer .drawer-expand-btn {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  z-index: 1;
-}
-.v-navigation-drawer .drawer-close-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 1;
 }
 /* All content rows share the drawer-body's px-8 (32px) left margin. The
    utility-class horizontal padding/margin that EntityNew + EntityMetrics
