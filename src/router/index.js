@@ -587,9 +587,9 @@ const routes = [
     redirect('/schema', "https://developers.openalex.org/download-snapshot"),
     redirect('/mag-migration-guide', "https://developers.openalex.org/download-snapshot/mag-format"),
     
-    // Forms
-    redirect('/author-change-request', "https://docs.google.com/forms/d/e/1FAIpQLSel6otVekIyVOl46eh59mSkruIz32hAnGbJR6KM925E8wiCSg/viewform?usp=sf_link"),
-    redirect('/authorChangeRequest', "https://docs.google.com/forms/d/e/1FAIpQLSel6otVekIyVOl46eh59mSkruIz32hAnGbJR6KM925E8wiCSg/viewform?usp=sf_link"),
+    // Curation requests (the Google forms these pointed at were retired in #811)
+    redirect('/author-change-request', "https://help.openalex.org/how-to/fixing-errors/"),
+    redirect('/authorChangeRequest', "https://help.openalex.org/how-to/fixing-errors/"),
     
     // Events (formerly help-center articles; migrated to /events in #685)
     {path: '/webinars', redirect: '/events'},
