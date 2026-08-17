@@ -316,15 +316,17 @@ watch(mobileMenuOpen, (open) => {
   }
 }
 
-/* On row hover the icon tile darkens WITH the row (dark chip + white glyph),
-   never inverts to white — going light while the row goes dark reads as
-   confusing (Jason, 2026-08-16). */
+/* On row hover the icon tile darkens WITH the row — a subtle darker gray, not
+   an inversion to white (which read as confusing) and not black (too dramatic,
+   stole focus from the row). One step darker than the row's own hover bg, with
+   a slightly firmer border and darker glyph so it stays a legible tile.
+   (Jason, 2026-08-16.) */
 .mega-item:hover .mega-item-icon {
-  background-color: var(--ox-bg-inverse);
-  border-color: var(--ox-bg-inverse);
+  background-color: var(--ox-bg-emphasis);
+  border-color: var(--ox-border-strong);
 
   .v-icon {
-    color: var(--ox-text-inverse);
+    color: var(--ox-text-primary);
   }
 }
 
