@@ -11,15 +11,24 @@
     </span>
 
     <span v-if="valueEntityLinks">
-      <router-link
-        v-for="(entityObj, i) in valueEntityLinks"
-        :key="(entityObj?.id || 'unknown-' + i) + i"
-        :to="entityObj?.id ? filters.entityZoomLink(entityObj.id) : '#'"
-        class="mr-1 pr-0"
-        @click="!entityObj?.id && $event.preventDefault()"
-      >
-        {{ entityObj?.raw_author_name || entityObj?.display_name || 'Unknown' }}{{ i + 1 < valueEntityLinks.length ? ", " : "" }}
-      </router-link>
+      <!--
+        A mixed list is normal: a byline entry that never resolved to a profile
+        (e.g. a group author like "WHO Consultation") comes through with no id.
+        Render it as text rather than a link that goes nowhere — and crucially,
+        don't let it stop its neighbours from linking (oxjob #619).
+      -->
+      <template v-for="(entityObj, i) in valueEntityLinks" :key="(entityObj?.id || 'unlinked-' + i) + i">
+        <router-link
+          v-if="entityObj?.id"
+          :to="filters.entityZoomLink(entityObj.id)"
+          class="mr-1 pr-0"
+        >
+          {{ entityObj?.raw_author_name || entityObj?.display_name || 'Unknown' }}{{ i + 1 < valueEntityLinks.length ? ", " : "" }}
+        </router-link>
+        <span v-else class="mr-1 pr-0">
+          {{ entityObj?.raw_author_name || entityObj?.display_name || 'Unknown' }}{{ i + 1 < valueEntityLinks.length ? ", " : "" }}
+        </span>
+      </template>
     </span>
 
     <span v-if="isObservedNamesOwnerRow">
@@ -140,6 +149,7 @@ import filters from '@/filters';
 import { url } from '@/url';
 import { getFacetConfig } from '@/facetConfigUtils';
 import * as openalexId from '@/openalexId';
+import * as entityDatumValues from '@/components/Entity/entityDatumValues';
 import CurationEditButton from '@/components/Curation/CurationEditButton.vue';
 
 defineOptions({ name: 'EntityDatumRow' });
@@ -243,37 +253,15 @@ const isDisplayed = computed(() => {
 });
 
 const valueEntityLinks = computed(() => {
-  if (rawValue.value?.id) return [rawValue.value];
-  if (isValueAnArray.value) {
-    // Filter out null/undefined first
-    const validItems = rawValue.value.filter(o => o);
-    // Check if all valid items have IDs
-    if (validItems.length > 0 && validItems.every(o => o.id)) {
-      return isValueTruncated.value ? validItems.slice(0, maxLen.value.array) : validItems;
-    }
-  }
-  return null;
+  const items = entityDatumValues.entityLinkItems(rawValue.value);
+  if (!items) return null;
+  return isValueTruncated.value ? items.slice(0, maxLen.value.array) : items;
 });
 
 const valueListOfStrings = computed(() => {
-  if (isValueAnArray.value && !rawValue.value.every(o => o && o.id)) {
-    const filteredValues = rawValue.value
-      .filter(v => v !== null && v !== undefined)
-      .map(v => {
-        // If it's an object with display_name, extract it (regardless of id)
-        if (typeof v === 'object' && v.display_name) {
-          return v.display_name;
-        }
-        // If it's already a string, use it as is
-        if (typeof v === 'string') {
-          return v;
-        }
-        // Otherwise convert to string
-        return String(v);
-      });
-    return isValueTruncated.value ? filteredValues.slice(0, maxLen.value.array) : filteredValues;
-  }
-  return null;
+  const items = entityDatumValues.stringItems(rawValue.value);
+  if (!items) return null;
+  return isValueTruncated.value ? items.slice(0, maxLen.value.array) : items;
 });
 
 const valueString = computed(() => {
