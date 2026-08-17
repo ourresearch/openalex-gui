@@ -70,9 +70,12 @@ defineProps({
 
   // Sections
   .section {
-    padding: 64px 24px;
+    padding: 24px 24px;
     max-width: 1000px;
     margin: 0 auto;
+    // TOC / permalink scroll landing: clear the fixed site header (the old 64px
+    // padding used to double as this headroom).
+    scroll-margin-top: 48px;
   }
 
   .compact-section {
@@ -176,7 +179,7 @@ defineProps({
   @media (max-width: 600px) {
     .hero { padding: 60px 20px 20px; }
     .hero-headline { font-size: 32px; }
-    .section { padding: 48px 20px; }
+    .section { padding: 24px 20px; }
 
     .section-header .section-header-aside {
       margin-left: 0;
