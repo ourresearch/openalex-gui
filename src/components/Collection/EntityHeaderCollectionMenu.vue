@@ -17,10 +17,11 @@
     :close-on-content-click="false"
     location="bottom end"
     offset="6"
+    :z-index="menuZIndex ?? undefined"
   >
     <v-card flat rounded min-width="220" class="kebab-menu-card">
       <!-- Add to collection — always shown -->
-      <v-menu submenu open-on-hover location="end" :offset="2">
+      <v-menu submenu open-on-hover location="end" :offset="2" :z-index="submenuZIndex">
         <template #activator="{ props: subProps }">
           <div v-bind="subProps" class="kebab-row">
             <v-icon size="18" class="mr-2">mdi-folder-plus-outline</v-icon>
@@ -58,6 +59,7 @@
         open-on-hover
         location="end"
         :offset="2"
+        :z-index="submenuZIndex"
       >
         <template #activator="{ props: subProps }">
           <div v-bind="subProps" class="kebab-row">
@@ -92,7 +94,7 @@
     </v-card>
   </v-menu>
 
-  <v-dialog v-model="removeDialog" max-width="480">
+  <v-dialog v-model="removeDialog" max-width="480" :z-index="dialogZIndex">
     <v-card flat rounded>
       <v-card-title>Remove from collection?</v-card-title>
       <v-card-text>
@@ -129,11 +131,24 @@ const props = defineProps({
   // this kebab as its only right-side action menu, so it needs an in-menu
   // close; the full entity page has no panel to close and leaves this false.
   showCloseItem: { type: Boolean, default: false },
+  // Base z-index for the menu/submenus/dialog. Vuetify overlays default to
+  // 2000, but the entity fly-in (EntityDrawer) forces its own stacking to
+  // z-index:10000 via CSS — which Vuetify's overlay stack can't see — so a menu
+  // opened inside the drawer renders *behind* it and swallows clicks (the bug
+  // that looked like "the kebab does nothing"). The drawer passes a value above
+  // 10000; the full-page header passes nothing and keeps Vuetify's default. #641
+  menuZIndex: { type: Number, default: null },
 });
 
 const emit = defineEmits(["close"]);
 
 const store = useStore();
+
+// When menuZIndex is unset (full-page header) leave every overlay's z-index
+// unbound so Vuetify uses its own stacking. In the drawer it's set above the
+// drawer's forced z-index; submenus/dialog stack just above their parent menu.
+const submenuZIndex = computed(() => (props.menuZIndex == null ? undefined : props.menuZIndex + 1));
+const dialogZIndex = computed(() => (props.menuZIndex == null ? undefined : props.menuZIndex + 2));
 
 const activatorRef = ref(null);
 const menuOpen = ref(false);

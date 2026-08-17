@@ -38,6 +38,7 @@
         :entity-type="myEntityType"
         :entity-id="entityData.id"
         show-close-item
+        :menu-z-index="10001"
         @close="$emit('close')"
       />
     </div>
