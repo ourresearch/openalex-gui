@@ -140,7 +140,8 @@ defineProps({
     }
   }
 
-  ul.section-list {
+  ul.section-list,
+  ol.section-list {
     font-size: 16px;
     line-height: 1.7;
     color: #52525B;

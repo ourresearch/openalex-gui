@@ -57,38 +57,32 @@
 
     <static-section id="who-were-looking-for" title="Who we're looking for">
       <p class="section-body">
-        One trait, above everything: people who are
-        <a href="https://paulgraham.com/relres.html" target="_blank" rel="noopener noreferrer">relentlessly resourceful</a>.
+        If this is you, we want you on our team:
       </p>
-      <p class="section-body">
-        We measure results, not effort, and the bar here is delivering more in a
-        week than most people can. You don't clear that bar by grinding; you clear
-        it by figuring out which part of the job actually matters and doing only
-        that. By finding the clever hack. By
-        <a href="https://en.wikipedia.org/wiki/Gordian_Knot" target="_blank" rel="noopener noreferrer">cutting the knot</a>
-        instead of untying it. By
-        <a href="https://en.wikipedia.org/wiki/Kobayashi_Maru" target="_blank" rel="noopener noreferrer">redefining the rules of the game</a>.
-        And by knowing where the 20% of effort lives that gets 80% of the results &mdash;
-        then calling it
-        <a href="https://medium.com/@bre/the-cult-of-done-manifesto-724ca1c2ff13" target="_blank" rel="noopener noreferrer">done</a>
-        and moving on, instead of polishing. Perfectionists are miserable here. So
-        are people who love process.
-      </p>
-      <p class="section-body">
-        We're all-in on AI &mdash; not because it's AI, but because it compounds what we
-        can get done for the mission: about 10x so far, and climbing. Most of what
-        we do all day is manage AI agents. We don't care how the work gets done,
-        only that it solves the problem &mdash; and that you understand it deeply. That
-        goes for your application, too.
-      </p>
-      <p class="section-body">
-        So here's who thrives at OpenAlex: high-agency people who teach themselves,
-        manage themselves, and are energized rather than rattled by fast, high-stakes,
-        public work. And here's who doesn't: people who need a settled roadmap, a
-        structured ladder, or a room full of colleagues to do their best work. There's
-        no shame in the second list &mdash; most great people are on it. But if you're
-        squarely on the first, this might be the best job you ever have.
-      </p>
+      <ol class="section-list">
+        <li>
+          You're
+          <a href="https://paulgraham.com/relres.html" target="_blank" rel="noopener noreferrer">relentlessly resourceful</a>.
+          You've got the smarts to
+          <a href="https://en.wikipedia.org/wiki/Kobayashi_Maru" target="_blank" rel="noopener noreferrer">outwit the impossible problems</a>,
+          the grit to power through the grindy ones, and the wisdom to tell the
+          difference. You get things
+          <a href="https://medium.com/@bre/the-cult-of-done-manifesto-724ca1c2ff13" target="_blank" rel="noopener noreferrer">done</a>.
+        </li>
+        <li>
+          You're playing jazz, not classical. That means you're confident in your
+          skills, love improvising with a team, and can tolerate ambiguity,
+          imperfection, and a dash of chaos.
+        </li>
+        <li>
+          You embrace AI and grok the modern AI toolchain&mdash;not because of hype,
+          but because it's leverage to solving bigger problems, faster (see #1).
+        </li>
+        <li>
+          You believe in our mission: to build the future of science on an open,
+          universal research library.
+        </li>
+      </ol>
     </static-section>
 
     <static-section id="open-positions" title="Open positions">
