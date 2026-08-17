@@ -33,7 +33,10 @@
                 @click="isOpen = false"
               >
                 <v-icon>mdi-chevron-double-right</v-icon>
-                <v-tooltip activator="parent" location="bottom">Close</v-tooltip>
+                <!-- The drawer forces z-index 10000 (below), so overlays must be
+                     lifted above it or they paint behind the panel — same class of
+                     bug as the kebab menu (menuZIndex). -->
+                <v-tooltip activator="parent" location="bottom" :z-index="10001">Close</v-tooltip>
               </v-btn>
               <v-btn
                 v-if="fullPageRoute"
@@ -45,7 +48,7 @@
                 @click="setZoomId(null)"
               >
                 <v-icon>mdi-arrow-expand</v-icon>
-                <v-tooltip activator="parent" location="bottom">Open as full page</v-tooltip>
+                <v-tooltip activator="parent" location="bottom" :z-index="10001">Open as full page</v-tooltip>
               </v-btn>
             </template>
           </entity-header>

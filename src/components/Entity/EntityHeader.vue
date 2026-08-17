@@ -25,7 +25,7 @@
     <div v-if="isDrawer" class="d-flex align-center drawer-controlbar mb-3">
       <slot name="leading-controls" />
       <v-spacer />
-      <v-tooltip v-if="!isCollection" location="bottom" aria-label="View in API">
+      <v-tooltip v-if="!isCollection" location="bottom" aria-label="View in API" :z-index="10001">
         <template v-slot:activator="{props}">
           <v-btn v-bind="props" variant="plain" icon :href="apiUrl" target="_blank" aria-label="View in API">
             <v-icon>mdi-api</v-icon>
