@@ -79,8 +79,13 @@
       </ul>
     </static-section>
 
+    <static-section id="process" title="The process">
+      <p class="section-body">Our hiring process has five steps:</p>
+      <job-hiring-process />
+    </static-section>
+
     <static-section id="application" title="Application">
-      <p class="section-body">We'd love to learn a bit more about you.</p>
+      <p class="section-body">If you're interested, we'd love to hear from you.</p>
       <job-application-form role="software-data-engineer" />
     </static-section>
   </static-page>
@@ -93,6 +98,7 @@ import StaticPage from '@/components/StaticPage/StaticPage.vue';
 import StaticSection from '@/components/StaticPage/StaticSection.vue';
 import StaticBreadcrumbs from '@/components/StaticPage/StaticBreadcrumbs.vue';
 import JobApplicationForm from '@/components/Jobs/JobApplicationForm.vue';
+import JobHiringProcess from '@/components/Jobs/JobHiringProcess.vue';
 
 defineOptions({ name: 'JobsSoftwareDataEngineerPage' });
 
@@ -113,6 +119,7 @@ const sections = [
   { id: 'the-role', label: 'The role' },
   { id: 'about-us', label: 'About us' },
   { id: 'about-you', label: 'About you' },
+  { id: 'process', label: 'The process' },
   { id: 'application', label: 'Application' },
 ];
 </script>

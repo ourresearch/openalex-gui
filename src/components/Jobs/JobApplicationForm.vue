@@ -22,19 +22,43 @@
     <!-- Loading the applied-state check -->
     <div v-else-if="checking" class="jaf-loading">Loading…</div>
 
-    <!-- The form -->
+    <!-- Logged out: preview what the application asks, instead of the form.
+         (You can't apply without an OpenAlex account, and nobody should sign up
+         only to discover what the application involves.) -->
+    <div v-else-if="!userId" class="jaf-panel jaf-panel--signin">
+      <p class="jaf-panel-body">
+        The application has two parts. <strong>The basics:</strong> your location, LinkedIn
+        and GitHub, education, and an optional resume, pasted as Markdown or text.
+      </p>
+      <p class="jaf-panel-body">
+        <strong>Beyond the basics:</strong> three short-answer questions&mdash;why you want
+        to work here, what you'll do in your first week, and the coolest thing you've ever
+        built.
+      </p>
+      <p class="jaf-panel-body">
+        To apply, log in or create a free OpenAlex account.
+      </p>
+      <div class="jaf-signin-btns">
+        <button type="button" class="jaf-submit" @click="goLogin">Log in</button>
+        <button type="button" class="jaf-add-btn" @click="goSignup">Sign up</button>
+      </div>
+    </div>
+
+    <!-- The form (logged in only) -->
     <form v-else class="jaf-form" @submit.prevent="submit">
       <h3 class="subsection-header">The basics</h3>
 
       <div class="jaf-grid">
+        <!-- Name + email come from the applicant's OpenAlex account; not editable here
+             (editable fallback only if the account is missing the value). -->
         <div class="jaf-field">
-          <label class="jaf-label" for="jaf-name">Name</label>
-          <input id="jaf-name" v-model.trim="form.name" class="jaf-input" type="text" autocomplete="name" />
+          <label class="jaf-label" for="jaf-name">Name <span class="jaf-hint">— from your account</span></label>
+          <input id="jaf-name" v-model.trim="form.name" class="jaf-input" type="text" autocomplete="name" :disabled="nameLocked" />
           <span v-if="errors.name" class="jaf-error">{{ errors.name }}</span>
         </div>
         <div class="jaf-field">
-          <label class="jaf-label" for="jaf-email">Email</label>
-          <input id="jaf-email" v-model.trim="form.email" class="jaf-input" type="email" autocomplete="email" />
+          <label class="jaf-label" for="jaf-email">Email <span class="jaf-hint">— from your account</span></label>
+          <input id="jaf-email" v-model.trim="form.email" class="jaf-input" type="email" autocomplete="email" :disabled="emailLocked" />
           <span v-if="errors.email" class="jaf-error">{{ errors.email }}</span>
         </div>
         <div class="jaf-field">
@@ -42,16 +66,12 @@
           <input id="jaf-location" v-model.trim="form.location" class="jaf-input" type="text" placeholder="City, country" />
         </div>
         <div class="jaf-field">
-          <label class="jaf-label" for="jaf-timezone">Timezone</label>
-          <input id="jaf-timezone" v-model.trim="form.timezone" class="jaf-input" type="text" placeholder="e.g. UTC−6 / CT" />
-        </div>
-        <div class="jaf-field">
           <label class="jaf-label" for="jaf-linkedin">LinkedIn</label>
-          <input id="jaf-linkedin" v-model.trim="form.linkedin" class="jaf-input" type="url" placeholder="https://…" />
+          <input id="jaf-linkedin" v-model.trim="form.linkedin" class="jaf-input" type="url" placeholder="https://www.linkedin.com/in/yourname" />
         </div>
         <div class="jaf-field">
           <label class="jaf-label" for="jaf-github">GitHub</label>
-          <input id="jaf-github" v-model.trim="form.github" class="jaf-input" type="url" placeholder="https://…" />
+          <input id="jaf-github" v-model.trim="form.github" class="jaf-input" type="url" placeholder="https://github.com/yourname" />
         </div>
       </div>
 
@@ -61,14 +81,21 @@
         <div v-for="(row, i) in form.education" :key="i" class="jaf-edu-row">
           <input v-model.trim="row.institution" class="jaf-input" type="text" placeholder="Institution" />
           <input v-model.trim="row.degree" class="jaf-input" type="text" placeholder="Degree" />
-          <button type="button" class="jaf-icon-btn" :aria-label="`Remove education row ${i + 1}`" @click="removeEducation(i)">×</button>
+          <!-- Ghost trash button; hidden (but layout-stable) when there's nothing to remove -->
+          <button
+            type="button"
+            class="jaf-icon-btn"
+            :class="{ 'jaf-icon-btn--hidden': !canRemoveEducation(i) }"
+            :aria-label="`Remove education row ${i + 1}`"
+            @click="removeEducation(i)"
+          ><v-icon size="18">mdi-trash-can-outline</v-icon></button>
         </div>
         <button type="button" class="jaf-add-btn" @click="addEducation">+ Add education</button>
       </div>
 
       <!-- Resume (optional markdown) -->
       <div class="jaf-field">
-        <label class="jaf-label" for="jaf-resume">Resume <span class="jaf-optional">— Markdown only, optional</span></label>
+        <label class="jaf-label" for="jaf-resume">Resume <span class="jaf-hint">— paste Markdown or text</span></label>
         <textarea id="jaf-resume" v-model="form.resume_markdown" class="jaf-input jaf-textarea" rows="5" placeholder="# Your name&#10;…"></textarea>
       </div>
 
@@ -79,11 +106,9 @@
 
       <h3 class="subsection-header">Beyond the basics</h3>
       <p class="section-body">
-        We're looking for exceptional people, so we're looking for exceptional answers to
-        these questions. If your answers fit in with everybody else's, then you probably fit
-        in with everybody else&mdash;and you're probably not the right fit for this role. We
-        encourage you to use AI; but if you use AI the same way everybody else does, that's
-        not the kind of person we're looking for.
+        We're looking for unusual people; those people will have unusual answers to these
+        questions. And we encourage you to use AI to answer&mdash;but if you use it like
+        everyone else, why would we hire you instead of them?
       </p>
 
       <div v-for="q in questions" :key="q.key" class="jaf-field">
@@ -99,17 +124,10 @@
       <!-- Submit / server error -->
       <p v-if="serverError" class="jaf-error jaf-error--server">{{ serverError }}</p>
 
-      <div v-if="userId" class="jaf-submit-row">
+      <div class="jaf-submit-row">
         <button type="submit" class="jaf-submit" :disabled="submitting">
           {{ submitting ? 'Submitting…' : 'Submit application' }}
         </button>
-      </div>
-      <div v-else class="jaf-panel jaf-panel--signin">
-        <p class="jaf-panel-body">Log in or create a free OpenAlex account to submit your application. Your answers above are saved on this device.</p>
-        <div class="jaf-signin-btns">
-          <button type="button" class="jaf-submit" @click="goLogin">Log in</button>
-          <button type="button" class="jaf-add-btn" @click="goSignup">Sign up</button>
-        </div>
       </div>
     </form>
   </div>
@@ -133,6 +151,11 @@ const store = useStore();
 const router = useRouter();
 
 const userId = computed(() => store.getters['user/userId']);
+const accountName = computed(() => store.getters['user/userName'] || '');
+const accountEmail = computed(() => store.getters['user/userEmail'] || '');
+// Name/email come from the account; the inputs unlock only if the account lacks the value.
+const nameLocked = computed(() => !!accountName.value);
+const emailLocked = computed(() => !!accountEmail.value);
 
 const questions = [
   { key: 'why_here', label: 'Why do you want to work here?' },
@@ -144,7 +167,6 @@ const blankForm = () => ({
   name: '',
   email: '',
   location: '',
-  timezone: '',
   linkedin: '',
   github: '',
   resume_markdown: '',
@@ -171,6 +193,10 @@ function addEducation() {
 function removeEducation(i) {
   form.education.splice(i, 1);
   if (form.education.length === 0) addEducation();
+}
+function canRemoveEducation(i) {
+  const row = form.education[i];
+  return form.education.length > 1 || !!(row && (row.institution || row.degree));
 }
 
 // ---- auth prompts ----
@@ -247,7 +273,6 @@ async function submit() {
       name: form.name.trim(),
       email: form.email.trim(),
       location: form.location.trim(),
-      timezone: form.timezone.trim(),
       linkedin: form.linkedin.trim(),
       github: form.github.trim(),
       anything_else: form.anything_else.trim(),
@@ -281,10 +306,11 @@ async function submit() {
 
 onMounted(async () => {
   restoreDraft();
-  // Prefill from the logged-in account only where the applicant hasn't typed / no draft.
+  // Name/email always mirror the account (they're not editable); any draft values
+  // are overridden. Other fields keep their draft.
   if (userId.value) {
-    if (!form.name) form.name = store.getters['user/userName'] || '';
-    if (!form.email) form.email = store.getters['user/userEmail'] || '';
+    if (accountName.value) form.name = accountName.value;
+    if (accountEmail.value) form.email = accountEmail.value;
   }
   await checkApplied();
 });
@@ -327,7 +353,7 @@ onMounted(async () => {
   margin-bottom: 6px;
 }
 
-.jaf-optional {
+.jaf-hint {
   font-weight: 400;
   color: #A1A1AA;
 }
@@ -353,6 +379,14 @@ onMounted(async () => {
     border-color: #0A0A0A;
     box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.06);
   }
+
+  &:disabled {
+    background: #FAFAFA;
+    color: #52525B;
+    cursor: not-allowed;
+
+    &:hover { border-color: #E4E4E7; }
+  }
 }
 
 .jaf-textarea {
@@ -368,19 +402,22 @@ onMounted(async () => {
   align-items: center;
 }
 
+// Ghost button (no border/background until hover), trash icon inside.
 .jaf-icon-btn {
   width: 34px;
   height: 34px;
-  border: 1px solid #E4E4E7;
+  border: none;
   border-radius: 8px;
-  background: #fff;
+  background: transparent;
   color: #71717A;
-  font-size: 20px;
   line-height: 1;
   cursor: pointer;
   transition: all 0.15s ease;
 
-  &:hover { border-color: #A1A1AA; color: #0A0A0A; }
+  &:hover { background: #F4F4F5; color: #0A0A0A; }
+
+  // Keep the grid column stable when the row has nothing to remove.
+  &--hidden { visibility: hidden; }
 }
 
 .jaf-add-btn {
@@ -452,6 +489,8 @@ onMounted(async () => {
   line-height: 1.6;
   color: #52525B;
   margin: 0;
+
+  + .jaf-panel-body { margin-top: 10px; }
 }
 
 .jaf-signin-btns {

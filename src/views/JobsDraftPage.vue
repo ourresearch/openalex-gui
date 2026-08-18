@@ -48,9 +48,6 @@
     </static-section>
 
     <static-section id="open-positions" title="Open positions">
-      <p class="section-body">
-        We're hiring for two roles. Read the full posting and apply:
-      </p>
       <div class="job-cards">
         <router-link class="job-card" to="/jobs/software-data-engineer">
           <span class="job-card-title">Software &amp; Data Engineer</span>
@@ -96,7 +93,7 @@ const sections = [
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 20px;
+  margin-top: 4px;
 }
 
 .job-card {

@@ -135,11 +135,13 @@
       </p>
     </static-section>
 
+    <static-section id="process" title="The process">
+      <p class="section-body">Our hiring process has five steps:</p>
+      <job-hiring-process />
+    </static-section>
+
     <static-section id="application" title="Application">
-      <p class="section-body">
-        We'd love to learn a bit more about you. Our process is short: apply below, a
-        conversation or two, then a paid work trial &mdash; about $1,000/day.
-      </p>
+      <p class="section-body">If you're interested, we'd love to hear from you.</p>
       <job-application-form role="community-lead" />
     </static-section>
   </static-page>
@@ -152,6 +154,7 @@ import StaticPage from '@/components/StaticPage/StaticPage.vue';
 import StaticSection from '@/components/StaticPage/StaticSection.vue';
 import StaticBreadcrumbs from '@/components/StaticPage/StaticBreadcrumbs.vue';
 import JobApplicationForm from '@/components/Jobs/JobApplicationForm.vue';
+import JobHiringProcess from '@/components/Jobs/JobHiringProcess.vue';
 
 defineOptions({ name: 'JobsCommunityLeadPage' });
 
@@ -172,6 +175,7 @@ const sections = [
   { id: 'the-role', label: 'The role' },
   { id: 'about-us', label: 'About us' },
   { id: 'about-you', label: 'About you' },
+  { id: 'process', label: 'The process' },
   { id: 'application', label: 'Application' },
 ];
 </script>
