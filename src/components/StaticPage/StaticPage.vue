@@ -5,6 +5,10 @@
 
     <!-- Hero (omitted when the page brings its own — pass no title) -->
     <section class="hero" v-if="title">
+      <!-- Optional breadcrumb/eyebrow above the headline (e.g. job listing pages) -->
+      <div class="hero-eyebrow" v-if="$slots.eyebrow">
+        <slot name="eyebrow" />
+      </div>
       <h1 class="hero-headline">{{ title }}</h1>
       <p class="hero-body" v-if="$slots.intro">
         <slot name="intro" />
@@ -40,6 +44,10 @@ defineProps({
     padding: 80px 24px 20px;
     max-width: 848px;
     margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    margin-bottom: 14px;
   }
 
   .hero-headline {
