@@ -84,36 +84,7 @@
 
     <static-section id="application" title="Application">
       <p class="section-body">We'd love to learn a bit more about you.</p>
-
-      <h3 class="subsection-header">The basics</h3>
-      <ul class="section-list">
-        <li>Name</li>
-        <li>Email</li>
-        <li>Location + timezone</li>
-        <li>LinkedIn</li>
-        <li>GitHub</li>
-        <li>Resume (Markdown only &mdash; optional)</li>
-        <li>Education (institution + degree; add a row per entry)</li>
-        <li>Anything else we should know (free text)</li>
-      </ul>
-
-      <h3 class="subsection-header">Beyond the basics</h3>
-      <p class="section-body">
-        We're looking for exceptional people, so we're looking for exceptional answers to
-        these questions. If your answers fit in with everybody else's, then you probably fit
-        in with everybody else&mdash;and you're probably not the right fit for this role. We
-        encourage you to use AI; but if you use AI the same way everybody else does, that's
-        not the kind of person we're looking for.
-      </p>
-      <ol class="section-list">
-        <li>Why do you want to work here?</li>
-        <li>What will you do in your first week?</li>
-        <li>What's the coolest thing you've ever built?</li>
-      </ol>
-      <p class="section-body">
-        Answer at whatever length you like &mdash; we're looking for thoughtful answers, and
-        three to six paragraphs is often a good fit.
-      </p>
+      <job-application-form role="software-data-engineer" />
     </static-section>
   </static-page>
 </template>
@@ -124,6 +95,7 @@ import { useHead } from '@unhead/vue';
 import StaticPage from '@/components/StaticPage/StaticPage.vue';
 import StaticSection from '@/components/StaticPage/StaticSection.vue';
 import StaticBreadcrumbs from '@/components/StaticPage/StaticBreadcrumbs.vue';
+import JobApplicationForm from '@/components/Jobs/JobApplicationForm.vue';
 
 defineOptions({ name: 'JobsSoftwareDataEngineerPage' });
 
