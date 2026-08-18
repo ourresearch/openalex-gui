@@ -5,58 +5,46 @@
   <static-page title="Build the future of science" :sections="sections">
     <static-section id="about-us" title="About us">
       <p class="section-body">
-        Today's problems require tomorrow's <strong>research ecosystem</strong>: a network
-        of humans and agents collaborating without seams or silos. That ecosystem needs
-        soil to grow. That's OpenAlex: inspired by the ancient Library of Alexandria, we're
-        building a universal research library that gathers, organizes, and shares
-        <em>all</em> research products&mdash;without paywalls. We'd love your help.
+        Inspired by the ancient Library of Alexandria, we're building a
+        <strong><em>universal research library.</em></strong> And by making it open to
+        humans and machines, we're supporting a new scientific revolution. We'd love your
+        help.
       </p>
       <p class="section-body">
-        We sell services, but our data is free&mdash;we're driven by making a difference,
-        not profits. And we do make one: our data reaches millions of downstream users
-        across enterprise, government, and academia, and your favorite AI company probably
-        uses it. We're a small, hand-picked team punching way above our weight, with the
-        autonomy to match: no bureaucracy, no turf wars, no rituals&mdash;the mission sets
-        the roadmap and the route's up to you. We pay well, work fully remote, use
-        top-of-the-line equipment, and move really fast.
+        As a nonprofit, we're driven by mission. As a tech company, <strong>we're working
+        at scale:</strong> a billion API calls monthly, and millions of users across
+        enterprise, government, and academia. Your favorite AI company probably uses
+        OpenAlex; your favorite university definitely does.
       </p>
       <p class="section-body">
-        It's not all easy, though: it's intense and sometimes chaotic. Everyone does
-        everything, priorities change fast, and remote work can be isolating. And with
-        millions of downstream users, when we make mistakes, people notice&mdash;and we make
-        plenty; we're moving fast and building something audacious. We value craft, but
-        perfectionists need not apply.
+        <strong>Our small-team culture</strong> values trust, agency, and impact. The
+        tempo's relentless, nothing's ever really done, and no one's holding your hand.
+        But the work stays interesting, we have creative autonomy, and <em>we ship.</em>
+        Every day.
       </p>
     </static-section>
 
     <static-section id="about-you" title="About you">
       <p class="section-body">
-        If this is you, we want you on our team:
+        You're
+        <strong><a href="https://paulgraham.com/relres.html" target="_blank" rel="noopener noreferrer">relentlessly resourceful</a>.</strong>
+        You've got the smarts to
+        <a href="https://en.wikipedia.org/wiki/Kobayashi_Maru" target="_blank" rel="noopener noreferrer">outwit the impossible problems</a>,
+        the grit to power through the grindy ones, and the wisdom to tell the
+        difference. You get things
+        <a href="https://medium.com/@bre/the-cult-of-done-manifesto-724ca1c2ff13" target="_blank" rel="noopener noreferrer">done</a>.
+        That means you're leveraging AI extensively and skillfully, driven by results
+        not hype.
       </p>
-      <ol class="section-list">
-        <li>
-          You're
-          <a href="https://paulgraham.com/relres.html" target="_blank" rel="noopener noreferrer">relentlessly resourceful</a>.
-          You've got the smarts to
-          <a href="https://en.wikipedia.org/wiki/Kobayashi_Maru" target="_blank" rel="noopener noreferrer">outwit the impossible problems</a>,
-          the grit to power through the grindy ones, and the wisdom to tell the
-          difference. You get things
-          <a href="https://medium.com/@bre/the-cult-of-done-manifesto-724ca1c2ff13" target="_blank" rel="noopener noreferrer">done</a>.
-        </li>
-        <li>
-          You're playing jazz, not classical. That means you're confident in your
-          skills, love improvising with a team, and can tolerate ambiguity,
-          imperfection, and a dash of chaos.
-        </li>
-        <li>
-          You embrace AI and grok the modern AI toolchain&mdash;not because of hype,
-          but because it's leverage to solving bigger problems, faster (see #1).
-        </li>
-        <li>
-          You believe in our mission: to build the future of science on an open,
-          universal research library.
-        </li>
-      </ol>
+      <p class="section-body">
+        You play <strong>jazz, not classical:</strong> you're confident in your skills,
+        love improvising with a team, and can embrace ambiguity, imperfection, and a
+        dash of chaos in service of emergent, collaborative creativity.
+      </p>
+      <p class="section-body">
+        You <strong>believe in our mission</strong> and you care about openness and open
+        culture. That extends to how you communicate: with skill, empathy, and clarity.
+      </p>
     </static-section>
 
     <static-section id="open-positions" title="Open positions">
