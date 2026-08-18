@@ -67,7 +67,7 @@
             <router-link
               :to="workLink(work)"
               class="work-title text-body-2 font-weight-medium text-decoration-none"
-              v-html="work.display_name || 'Untitled'"
+              v-html="filters.prettyTitle(work.display_name)"
             />
 
             <!-- Authors and metadata -->
