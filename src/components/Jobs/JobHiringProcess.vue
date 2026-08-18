@@ -2,11 +2,14 @@
   <!-- Hiring-process steps (oxjob #812). Vuetify timeline restyled to the house
        Linear-ish register: numbered dots on a thin line, horizontal on desktop,
        vertical on mobile. Shared by both job listing pages. -->
+  <!-- Desktop: align=center puts each dot at its column's center (with matching
+       line geometry); equal columns below make the dots equidistant. Mobile stays
+       align=start so the vertical line hugs the left edge. -->
   <v-timeline
     class="jhp"
     :direction="smAndDown ? 'vertical' : 'horizontal'"
     side="end"
-    align="start"
+    :align="smAndDown ? 'start' : 'center'"
     truncate-line="both"
     line-thickness="1"
     density="comfortable"
@@ -47,6 +50,16 @@ const steps = [
 <style scoped lang="scss">
 .jhp {
   margin-top: 4px;
+
+  // 5 equal-width columns; with align=center that makes the dots equidistant.
+  // (Vuetify sizes the implicit grid columns by content otherwise.)
+  &.v-timeline--horizontal {
+    grid-template-columns: repeat(5, 1fr);
+
+    .jhp-label {
+      text-align: center;
+    }
+  }
 
   :deep(.v-timeline-divider__dot) {
     background: #fff;
