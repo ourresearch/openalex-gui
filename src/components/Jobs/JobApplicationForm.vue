@@ -8,15 +8,19 @@
     <div v-if="applied" class="jaf-panel jaf-panel--done">
       <div class="jaf-panel-title">Application received</div>
       <p class="jaf-panel-body">
-        Thanks — we've got your application for this role{{ appliedOn ? ` (submitted ${appliedOn})` : '' }}.
-        Applications can't be edited once submitted, so this one's locked. We'll be in touch.
+        Thanks — we've got your application for this role{{ appliedOn ? ` (submitted ${appliedOn})` : '' }},
+        and we emailed you a copy of it. Applications can't be edited once submitted, so this
+        one's locked. We'll email you either way once we've decided.
       </p>
     </div>
 
     <!-- Just submitted -->
     <div v-else-if="justSubmitted" class="jaf-panel jaf-panel--done">
       <div class="jaf-panel-title">Thanks — your application is in.</div>
-      <p class="jaf-panel-body">We read every one. We'll be in touch.</p>
+      <p class="jaf-panel-body">
+        We've emailed you a copy of everything you sent. We read every application, and
+        we'll email you either way once we've decided.
+      </p>
     </div>
 
     <!-- Loading the applied-state check -->
