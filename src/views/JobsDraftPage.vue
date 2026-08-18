@@ -3,15 +3,14 @@
        stays on the coming-soon placeholder. Red-pen surface; noindex, not announced.
        Uses the house StaticPage pattern (hero + right-rail TOC), same as /about etc. -->
   <static-page title="Build the future of science" :sections="sections">
-    <template #intro>
-      Today's problems require tomorrow's <strong>research ecosystem</strong>: a network
-      of humans and agents collaborating without seams or silos. That ecosystem needs
-      soil to grow. That's OpenAlex: inspired by the ancient Library of Alexandria,
-      we're building a universal research library that gathers, organizes, and shares
-      <em>all</em> research products&mdash;without paywalls. We'd love your help.
-    </template>
-
-    <static-section id="what-rocks" title="What rocks about this job">
+    <static-section id="about-us" title="About us">
+      <p class="section-body">
+        Today's problems require tomorrow's <strong>research ecosystem</strong>: a network
+        of humans and agents collaborating without seams or silos. That ecosystem needs
+        soil to grow. That's OpenAlex: inspired by the ancient Library of Alexandria, we're
+        building a universal research library that gathers, organizes, and shares
+        <em>all</em> research products&mdash;without paywalls. We'd love your help.
+      </p>
       <p class="section-body">
         We sell services, but our data is free&mdash;we're driven by making a difference,
         not profits. And we do make one: our data reaches millions of downstream users
@@ -21,18 +20,16 @@
         the roadmap and the route's up to you. We pay well, work fully remote, use
         top-of-the-line equipment, and move really fast.
       </p>
-    </static-section>
-
-    <static-section id="whats-hard" title="What's hard about this job">
       <p class="section-body">
-        It's intense and sometimes chaotic: everyone does everything, priorities change
-        fast, and remote work can be isolating. And with millions of downstream users, when
-        we make mistakes, people notice&mdash;and we make plenty; we're moving fast and
-        building something audacious. We value craft, but perfectionists need not apply.
+        It's not all easy, though: it's intense and sometimes chaotic. Everyone does
+        everything, priorities change fast, and remote work can be isolating. And with
+        millions of downstream users, when we make mistakes, people notice&mdash;and we make
+        plenty; we're moving fast and building something audacious. We value craft, but
+        perfectionists need not apply.
       </p>
     </static-section>
 
-    <static-section id="who-were-looking-for" title="Who we're looking for">
+    <static-section id="about-you" title="About you">
       <p class="section-body">
         If this is you, we want you on our team:
       </p>
@@ -99,9 +96,8 @@ useHead({
 });
 
 const sections = [
-  { id: 'what-rocks', label: 'What rocks about this job' },
-  { id: 'whats-hard', label: "What's hard about this job" },
-  { id: 'who-were-looking-for', label: "Who we're looking for" },
+  { id: 'about-us', label: 'About us' },
+  { id: 'about-you', label: 'About you' },
   { id: 'open-positions', label: 'Open positions' },
 ];
 </script>
@@ -122,22 +118,21 @@ const sections = [
   padding: 18px 20px;
   border: 1px solid #E4E4E7;
   border-radius: 12px;
-  text-decoration: none;
   color: inherit;
   transition: border-color 0.15s ease, background-color 0.15s ease;
+
+  // The global App.vue anchor rule (a:not(...):hover) underlines links on hover
+  // with specificity (0,5,1) — higher than this scoped rule — so we need
+  // !important to keep these cards (not text links) from underlining. The darker
+  // border/background hover affordance stays.
+  &,
+  &:hover {
+    text-decoration: none !important;
+  }
 
   &:hover {
     border-color: #A1A1AA;
     background: #FAFAFA;
-    // Kill the global anchor hover underline/blue — these are cards, not links.
-    text-decoration: none;
-  }
-
-  // Belt-and-suspenders: never let the global a:hover rule underline the card text.
-  &:hover .job-card-title,
-  &:hover .job-card-sub,
-  &:hover .job-card-arrow {
-    text-decoration: none;
   }
 }
 
