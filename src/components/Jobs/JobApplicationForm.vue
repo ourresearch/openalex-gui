@@ -160,7 +160,7 @@ import { urlBase, axiosConfig } from '@/apiConfig';
 defineOptions({ name: 'JobApplicationForm' });
 
 const props = defineProps({
-  role: { type: String, required: true },  // 'software-data-engineer' | 'community-lead'
+  role: { type: String, required: true },  // 'software-data-engineer' | 'community-lead' | 'operations-associate'
 });
 
 const store = useStore();
@@ -179,8 +179,10 @@ const questions = [
 ];
 
 // Which basics fields are required depends on the role: location/education/resume for
-// everyone; LinkedIn for the community lead; GitHub for the software role. "Anything
-// else" is never required. (Enforced client-side; the API treats these as optional.)
+// everyone; LinkedIn for the community lead; GitHub for the software role. The operations
+// associate role requires neither (entry-level; many applicants will have no GitHub and a
+// thin LinkedIn). "Anything else" is never required. (Enforced client-side; the API
+// treats these as optional.)
 const req = computed(() => ({
   location: true,
   linkedin: props.role === 'community-lead',

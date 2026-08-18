@@ -1,8 +1,13 @@
 <template>
   <!-- Community Lead listing (oxjob #662 → restructured in #812). Stealth: noindex, not yet
        linked from /jobs. House StaticPage pattern (hero + right-rail TOC), matching the
-       Software & Data Engineer page. The role + "about you" prose is PRESERVED from the
-       original #662 copy (Jason: don't lorem-ipsum what we already have). -->
+       Software & Data Engineer page.
+
+       Scope revised 2026-08-18 (Kyle): sales is winding down as a function, so this role
+       owns the *relationship* with users and members while the COO leads on deals and the
+       new Operations Associate handles paperwork. Dropped the "you'll own everything
+       nontechnical" framing -- inaccurate (finance/HR/taxes/legal stay with the CEO+COO)
+       and it read as "you are the dumping ground" to senior candidates. -->
   <static-page title="Community Lead" :sections="sections">
     <template #eyebrow>
       <static-breadcrumbs :crumbs="crumbs" />
@@ -16,8 +21,9 @@
         conversation at a time. That doesn't scale. This role is where it starts to.
       </p>
       <p class="section-body">
-        The honest headline: <strong>you'll own everything nontechnical.</strong> Put
-        another way, you'll own working with all the people who aren't us:
+        The honest headline: <strong>you'll own our relationships with users and
+        members.</strong> The people who use OpenAlex every day, and the institutions whose
+        support keeps it running.
       </p>
       <ul class="section-list">
         <li>
@@ -26,21 +32,29 @@
         </li>
         <li>
           Building relationships with the institutions that support us: onboarding new
-          members, keeping current ones happy, and yes, owning the contracts and renewals
-          that come with them. (This is not a sales job. But in a small org, the person who
-          owns the relationship owns the paperwork too.)
+          members, keeping current ones happy, and growing the membership. When a
+          conversation turns commercial, our COO leads on the deal and our Operations
+          Associate handles the paperwork. You stay the relationship.
         </li>
         <li>
-          Running the machinery of community: our advisory board, governance and elections,
-          user groups, meetups.
+          Running the machinery of community: our Community Advisory Board, governance and
+          elections, members meetings, user groups, meetups.
         </li>
         <li>
-          Whatever else needs doing that doesn't require writing code. Some weeks that's a
-          launch webinar; some weeks it's untangling a member's billing question. If that
-          grab-bag sounds chaotic, this is the wrong job. If it sounds like ownership, keep
-          reading.
+          Helping users directly. Our support queue is shared with the tech team, because
+          the person who answers the hard question is often the person who understands the
+          community best.
         </li>
       </ul>
+      <p class="section-body">
+        What you <em>won't</em> own: engineering, and the back-office functions (finance,
+        HR, taxes, legal) that stay with our CEO and COO. This role has a clear edge to it.
+      </p>
+      <p class="section-body">
+        The mix shifts week to week. Some weeks it's a launch webinar; some weeks it's month
+        six of a conversation with a member who still hasn't decided. If that sounds
+        chaotic, this is the wrong job. If it sounds like ownership, keep reading.
+      </p>
       <p class="section-body">
         This is not the community-manager role you've seen at other scholarly-infrastructure
         organizations. We're not looking for someone to schedule the webinars and keep the
@@ -127,6 +141,13 @@
         <li>
           You write and speak in a way people remember &mdash; enthusiasm that's contagious
           rather than exhausting.
+        </li>
+        <li>
+          You're comfortable when a relationship has money in it. We're a nonprofit building
+          open infrastructure, and our members' and partners' contributions are what keep
+          that infrastructure running and open to everyone. You don't need to have carried a
+          quota, but you can talk with a library director about renewing without flinching
+          or apologizing for asking.
         </li>
       </ul>
       <p class="section-body">

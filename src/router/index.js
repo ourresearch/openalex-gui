@@ -451,6 +451,8 @@ const routes = [
     {path: '/jobs/community-lead', name: 'JobsCommunityLead', component: () => import('@/views/JobsCommunityLeadPage.vue'), meta: {chrome: 'site'}},
     // Software & Data Engineer listing (oxjob #812): stealth — noindex, not yet linked from /jobs.
     {path: '/jobs/software-data-engineer', name: 'JobsSoftwareDataEngineer', component: () => import('@/views/JobsSoftwareDataEngineerPage.vue'), meta: {chrome: 'site'}},
+    // Operations Associate listing (oxjob #812, added 2026-08-18): stealth, noindex, not yet linked from /jobs.
+    {path: '/jobs/operations-associate', name: 'JobsOperationsAssociate', component: () => import('@/views/JobsOperationsAssociatePage.vue'), meta: {chrome: 'site'}},
     {path: '/institutional-supporters', name: 'InstitutionalSupporters', component: MembersPage, meta: {chrome: 'site'}},
     {path: '/members', redirect: '/institutional-supporters'},
     {path: '/pricing-new', redirect: '/pricing'},
