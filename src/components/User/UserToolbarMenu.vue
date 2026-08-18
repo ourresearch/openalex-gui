@@ -81,7 +81,8 @@
 
             <v-divider/>
 
-            <v-list-item href="https://openalex.zendesk.com/hc/en-us/requests/new" target="_blank">
+            <!-- On-site intake since #751 — internal route, so no target="_blank" -->
+            <v-list-item :to="{ name: 'Support' }">
               <template #prepend>
                 <v-icon>mdi-comment-question-outline</v-icon>
               </template>

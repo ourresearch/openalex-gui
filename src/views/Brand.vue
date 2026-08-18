@@ -163,7 +163,7 @@
       </ul>
       <p class="section-body mt-4">
         Not sure whether your use is okay? Just
-        <a href="https://openalex.zendesk.com/hc/requests/new" target="_blank" rel="noopener noreferrer">ask us</a> —
+        <router-link :to="{ name: 'Support' }">ask us</router-link> —
         we're friendly.
       </p>
     </section>

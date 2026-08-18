@@ -24,7 +24,7 @@
     <static-section id="feedback" title="Feedback">
       <p class="section-body">
         If you hit an accessibility problem anywhere on OpenAlex, please
-        <router-link to="/contact">let us know</router-link> — we'd like to fix it.
+        <router-link to="/support">let us know</router-link> — we'd like to fix it.
       </p>
     </static-section>
   </static-page>

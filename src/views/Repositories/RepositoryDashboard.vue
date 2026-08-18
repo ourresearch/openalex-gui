@@ -207,7 +207,7 @@
       <!-- Contact -->
       <div class="text-center text-body-2 text-medium-emphasis mb-8">
         Something wrong?
-        <a href="https://openalex.zendesk.com/hc/requests/new" target="_blank">Contact us</a>
+        <router-link :to="{ name: 'Support' }">Contact us</router-link>
       </div>
     </template>
   </v-container>

@@ -110,8 +110,7 @@
         <v-btn
           variant="flat"
           color="primary"
-          href="https://help.openalex.org/hc/en-us/requests/new"
-          target="_blank"
+          :to="{ name: 'Support' }"
           @click="showChangePlanDialog = false"
         >
           Contact Support

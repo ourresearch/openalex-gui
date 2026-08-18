@@ -83,7 +83,7 @@ const navConfigs = [
             },
             {
                 name: "Contact",
-                to: "/contact",
+                to: "/support",
             },
             {
                 name: "Events",

@@ -602,9 +602,12 @@ const routes = [
     
     // Support
     redirect('/help', "https://help.openalex.org"),
-    redirect('/contact', "https://openalex.zendesk.com/hc/requests/new"),
-    redirect('/feedback', "https://openalex.zendesk.com/hc/requests/new"),
-    redirect('/support', "https://openalex.zendesk.com/hc/requests/new"),
+    // Ticket intake moved on-site in #751 — these three used to redirect to
+    // openalex.zendesk.com/hc/requests/new, which was our only intake path and
+    // therefore the blocker on retiring the legacy Zendesk help center (#811).
+    {path: '/support', name: 'Support', component: () => import('@/views/SupportPage.vue'), meta: {chrome: 'site'}},
+    {path: '/contact', redirect: '/support'},
+    {path: '/feedback', redirect: '/support'},
     
     // Resources
     redirect('/webinars/api-notebook-01', "https://github.com/ourresearch/openalex-api-tutorials/blob/main/notebooks/getting-started/api-webinar-apr2024/tutorial01.ipynb"),
