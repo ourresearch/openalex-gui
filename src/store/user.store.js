@@ -20,6 +20,7 @@ export default {
         isLibrarian: false,
         isSiteCurator: false,
         apiKey: null,
+        retiredApiKey: null,
         plan: null,
         planExpiresAt: null,
         organizationId: null,
@@ -106,6 +107,7 @@ export default {
             state.isSiteCurator = apiResp.is_site_curator
             state.authorId = apiResp.author_id
             state.apiKey = apiResp.api_key || null
+            state.retiredApiKey = apiResp.retired_api_key || null
             state.plan = apiResp.plan || null
             state.planExpiresAt = apiResp.plan_expires_at || null
             state.organizationId = apiResp.organization_id || null
@@ -458,11 +460,14 @@ export default {
             commit("snackbar", "Name updated", {root: true})
         },
 
-        async rotateApiKey({commit, state}) {
+        async rotateApiKey({commit, state}, grace) {
             const myUrl = apiBaseUrl + `/users/${state.id}/api-key/rotate`
             const resp = await axios.post(
                 myUrl,
-                {},
+                // oxjob #830: grace keeps the old key serving API requests
+                // until it expires (it stops authenticating GUI sessions
+                // immediately either way).
+                { grace: grace || 'now' },
                 axiosConfig({userAuth: true})
             )
             commit("setFromApiResp", resp.data)
@@ -473,6 +478,12 @@ export default {
                 commit("setToken", resp.data.api_key)
             }
             return resp.data.api_key
+        },
+
+        async expireRetiredApiKey({commit, state}) {
+            const myUrl = apiBaseUrl + `/users/${state.id}/api-key/retired`
+            const resp = await axios.delete(myUrl, axiosConfig({userAuth: true}))
+            commit("setFromApiResp", resp.data)
         },
 
         // **************************************************

@@ -10,7 +10,9 @@
           v-for="(key, idx) in organization.api_keys"
           :key="idx"
           :api-key="key"
-          :on-rotate="() => rotateOrgKey(idx)"
+          :on-rotate="(grace) => rotateOrgKey(idx, grace)"
+          :retired-key="retiredKeyFor(idx)"
+          :on-expire-now="() => expireRetiredOrgKey(idx)"
         />
       </div>
       <span v-else class="text-medium-emphasis">—</span>
@@ -43,13 +45,26 @@ const props = defineProps({
 
 const emit = defineEmits(['updated']);
 
-async function rotateOrgKey(keyIndex) {
+async function rotateOrgKey(keyIndex, grace) {
   const resp = await axios.post(
     `${urlBase.userApi}/organizations/${props.organization.id}/api-keys/${keyIndex}/rotate`,
-    {},
+    { grace: grace || 'now' },
     axiosConfig({ userAuth: true })
   );
   emit('updated', resp.data);
   return resp.data.api_keys[keyIndex];
+}
+
+function retiredKeyFor(keyIndex) {
+  const retired = props.organization.retired_api_keys || [];
+  return retired.find((r) => r.key_index === keyIndex) || null;
+}
+
+async function expireRetiredOrgKey(keyIndex) {
+  const resp = await axios.delete(
+    `${urlBase.userApi}/organizations/${props.organization.id}/api-keys/${keyIndex}/retired`,
+    axiosConfig({ userAuth: true })
+  );
+  emit('updated', resp.data);
 }
 </script>

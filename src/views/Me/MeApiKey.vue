@@ -24,7 +24,14 @@
         label="API Key"
         description="Use this key to authenticate API requests and get higher rate limits"
       >
-        <ApiKeyDisplay v-if="apiKey" :api-key="apiKey" :on-rotate="rotateUserKey" />
+        <ApiKeyDisplay
+          v-if="apiKey"
+          :api-key="apiKey"
+          :on-rotate="rotateUserKey"
+          :retired-key="retiredApiKey"
+          :on-expire-now="expireRetiredKey"
+          sign-out-warning
+        />
         <span v-else class="text-medium-emphasis">—</span>
       </SettingsRow>
     </SettingsSection>
@@ -50,6 +57,7 @@ useHead({ title: 'API Key' });
 
 const store = useStore();
 const apiKey = computed(() => store.state.user.apiKey);
+const retiredApiKey = computed(() => store.state.user.retiredApiKey);
 const activeBoost = computed(() => store.state.user.activeBoost);
 const boostUsd = computed(() => {
   const credits = activeBoost.value?.boosted_api_max_per_day;
@@ -67,7 +75,11 @@ function formatDate(iso) {
   }
 }
 
-function rotateUserKey() {
-  return store.dispatch('user/rotateApiKey');
+function rotateUserKey(grace) {
+  return store.dispatch('user/rotateApiKey', grace);
+}
+
+function expireRetiredKey() {
+  return store.dispatch('user/expireRetiredApiKey');
 }
 </script>
