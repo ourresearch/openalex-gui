@@ -59,6 +59,11 @@
           <span class="job-card-sub">Full-time &middot; Remote</span>
           <span class="job-card-arrow" aria-hidden="true">&rarr;</span>
         </router-link>
+        <router-link class="job-card" to="/jobs/operations-associate">
+          <span class="job-card-title">Operations Associate</span>
+          <span class="job-card-sub">Full-time &middot; Remote</span>
+          <span class="job-card-arrow" aria-hidden="true">&rarr;</span>
+        </router-link>
       </div>
     </static-section>
   </static-page>
