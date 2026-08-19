@@ -14,7 +14,7 @@
     </template>
     <!-- Compensation as a subtitle under the title (Jason, 2026-08-19) rather than its own section. -->
     <template #intro>
-      <span class="job-meta">$50,000 &ndash; $60,000 USD &middot; Full-time &middot; Remote (US or Canada)</span>
+      <span class="job-meta">$50&ndash;60k USD &middot; Full-time &middot; Remote (US or Canada)</span>
     </template>
 
     <static-section id="the-role" title="The role">

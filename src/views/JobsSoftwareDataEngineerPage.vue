@@ -7,10 +7,9 @@
     <template #eyebrow>
       <static-breadcrumbs :crumbs="crumbs" />
     </template>
-    <!-- TODO(#812): salary band undecided (Jason + Casey) — placeholder until then. -->
     <!-- Compensation as a subtitle under the title (Jason, 2026-08-19) rather than its own section. -->
     <template #intro>
-      <span class="job-meta">$XXX,000 &ndash; $XXX,000 USD &middot; Full-time &middot; Remote</span>
+      <span class="job-meta">$150&ndash;200k USD &middot; Full-time &middot; Remote</span>
     </template>
 
     <static-section id="the-role" title="The role">
