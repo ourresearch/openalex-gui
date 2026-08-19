@@ -12,6 +12,10 @@
     <template #eyebrow>
       <static-breadcrumbs :crumbs="crumbs" />
     </template>
+    <!-- Compensation as a subtitle under the title (Jason, 2026-08-19) rather than its own section. -->
+    <template #intro>
+      <span class="job-meta">$50,000 &ndash; $60,000 USD &middot; Full-time &middot; Remote (US or Canada)</span>
+    </template>
 
     <static-section id="the-role" title="The role">
       <p class="section-body">
@@ -137,12 +141,6 @@
       </p>
     </static-section>
 
-    <static-section id="compensation" title="Compensation">
-      <p class="section-body">
-        $50,000 &ndash; $60,000 USD, plus benefits. Remote, within the US or Canada.
-      </p>
-    </static-section>
-
     <static-section id="process" title="The process">
       <p class="section-body">Our hiring process has five steps:</p>
       <job-hiring-process />
@@ -183,7 +181,6 @@ const sections = [
   { id: 'the-role', label: 'The role' },
   { id: 'about-us', label: 'About us' },
   { id: 'about-you', label: 'About you' },
-  { id: 'compensation', label: 'Compensation' },
   { id: 'process', label: 'The process' },
   { id: 'application', label: 'Application' },
 ];

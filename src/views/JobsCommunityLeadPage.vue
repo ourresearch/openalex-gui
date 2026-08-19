@@ -12,6 +12,10 @@
     <template #eyebrow>
       <static-breadcrumbs :crumbs="crumbs" />
     </template>
+    <!-- Compensation as a subtitle under the title (Jason, 2026-08-19) rather than its own section. -->
+    <template #intro>
+      <span class="job-meta">$100,000 &ndash; $150,000 USD &middot; Full-time &middot; Remote</span>
+    </template>
 
     <static-section id="the-role" title="The role">
       <p class="section-body">
