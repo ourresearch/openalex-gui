@@ -42,14 +42,10 @@
       <v-card-text class="pa-6">
         <div class="text-h6 font-weight-bold mb-3">Rotate API key?</div>
         <div class="text-body-2 text-medium-emphasis mb-4">
-          This replaces your current API key with a new one. To avoid downtime,
-          you can keep the old key working while you deploy the new one —
-          it keeps its normal limits, then stops for good.
-        </div>
-        <div v-if="signOutWarning" class="text-body-2 text-medium-emphasis mb-4">
-          OpenAlex signed in on your other browsers and devices will be logged
-          out right away either way; the grace window applies to API requests
-          only.
+          This replaces your API key with a new one. To avoid downtime, you can
+          keep the old key working for a while —
+          <a href="https://help.openalex.org/api/authentication/#rotating-your-key"
+             target="_blank" rel="noopener">learn more</a>.
         </div>
         <v-select
           v-model="selectedGrace"
@@ -59,10 +55,6 @@
           density="comfortable"
           hide-details
         />
-        <div v-if="selectedGrace === 'now'" class="text-caption text-medium-emphasis mt-3">
-          The old key stops working immediately. Anything still using it will
-          fail until it gets the new key.
-        </div>
       </v-card-text>
       <v-card-actions class="px-6 pb-5">
         <v-spacer />
@@ -105,12 +97,6 @@ const props = defineProps({
   onExpireNow: {
     type: Function,
     default: null
-  },
-  // Personal keys are also the GUI session credential (#290), so rotating
-  // them logs out other devices regardless of the grace window.
-  signOutWarning: {
-    type: Boolean,
-    default: false
   }
 });
 
@@ -118,12 +104,12 @@ const store = useStore();
 const rotateDialogOpen = ref(false);
 const rotateLoading = ref(false);
 const expireLoading = ref(false);
-const selectedGrace = ref('24h');
+const selectedGrace = ref('now');
 
 const graceChoices = [
-  { title: 'In 24 hours (recommended)', value: '24h' },
-  { title: 'In 7 days', value: '7d' },
   { title: 'Immediately', value: 'now' },
+  { title: 'In 24 hours', value: '24h' },
+  { title: 'In 7 days', value: '7d' },
 ];
 
 function formatExpiry(iso) {

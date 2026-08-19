@@ -30,7 +30,6 @@
           :on-rotate="rotateUserKey"
           :retired-key="retiredApiKey"
           :on-expire-now="expireRetiredKey"
-          sign-out-warning
         />
         <span v-else class="text-medium-emphasis">—</span>
       </SettingsRow>
