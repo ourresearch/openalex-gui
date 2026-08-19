@@ -1,3 +1,11 @@
+<!--
+  Route `/collections/:id`. The filename says "Public" for historical reasons only —
+  this is NOT a public page. Collections are private to their owner (admins can also
+  read), the fetch sends an auth header, and the page is `noindex`. It is really the
+  collection's own management page: rename, search members, add, remove, bulk-remove.
+  Nothing in the UI may label it "public" or offer it as a share affordance until real
+  shared collections exist (oxjob #819; CNRS webinar Q4.3).
+-->
 <template>
   <div class="collection-view">
     <v-container class="py-6" style="max-width: 1100px;">

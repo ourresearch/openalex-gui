@@ -102,11 +102,15 @@
 
                   <v-divider class="my-1" />
 
+                  <!-- The collection's own page: rename, search members, add/remove.
+                       Owner-only in practice. NOT public — collections are private to
+                       their owner, so this must never be labelled as a public page or a
+                       share affordance (oxjob #819; CNRS webinar Q4.3). -->
                   <v-list-item :to="`/collections/${collection.id}`" @click.stop>
                     <template #prepend>
-                      <v-icon size="small">mdi-share-variant-outline</v-icon>
+                      <v-icon size="small">mdi-folder-open-outline</v-icon>
                     </template>
-                    <v-list-item-title>View public page</v-list-item-title>
+                    <v-list-item-title>Open collection page</v-list-item-title>
                   </v-list-item>
                   <v-list-item @click.stop="$emit('edit', collection)">
                     <template #prepend>
@@ -133,7 +137,7 @@
         <div class="text-grey mb-2">You don't have any collections yet.</div>
         <div class="text-grey text-body-2">
           Collections are named sets of entities (works, sources, authors, institutions…)
-          you can re-use as search filters and share via a public link.
+          you can re-use as search filters, here and in the API. They're private to you.
         </div>
       </div>
     </v-card>

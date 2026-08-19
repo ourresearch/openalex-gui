@@ -107,11 +107,13 @@
                   </v-btn>
                 </template>
                 <v-list density="compact">
+                  <!-- Not a public page — collections are private to their owner (admins
+                       can read any of them). Keep the label honest (oxjob #819). -->
                   <v-list-item :to="`/collections/${collection.id}`" target="_blank">
                     <template #prepend>
-                      <v-icon size="small">mdi-share-variant-outline</v-icon>
+                      <v-icon size="small">mdi-folder-open-outline</v-icon>
                     </template>
-                    <v-list-item-title>View public page</v-list-item-title>
+                    <v-list-item-title>Open collection page</v-list-item-title>
                   </v-list-item>
                   <v-list-item @click="openEdit(collection)">
                     <template #prepend>
