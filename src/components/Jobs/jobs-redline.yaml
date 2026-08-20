@@ -57,16 +57,20 @@ entries:
     section: the-role
     author: jason
     date: 2026-08-20
-    status: open
+    status: accepted
     before: "OpenAlex is a technical organization whose product is, increasingly, relationships. The data is free; what institutions join and support is a relationship with us — and today those relationships are held together by our founders, one conversation at a time. That doesn't scale. This role is where it starts to."
     context_after: "You'll own our relationships with users and members: the people"
     comment: "Overall: I really like this listing! Love the specifics, and love putting boundaries around what we need them to do and not do — it'll appeal to the right kind of person and not the wrong kind. Good precision, good recall. It's just a little too long, so I trimmed. This cut: the first paragraph is about us, not them."
+    replies:
+      - author: kyle
+        date: 2026-08-20
+        text: "Blanket accept of R1–R14 (told Jason directly; R15 was my one change). Round finalized."
   - id: R2
     page: community-lead
     section: the-role
     author: jason
     date: 2026-08-20
-    status: open
+    status: accepted
     before: "The honest headline: you'll own our relationships with users and members. The people who use OpenAlex every day, and the institutions whose support keeps it running."
     after: "You'll own our relationships with users and members: the people who use OpenAlex every day, and the institutions whose support keeps it running."
     comment: "Dropped the 'honest headline' preamble — that's Claude-speak and unnecessary. No bold needed either: since it's first, it'll get plenty of attention."
@@ -75,7 +79,7 @@ entries:
     section: the-role
     author: jason
     date: 2026-08-20
-    status: open
+    status: accepted
     after: "That means you will:"
     comment: "The bullet list needed an introduction."
   - id: R4
@@ -83,7 +87,7 @@ entries:
     section: the-role
     author: jason
     date: 2026-08-20
-    status: open
+    status: accepted
     before: "Being a public face"
     after: "Be a public face"
     comment: "Verb tweak so the bullets follow 'That means you will:'."
@@ -92,7 +96,7 @@ entries:
     section: the-role
     author: jason
     date: 2026-08-20
-    status: open
+    status: accepted
     before: "Building relationships with the institutions that support us: onboarding new members, keeping current ones happy, and growing the membership. When a conversation turns commercial, our COO leads on the deal and our Operations Associate handles the paperwork. You stay the relationship."
     after: "Build relationships with the institutions that support us: onboarding new members, keeping current ones happy, and growing the membership."
     comment: "It's not a sales role, so people will assume the commercial side isn't theirs — keep these bullets about what IS their responsibility, not what isn't. The commercial boundary is now stated below in the 'What you won't own' paragraph (R8)."
@@ -101,7 +105,7 @@ entries:
     section: the-role
     author: jason
     date: 2026-08-20
-    status: open
+    status: accepted
     before: "Running the machinery"
     after: "Run the machinery"
     comment: "Verb tweak so the bullets follow 'That means you will:'."
@@ -110,7 +114,7 @@ entries:
     section: the-role
     author: jason
     date: 2026-08-20
-    status: open
+    status: accepted
     before: "Helping users directly. Our support queue is shared with the tech team, because the person who answers the hard question is often the person who understands the community best."
     after: "Help users directly. Our support queue is shared with the tech team; answering real users' questions is how you stay close to what the community actually needs."
     comment: "Liked this bullet, but the 'because the person who…' reasoning was a little unclear — reworded to what I think it was getting at. Feel free to counter-propose if I lost your meaning."
@@ -119,7 +123,7 @@ entries:
     section: the-role
     author: jason
     date: 2026-08-20
-    status: open
+    status: accepted
     before: "What you won't own: engineering, and the back-office functions (finance, HR, taxes, legal) that stay with our CEO and COO. This role has a clear edge to it."
     after: "What you won't own: engineering, the back-office functions (finance, HR, taxes, legal) that stay with our CEO and COO, and sales — you'll be involved, since you hold the relationship, but deal-making and sales paperwork aren't yours. This role has a clear edge to it."
     comment: "This paragraph is great, and it's the right place for the sales boundary (moved out of the bullets, R5): they WILL be involved in sales since they hold the relationship, but it's not a sales role. Phrasing doesn't have to be perfect — that's the idea to capture."
@@ -128,7 +132,7 @@ entries:
     section: the-role
     author: jason
     date: 2026-08-20
-    status: open
+    status: accepted
     before: "This is not the community-manager role you've seen at other scholarly-infrastructure organizations."
     context_after: "We're not looking for someone to just schedule the webinars"
     comment: "Sounds slightly like we're throwing shade on other scholarly-infrastructure organizations — just start with 'We're not looking for…'. (context_after updated when R15 reworded the anchor sentence.)"
@@ -137,7 +141,7 @@ entries:
     section: the-role
     author: jason
     date: 2026-08-20
-    status: open
+    status: accepted
     before: "The kind of person who makes promises to a community and keeps them."
     context: "a leader, an evangelist, an organizer."
     comment: "'A leader, an evangelist, an organizer' is a really strong list of three — end the paragraph on that strong note. No need to get into promises."
@@ -146,7 +150,7 @@ entries:
     section: the-role
     author: jason
     date: 2026-08-20
-    status: open
+    status: accepted
     before: "Community work has a reputation as the soft side of the org chart — the place where effort is the product, where a full calendar of well-attended webinars counts as a good quarter. Not here. Results in this job look like a community that's measurably bigger, warmer, and more committed: the member who was drifting away renews because you heard what was actually bothering them and fixed it; the advisory board meeting that used to be a status readout produces a decision; the conference talk turns into three new member conversations because you followed up the same day — not a longer list of things you did."
     context: "a leader, an evangelist, an organizer."
     comment: "Feels like it's embroidering stuff we already said."
@@ -155,7 +159,7 @@ entries:
     section: the-role
     author: jason
     date: 2026-08-20
-    status: open
+    status: accepted
     before: "And in this job, patience is resourcefulness. Relationships compound the way ideas do: slowly, then suddenly. Staying warm with a member who's being difficult, following up in month six of a conversation that won't pay off until next year — that's not the opposite of moving fast; it's how this kind of work gets results. You like people, including difficult ones. This job is 90% people."
     context: "a leader, an evangelist, an organizer."
     comment: "Same as R11 — trimming for length; the section already carries this."
@@ -164,7 +168,7 @@ entries:
     section: about-you
     author: jason
     date: 2026-08-20
-    status: open
+    status: accepted
     before: "You write and speak in a way people remember — enthusiasm that's contagious rather than exhausting."
     after: "You're a clear, enthusiastic, compelling writer and speaker."
     comment: "'Enthusiasm that's contagious rather than exhausting' was weirdly focused on one narrow part of being a good writer and speaker — went more generic."
@@ -173,7 +177,7 @@ entries:
     section: about-you
     author: jason
     date: 2026-08-20
-    status: open
+    status: accepted
     before: "You're comfortable when a relationship has money in it. We're a nonprofit building open infrastructure, and our members' and partners' contributions are what keep that infrastructure running and open to everyone. You don't need to have carried a quota, but you can talk with a library director about renewing without flinching or apologizing for asking."
     after: "You're comfortable when a relationship has money in it. This isn't a sales role, but we are always hustling; paid services keep our nonprofit alive."
     comment: "Shortened, and linked 'paid services' to the pricing page. (First bullet: longer than I'd like but it's doing a lot of work, keeping it. Second bullet: great.)"
