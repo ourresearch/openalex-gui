@@ -130,8 +130,8 @@ entries:
     date: 2026-08-20
     status: open
     before: "This is not the community-manager role you've seen at other scholarly-infrastructure organizations."
-    context_after: "We're not looking for someone to schedule the webinars"
-    comment: "Sounds slightly like we're throwing shade on other scholarly-infrastructure organizations — just start with 'We're not looking for…'."
+    context_after: "We're not looking for someone to just schedule the webinars"
+    comment: "Sounds slightly like we're throwing shade on other scholarly-infrastructure organizations — just start with 'We're not looking for…'. (context_after updated when R15 reworded the anchor sentence.)"
   - id: R10
     page: community-lead
     section: the-role
@@ -177,3 +177,16 @@ entries:
     before: "You're comfortable when a relationship has money in it. We're a nonprofit building open infrastructure, and our members' and partners' contributions are what keep that infrastructure running and open to everyone. You don't need to have carried a quota, but you can talk with a library director about renewing without flinching or apologizing for asking."
     after: "You're comfortable when a relationship has money in it. This isn't a sales role, but we are always hustling; paid services keep our nonprofit alive."
     comment: "Shortened, and linked 'paid services' to the pricing page. (First bullet: longer than I'd like but it's doing a lot of work, keeping it. Second bullet: great.)"
+  - id: R15
+    page: community-lead
+    section: the-role
+    author: kyle
+    date: 2026-08-20
+    status: accepted
+    before: "We're not looking for someone to schedule the webinars and keep the community from being a problem."
+    after: "We're not looking for someone to just schedule the webinars and keep things running smoothly."
+    comment: "Kyle (via Slack): reword 'keep the community from being a problem' to be more positive about community integration — don't explicitly suggest the community is a problem. (Otherwise: 'i like this approach to collaborative text writing' — no other changes.)"
+    replies:
+      - author: jason
+        date: 2026-08-20
+        text: "Integrated (Jason relayed Kyle's Slack comment and asked for it to be applied)."

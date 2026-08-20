@@ -62,8 +62,8 @@
         chaotic, this is the wrong job. If it sounds like ownership, keep reading.
       </p>
       <p class="section-body">
-        We're not looking for someone to schedule the webinars and keep the community from
-        being a problem. We're looking for someone who sees a once-in-a-generation shakeup
+        We're not looking for someone to just schedule the webinars and keep things running
+        smoothly. We're looking for someone who sees a once-in-a-generation shakeup
         of how research works &mdash; open data, AI, the fall of the old gatekeepers &mdash;
         and wants to be the person lighting fires in the middle of it: a leader, an
         evangelist, an organizer.
