@@ -191,13 +191,31 @@ function applyEntry(entry, n) {
       spans = wrapRange(range, 'redline-ins', entry.id);
     }
   } else if (entry.before) {
-    // Pure deletion: the old text is gone; anchor on surrounding context.
-    const range = entry.context && findRange(rootEl, entry.context);
+    // Pure deletion: the old text is gone; anchor on surrounding context —
+    // `context` = text just before the deletion spot, `context_after` = text
+    // just after it (for deletions at the start of a block).
+    const after = !entry.context && entry.context_after;
+    const range = findRange(rootEl, entry.context || entry.context_after || '');
     if (range) {
       mode = 'deletion';
-      range.collapse(false);
+      range.collapse(!!after);
       const del = makeDelSpan(entry.before, entry.id);
       range.insertNode(del);
+      if (!after) {
+        // Several deletions can share one context point; each insertNode lands
+        // before the previous one, reversing document order. Push the new span
+        // past any redline marks already sitting there (and the empty text nodes
+        // Range.insertNode's split leaves behind) so YAML order = display order.
+        let sib = del.nextSibling;
+        while (
+          sib &&
+          ((sib.nodeType === Node.TEXT_NODE && !sib.textContent.trim()) ||
+            (sib.dataset && sib.dataset.redline))
+        ) {
+          sib.after(del);
+          sib = del.nextSibling;
+        }
+      }
       spans = [del];
     }
   } else if (entry.anchor) {
