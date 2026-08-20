@@ -27,9 +27,27 @@
         <div class="text-body-2 text-medium-emphasis mb-4">
           {{ MEETING_MINUTES }} minutes, on Zoom · Meeting ID {{ nextMeeting.meetingId }} · Passcode {{ nextMeeting.passcode }}
         </div>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-calendar-plus" class="mr-2" @click="downloadIcs(nextMeeting)">
-          Add to calendar
-        </v-btn>
+        <v-menu>
+          <template v-slot:activator="{ props }">
+            <v-btn v-bind="props" color="primary" variant="flat" prepend-icon="mdi-calendar-plus" append-icon="mdi-menu-down" class="mr-2">
+              Add to calendar
+            </v-btn>
+          </template>
+          <v-list density="compact">
+            <v-list-item
+              :href="googleCalendarUrl(nextMeeting)"
+              target="_blank"
+              prepend-icon="mdi-google"
+              title="Google Calendar"
+            />
+            <v-list-item
+              prepend-icon="mdi-download"
+              title="Download .ics file"
+              subtitle="Outlook, Apple Calendar, others"
+              @click="downloadIcs(nextMeeting)"
+            />
+          </v-list>
+        </v-menu>
         <v-btn variant="outlined" :href="nextMeeting.joinUrl" target="_blank" prepend-icon="mdi-video-outline">
           Join Zoom meeting
         </v-btn>
@@ -42,9 +60,27 @@
         <div class="text-subtitle-1 font-weight-bold mb-2">Coming up</div>
         <div v-for="meeting in laterMeetings" :key="meeting.startUtc" class="d-flex align-center mb-1">
           <div class="text-body-2 flex-grow-1">{{ meeting.label }}</div>
-          <v-btn variant="text" size="small" prepend-icon="mdi-calendar-plus" @click="downloadIcs(meeting)">
-            Add to calendar
-          </v-btn>
+          <v-menu>
+            <template v-slot:activator="{ props }">
+              <v-btn v-bind="props" variant="text" size="small" prepend-icon="mdi-calendar-plus" append-icon="mdi-menu-down">
+                Add to calendar
+              </v-btn>
+            </template>
+            <v-list density="compact">
+              <v-list-item
+                :href="googleCalendarUrl(meeting)"
+                target="_blank"
+                prepend-icon="mdi-google"
+                title="Google Calendar"
+              />
+              <v-list-item
+                prepend-icon="mdi-download"
+                title="Download .ics file"
+                subtitle="Outlook, Apple Calendar, others"
+                @click="downloadIcs(meeting)"
+              />
+            </v-list>
+          </v-menu>
         </div>
       </v-card-text>
     </v-card>
@@ -104,13 +140,45 @@ const upcoming = computed(() => MEETINGS.filter(m => new Date(m.startUtc) > now)
 const nextMeeting = computed(() => upcoming.value[0] || null);
 const laterMeetings = computed(() => upcoming.value.slice(1));
 
+const SUMMARY = 'OpenAlex Members Roundtable';
+
 function icsStamp(date) {
   return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 }
 
+function meetingEnd(meeting) {
+  return new Date(new Date(meeting.startUtc).getTime() + MEETING_MINUTES * 60 * 1000);
+}
+
+function description(meeting) {
+  return [
+    'Open forum with the OpenAlex product team.',
+    '',
+    `Join Zoom Meeting: ${meeting.joinUrl}`,
+    `Meeting ID: ${meeting.meetingId}`,
+    `Passcode: ${meeting.passcode}`,
+    '',
+    `Past notes: ${NOTES_REPO_URL}`,
+  ].join('\n');
+}
+
+// Google Calendar's web app won't open a downloaded .ics (it only offers a
+// manual import), so send Google users to a prefilled event instead.
+function googleCalendarUrl(meeting) {
+  const dates = `${icsStamp(new Date(meeting.startUtc))}/${icsStamp(meetingEnd(meeting))}`;
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: SUMMARY,
+    dates,
+    details: description(meeting),
+    location: meeting.joinUrl,
+  });
+  return `https://calendar.google.com/calendar/render?${params}`;
+}
+
 function downloadIcs(meeting) {
   const start = new Date(meeting.startUtc);
-  const end = new Date(start.getTime() + MEETING_MINUTES * 60 * 1000);
+  const end = meetingEnd(meeting);
   const ics = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -120,8 +188,8 @@ function downloadIcs(meeting) {
     `DTSTAMP:${icsStamp(new Date())}`,
     `DTSTART:${icsStamp(start)}`,
     `DTEND:${icsStamp(end)}`,
-    'SUMMARY:OpenAlex Members Roundtable',
-    `DESCRIPTION:Open forum with the OpenAlex product team.\\n\\nJoin Zoom Meeting: ${meeting.joinUrl}\\nMeeting ID: ${meeting.meetingId}\\nPasscode: ${meeting.passcode}\\n\\nPast notes: ${NOTES_REPO_URL}`,
+    `SUMMARY:${SUMMARY}`,
+    `DESCRIPTION:${description(meeting).replace(/\n/g, '\\n')}`,
     `LOCATION:${meeting.joinUrl}`,
     'END:VEVENT',
     'END:VCALENDAR',
