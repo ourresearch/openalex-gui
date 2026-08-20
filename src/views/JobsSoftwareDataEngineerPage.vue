@@ -45,12 +45,6 @@
         </li>
       </ul>
       <p class="section-body">
-        The mix shifts week to week. Some weeks it's a Spark job that has to get 300 million
-        rows right; some weeks it's a Vue component, an Elasticsearch mapping, and a support
-        ticket before lunch. You don't need to be an expert in all of it. You need to be
-        unafraid of any of it.
-      </p>
-      <p class="section-body">
         There's no platform team beneath you and no product team above you: you'll notice
         what's missing, propose it, build it, ship it, and answer the tickets about it.
         We're an AI-native shop &mdash; agents write all our code, and we expect you to
