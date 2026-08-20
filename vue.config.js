@@ -13,6 +13,13 @@ module.exports = {
   ],
   productionSourceMap: true,
   configureWebpack: {
+    module: {
+      rules: [
+        // Import .yaml files as raw source strings (parsed at runtime with the `yaml` lib).
+        // Used by the jobs redline overlay (src/components/Jobs/jobs-redline.yaml).
+        { test: /\.ya?ml$/, type: 'asset/source' },
+      ],
+    },
     //plugins: [new BundleAnalyzerPlugin()],
     devtool: process.env.NODE_ENV === 'production' 
       ? 'source-map'  // High-quality source maps for production

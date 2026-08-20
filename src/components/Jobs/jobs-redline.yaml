@@ -1,0 +1,50 @@
+# ============================================================================
+# JOBS LISTING REDLINE — change-tracking for the Jason ↔ Kyle copy review
+# (oxjob #812; design: oxjobs working/job-listing-pages/work/feedback/DESIGN.md)
+#
+# ⚠️ INSTRUCTIONS FOR AGENTS (read before editing the job listing pages):
+#
+# The copy on JobsCommunityLeadPage.vue and JobsOperationsAssociatePage.vue is
+# under live redline review. The pages render this file as an overlay
+# (JobRedline.vue): insertions green, deletions struck-through red, comments as
+# numbered badges. A git commit alone is NOT a review record — this file is.
+#
+# WHEN YOU CHANGE ANY USER-VISIBLE COPY on either page, in the SAME commit:
+#   1. Add (or update) an entry below recording the change.
+#   2. Use VERBATIM RENDERED text for before/after/anchor/context — the text a
+#      reader sees in the browser (real dashes "—", real quotes), NOT template
+#      source with &mdash;/&ndash; entities or HTML tags. Whitespace is
+#      normalized when matching, so line wraps don't matter; tags do.
+#      A before/after span may cross inline tags (<strong>, <a>) but must NOT
+#      cross a block boundary (one paragraph or one <li> per entry — split
+#      bigger changes into multiple entries).
+#   3. If you are RESPONDING to an existing entry (Kyle's accept/reject loop):
+#      - accept: leave the new copy in place, set status: accepted, add a reply.
+#      - reject: revert the page copy to `before`, set status: rejected, add a
+#        reply saying why. (The overlay re-anchors on `before` automatically.)
+#      - counter-propose: edit the page to your version, update `after`, add a
+#        reply, set status back to open.
+#
+# ENTRY FIELDS
+#   id:       stable, unique, e.g. R1, R2 … (never renumber)
+#   page:     community-lead | operations-associate
+#   section:  DOM id scoping the text search: the-role | about-us | about-you |
+#             process | application
+#   author:   jason | kyle | claude
+#   date:     YYYY-MM-DD
+#   status:   open | accepted | rejected
+#   before:   verbatim old rendered text (omit for a pure insertion)
+#   after:    verbatim new rendered text (omit for a pure deletion)
+#   anchor:   comment-only entries: the existing text the comment attaches to
+#   context:  pure deletions only: verbatim text still on the page immediately
+#             BEFORE the spot where the deleted text used to be
+#   comment:  the rationale / question (this is the conversation — write it)
+#   replies:  optional thread: [{author, date, text}]
+#
+# LIFECYCLE: entries stay here (whatever their status) until the review round
+# is closed out. Before the public launch swap the review must be finished and
+# this list emptied (history lives in git) — work/launch-swap.py refuses to
+# ship while entries remain.
+# ============================================================================
+
+entries: []
