@@ -7,15 +7,8 @@
        owns the *relationship* with users and members while the COO leads on deals and the
        new Operations Associate handles paperwork. Dropped the "you'll own everything
        nontechnical" framing -- inaccurate (finance/HR/taxes/legal stay with the CEO+COO)
-       and it read as "you are the dumping ground" to senior candidates.
-
-       ⚠️ REDLINE REVIEW IN PROGRESS (oxjob #812). This page's copy is under live
-       Jason<->Kyle review. If you change ANY user-visible copy in this file you MUST,
-       in the SAME commit, record the change in
-       src/components/Jobs/jobs-redline.yaml (instructions at the top of that file:
-       verbatim RENDERED text, stable R-ids, comments, accept/reject statuses).
-       The live page overlays that YAML as a redline (JobRedline.vue below).
-       A git commit alone is NOT a review record — the YAML is. -->
+       and it read as "you are the dumping ground" to senior candidates. Jason<->Kyle redline
+       review round 1 finalized 2026-08-20 (record: jobs-redline.yaml git history). -->
   <static-page title="Community Lead" :sections="sections">
     <template #eyebrow>
       <static-breadcrumbs :crumbs="crumbs" />
@@ -149,8 +142,6 @@
       <p class="section-body">If you're interested, we'd love to hear from you.</p>
       <job-application-form role="community-lead" />
     </static-section>
-
-    <job-redline page="community-lead" />
   </static-page>
 </template>
 
@@ -162,7 +153,6 @@ import StaticSection from '@/components/StaticPage/StaticSection.vue';
 import StaticBreadcrumbs from '@/components/StaticPage/StaticBreadcrumbs.vue';
 import JobApplicationForm from '@/components/Jobs/JobApplicationForm.vue';
 import JobHiringProcess from '@/components/Jobs/JobHiringProcess.vue';
-import JobRedline from '@/components/Jobs/JobRedline.vue';
 
 defineOptions({ name: 'JobsCommunityLeadPage' });
 
