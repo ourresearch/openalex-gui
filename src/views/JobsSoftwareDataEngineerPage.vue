@@ -56,45 +56,11 @@
     </static-section>
 
     <static-section id="about-us" title="About us">
-      <p class="section-body">
-        Inspired by the ancient Library of Alexandria, we're building a
-        <strong><em>universal research library.</em></strong> And by making it open to
-        humans and machines, we're supporting a new scientific revolution. We'd love your
-        help.
-      </p>
-      <p class="section-body">
-        As a nonprofit, we're driven by mission. As a tech company, <strong>we're working
-        at scale:</strong> a billion API calls monthly, and millions of users across
-        enterprise, government, and academia. Your favorite AI company probably uses
-        OpenAlex; your favorite university definitely does.
-      </p>
-      <p class="section-body">
-        <strong>Our small-team culture</strong> values trust, agency, and impact. The
-        tempo's relentless, nothing's ever really done, and no one's holding your hand.
-        But the work stays interesting, we have creative autonomy, and <em>we ship.</em>
-        Every day.
-      </p>
+      <jobs-about-us />
     </static-section>
 
     <static-section id="about-you" title="About you">
-      <p class="section-body">
-        You're
-        <strong><a href="https://paulgraham.com/relres.html" target="_blank" rel="noopener noreferrer">relentlessly resourceful</a>.</strong>
-        You've got the smarts to
-        <a href="https://en.wikipedia.org/wiki/Kobayashi_Maru" target="_blank" rel="noopener noreferrer">outwit the impossible problems</a>,
-        the grit to power through the grindy ones, and the wisdom to tell the
-        difference. You get things
-        <a href="https://medium.com/@bre/the-cult-of-done-manifesto-724ca1c2ff13" target="_blank" rel="noopener noreferrer">done</a>.
-      </p>
-      <p class="section-body">
-        You play <strong>jazz, not classical:</strong> you're confident in your skills,
-        love improvising with a team, and can embrace ambiguity and imperfection in
-        service of emergent, collaborative creativity.
-      </p>
-      <p class="section-body">
-        You <strong>believe in our mission</strong> and you care about openness and open
-        culture. That extends to how you communicate: with skill, empathy, and clarity.
-      </p>
+      <jobs-about-you />
       <p class="section-body">And for this role specifically:</p>
       <ul class="section-list">
         <!-- Role-specific bullets — Jason red-pen round 1 (2026-08-20); pending Casey red-pen. -->
@@ -129,6 +95,8 @@
 import { useHead } from '@unhead/vue';
 import StaticPage from '@/components/StaticPage/StaticPage.vue';
 import StaticSection from '@/components/StaticPage/StaticSection.vue';
+import JobsAboutUs from '@/components/Jobs/JobsAboutUs.vue';
+import JobsAboutYou from '@/components/Jobs/JobsAboutYou.vue';
 import StaticBreadcrumbs from '@/components/StaticPage/StaticBreadcrumbs.vue';
 import JobApplicationForm from '@/components/Jobs/JobApplicationForm.vue';
 import JobHiringProcess from '@/components/Jobs/JobHiringProcess.vue';
