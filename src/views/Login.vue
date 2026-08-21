@@ -72,6 +72,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter, useRoute } from 'vue-router';
 import { useHead } from '@unhead/vue';
+import { sanitizeRedirectPath } from '@/util';
 
 defineOptions({ name: 'LoginPage' });
 
@@ -97,7 +98,7 @@ const isFormDisabled = computed(() => {
 onMounted(() => {
   const userId = store.getters['user/userId'];
   if (userId) {
-    router.push(route.query.redirect || '/');
+    router.push(sanitizeRedirectPath(route.query.redirect));
   }
 });
 
@@ -112,7 +113,11 @@ const submit = async () => {
   isLoading.value = true;
 
   try {
-    await store.dispatch('user/requestLoginEmail', email.value);
+    await store.dispatch('user/requestLoginEmail', {
+      email: email.value,
+      // Carry the destination into the emailed link (oxjob #855).
+      redirect: route.query.redirect,
+    });
     magicLinkEmail.value = email.value;
     magicLinkSent.value = true;
   } catch (e) {

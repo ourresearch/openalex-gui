@@ -232,6 +232,41 @@ function ordinalize(i) {
 const sanitizeLoginToken = (raw) => (raw || "").replace(/[^A-Za-z0-9_-]/g, "");
 
 
+// Max length of an accepted redirect path. A SERP fullPath with a big filter
+// string is legitimately long, so this is generous; it exists only to stop
+// someone stuffing kilobytes into an email we send.
+const REDIRECT_PATH_MAX_LENGTH = 2048;
+
+// Reduce a post-auth destination to a safe same-origin path, or hand back the
+// fallback. `redirect` starts life in an attacker-suppliable URL
+// (openalex.org/signup?redirect=…) and — since oxjob #855 — rides through an
+// email we send, so it must be validated at every hop: produced (Signup/Login
+// before the POST), embedded (users-api before the template renders), and
+// consumed (UserMagicToken before router.push). This is the JS half; the twin
+// is `sanitize_redirect_path` in openalex-users-api/redirect_path.py. Keep the
+// two in sync — their test suites mirror each other.
+//
+// Accepts only a path on our own origin: exactly one leading "/", no
+// protocol-relative "//evil.com" or "/\evil.com", no backslashes, no control
+// characters. The control-char rule is load-bearing rather than cosmetic —
+// browsers strip tabs/newlines out of URLs, so "/\t/evil.com" would otherwise
+// re-form as protocol-relative "//evil.com" after we let it through.
+//
+// Never throws: a throw from inside a render path unmounts the Vue subtree
+// silently (see the CLAUDE.md note), and a bad redirect must degrade to the
+// fallback, never break login.
+const sanitizeRedirectPath = (raw, fallback = "/") => {
+    if (typeof raw !== "string") return fallback;
+    if (!raw.length || raw.length > REDIRECT_PATH_MAX_LENGTH) return fallback;
+    if (raw[0] !== "/") return fallback;          // relative, absolute URL, or "javascript:"
+    if (raw[1] === "/" || raw[1] === "\\") return fallback;  // protocol-relative
+    if (raw.includes("\\")) return fallback;
+    // eslint-disable-next-line no-control-regex
+    if (/[\u0000-\u001F\u007F]/.test(raw)) return fallback;
+    return raw;
+};
+
+
 export {
     sortByKey,
     sleep,
@@ -250,4 +285,5 @@ export {
     isDisplayable,
     ordinalize,
     sanitizeLoginToken,
+    sanitizeRedirectPath,
 }

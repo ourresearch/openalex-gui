@@ -108,6 +108,7 @@ import { useStore } from 'vuex';
 import { useRouter, useRoute } from 'vue-router';
 import { useHead } from '@unhead/vue';
 import { useTurnstile } from '@/composables/useTurnstile';
+import { sanitizeRedirectPath } from '@/util';
 
 defineOptions({ name: 'SignupPage' });
 
@@ -157,7 +158,7 @@ const isFormDisabled = computed(() => {
 onMounted(() => {
   const userId = store.getters['user/userId'];
   if (userId) {
-    router.push(route.query.redirect || '/');
+    router.push(sanitizeRedirectPath(route.query.redirect));
     return;
   }
   // Mount Turnstile after the form is in the DOM.
@@ -183,6 +184,9 @@ const submit = async () => {
       email: email.value,
       displayName: name.value,
       turnstileToken: turnstileToken.value,
+      // Carry the destination into the emailed link so a user who signs up
+      // mid-task lands back where they started (oxjob #855).
+      redirect: route.query.redirect,
     });
     magicLinkEmail.value = email.value;
     magicLinkSent.value = true;

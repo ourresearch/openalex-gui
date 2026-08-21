@@ -68,7 +68,7 @@
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
-import { sanitizeLoginToken } from '@/util';
+import { sanitizeLoginToken, sanitizeRedirectPath } from '@/util';
 
 defineOptions({
   name: 'MagicToken'
@@ -108,7 +108,10 @@ const hasError = ref(false);
 const loginWithMagicToken = (token) => store.dispatch('user/loginWithMagicToken', token);
 
 const goToLogin = () => {
-  router.push({ name: 'Login' });
+  // Carry the destination onto the retry: a user whose link expired shouldn't
+  // lose where they were headed just because they took too long (oxjob #855).
+  const redirect = sanitizeRedirectPath(route.query.redirect, null);
+  router.push(redirect ? { name: 'Login', query: { redirect } } : { name: 'Login' });
 };
 
 const doLogin = async () => {
@@ -124,11 +127,12 @@ const doLogin = async () => {
 
     // Brief delay to show success state, then redirect
     setTimeout(() => {
-      // Send invitees to their new org's profile; everyone else to home (or
-      // an explicit redirect query param).
-      const redirectPath = route.query.redirect
-        || (loginData?.invitation_accepted ? '/settings/org-profile' : '/');
-      router.push(redirectPath);
+      // Send invitees to their new org's profile; everyone else to home —
+      // unless an explicit redirect survived the round trip through email.
+      // That value is attacker-reachable, so validate before navigating
+      // (oxjob #855); an invalid one falls back to the same default as before.
+      const fallback = loginData?.invitation_accepted ? '/settings/org-profile' : '/';
+      router.push(sanitizeRedirectPath(route.query.redirect, fallback));
     }, 500);
   } catch (e) {
     console.error('Magic link login failed:', e);
@@ -145,8 +149,8 @@ const doLogin = async () => {
       } else if (userName) {
         store.commit('snackbar', `Welcome back, ${userName}!`);
       }
-      const redirectPath = route.query.redirect || (isInvite.value ? '/settings/org-profile' : '/');
-      router.push(redirectPath);
+      const fallback = isInvite.value ? '/settings/org-profile' : '/';
+      router.push(sanitizeRedirectPath(route.query.redirect, fallback));
     } else {
       hasError.value = true;
     }

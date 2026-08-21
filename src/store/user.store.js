@@ -4,6 +4,7 @@ import {api} from "@/api";
 import {navigation} from '@/navigation';
 import {urlBase, axiosConfig} from "@/apiConfig.js"
 import * as openalexId from "@/openalexId";
+import {sanitizeRedirectPath} from "@/util";
 
 const shortUuid = require('short-uuid');
 
@@ -181,6 +182,15 @@ export default {
                 email: signupObj.email,
                 display_name: signupObj.displayName,
             }
+            // Where to send them after they click the emailed link (oxjob #855).
+            // Sanitized here as well as server-side: cheap, and it keeps a
+            // hostile value from leaving the browser at all. users-api drops
+            // anything it doesn't like without failing the signup, so an older
+            // backend simply ignores this field.
+            const redirect = sanitizeRedirectPath(signupObj.redirect, null)
+            if (redirect) {
+                body.redirect = redirect
+            }
             // Cloudflare Turnstile token (oxjob #252 Phase 4). Backend
             // rejects 403 turnstile_required if missing on prod; in local
             // dev the backend skips the check when TURNSTILE_SECRET is unset.
@@ -197,8 +207,18 @@ export default {
             )
             return resp
         },
-        async requestLoginEmail(_, email) {
+        // `payload` is either a bare email string (the long-standing shape) or
+        // {email, redirect} since oxjob #855. Accepting both keeps any caller
+        // that hasn't been updated working unchanged.
+        async requestLoginEmail(_, payload) {
+            const {email, redirect: rawRedirect} = (typeof payload === 'string')
+                ? {email: payload}
+                : (payload || {})
             const body = { email }
+            const redirect = sanitizeRedirectPath(rawRedirect, null)
+            if (redirect) {
+                body.redirect = redirect
+            }
             // Add localhost port for local development
             if (window.location.hostname === 'localhost') {
                 body.localhost = window.location.port || '8080'
