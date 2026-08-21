@@ -215,7 +215,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { useStore } from 'vuex';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import JobSectionStatus from '@/components/Jobs/JobSectionStatus.vue';
@@ -228,6 +228,7 @@ const props = defineProps({
 
 const store = useStore();
 const router = useRouter();
+const route = useRoute();
 
 const userId = computed(() => store.getters['user/userId']);
 // Name + email come from the applicant's OpenAlex account (shown as plain text in
@@ -327,8 +328,13 @@ const s2Done = computed(() => (
 const s3Done = computed(() => questions.every(q => !!(form.answers[q.key] || '').trim()));
 
 // ---- auth prompts ----
-function goLogin() { router.push({ name: 'Login' }); }
-function goSignup() { router.push({ name: 'Signup' }); }
+// Carry the posting as the post-auth destination (oxjob #855). This is the house
+// convention — 9 other entry points already push `query: {redirect: route.fullPath}`,
+// and Login/Signup forward it to each other. It works today for anyone who stays in
+// the tab; the emailed magic link still drops it (#855 closes that half).
+function authQuery() { return { redirect: route.fullPath }; }
+function goLogin() { router.push({ name: 'Login', query: authQuery() }); }
+function goSignup() { router.push({ name: 'Signup', query: authQuery() }); }
 
 // ---- draft persistence (localStorage) ----
 function saveDraft() {

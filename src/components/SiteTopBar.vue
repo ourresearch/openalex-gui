@@ -31,8 +31,8 @@
            lives inside BOTH dropdowns (don't "restore" it).
            Jobs (oxjob #812, hiring launch): an applicant who signs up mid-application
            lands on / after the email verification link, with no way back to the posting.
-           A durable fix is #835 (carry a return-to through signup); this is the floor
-           under it, so don't remove the link when #835 ships. -->
+           A durable fix is #855 (carry a return-to through signup); this is the floor
+           under it, so don't remove the link when #855 ships. -->
       <nav class="top-bar-nav" aria-label="Site">
         <div
           ref="zoneEl"
