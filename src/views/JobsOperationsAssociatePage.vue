@@ -7,15 +7,8 @@
        winds down and membership paperwork grows, this person absorbs the forms, portals
        and questionnaires currently done in the margins of other people's calendars.
        Reports to the COO. Finance/HR/legal stay with the CEO+COO -- this role supports
-       that work, it doesn't carry it. HR admin is explicitly OUT of scope.
-
-       ⚠️ REDLINE REVIEW IN PROGRESS (oxjob #812). This page's copy is under live
-       Jason<->Kyle review. If you change ANY user-visible copy in this file you MUST,
-       in the SAME commit, record the change in
-       src/components/Jobs/jobs-redline.yaml (instructions at the top of that file:
-       verbatim RENDERED text, stable R-ids, comments, accept/reject statuses).
-       The live page overlays that YAML as a redline (JobRedline.vue below).
-       A git commit alone is NOT a review record — the YAML is. -->
+       that work, it doesn't carry it. HR admin is explicitly OUT of scope. Jason<->Kyle redline review round 2
+       finalized 2026-08-21 (record: jobs-redline.yaml git history). -->
   <static-page title="Operations Associate" :sections="sections">
     <template #eyebrow>
       <static-breadcrumbs :crumbs="crumbs" />
@@ -149,8 +142,6 @@
       <p class="section-body">If you're interested, we'd love to hear from you.</p>
       <job-application-form role="operations-associate" />
     </static-section>
-
-    <job-redline page="operations-associate" />
   </static-page>
 </template>
 
@@ -162,7 +153,6 @@ import StaticSection from '@/components/StaticPage/StaticSection.vue';
 import StaticBreadcrumbs from '@/components/StaticPage/StaticBreadcrumbs.vue';
 import JobApplicationForm from '@/components/Jobs/JobApplicationForm.vue';
 import JobHiringProcess from '@/components/Jobs/JobHiringProcess.vue';
-import JobRedline from '@/components/Jobs/JobRedline.vue';
 
 defineOptions({ name: 'JobsOperationsAssociatePage' });
 
