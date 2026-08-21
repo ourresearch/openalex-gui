@@ -4,12 +4,12 @@
        <static-section id="about-you"> and appends its role-specific bullets after this.
        (oxjob #812, extracted 2026-08-21. Copy: Jason's r3 pitch rewrite 2026-08-18, then
        Rohan's notes 2026-08-21 — AI-leverage sentence + "dash of chaos" cut — and Jason's
-       2026-08-21 tweaks: "relentlessly resourceful (as PG puts it)" so the force of the
+       2026-08-21 tweaks: "relentlessly resourceful (as pg puts it)" so the force of the
        essay survives even if nobody clicks; Cult of Done link removed.) -->
   <div class="jobs-about-you">
     <p class="section-body">
       You're <strong>relentlessly resourceful</strong>
-      (<a href="https://paulgraham.com/relres.html" target="_blank" rel="noopener noreferrer">as PG puts it</a>).
+      (<a href="https://paulgraham.com/relres.html" target="_blank" rel="noopener noreferrer">as pg puts it</a>).
       You've got the smarts to
       <a href="https://en.wikipedia.org/wiki/Kobayashi_Maru" target="_blank" rel="noopener noreferrer">outwit the impossible problems</a>,
       the grit to power through the grindy ones, and the wisdom to tell the
