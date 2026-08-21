@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 189.
+// corpus version: 2; rows: 191.
 
 export const oqlCorpus = [
   {
@@ -10247,7 +10247,7 @@ export const oqlCorpus = [
       "label": "OQL corpus selector — all corpora (core + expansion) (#481)",
       "url": null
     },
-    "oxurl_status": "oql-only",
+    "oxurl_status": "has-oxurl",
     "status": "ok",
     "oql": "works (all corpora)",
     "note": "The `all` corpus = core + expansion. Canonical spelling `(all corpora)`; `(all)` is an accepted alias. A corpus SELECTION (which corpus seeds the base set), distinct from a filter (which only narrows).",
@@ -10256,7 +10256,7 @@ export const oqlCorpus = [
       "get_rows": "works",
       "corpus": "all"
     },
-    "oxurl": null
+    "oxurl": "https://openalex.org/works?corpus=all"
   },
   {
     "id": 183,
@@ -10268,7 +10268,7 @@ export const oqlCorpus = [
       "label": "OQL corpus selector — expansion corpus alone (#481)",
       "url": null
     },
-    "oxurl_status": "oql-only",
+    "oxurl_status": "has-oxurl",
     "status": "ok",
     "oql": "works (expansion corpus)",
     "note": "The `expansion` corpus is the xpac corpus ALONE — a distinct set (broader coverage, lower quality), NOT a superset of core. Subsumes the retired `is_xpac` filter. Aliases: `(expansion)`, `(xpac)`, `(xpac corpus)`.",
@@ -10277,7 +10277,7 @@ export const oqlCorpus = [
       "get_rows": "works",
       "corpus": "expansion"
     },
-    "oxurl": null
+    "oxurl": "https://openalex.org/works?corpus=expansion"
   },
   {
     "id": 184,
@@ -10290,7 +10290,7 @@ export const oqlCorpus = [
       "label": "OQL corpus selector — corpus + where clause (#481)",
       "url": null
     },
-    "oxurl_status": "oql-only",
+    "oxurl_status": "has-oxurl",
     "status": "ok",
     "oql": "works (all corpora) where open access is (true)",
     "note": "The corpus parenthetical sits between the entity and `where`; filters still narrow WITHIN the selected corpus.",
@@ -10305,7 +10305,7 @@ export const oqlCorpus = [
         }
       ]
     },
-    "oxurl": null
+    "oxurl": "https://openalex.org/works?filter=open_access.is_oa:true&corpus=all"
   },
   {
     "id": 185,
@@ -10459,5 +10459,87 @@ export const oqlCorpus = [
     "diagnostic": "OQL_GROUP_NEEDS_ONE_VALUE",
     "oqo": null,
     "oxurl": null
+  },
+  {
+    "id": 199,
+    "tags": [
+      "negation",
+      "phrase-exact"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "NOT of a bare multi-word exact value (De Morgan, #633 Cat 1)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title has (not \"cancer\" or not \"treatment\")",
+    "note": "A bare multi-word exact value is the no-stem AND-of-words, so its negation is NOT(a AND b) — the canonical OQO De Morgans it into an OR of negated per-token leaves, the mirror of row 169. `does not have (\"cancer\" and \"treatment\")` canonicalizes to the same form. The classic spelling is the compact bang-prefixed run — never the pipe form `!a|!b`, whose leading `!` means NOT of the whole list.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "display_name.search.exact",
+              "value": "cancer",
+              "operator": "has",
+              "is_negated": true
+            },
+            {
+              "column_id": "display_name.search.exact",
+              "value": "treatment",
+              "operator": "has",
+              "is_negated": true
+            }
+          ]
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search.exact:!cancer%20treatment"
+  },
+  {
+    "id": 200,
+    "tags": [
+      "phrase-exact"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Colon in a bare multi-word exact value still splits (#633 session 6)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title has (\"Beyond\" and \"Data\" and \"Gaps:\" and \"Tracking\")",
+    "note": "A `:` is ordinary punctuation to the search door, not the Lucene field separator (`display_name:cancer` matches 0 works), so it must NOT block the per-token split — scholarly titles are full of colons, and the old ban made this the largest single source of a lossy oql leg (~6.3% of all `.exact` traffic). Prod-verified result-preserving: `learning: machine` = `learning machine` = split into two leaves = 2,919,096. Structural chars (`\" ( ) | [ ] , ; ~ ^ ! &`) still refuse to split — those change the result set.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "display_name.search.exact",
+          "value": "Beyond",
+          "operator": "has"
+        },
+        {
+          "column_id": "display_name.search.exact",
+          "value": "Data",
+          "operator": "has"
+        },
+        {
+          "column_id": "display_name.search.exact",
+          "value": "Gaps:",
+          "operator": "has"
+        },
+        {
+          "column_id": "display_name.search.exact",
+          "value": "Tracking",
+          "operator": "has"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search.exact:Beyond,display_name.search.exact:Data,display_name.search.exact:Gaps:,display_name.search.exact:Tracking"
   }
 ];
