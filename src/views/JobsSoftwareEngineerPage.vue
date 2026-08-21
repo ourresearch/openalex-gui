@@ -1,5 +1,5 @@
 <template>
-  <!-- Software Engineer listing (oxjob #812; was "Software & Data Engineer" / /jobs/software-data-engineer until 2026-08-21). Stealth: noindex, not yet linked
+  <!-- Software Engineer listing (oxjob #812; was "Software & Data Engineer" / /jobs/software-data-engineer until 2026-08-21). Was stealth pre-launch, now LIVE (launch swap). Originally: noindex, not yet linked
        from /jobs. House StaticPage pattern (hero + right-rail TOC), same as /about, so it
        reads as a first-class static page. Role description + role-specific bullets:
        Claude draft (2026-08-19, from Rohan's 2026-07-01 offer letter = Jason's SWE job
@@ -104,10 +104,6 @@ defineOptions({ name: 'JobsSoftwareEngineerPage' });
 
 useHead({
   title: 'Software Engineer',
-  meta: [
-    // Stealth until the listings launch announcement — keep out of the index for now.
-    { name: 'robots', content: 'noindex' },
-  ],
 });
 
 const crumbs = [

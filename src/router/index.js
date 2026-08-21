@@ -440,20 +440,20 @@ const routes = [
     {path: '/pricing/developers', redirect: '/pricing#subscriptions'},
     {path: '/pricing-newer', redirect: '/pricing'},
     {path: '/compare', name: 'Compare', component: () => import('@/views/ComingSoonPage.vue'), meta: {chrome: 'site'}, props: {title: 'Compare', blurb: "We're building a side-by-side look at how OpenAlex stacks up against other scholarly data sources. It's coming soon."}},
-    // Jobs page (oxjob #662): coming-soon placeholder (footer-linked). The real pitch page
-    // is parked on the unlinked /jobs/draft until it's ready to launch.
-    {path: '/jobs', name: 'Jobs', component: () => import('@/views/JobsPage.vue'), meta: {chrome: 'site'}},
+    // Jobs pitch page (oxjob #662/#792/#812): LIVE since the hiring launch swap. Was parked on
+    // /jobs/draft during the stealth period; the old coming-soon placeholder is gone.
+    {path: '/jobs', name: 'Jobs', component: () => import('@/views/JobsDraftPage.vue'), meta: {chrome: 'site'}},
     // "jobs is shorter and less pretentious, but there's a redirect from /careers to /jobs" (Jason)
     {path: '/careers', redirect: '/jobs'},
-    // Unlinked draft of the full pitch page (the #675-driven rewrite): noindex, not announced.
-    {path: '/jobs/draft', name: 'JobsDraft', component: () => import('@/views/JobsDraftPage.vue'), meta: {chrome: 'site'}},
-    // Community Lead listing (oxjob #662/#812): stealth iteration surface — noindex, not yet linked from /jobs.
+    // /jobs/draft was the stealth URL for the pitch page pre-launch; redirect, don't 404.
+    {path: '/jobs/draft', redirect: '/jobs'},
+    // Community Lead listing (oxjob #662/#812).
     {path: '/jobs/community-lead', name: 'JobsCommunityLead', component: () => import('@/views/JobsCommunityLeadPage.vue'), meta: {chrome: 'site'}},
-    // Software Engineer listing (oxjob #812): stealth — noindex, not yet linked from /jobs.
+    // Software Engineer listing (oxjob #812).
     {path: '/jobs/software-engineer', name: 'JobsSoftwareEngineer', component: () => import('@/views/JobsSoftwareEngineerPage.vue'), meta: {chrome: 'site'}},
     // Old slug (title was "Software & Data Engineer" until 2026-08-21) — the URL is in chat histories.
     {path: '/jobs/software-data-engineer', redirect: '/jobs/software-engineer'},
-    // Operations Associate listing (oxjob #812, added 2026-08-18): stealth, noindex, not yet linked from /jobs.
+    // Operations Associate listing (oxjob #812, added 2026-08-18).
     {path: '/jobs/operations-associate', name: 'JobsOperationsAssociate', component: () => import('@/views/JobsOperationsAssociatePage.vue'), meta: {chrome: 'site'}},
     {path: '/institutional-supporters', name: 'InstitutionalSupporters', component: MembersPage, meta: {chrome: 'site'}},
     {path: '/members', redirect: '/institutional-supporters'},

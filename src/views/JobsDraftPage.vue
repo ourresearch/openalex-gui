@@ -1,7 +1,6 @@
 <template>
-  <!-- Jobs pitch-page DRAFT (oxjob #792), parked at the unlinked /jobs/draft while /jobs
-       stays on the coming-soon placeholder. Red-pen surface; noindex, not announced.
-       Uses the house StaticPage pattern (hero + right-rail TOC), same as /about etc. -->
+  <!-- Jobs pitch page (oxjob #792/#812). Served at /jobs since the hiring launch swap.
+       House StaticPage pattern (hero + right-rail TOC), same as /about etc. -->
   <static-page title="Build the future of science" :sections="sections">
     <static-section id="about-us" title="About us">
       <jobs-about-us />
@@ -44,11 +43,7 @@ import JobsAboutYou from '@/components/Jobs/JobsAboutYou.vue';
 defineOptions({ name: 'JobsDraftPage' });
 
 useHead({
-  title: 'Jobs (draft)',
-  meta: [
-    // Unlinked draft surface — keep out of the index.
-    { name: 'robots', content: 'noindex' },
-  ],
+  title: 'Jobs',
 });
 
 const sections = [

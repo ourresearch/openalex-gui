@@ -1,5 +1,5 @@
 <template>
-  <!-- Operations Associate listing (oxjob #812, added 2026-08-18). Stealth: noindex, not
+  <!-- Operations Associate listing (oxjob #812, added 2026-08-18). Was stealth pre-launch, now LIVE (launch swap). Originally: noindex, not
        yet linked from /jobs. House StaticPage pattern (hero + right-rail TOC), mirroring
        the Community Lead and Software Engineer pages.
 
@@ -124,10 +124,6 @@ defineOptions({ name: 'JobsOperationsAssociatePage' });
 
 useHead({
   title: 'Operations Associate',
-  meta: [
-    // Stealth until the listings launch announcement - keep out of the index for now.
-    { name: 'robots', content: 'noindex' },
-  ],
 });
 
 const crumbs = [

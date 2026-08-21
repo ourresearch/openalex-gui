@@ -1,5 +1,5 @@
 <template>
-  <!-- Community Lead listing (oxjob #662 → restructured in #812). Stealth: noindex, not yet
+  <!-- Community Lead listing (oxjob #662 → restructured in #812). Was stealth pre-launch, now LIVE (launch swap). Originally: noindex, not yet
        linked from /jobs. House StaticPage pattern (hero + right-rail TOC), matching the
        Software Engineer page.
 
@@ -124,10 +124,6 @@ defineOptions({ name: 'JobsCommunityLeadPage' });
 
 useHead({
   title: 'Community Lead',
-  meta: [
-    // Stealth until the listings launch announcement — keep out of the index for now.
-    { name: 'robots', content: 'noindex' },
-  ],
 });
 
 const crumbs = [
