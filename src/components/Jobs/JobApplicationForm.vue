@@ -261,8 +261,9 @@ const req = computed(() => ({
 // an associate degree, some college, or no degree at all.
 const degreeOptions = ["Bachelor's", "Master's", 'Doctoral', 'Other'];
 
-// Ends on an explicit "keep going" line — without it the four-line sketch reads as
-// the expected length, and we get four-line resumes.
+// Ends on a "keep going" line — without it the short sketch reads as the expected
+// length, and we get four-line resumes. "etc..." carries that on its own; spelling it
+// out ("your whole resume, not just…") only says what the reader already got.
 const resumePlaceholder = [
   '# Jane Doe',
   'Austin, TX · jane@example.com',
@@ -270,7 +271,7 @@ const resumePlaceholder = [
   '## Experience',
   'Acme Corp — Staff Engineer, 2022–present',
   '',
-  '…etc. — your whole resume, not just the first few lines.',
+  'etc...',
 ].join('\n');
 
 const blankEducationRow = () => ({ institution: '', degree: '', field: '' });
