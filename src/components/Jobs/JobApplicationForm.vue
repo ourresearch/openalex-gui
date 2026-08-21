@@ -121,7 +121,7 @@
               <div v-for="(row, i) in form.education" :key="i" class="jaf-edu-row">
                 <div class="jaf-edu-cell">
                   <label class="jaf-edu-cell-label" :for="`jaf-edu-inst-${i}`">Institution</label>
-                  <input :id="`jaf-edu-inst-${i}`" v-model.trim="row.institution" class="jaf-input" type="text" placeholder="Rice University" />
+                  <input :id="`jaf-edu-inst-${i}`" v-model.trim="row.institution" class="jaf-input" type="text" placeholder="University of Cambridge" />
                 </div>
 
                 <div class="jaf-edu-cell">
