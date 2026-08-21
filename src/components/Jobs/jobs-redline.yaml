@@ -19,6 +19,10 @@
 #      A before/after span may cross inline tags (<strong>, <a>) but must NOT
 #      cross a block boundary (one paragraph or one <li> per entry — split
 #      bigger changes into multiple entries).
+#      ORDER MATTERS: entries apply top-to-bottom and the text search skips
+#      spans already painted by earlier entries. If a deletion's `context` /
+#      `context_after` lies inside another entry's `after` text, list the
+#      deletion BEFORE that entry (bit R17 on 2026-08-21).
 #   3. If you are RESPONDING to an existing entry (Kyle's accept/reject loop):
 #      - accept: leave the new copy in place, set status: accepted, add a reply.
 #      - reject: revert the page copy to `before`, set status: rejected, add a
