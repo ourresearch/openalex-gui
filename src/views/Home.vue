@@ -207,7 +207,7 @@ export default {
 
 // Hero Section
 .hero {
-  min-height: calc(100vh - var(--app-bar-height));
+  min-height: calc(100vh - var(--chrome-height));
   display: flex;
   flex-direction: column;
   justify-content: center;

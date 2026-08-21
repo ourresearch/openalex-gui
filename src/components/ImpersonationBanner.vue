@@ -34,11 +34,7 @@ function stopImpersonation() {
 
 <style scoped>
 .impersonation-banner {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10000;
+  /* In-flow (oxjob #853): pushes the bar + page down, scrolls away with them. */
   background-color: #1a1a1a;
   color: #ffffff;
   padding: 4px 16px;

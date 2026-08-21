@@ -1,15 +1,14 @@
 <template>
-  <!-- Spacer keeps page content out from under the fixed bar (same 56px the
-       bar occupied when it was in-flow, so page geometry is unchanged). -->
-  <div class="site-top-bar-spacer" aria-hidden="true" />
-  <header class="site-top-bar" :style="{ top: topOffset }">
+  <header ref="barEl" class="site-top-bar">
     <!-- Stripe-style page dim behind an open mega-panel; starts just under the
-         bar so the bar itself stays crisp. Click closes. -->
+         bar so the bar itself stays crisp. The bar now scrolls with the page,
+         so we measure its live bottom edge on open (the panel closes on scroll,
+         so this stays accurate while open). Click closes. -->
     <transition name="scrim">
       <div
         v-if="openDropdown"
         class="mega-scrim"
-        :style="{ top: barBottom }"
+        :style="{ top: scrimTop }"
         aria-hidden="true"
         @click="openDropdown = null"
       />
@@ -140,9 +139,17 @@
              marker (readable before first paint), so there's no wrong-state
              flash while the user fetch is in flight (Decision 1). -->
         <template v-if="showLoggedIn">
-          <v-btn variant="outlined" :to="{name: 'Serp', params: {entityType: 'works'}}" class="open-app-btn">
+          <v-btn v-if="!isAppChrome" variant="outlined" :to="{name: 'Serp', params: {entityType: 'works'}}" class="open-app-btn">
             Open app
           </v-btn>
+          <!-- Credit battery: right cluster, immediately left of the avatar
+               (oxjob #853 — same order as the old vertical rail, rotated). -->
+          <credit-indicator
+            v-if="userId && rateLimitData"
+            :used-usd="rateLimitData.daily_used_usd"
+            :budget-usd="dailyBudgetUsd"
+            tooltip-location="bottom"
+          />
           <app-sidebar-user-menu v-if="userId" location="bottom" />
           <v-avatar v-else size="32" color="#E5E5E5" class="avatar-placeholder" />
         </template>
@@ -210,11 +217,11 @@
             <v-list-item to="/jobs" @click="mobileMenuOpen = false">
               <v-list-item-title>Jobs</v-list-item-title>
             </v-list-item>
-            <v-divider class="my-1" />
-            <v-list-item v-if="showLoggedIn" :to="{name: 'Serp', params: {entityType: 'works'}}" @click="mobileMenuOpen = false">
+            <v-divider v-if="!showLoggedIn || !isAppChrome" class="my-1" />
+            <v-list-item v-if="showLoggedIn && !isAppChrome" :to="{name: 'Serp', params: {entityType: 'works'}}" @click="mobileMenuOpen = false">
               <v-list-item-title>Open app</v-list-item-title>
             </v-list-item>
-            <v-list-item v-else to="/login" @click="mobileMenuOpen = false">
+            <v-list-item v-if="!showLoggedIn" to="/login" @click="mobileMenuOpen = false">
               <v-list-item-title>Log in</v-list-item-title>
             </v-list-item>
           </v-list>
@@ -229,18 +236,10 @@ import { computed, ref, watch, nextTick, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import AppSidebarUserMenu from '@/components/AppSidebarUserMenu.vue';
+import CreditIndicator from '@/components/Credits/CreditIndicator.vue';
 import { siteNavProduct, siteNavHelp } from '@/navConfigs';
 
 defineOptions({ name: 'SiteTopBar' });
-
-const props = defineProps({
-  // Height of the fixed banner stack above us (e.g. '28px'), so the sticky bar
-  // doesn't slide under the throttle/impersonation/verify-email banners.
-  topOffset: {
-    type: String,
-    default: '0',
-  },
-});
 
 const store = useStore();
 const route = useRoute();
@@ -252,14 +251,29 @@ const userId = computed(() => store.getters['user/userId']);
 // the same computed keeps this reactive across login/logout transitions.
 const showLoggedIn = computed(() => !!userId.value || !!localStorage.getItem('token'));
 
-// Where the fixed bar ends — the scrim starts here so it never dims the bar.
-const barBottom = computed(() => `${(parseInt(props.topOffset, 10) || 0) + 56}px`);
+// 'app'-chrome pages ARE the app, so the "Open app" button is redundant there
+// (oxjob #853). Everything else (site pages) still offers it.
+const isAppChrome = computed(() => (route.meta.chrome ?? 'app') === 'app');
+
+// Credit battery data (moved here from the old app rail, oxjob #853).
+const rateLimitData = computed(() => store.state.rateLimitData);
+const dailyBudgetUsd = computed(() =>
+  rateLimitData.value?.daily_budget_usd != null
+    ? rateLimitData.value.daily_budget_usd
+    : store.getters.defaultDailyBudgetUsd
+);
+
+// Live bottom edge of the (now-scrolling) bar, so the scrim starts just under it
+// without ever dimming the bar. Set on open; the panel closes on scroll so it
+// can't drift out of date.
+const scrimTop = ref('56px');
 
 // 'product' | 'help' | null. One shared panel; switching triggers morphs it.
 const openDropdown = ref(null);
 const mobileMenuOpen = ref(false);
 const mobileOpenGroups = ref([]);
 
+const barEl = ref(null);
 const zoneEl = ref(null);
 const productTriggerEl = ref(null);
 const helpTriggerEl = ref(null);
@@ -285,6 +299,9 @@ function measurePosition(which) {
 
 function setOpen(which) {
   measurePosition(which);
+  // Anchor the scrim to the bar's current bottom edge (the bar scrolls, so this
+  // isn't a constant). The panel closes on scroll, keeping this fresh.
+  if (barEl.value) scrimTop.value = `${barEl.value.getBoundingClientRect().bottom}px`;
   openDropdown.value = which;
 }
 
@@ -351,16 +368,23 @@ function onDocKeydown(e) {
 function onWindowResize() {
   if (openDropdown.value) measurePosition(openDropdown.value);
 }
+// The bar scrolls with the page now, so an open panel would drift up the
+// viewport with it. Close on scroll rather than chase it (oxjob #853).
+function onWindowScroll() {
+  openDropdown.value = null;
+}
 
 watch(openDropdown, (isOpen) => {
   if (isOpen) {
     document.addEventListener('mousedown', onDocMousedown);
     document.addEventListener('keydown', onDocKeydown);
     window.addEventListener('resize', onWindowResize);
+    window.addEventListener('scroll', onWindowScroll, { passive: true });
   } else {
     document.removeEventListener('mousedown', onDocMousedown);
     document.removeEventListener('keydown', onDocKeydown);
     window.removeEventListener('resize', onWindowResize);
+    window.removeEventListener('scroll', onWindowScroll);
   }
 });
 
@@ -380,24 +404,20 @@ onBeforeUnmount(() => {
   document.removeEventListener('mousedown', onDocMousedown);
   document.removeEventListener('keydown', onDocKeydown);
   window.removeEventListener('resize', onWindowResize);
+  window.removeEventListener('scroll', onWindowScroll);
 });
 </script>
 
 <style scoped lang="scss">
 .site-top-bar {
-  /* Fixed, not sticky — sticky silently never pinned inside the Vuetify
-     layout (Jason review r2, 2026-08-15; comps pin theirs too). */
-  position: fixed;
-  left: 0;
-  right: 0;
+  /* In-flow and scrolls away with the page — one behavior site-wide, since the
+     bar carries no mid-scroll control worth pinning (oxjob #853, see EXPLORE).
+     `relative` + z-index keeps it above the fixed mega-scrim and lets the
+     absolutely-positioned mega-panel anchor to it. */
+  position: relative;
   z-index: 1004;
   background-color: #fff;
   border-bottom: 0.5px solid rgba(0, 0, 0, 0.12);
-}
-
-.site-top-bar-spacer {
-  height: 56px;
-  flex-shrink: 0;
 }
 
 .mega-scrim {

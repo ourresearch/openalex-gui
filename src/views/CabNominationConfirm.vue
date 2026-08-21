@@ -118,7 +118,7 @@ async function respond(action) {
 <style scoped>
 .confirm-page {
   padding: 64px 16px;
-  min-height: calc(100vh - var(--app-bar-height));
+  min-height: calc(100vh - var(--chrome-height));
   background-color: #FAFAFA;
 }
 </style>

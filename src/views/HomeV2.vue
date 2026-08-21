@@ -637,7 +637,7 @@ export default { name: 'HomeV2Page' };
 // ===================== HERO =====================
 .hero {
   position: relative;
-  min-height: calc(100vh - var(--app-bar-height));
+  min-height: calc(100vh - var(--chrome-height));
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 88px; // more air between the copy and the feed (Jason 2026-08-03)

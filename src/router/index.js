@@ -83,10 +83,11 @@ const redirect = (path, url) => ({
     }
 });
 
-// Contextual chrome (oxjob #778): `meta.chrome` picks the page's chrome in App.vue.
-//   'site' — marketing/read-about-us pages: SiteTopBar + SiteFooter, no rail
+// Contextual chrome (oxjob #778, #853): `meta.chrome` picks the page's chrome in App.vue.
+//   'site' / (unset, defaults to 'app') — one scrolling SiteTopBar + SiteFooter
 //   'bare' — auth pages: centered card only, no chrome
-//   (unset) — defaults to 'app': the rail, no top bar, no footer
+// 'site' and 'app' now render the SAME top bar; the label is kept only where a
+// route still branches on it (e.g. hiding the top bar's "Open app" button in-app).
 const routes = [
     {
         // #681 landing-page revision, shipped 2026-08-12. Keeps name 'Home' so every

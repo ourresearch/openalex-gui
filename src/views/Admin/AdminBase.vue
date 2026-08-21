@@ -64,7 +64,7 @@ const navSections = [
 <style lang="scss" scoped>
 .admin-layout {
   display: flex;
-  min-height: calc(100vh - var(--app-bar-height));
+  min-height: calc(100vh - var(--chrome-height));
   background-color: #FAFAFA;
 }
 
@@ -75,8 +75,10 @@ const navSections = [
   border-right: 1px solid #E5E5E5;
   background: #FFFFFF;
   position: sticky;
-  top: var(--app-bar-height);
-  height: calc(100vh - var(--app-bar-height));
+  /* The main bar scrolls away, so once this sidebar reaches the viewport top
+     there's no chrome above it — pin at 0, full viewport height (oxjob #853). */
+  top: 0;
+  height: 100vh;
   overflow-y: auto;
 }
 

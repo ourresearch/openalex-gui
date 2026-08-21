@@ -1,22 +1,23 @@
 <template>
-  <v-app class="alice-mode">
+  <v-app class="alice-mode" :style="{ '--chrome-height': chromeHeight }">
     <throttle-banner />
     <impersonation-banner />
     <verify-email-banner />
     <!-- Expert mode banner removed for Alice release -->
+    <!-- Loading bar is pinned to the very top of the viewport. The banners
+         above are in-flow and scroll away, so there's nothing to offset against
+         (oxjob #853). -->
     <v-progress-linear
       indeterminate
       color="primary"
-      :style="{ position: 'fixed', top: progressBarOffset, left: 0, width: '100%', zIndex: 9999 }"
+      :style="{ position: 'fixed', top: 0, left: 0, width: '100%', zIndex: 9999 }"
       v-if="globalIsLoading"
     />
-    <!-- Contextual chrome (oxjob #778): site pages get the marketing top bar;
-         app pages get the rail; auth pages get neither (just a logo over the
-         centered card). The fat footer renders on ALL pages. `chrome` is null
-         until the router has resolved the first route, so neither chrome
-         flashes on load. -->
-    <site-top-bar v-if="chrome === 'site'" :top-offset="progressBarOffset" />
-    <app-sidebar v-if="chrome === 'app'" />
+    <!-- Contextual chrome (oxjob #778, #853): every non-auth page gets one
+         scrolling top bar; auth pages ('bare') get just a logo over the centered
+         card. The fat footer renders on ALL pages. `chrome` is null until the
+         router has resolved the first route, so no chrome flashes on load. -->
+    <site-top-bar v-if="chrome && chrome !== 'bare'" />
     <div v-if="chrome === 'bare'" class="bare-chrome-logo">
       <router-link to="/" aria-label="OpenAlex home">
         <img src="/brand-assets/openalex-lockup.png" alt="OpenAlex" />
@@ -81,7 +82,6 @@ import EntityDrawer from '@/components/Entity/EntityDrawer.vue';
 import ImpersonationBanner from '@/components/ImpersonationBanner.vue';
 import ThrottleBanner from '@/components/ThrottleBanner.vue';
 import VerifyEmailBanner from '@/components/VerifyEmailBanner.vue';
-import AppSidebar from '@/components/AppSidebar.vue';
 import SiteTopBar from '@/components/SiteTopBar.vue';
 
 const store = useStore();
@@ -102,23 +102,26 @@ const isUnverifiedEmail = computed(() => {
   const emails = store.state.user.emails || [];
   return emails.some((e) => e.is_primary && !e.verified_at);
 });
-const hasBanner = computed(
-  () => isImpersonating.value || isRateThrottled.value || isUnverifiedEmail.value
-);
-const progressBarOffset = computed(() => {
-  const count =
-    (isImpersonating.value ? 1 : 0) +
-    (isRateThrottled.value ? 1 : 0) +
-    (isUnverifiedEmail.value ? 1 : 0);
-  return count === 0 ? '0' : `${count * 28}px`;
-});
-
-
 // Which chrome this page gets (oxjob #778). Null until the first route has
 // resolved (route.matched is empty at boot) so we don't flash the wrong chrome.
 const chrome = computed(() => {
   if (route.matched.length === 0) return null;
   return route.meta.chrome ?? 'app';
+});
+
+// Height of the in-flow chrome above <v-main>: the 56px top bar (on every
+// non-'bare' page) plus 28px per visible banner. Exposed as the --chrome-height
+// CSS var so full-height sections can fill exactly the space below it, and so
+// the value tracks banners appearing/disappearing (oxjob #853).
+const bannerCount = computed(
+  () =>
+    (isImpersonating.value ? 1 : 0) +
+    (isRateThrottled.value ? 1 : 0) +
+    (isUnverifiedEmail.value ? 1 : 0)
+);
+const chromeHeight = computed(() => {
+  const barHeight = chrome.value && chrome.value !== 'bare' ? 56 : 0;
+  return `${barHeight + bannerCount.value * 28}px`;
 });
 
 const homeRoute = computed(() => {
@@ -229,7 +232,11 @@ $color-0: hsl(212, 77%, 82%);
   transition: none !important;
   display: flex !important;
   flex-direction: column;
-  min-height: 100vh;
+  /* Fill exactly the viewport below the in-flow chrome (bar + banners), not a
+     full 100vh — otherwise the chrome's height stacks on top and overscrolls
+     (oxjob #853). The router-view-container child then flex-grows within us so
+     the footer lands at the bottom rather than below a redundant 100vh. */
+  min-height: calc(100vh - var(--chrome-height));
 }
 .v-main > :first-child {
   flex: 1 0 auto;
@@ -240,7 +247,6 @@ $color-0: hsl(212, 77%, 82%);
 .router-view-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
 }
 .router-view-container > :first-child {
   flex: 1 0 auto;
@@ -338,9 +344,13 @@ $color-0: hsl(212, 77%, 82%);
 }
 html, body {
   // overflow-y: initial is required so Vuetify's v-scroll-lock directive works.
-  // overflow-x: hidden prevents horizontal scroll caused by the fixed sidebar.
+  // overflow-x must clip (not hidden) horizontal overflow: `hidden` on one axis
+  // computes the other to `auto`, making <body> a scroll container that isn't the
+  // one actually scrolling — which silently breaks `position: sticky` on the
+  // Settings/Admin sub-sidebars now that the page (not a fixed rail) scrolls
+  // (oxjob #853). `clip` hides the same overflow without creating that container.
   overflow-y: initial;
-  overflow-x: hidden;
+  overflow-x: clip;
   background-color: var(--ox-bg-subtle);
 }
 .theme--dark.v-card {
@@ -623,8 +633,6 @@ body {
 // Vuetify 3 Global Font Configuration
 // This is the recommended approach for setting a global font family
 .v-application {
-  --app-bar-height: 0px;
-
   font-family: Inter, sans-serif !important;
 
   // Target all Vuetify typography classes with a single selector
