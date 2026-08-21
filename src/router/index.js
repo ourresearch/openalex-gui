@@ -449,8 +449,10 @@ const routes = [
     {path: '/jobs/draft', name: 'JobsDraft', component: () => import('@/views/JobsDraftPage.vue'), meta: {chrome: 'site'}},
     // Community Lead listing (oxjob #662/#812): stealth iteration surface — noindex, not yet linked from /jobs.
     {path: '/jobs/community-lead', name: 'JobsCommunityLead', component: () => import('@/views/JobsCommunityLeadPage.vue'), meta: {chrome: 'site'}},
-    // Software & Data Engineer listing (oxjob #812): stealth — noindex, not yet linked from /jobs.
-    {path: '/jobs/software-data-engineer', name: 'JobsSoftwareDataEngineer', component: () => import('@/views/JobsSoftwareDataEngineerPage.vue'), meta: {chrome: 'site'}},
+    // Software Engineer listing (oxjob #812): stealth — noindex, not yet linked from /jobs.
+    {path: '/jobs/software-engineer', name: 'JobsSoftwareEngineer', component: () => import('@/views/JobsSoftwareEngineerPage.vue'), meta: {chrome: 'site'}},
+    // Old slug (title was "Software & Data Engineer" until 2026-08-21) — the URL is in chat histories.
+    {path: '/jobs/software-data-engineer', redirect: '/jobs/software-engineer'},
     // Operations Associate listing (oxjob #812, added 2026-08-18): stealth, noindex, not yet linked from /jobs.
     {path: '/jobs/operations-associate', name: 'JobsOperationsAssociate', component: () => import('@/views/JobsOperationsAssociatePage.vue'), meta: {chrome: 'site'}},
     {path: '/institutional-supporters', name: 'InstitutionalSupporters', component: MembersPage, meta: {chrome: 'site'}},

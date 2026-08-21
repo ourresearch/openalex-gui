@@ -164,7 +164,7 @@ import { urlBase, axiosConfig } from '@/apiConfig';
 defineOptions({ name: 'JobApplicationForm' });
 
 const props = defineProps({
-  role: { type: String, required: true },  // 'software-data-engineer' | 'community-lead' | 'operations-associate'
+  role: { type: String, required: true },  // 'software-engineer' | 'community-lead' | 'operations-associate'
 });
 
 const store = useStore();
@@ -190,7 +190,7 @@ const questions = [
 const req = computed(() => ({
   location: true,
   linkedin: props.role === 'community-lead',
-  github: props.role === 'software-data-engineer',
+  github: props.role === 'software-engineer',
   education: true,
   resume: true,
 }));

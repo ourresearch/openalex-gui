@@ -1,7 +1,7 @@
 <template>
   <!-- Operations Associate listing (oxjob #812, added 2026-08-18). Stealth: noindex, not
        yet linked from /jobs. House StaticPage pattern (hero + right-rail TOC), mirroring
-       the Community Lead and Software & Data Engineer pages.
+       the Community Lead and Software Engineer pages.
 
        Entry-level ops/admin role created alongside the Community Lead rescope: as sales
        winds down and membership paperwork grows, this person absorbs the forms, portals

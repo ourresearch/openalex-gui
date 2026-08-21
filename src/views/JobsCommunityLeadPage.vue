@@ -1,7 +1,7 @@
 <template>
   <!-- Community Lead listing (oxjob #662 → restructured in #812). Stealth: noindex, not yet
        linked from /jobs. House StaticPage pattern (hero + right-rail TOC), matching the
-       Software & Data Engineer page.
+       Software Engineer page.
 
        Scope revised 2026-08-18 (Kyle): sales is winding down as a function, so this role
        owns the *relationship* with users and members while the COO leads on deals and the
