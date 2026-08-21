@@ -47,13 +47,11 @@
       <p class="section-body">
         There's no platform team beneath you and no product team above you: you'll notice
         what's missing, propose it, build it, ship it, and answer the tickets about it.
-        We're an AI-native shop &mdash; agents write all our code, and we expect you to
-        drive them well.
       </p>
       <p class="section-body">
-        Increasingly, managing agents <em>is</em> the job: not typing, but good judgment
-        and high agency &mdash; knowing what to build, knowing when it's right, and knowing
-        when it's done.
+        We're an AI-native shop: agents write all our code, and increasingly managing them
+        <em>is</em> the job &mdash; not typing, but good judgment and high agency. Knowing
+        what to build, knowing when it's right, and knowing when it's done.
       </p>
     </static-section>
 
@@ -87,13 +85,11 @@
         the grit to power through the grindy ones, and the wisdom to tell the
         difference. You get things
         <a href="https://medium.com/@bre/the-cult-of-done-manifesto-724ca1c2ff13" target="_blank" rel="noopener noreferrer">done</a>.
-        That means you're leveraging AI extensively and skillfully, driven by results
-        not hype.
       </p>
       <p class="section-body">
         You play <strong>jazz, not classical:</strong> you're confident in your skills,
-        love improvising with a team, and can embrace ambiguity, imperfection, and a
-        dash of chaos in service of emergent, collaborative creativity.
+        love improvising with a team, and can embrace ambiguity and imperfection in
+        service of emergent, collaborative creativity.
       </p>
       <p class="section-body">
         You <strong>believe in our mission</strong> and you care about openness and open

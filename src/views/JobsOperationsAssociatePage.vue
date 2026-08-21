@@ -27,25 +27,15 @@
 
     <static-section id="the-role" title="The role">
       <p class="section-body">
-        OpenAlex is a lean team &mdash; fewer than ten people, even after these new hires
-        &mdash; serving millions of users. The math only works because we refuse to let
-        overhead grow with scale. This role is how we keep refusing.
+        We're growing quickly, and as we grow, handling operations is becoming a full-time
+        job. This is that job.
       </p>
-      <p class="section-body">
-        Every institution that joins us arrives with paperwork. A procurement portal that
-        needs an account. A security questionnaire with 140 questions. A vendor form, a tax
-        exemption certificate, a purchase order, a government invoicing system that only
-        accepts submissions one particular way. Multiply that by a growing membership and
-        you get a real job, currently being done badly in the margins of other people's
-        calendars.
-      </p>
-      <p class="section-body">You'll own it:</p>
+      <p class="section-body">In specific terms, here's what you'll own:</p>
       <ul class="section-list">
         <li>
           <strong>Forms, portals, and questionnaires.</strong> Vendor registration,
           procurement systems, security and compliance questionnaires, tax and exemption
-          paperwork, purchase orders. You'll learn what we can answer from a template and
-          what needs a human, and you'll build the templates.
+          paperwork, purchase orders.
         </li>
         <li>
           <strong>Member paperwork.</strong> Contracts out for signature, invoices raised
@@ -54,7 +44,7 @@
         </li>
         <li>
           <strong>Team logistics.</strong> Conference travel, event registrations, speaking
-          logistics, the occasional team gathering. Making sure the people going somewhere
+          logistics, team gatherings. Making sure the people going somewhere
           have what they need to get there.
         </li>
         <li>
@@ -68,16 +58,15 @@
         support that work, not carry it.
       </p>
       <p class="section-body">
-        <strong>This is an entry-level role and we mean it.</strong> We're not looking for
+        <strong>This is an entry-level role.</strong> We're not looking for
         someone who has done this before. We're looking for someone who will be very good at
         it, quickly, and who wants a first job where the work visibly matters.
       </p>
       <p class="section-body">
-        It's also a genuine foot in the door. Maybe you love this work and want to do it for
-        years &mdash; that's a great outcome. Maybe you use it as a springboard instead:
-        into a different role here as we grow, or out into the wider open-science community,
-        where you'll have spent a couple of years meeting most of the people who run it.
-        That's a great outcome too, and we'll help you get there.
+        It's also a genuine foot in the door: you'll be at a well-respected organization in
+        an exciting field, and you'll get to know practically everyone in open science.
+        Whether that leads to a bigger role here as we grow or a great job somewhere else,
+        we'll help you get there.
       </p>
     </static-section>
 
@@ -126,21 +115,23 @@
       <p class="section-body">And for this role specifically:</p>
       <ul class="section-list">
         <li>
-          You're organized in a way other people can see. Things you're responsible for
-          don't get lost, and you don't need a system imposed on you to make that true.
+          You're organized and self-managing, and you sweat the details. You get a real
+          kick out of an empty inbox, a tracker with nothing overdue, and a form that's
+          right the first time &mdash; and you're the one who notices when two numbers
+          don't match.
         </li>
         <li>
           You write clearly and professionally to people you've never met &mdash; including
           when the answer is "not yet" or "we can't."
         </li>
         <li>
-          Details don't bore you. A form filled out correctly the first time is genuinely
-          satisfying, and you notice when a number doesn't match the number on the other
-          document.
+          You're comfortable working with AI all day, including managing AI agents. You're
+          always finding new ways to streamline your processes with it &mdash; and you know
+          when something needs the human touch.
         </li>
         <li>
-          You're comfortable being new. You'll ask the question rather than guess, and
-          you'll only need to ask it once.
+          You love a new challenge and you love to learn. You'll ask the question rather
+          than guess, and you'll only need to ask it once.
         </li>
       </ul>
       <p class="section-body">

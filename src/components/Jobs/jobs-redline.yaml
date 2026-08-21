@@ -52,6 +52,106 @@
 
 # Round 1 (community-lead, Jason 2026-08-20) is CLOSED: Kyle blanket-accepted
 # R1-R14 + his own R15; entries emptied per lifecycle (full record in git history,
-# commit "Community Lead review round FINALIZED"). NEXT ID: R16 — ids are never
-# reused, the Operations Associate round starts at R16.
-entries: []
+# commit "Community Lead review round FINALIZED"). Ids are never reused.
+#
+# Round 2 (operations-associate, Jason 2026-08-21): R16–R26 below, all `open`
+# pending Kyle. NEXT ID: R27.
+entries:
+  - id: R16
+    page: operations-associate
+    section: the-role
+    author: jason
+    date: 2026-08-21
+    status: open
+    before: "OpenAlex is a lean team — fewer than ten people, even after these new hires — serving millions of users. The math only works because we refuse to let overhead grow with scale. This role is how we keep refusing."
+    after: "We're growing quickly, and as we grow, handling operations is becoming a full-time job. This is that job."
+    comment: "Overall this listing is in good shape — the bullets especially. My main note is length: merged the first two paragraphs into one short one. The lean-team framing is about us, not them, and the paperwork catalogue (next entry) is great color but the bullets already carry those specifics."
+  - id: R17
+    page: operations-associate
+    section: the-role
+    author: jason
+    date: 2026-08-21
+    status: open
+    before: "Every institution that joins us arrives with paperwork. A procurement portal that needs an account. A security questionnaire with 140 questions. A vendor form, a tax exemption certificate, a purchase order, a government invoicing system that only accepts submissions one particular way. Multiply that by a growing membership and you get a real job, currently being done badly in the margins of other people's calendars."
+    context: "This is that job."
+    comment: "Cut as part of merging the opening (see R16) — the bullets below already list the forms, portals and questionnaires, so this read as a second pass over the same ground."
+  - id: R18
+    page: operations-associate
+    section: the-role
+    author: jason
+    date: 2026-08-21
+    status: open
+    before: "You'll own it:"
+    after: "In specific terms, here's what you'll own:"
+    comment: "With the paragraph above now shorter, the bullet list needed a slightly fuller lead-in."
+  - id: R19
+    page: operations-associate
+    section: the-role
+    author: jason
+    date: 2026-08-21
+    status: open
+    before: "You'll learn what we can answer from a template and what needs a human, and you'll build the templates."
+    context: "tax and exemption paperwork, purchase orders."
+    comment: "First bullet is great — just dropped its last sentence to keep it tight."
+  - id: R20
+    page: operations-associate
+    section: the-role
+    author: jason
+    date: 2026-08-21
+    status: open
+    before: "the occasional team gathering"
+    after: "team gatherings"
+    comment: "Small one: 'team gatherings' rather than 'the occasional team gathering'."
+  - id: R21
+    page: operations-associate
+    section: the-role
+    author: jason
+    date: 2026-08-21
+    status: open
+    before: "This is an entry-level role and we mean it."
+    after: "This is an entry-level role."
+    comment: "Dropped 'and we mean it' — putting it in bold already makes the point."
+  - id: R22
+    page: operations-associate
+    section: the-role
+    author: jason
+    date: 2026-08-21
+    status: open
+    before: "It's also a genuine foot in the door. Maybe you love this work and want to do it for years — that's a great outcome. Maybe you use it as a springboard instead: into a different role here as we grow, or out into the wider open-science community, where you'll have spent a couple of years meeting most of the people who run it. That's a great outcome too, and we'll help you get there."
+    after: "It's also a genuine foot in the door: you'll be at a well-respected organization in an exciting field, and you'll get to know practically everyone in open science. Whether that leads to a bigger role here as we grow or a great job somewhere else, we'll help you get there."
+    comment: "Shortened. Since it's entry-level, the main pitch is that it's a really good entry: a respected org in an exciting field, and you meet practically everyone in open science. Stay and grow here or go elsewhere — either way we'll help. I dropped the 'do this exact work for years' option; few people will want that, but tell me if you'd rather keep a nod to it."
+  - id: R23
+    page: operations-associate
+    section: about-you
+    author: jason
+    date: 2026-08-21
+    status: open
+    before: "You're organized in a way other people can see. Things you're responsible for don't get lost, and you don't need a system imposed on you to make that true."
+    after: "You're organized and self-managing, and you sweat the details. You get a real kick out of an empty inbox, a tracker with nothing overdue, and a form that's right the first time — and you're the one who notices when two numbers don't match."
+    comment: "Merged the old first and third bullets into one (organized + sweats the details), shortened and tidied the grammar. 'Details don't bore you' sounded slightly judgy about everyone else, so it's 'you sweat the details' now, and I tried to describe the satisfaction in language the people who actually love this work would recognize. Counter-propose freely on the examples."
+  - id: R24
+    page: operations-associate
+    section: about-you
+    author: jason
+    date: 2026-08-21
+    status: open
+    before: "Details don't bore you. A form filled out correctly the first time is genuinely satisfying, and you notice when a number doesn't match the number on the other document."
+    context: "when the answer is \"not yet\" or \"we can't.\""
+    comment: "Folded into the first bullet (R23)."
+  - id: R25
+    page: operations-associate
+    section: about-you
+    author: jason
+    date: 2026-08-21
+    status: open
+    after: "You're comfortable working with AI all day, including managing AI agents. You're always finding new ways to streamline your processes with it — and you know when something needs the human touch."
+    comment: "New bullet. We need to say explicitly that working with (and managing) AI agents is part of the day, and that we want someone who keeps finding ways to optimize their processes with it but knows where the human touch is needed."
+  - id: R26
+    page: operations-associate
+    section: about-you
+    author: jason
+    date: 2026-08-21
+    status: open
+    before: "You're comfortable being new. You'll ask the question rather than guess, and you'll only need to ask it once."
+    after: "You love a new challenge and you love to learn. You'll ask the question rather than guess, and you'll only need to ask it once."
+    comment: "Reframed: what we're really after isn't whether they're comfortable being new, it's whether they're good at being new — which is another way of saying they love to learn. Kept your ask-it-once line, which is the best part."
