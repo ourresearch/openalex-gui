@@ -5,8 +5,8 @@
 # ⚠️ INSTRUCTIONS FOR AGENTS (read before editing the job listing pages):
 #
 # A page is under live redline review when it mounts <job-redline> (currently:
-# none — both nontechnical pages finished their rounds, CL 2026-08-20 and Ops
-# 2026-08-21; re-mount the component to open a new round). The pages render this file as an overlay
+# JobsSoftwareDataEngineerPage.vue; the two nontechnical pages finished their
+# rounds, CL 2026-08-20 and Ops 2026-08-21). The pages render this file as an overlay
 # (JobRedline.vue): insertions green, deletions struck-through red, comments as
 # numbered badges. A git commit alone is NOT a review record — this file is.
 #
@@ -32,10 +32,12 @@
 #
 # ENTRY FIELDS
 #   id:       stable, unique, e.g. R1, R2 … (never renumber)
-#   page:     community-lead | operations-associate
+#   page:     community-lead | operations-associate | software-data-engineer
 #   section:  DOM id scoping the text search: the-role | about-us | about-you |
-#             process | application
-#   author:   jason | kyle | claude
+#             process | application. OMIT it to search the whole page — needed
+#             for the hero (job title / compensation subtitle), which sits
+#             outside the sections.
+#   author:   jason | kyle | casey | claude
 #   date:     YYYY-MM-DD
 #   status:   open | accepted | rejected
 #   before:   verbatim old rendered text (omit for a pure insertion)
@@ -58,6 +60,22 @@
 # his own R15 (record: commit "Community Lead review round FINALIZED").
 # Round 2 (operations-associate, Jason 2026-08-21) CLOSED: Kyle approved R16-R26
 # (record: commit "Ops review round FINALIZED", ab8a5234).
-# Entries emptied per lifecycle; no page currently mounts <job-redline>. Ids are
-# never reused — NEXT ID: R27.
-entries: []
+# Round 3 (software-data-engineer, Casey 2026-08-21) OPEN at R27 — the SWE page
+# mounts <job-redline> again. Ids are never reused — NEXT ID: R28.
+entries:
+  - id: R27
+    page: software-data-engineer
+    author: casey
+    date: 2026-08-21
+    status: open
+    before: Software & Data Engineer
+    after: Software Engineer
+    comment: >-
+      Casey: the listing title should be Software Engineer, not Software & Data
+      Engineer. Applied to the page h1 and the browser title only. Deliberately
+      NOT changed yet, pending accept: the URL slug (/jobs/software-data-engineer,
+      the role_slug CHECK constraint from users-api migration 071, ROLE_SLUGS, and
+      the form prop that gates the GitHub field), the listing card on /jobs/draft,
+      the receipt-email title in users-api job_application_email.py ROLE_TITLES,
+      and Rohan's own "Software & Data Engineer" title on /team. All of those flip
+      in one sweep if this is accepted.

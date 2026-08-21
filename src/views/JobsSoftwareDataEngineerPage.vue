@@ -3,10 +3,15 @@
        from /jobs. House StaticPage pattern (hero + right-rail TOC), same as /about, so it
        reads as a first-class static page. Role description + role-specific bullets:
        Claude draft (2026-08-19, from Rohan's 2026-07-01 offer letter = Jason's SWE job
-       description), Jason red-pen round 1 applied 2026-08-20; pending Casey red-pen.
-       (This page is Jason's copy — no redline overlay here; that's only for the two
-       Kyle-authored pages, see jobs-redline.yaml.) -->
-  <static-page title="Software & Data Engineer" :sections="sections">
+       description), Jason red-pen round 1 applied 2026-08-20.
+
+       ⚠️ REDLINE REVIEW IN PROGRESS (oxjob #812). Casey's red-pen round on this page's
+       copy is live. If you change ANY user-visible copy in this file you MUST, in the
+       SAME commit, record the change in src/components/Jobs/jobs-redline.yaml
+       (instructions at the top of that file: verbatim RENDERED text, stable R-ids,
+       comments, accept/reject statuses). The live page overlays that YAML as a redline
+       (JobRedline.vue below). A git commit alone is NOT a review record — the YAML is. -->
+  <static-page title="Software Engineer" :sections="sections">
     <template #eyebrow>
       <static-breadcrumbs :crumbs="crumbs" />
     </template>
@@ -87,6 +92,8 @@
       <p class="section-body">If you're interested, we'd love to hear from you.</p>
       <job-application-form role="software-data-engineer" />
     </static-section>
+
+    <job-redline page="software-data-engineer" />
   </static-page>
 </template>
 
@@ -100,11 +107,12 @@ import JobsAboutYou from '@/components/Jobs/JobsAboutYou.vue';
 import StaticBreadcrumbs from '@/components/StaticPage/StaticBreadcrumbs.vue';
 import JobApplicationForm from '@/components/Jobs/JobApplicationForm.vue';
 import JobHiringProcess from '@/components/Jobs/JobHiringProcess.vue';
+import JobRedline from '@/components/Jobs/JobRedline.vue';
 
 defineOptions({ name: 'JobsSoftwareDataEngineerPage' });
 
 useHead({
-  title: 'Software & Data Engineer',
+  title: 'Software Engineer',
   meta: [
     // Stealth until the listings launch announcement — keep out of the index for now.
     { name: 'robots', content: 'noindex' },
