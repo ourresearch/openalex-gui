@@ -33,7 +33,10 @@
     <div v-else class="jaf-app">
       <!-- SECTION 1 — Log in -->
       <section class="jaf-section">
-        <h3 class="jaf-section-title"><span class="jaf-section-num">1</span>Log in</h3>
+        <header class="jaf-section-head">
+          <h3 class="jaf-section-title"><span class="jaf-section-num">1</span>Log in</h3>
+          <job-section-status :done="s1Done" />
+        </header>
 
         <!-- Logged out: explain the flow, then two big CTAs. No fillable fields until
              logged in (you can't submit without an OpenAlex account anyway). -->
@@ -68,49 +71,102 @@
       <form v-if="userId" class="jaf-form" novalidate @submit.prevent="submit">
         <!-- SECTION 2 — The basics -->
         <section class="jaf-section">
-          <h3 class="jaf-section-title"><span class="jaf-section-num">2</span>The basics</h3>
+          <header class="jaf-section-head">
+            <h3 class="jaf-section-title"><span class="jaf-section-num">2</span>The basics</h3>
+            <job-section-status :done="s2Done" />
+          </header>
 
-          <div class="jaf-field">
-            <label class="jaf-label" for="jaf-location"><span class="jaf-fnum">2.1</span>Location <span class="jaf-req" aria-hidden="true">*</span></label>
-            <input id="jaf-location" v-model.trim="form.location" class="jaf-input" type="text" placeholder="City, country" aria-required="true" />
-            <span v-if="errors.location" class="jaf-error">{{ errors.location }}</span>
-          </div>
-
-          <div class="jaf-field">
-            <label class="jaf-label" for="jaf-linkedin"><span class="jaf-fnum">2.2</span>LinkedIn <span v-if="req.linkedin" class="jaf-req" aria-hidden="true">*</span></label>
-            <input id="jaf-linkedin" v-model.trim="form.linkedin" class="jaf-input" type="url" placeholder="https://www.linkedin.com/in/yourname" :aria-required="req.linkedin" />
-            <span v-if="errors.linkedin" class="jaf-error">{{ errors.linkedin }}</span>
-          </div>
-
-          <div class="jaf-field">
-            <label class="jaf-label" for="jaf-github"><span class="jaf-fnum">2.3</span>GitHub <span v-if="req.github" class="jaf-req" aria-hidden="true">*</span></label>
-            <input id="jaf-github" v-model.trim="form.github" class="jaf-input" type="url" placeholder="https://github.com/yourname" :aria-required="req.github" />
-            <span v-if="errors.github" class="jaf-error">{{ errors.github }}</span>
-          </div>
-
-          <!-- Education (repeatable) -->
-          <div class="jaf-field">
-            <label class="jaf-label"><span class="jaf-fnum">2.4</span>Education <span class="jaf-req" aria-hidden="true">*</span></label>
-            <div v-for="(row, i) in form.education" :key="i" class="jaf-edu-row">
-              <input v-model.trim="row.institution" class="jaf-input" type="text" placeholder="Institution" />
-              <input v-model.trim="row.degree" class="jaf-input" type="text" placeholder="Degree" />
-              <!-- Ghost trash button; hidden (but layout-stable) when there's nothing to remove -->
-              <button
-                type="button"
-                class="jaf-icon-btn"
-                :class="{ 'jaf-icon-btn--hidden': !canRemoveEducation(i) }"
-                :aria-label="`Remove education row ${i + 1}`"
-                @click="removeEducation(i)"
-              ><v-icon size="18">mdi-trash-can-outline</v-icon></button>
+          <!-- Short single-line fields are paired into a 2-up grid: full-width inputs
+               here are far wider than the content needs, and stacking them makes the
+               page read as a run of horizontal stripes. -->
+          <div class="jaf-row">
+            <div class="jaf-field">
+              <label class="jaf-label" for="jaf-location"><span class="jaf-fnum">2.1</span>Location <span class="jaf-req" aria-hidden="true">*</span></label>
+              <input id="jaf-location" v-model.trim="form.location" class="jaf-input" type="text" placeholder="Austin, TX, USA" aria-required="true" />
+              <span v-if="errors.location" class="jaf-error">{{ errors.location }}</span>
             </div>
-            <button type="button" class="jaf-add-btn" @click="addEducation">+ Add education</button>
+          </div>
+
+          <div class="jaf-row">
+            <div class="jaf-field">
+              <label class="jaf-label" for="jaf-linkedin"><span class="jaf-fnum">2.2</span>LinkedIn <span v-if="req.linkedin" class="jaf-req" aria-hidden="true">*</span></label>
+              <input id="jaf-linkedin" v-model.trim="form.linkedin" class="jaf-input" type="url" placeholder="linkedin.com/in/janedoe" :aria-required="req.linkedin" />
+              <span v-if="errors.linkedin" class="jaf-error">{{ errors.linkedin }}</span>
+            </div>
+
+            <div class="jaf-field">
+              <label class="jaf-label" for="jaf-github"><span class="jaf-fnum">2.3</span>GitHub <span v-if="req.github" class="jaf-req" aria-hidden="true">*</span></label>
+              <input id="jaf-github" v-model.trim="form.github" class="jaf-input" type="url" placeholder="github.com/janedoe" :aria-required="req.github" />
+              <span v-if="errors.github" class="jaf-error">{{ errors.github }}</span>
+            </div>
+          </div>
+
+          <!-- Education (repeatable). The rows are visually bound into one card so the
+               block reads as a single field rather than a run of loose inputs. Column
+               names live in a header row on desktop; each input still carries its own
+               <label>, sr-only at desktop widths and visible once the row stacks on
+               mobile. Placeholders are EXAMPLES, never the label. -->
+          <div class="jaf-field">
+            <label id="jaf-edu-label" class="jaf-label"><span class="jaf-fnum">2.4</span>Education <span class="jaf-req" aria-hidden="true">*</span></label>
+            <p class="jaf-desc">One line per degree.</p>
+
+            <div class="jaf-edu-card" role="group" aria-labelledby="jaf-edu-label">
+              <div class="jaf-edu-head" aria-hidden="true">
+                <span>Institution</span>
+                <span>Degree</span>
+                <span>Field</span>
+                <span></span>
+              </div>
+
+              <div v-for="(row, i) in form.education" :key="i" class="jaf-edu-row">
+                <div class="jaf-edu-cell">
+                  <label class="jaf-edu-cell-label" :for="`jaf-edu-inst-${i}`">Institution</label>
+                  <input :id="`jaf-edu-inst-${i}`" v-model.trim="row.institution" class="jaf-input" type="text" placeholder="Rice University" />
+                </div>
+
+                <div class="jaf-edu-cell">
+                  <label class="jaf-edu-cell-label" :for="`jaf-edu-degree-${i}`">Degree</label>
+                  <select
+                    :id="`jaf-edu-degree-${i}`"
+                    v-model="row.degree"
+                    class="jaf-input jaf-select"
+                    :class="{ 'jaf-select--empty': !row.degree }"
+                  >
+                    <option value="">Select…</option>
+                    <option v-for="d in degreeOptions" :key="d" :value="d">{{ d }}</option>
+                  </select>
+                </div>
+
+                <div class="jaf-edu-cell">
+                  <label class="jaf-edu-cell-label" :for="`jaf-edu-field-${i}`">Field</label>
+                  <input :id="`jaf-edu-field-${i}`" v-model.trim="row.field" class="jaf-input" type="text" placeholder="Computer science" />
+                </div>
+
+                <!-- Ghost trash button; hidden (but layout-stable) when there's nothing to remove -->
+                <button
+                  type="button"
+                  class="jaf-icon-btn"
+                  :class="{ 'jaf-icon-btn--hidden': !canRemoveEducation(i) }"
+                  :aria-label="`Remove degree ${i + 1}`"
+                  @click="removeEducation(i)"
+                ><v-icon size="18">mdi-trash-can-outline</v-icon></button>
+              </div>
+
+              <button type="button" class="jaf-ghost-btn" @click="addEducation">
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+                  <path d="M8 3.5v9M3.5 8h9" />
+                </svg>
+                Add degree
+              </button>
+            </div>
             <span v-if="errors.education" class="jaf-error">{{ errors.education }}</span>
           </div>
 
           <!-- Resume (markdown, required) -->
           <div class="jaf-field">
-            <label class="jaf-label" for="jaf-resume"><span class="jaf-fnum">2.5</span>Resume <span class="jaf-req" aria-hidden="true">*</span> <span class="jaf-hint">— paste Markdown or text</span></label>
-            <textarea id="jaf-resume" v-model="form.resume_markdown" class="jaf-input jaf-textarea" rows="5" placeholder="# Your name&#10;…" aria-required="true"></textarea>
+            <label class="jaf-label" for="jaf-resume"><span class="jaf-fnum">2.5</span>Resume <span class="jaf-req" aria-hidden="true">*</span></label>
+            <p class="jaf-desc">Paste Markdown or plain text.</p>
+            <textarea id="jaf-resume" v-model="form.resume_markdown" class="jaf-input jaf-textarea" rows="8" :placeholder="resumePlaceholder" aria-required="true"></textarea>
             <span v-if="errors.resume_markdown" class="jaf-error">{{ errors.resume_markdown }}</span>
           </div>
 
@@ -122,7 +178,10 @@
 
         <!-- SECTION 3 — Beyond the basics -->
         <section class="jaf-section">
-          <h3 class="jaf-section-title"><span class="jaf-section-num">3</span>Beyond the basics</h3>
+          <header class="jaf-section-head">
+            <h3 class="jaf-section-title"><span class="jaf-section-num">3</span>Beyond the basics</h3>
+            <job-section-status :done="s3Done" />
+          </header>
           <p class="jaf-section-body">
             We're looking for unusual people; those people will have unusual answers to these
             questions. And we encourage you to use AI to answer&mdash;but if you use it like
@@ -160,6 +219,7 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
+import JobSectionStatus from '@/components/Jobs/JobSectionStatus.vue';
 
 defineOptions({ name: 'JobApplicationForm' });
 
@@ -195,13 +255,30 @@ const req = computed(() => ({
   resume: true,
 }));
 
+// Degree level is a closed list (it's a filter, not prose — free text gave us
+// "PhD"/"Ph.D."/"doctorate" for the same thing). Stored verbatim as submitted, so
+// the receipt email and the review pass need no mapping table. "Other" is the escape
+// hatch: Education is required, and the entry-level roles will draw applicants with
+// an associate degree, some college, or no degree at all.
+const degreeOptions = ["Bachelor's", "Master's", 'Doctoral', 'Other'];
+
+const resumePlaceholder = [
+  '# Jane Doe',
+  'Austin, TX · jane@example.com',
+  '',
+  '## Experience',
+  'Acme Corp — Staff Engineer, 2022–present',
+].join('\n');
+
+const blankEducationRow = () => ({ institution: '', degree: '', field: '' });
+
 const blankForm = () => ({
   location: '',
   linkedin: '',
   github: '',
   resume_markdown: '',
   anything_else: '',
-  education: [{ institution: '', degree: '' }],
+  education: [blankEducationRow()],
   answers: { why_here: '', first_week: '', coolest_build: '' },
 });
 
@@ -218,7 +295,7 @@ const draftKey = computed(() => `jobApplicationDraft:${props.role}`);
 
 // ---- education rows ----
 function addEducation() {
-  form.education.push({ institution: '', degree: '' });
+  form.education.push(blankEducationRow());
 }
 function removeEducation(i) {
   form.education.splice(i, 1);
@@ -226,8 +303,24 @@ function removeEducation(i) {
 }
 function canRemoveEducation(i) {
   const row = form.education[i];
-  return form.education.length > 1 || !!(row && (row.institution || row.degree));
+  return form.education.length > 1 || !!(row && rowHasContent(row));
 }
+function rowHasContent(row) {
+  return !!((row.institution || '').trim() || (row.degree || '').trim() || (row.field || '').trim());
+}
+
+// ---- per-section completion (the "Done / To do" pills) ----
+// These mirror validate() exactly — a section reads Done iff nothing in it would
+// block submission. They are progress affordances only; validate() is still the gate.
+const s1Done = computed(() => !!userId.value && !!accountName.value.trim() && !!accountEmail.value.trim());
+const s2Done = computed(() => (
+  !!form.location.trim()
+  && (!req.value.linkedin || !!form.linkedin.trim())
+  && (!req.value.github || !!form.github.trim())
+  && hasEducation()
+  && !!form.resume_markdown.trim()
+));
+const s3Done = computed(() => questions.every(q => !!(form.answers[q.key] || '').trim()));
 
 // ---- auth prompts ----
 function goLogin() { router.push({ name: 'Login' }); }
@@ -246,8 +339,16 @@ function restoreDraft() {
     const saved = JSON.parse(raw);
     Object.assign(form, blankForm(), saved);
     if (!Array.isArray(form.education) || form.education.length === 0) {
-      form.education = [{ institution: '', degree: '' }];
+      form.education = [blankEducationRow()];
     }
+    // Drafts saved before 2026-08-21 have {institution, degree} rows with a free-text
+    // degree. Backfill `field` and drop any degree the <select> can't represent —
+    // otherwise the control renders blank while the model still holds the stale value.
+    form.education = form.education.map((row) => ({
+      ...blankEducationRow(),
+      ...row,
+      degree: degreeOptions.includes(row?.degree) ? row.degree : '',
+    }));
     if (!form.answers) form.answers = { why_here: '', first_week: '', coolest_build: '' };
   } catch (e) { /* corrupt draft — ignore */ }
 }
@@ -278,7 +379,7 @@ async function checkApplied() {
 
 // ---- validation ----
 function hasEducation() {
-  return form.education.some(r => r.institution.trim() || r.degree.trim());
+  return form.education.some(rowHasContent);
 }
 function validate() {
   Object.keys(errors).forEach(k => delete errors[k]);
@@ -303,8 +404,12 @@ async function submit() {
   if (!validate()) return;
   submitting.value = true;
   const education = form.education
-    .filter(r => r.institution.trim() || r.degree.trim())
-    .map(r => ({ institution: r.institution.trim(), degree: r.degree.trim() }));
+    .filter(rowHasContent)
+    .map(r => ({
+      institution: (r.institution || '').trim(),
+      degree: (r.degree || '').trim(),
+      field: (r.field || '').trim(),
+    }));
   const payload = {
     role: props.role,
     basics: {
@@ -361,10 +466,25 @@ onMounted(async () => {
 }
 
 // ---- numbered sections ----
+// NOTE: the last-section reset is scoped to .jaf-form on purpose. Section 1 lives
+// outside the form and is the ONLY <section> in its parent, so a bare :last-of-type
+// zeroed its bottom margin and welded "Logged in as …" to the section below it.
 .jaf-section {
   margin-bottom: 36px;
+}
 
-  &:last-of-type { margin-bottom: 0; }
+.jaf-form .jaf-section:last-of-type { margin-bottom: 0; }
+
+// Section header: title left, Done/To do pill hard right, hairline underneath so the
+// right-aligned pill reads as anchored rather than floating.
+.jaf-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid #F4F4F5;
 }
 
 .jaf-section-title {
@@ -373,7 +493,7 @@ onMounted(async () => {
   font-size: 17px;
   font-weight: 600;
   color: #0A0A0A;
-  margin: 0 0 14px;
+  margin: 0;
 }
 
 .jaf-section-num {
@@ -409,6 +529,25 @@ onMounted(async () => {
   margin-bottom: 20px;
 }
 
+// 2-up row for short single-line fields. A lone child lands in column 1, which is
+// what keeps Location at half width instead of stretching across the column.
+.jaf-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+
+  > .jaf-field { margin-bottom: 0; }
+}
+
+// Gray one-liner under a label. Explains the field; never repeats it.
+.jaf-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #71717A;
+  margin: 0 0 8px;
+}
+
 .jaf-label {
   font-size: 14px;
   font-weight: 500;
@@ -429,11 +568,6 @@ onMounted(async () => {
 .jaf-req {
   color: #DC2626;
   font-weight: 700;
-}
-
-.jaf-hint {
-  font-weight: 400;
-  color: #A1A1AA;
 }
 
 .jaf-input {
@@ -472,12 +606,68 @@ onMounted(async () => {
   min-height: 84px;
 }
 
+// ---- education card ----
+// Rows are bound into one bordered card so 2.4 reads as a single field. Inputs stay
+// white against the card's off-white so they still read as inputs.
+.jaf-edu-card {
+  border: 1px solid #E4E4E7;
+  border-radius: 10px;
+  background: #FCFCFD;
+  padding: 12px 14px 10px;
+}
+
+// Column names, shown once. aria-hidden — each input carries its own <label>.
+.jaf-edu-head,
 .jaf-edu-row {
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  grid-template-columns: 1.4fr 0.9fr 1.1fr 34px;
   gap: 10px;
-  margin-bottom: 10px;
   align-items: center;
+}
+
+.jaf-edu-head {
+  font-size: 12px;
+  font-weight: 500;
+  color: #71717A;
+  margin-bottom: 7px;
+}
+
+.jaf-edu-row + .jaf-edu-row { margin-top: 8px; }
+
+.jaf-edu-cell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+// Visible only once the row stacks (mobile); the header row does the work on desktop.
+.jaf-edu-cell-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Native select dressed to match .jaf-input, with our own chevron.
+.jaf-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 30px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2371717A' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  background-size: 15px;
+
+  // Match the placeholder gray while nothing is chosen.
+  &--empty { color: #A1A1AA; }
+
+  option { color: #0A0A0A; }
 }
 
 // Ghost button (no border/background until hover), trash icon inside.
@@ -498,17 +688,37 @@ onMounted(async () => {
   &--hidden { visibility: hidden; }
 }
 
-.jaf-add-btn {
-  align-self: flex-start;
-  background: none;
-  border: none;
-  padding: 4px 0;
+// Ghost button — same vocabulary as .jaf-icon-btn (transparent until hover), one
+// step below the solid .jaf-submit. Was a bare text link, which read as neither.
+.jaf-ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  // Negative left offset cancels the button's own padding so the label starts on the
+  // same vertical as the Institution input above it.
+  margin: 8px 0 0 -12px;
+  padding: 7px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  font-family: inherit;
   font-size: 14px;
   font-weight: 500;
   color: #3F3F46;
   cursor: pointer;
+  transition: all 0.15s ease;
 
-  &:hover { color: #0A0A0A; }
+  &:hover {
+    background: #F4F4F5;
+    border-color: #E4E4E7;
+    color: #0A0A0A;
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: #D4D4D8;
+    box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.06);
+  }
 }
 
 .jaf-guidance {
@@ -621,7 +831,43 @@ onMounted(async () => {
 
 .jaf-identity-email { color: #71717A; }
 
-@media (max-width: 600px) {
-  .jaf-edu-row { grid-template-columns: 1fr 1fr auto; }
+@media (max-width: 620px) {
+  // Pair fields stack.
+  .jaf-row { grid-template-columns: 1fr; }
+  .jaf-row > .jaf-field + .jaf-field { margin-top: 20px; }
+
+  // Education rows stack: institution + trash on line 1, then degree, then field.
+  // The column header can't apply here, so each cell shows its own label instead.
+  .jaf-edu-head { display: none; }
+
+  .jaf-edu-row {
+    grid-template-columns: 1fr auto;
+    gap: 8px 10px;
+    align-items: end;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #EFEFF1;
+
+    > :nth-child(1) { grid-column: 1; grid-row: 1; }
+    > :nth-child(2) { grid-column: 1; grid-row: 2; }
+    > :nth-child(3) { grid-column: 1; grid-row: 3; }
+    > :nth-child(4) { grid-column: 2; grid-row: 1; align-self: end; }
+  }
+
+  .jaf-edu-row:last-of-type {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .jaf-edu-cell-label {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0 0 5px;
+    overflow: visible;
+    clip: auto;
+    font-size: 12px;
+    font-weight: 500;
+    color: #71717A;
+  }
 }
 </style>
