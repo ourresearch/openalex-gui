@@ -183,9 +183,8 @@
             <job-section-status :done="s3Done" />
           </header>
           <p class="jaf-section-body">
-            We're looking for unusual people; those people will have unusual answers to these
-            questions. And we encourage you to use AI to answer&mdash;but if you use it like
-            everyone else, why would we hire you instead of them?
+            We're looking for <em>remarkable, compelling people</em>&mdash;people who'll have
+            remarkable, compelling answers to these questions. Feel free to use AI, or not.
           </p>
 
           <div v-for="q in questions" :key="q.key" class="jaf-field">
@@ -262,12 +261,16 @@ const req = computed(() => ({
 // an associate degree, some college, or no degree at all.
 const degreeOptions = ["Bachelor's", "Master's", 'Doctoral', 'Other'];
 
+// Ends on an explicit "keep going" line — without it the four-line sketch reads as
+// the expected length, and we get four-line resumes.
 const resumePlaceholder = [
   '# Jane Doe',
   'Austin, TX · jane@example.com',
   '',
   '## Experience',
   'Acme Corp — Staff Engineer, 2022–present',
+  '',
+  '…etc. — your whole resume, not just the first few lines.',
 ].join('\n');
 
 const blankEducationRow = () => ({ institution: '', degree: '', field: '' });
@@ -470,7 +473,7 @@ onMounted(async () => {
 // outside the form and is the ONLY <section> in its parent, so a bare :last-of-type
 // zeroed its bottom margin and welded "Logged in as …" to the section below it.
 .jaf-section {
-  margin-bottom: 36px;
+  margin-bottom: 72px;
 }
 
 .jaf-form .jaf-section:last-of-type { margin-bottom: 0; }
@@ -496,12 +499,13 @@ onMounted(async () => {
   margin: 0;
 }
 
+// The number is spacing, not decoration: it inherits the title's font, weight and
+// colour. Greying it made the numbers *more* conspicuous — the eye read the gray as a
+// separate column and the headings as a ragged left edge. No tabular-nums either; the
+// fixed-width digits read as a monospace insert.
 .jaf-section-num {
   display: inline-block;
   min-width: 22px;
-  color: #A1A1AA;
-  font-variant-numeric: tabular-nums;
-  font-weight: 500;
 }
 
 .jaf-section-body {
@@ -555,11 +559,9 @@ onMounted(async () => {
   margin-bottom: 6px;
 }
 
-// Muted decimal prefix (2.1, 3.2, …) on each field label.
+// Decimal prefix (2.1, 3.2, …) on each field label. Same treatment as the section
+// number above — inherits the label's colour and weight, and exists only for spacing.
 .jaf-fnum {
-  color: #A1A1AA;
-  font-weight: 400;
-  font-variant-numeric: tabular-nums;
   margin-right: 6px;
 }
 
