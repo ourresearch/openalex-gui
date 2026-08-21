@@ -442,7 +442,7 @@ const routes = [
     {path: '/compare', name: 'Compare', component: () => import('@/views/ComingSoonPage.vue'), meta: {chrome: 'site'}, props: {title: 'Compare', blurb: "We're building a side-by-side look at how OpenAlex stacks up against other scholarly data sources. It's coming soon."}},
     // Jobs pitch page (oxjob #662/#792/#812): LIVE since the hiring launch swap. Was parked on
     // /jobs/draft during the stealth period; the old coming-soon placeholder is gone.
-    {path: '/jobs', name: 'Jobs', component: () => import('@/views/JobsDraftPage.vue'), meta: {chrome: 'site'}},
+    {path: '/jobs', name: 'Jobs', component: () => import('@/views/JobsPage.vue'), meta: {chrome: 'site'}},
     // "jobs is shorter and less pretentious, but there's a redirect from /careers to /jobs" (Jason)
     {path: '/careers', redirect: '/jobs'},
     // /jobs/draft was the stealth URL for the pitch page pre-launch; redirect, don't 404.

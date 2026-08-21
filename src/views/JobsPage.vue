@@ -40,7 +40,7 @@ import StaticSection from '@/components/StaticPage/StaticSection.vue';
 import JobsAboutUs from '@/components/Jobs/JobsAboutUs.vue';
 import JobsAboutYou from '@/components/Jobs/JobsAboutYou.vue';
 
-defineOptions({ name: 'JobsDraftPage' });
+defineOptions({ name: 'JobsPage' });
 
 useHead({
   title: 'Jobs',

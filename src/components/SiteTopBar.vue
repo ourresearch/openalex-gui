@@ -27,8 +27,12 @@
       <!-- Round 3 (oxjob #778): the two dropdowns (Product, Help) sit next to
            each other so a single shared panel can MORPH between them (Stripe
            pattern) — it slides + resizes + cross-fades instead of unmount/mount.
-           Order: Product · Help · Pricing · About. No top-level API link — API
-           lives inside BOTH dropdowns (don't "restore" it). -->
+           Order: Product · Help · Pricing · About · Jobs. No top-level API link — API
+           lives inside BOTH dropdowns (don't "restore" it).
+           Jobs (oxjob #812, hiring launch): an applicant who signs up mid-application
+           lands on / after the email verification link, with no way back to the posting.
+           A durable fix is #835 (carry a return-to through signup); this is the floor
+           under it, so don't remove the link when #835 ships. -->
       <nav class="top-bar-nav" aria-label="Site">
         <div
           ref="zoneEl"
@@ -128,6 +132,7 @@
 
         <router-link to="/pricing" class="top-bar-link">Pricing</router-link>
         <router-link to="/about" class="top-bar-link">About</router-link>
+        <router-link to="/jobs" class="top-bar-link">Jobs</router-link>
       </nav>
 
       <div class="top-bar-right">
@@ -201,6 +206,9 @@
             </v-list-item>
             <v-list-item to="/about" @click="mobileMenuOpen = false">
               <v-list-item-title>About</v-list-item-title>
+            </v-list-item>
+            <v-list-item to="/jobs" @click="mobileMenuOpen = false">
+              <v-list-item-title>Jobs</v-list-item-title>
             </v-list-item>
             <v-divider class="my-1" />
             <v-list-item v-if="showLoggedIn" :to="{name: 'Serp', params: {entityType: 'works'}}" @click="mobileMenuOpen = false">
