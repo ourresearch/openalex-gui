@@ -67,7 +67,7 @@ entries:
     page: software-data-engineer
     author: casey
     date: 2026-08-21
-    status: open
+    status: accepted
     before: Software & Data Engineer
     after: Software Engineer
     comment: >-
@@ -79,3 +79,7 @@ entries:
       the receipt-email title in users-api job_application_email.py ROLE_TITLES,
       and Rohan's own "Software & Data Engineer" title on /team. All of those flip
       in one sweep if this is accepted.
+    replies:
+      - author: jason
+        date: 2026-08-21
+        text: "Accepted — Casey's only note was the title. Slug, route, form prop, pitch card, users-api ROLE_SLUGS/ROLE_TITLES + migration 075 all follow in this sweep."
