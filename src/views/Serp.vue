@@ -15,6 +15,7 @@ import { useHead } from '@unhead/vue';
 import { url } from '@/url';
 import { api } from '@/api';
 import { createFetchSequencer } from '@/serpFetchSeq';
+import { shouldDropSavedSearchId } from '@/store/userBoot';
 import { entityConfigs } from '@/entityConfigs';
 import { filtersFromUrlStr } from '@/filterConfigs';
 
@@ -193,13 +194,24 @@ watch(
       }
     }
 
+    // The saved-search list loads in the background after /users/me (oxjob
+    // #860); the "?id= not in my list → drop it" check below must see the real
+    // list, not the empty not-yet-loaded one. No-op once loaded.
+    if (route.query.id && userId.value) {
+      await store.dispatch('user/ensureSavedSearches');
+    }
+
     // Claim this run's sequence; isStale() turns true once a newer run begins, so
     // our post-await guards drop this run's writes if it has been superseded.
     const isStale = beginFetch();
 
     if (
-      route.query.id &&
-      !userSavedSearches.value.find((s) => s.id === route.query.id)
+      shouldDropSavedSearchId({
+        queryId: route.query.id,
+        savedSearches: userSavedSearches.value,
+        // Logged out: there is no list to be in; drop as before.
+        loaded: !userId.value || store.getters['user/savedSearchesLoaded'],
+      })
     ) {
       url.pushToRoute(router, {
         name: 'Serp',

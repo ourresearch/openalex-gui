@@ -69,7 +69,8 @@
         </tr>
         </tbody>
       </v-table>
-      <div  class="color-3 d-flex my-12 mx-4 pa-12" v-else>
+      <!-- Empty state only once the list is known (oxjob #860: it loads in the background). -->
+      <div class="color-3 d-flex my-12 mx-4 pa-12" v-else-if="savedSearchesLoaded">
         <div class="text-grey">
           You have no saved searches.
         </div>
@@ -104,7 +105,7 @@
 
 
 <script setup>
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
 
@@ -126,6 +127,8 @@ const isDialogOpen = reactive({
 const searchIdToRename = ref(null);
 
 const userSavedSearches = computed(() => store.getters['user/userSavedSearches']);
+const savedSearchesLoaded = computed(() => store.getters['user/savedSearchesLoaded']);
+onMounted(() => store.dispatch('user/ensureSavedSearches'));
 const filteredSearches = computed(() => {
   if (!searchQuery.value.trim()) return userSavedSearches.value;
   const q = searchQuery.value.toLowerCase().trim();

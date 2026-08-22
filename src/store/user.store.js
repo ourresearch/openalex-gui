@@ -5,10 +5,14 @@ import {navigation} from '@/navigation';
 import {urlBase, axiosConfig} from "@/apiConfig.js"
 import * as openalexId from "@/openalexId";
 import {sanitizeRedirectPath} from "@/util";
+import {bootUser} from "@/store/userBoot";
 
 const shortUuid = require('short-uuid');
 
 const apiBaseUrl = urlBase.userApi
+
+// Newest in-flight GET /saved-search, or null (oxjob #860; see ensureSavedSearches).
+let savedSearchesInFlight = null
 
 export default {
     namespaced: true,
@@ -34,6 +38,10 @@ export default {
         emails: [],
         claim: null,
         savedSearches: [],
+        // True once /saved-search has returned at least once this session
+        // (oxjob #860: the list loads in the background after /users/me, so an
+        // empty list is not "no saved searches" until this is set).
+        savedSearchesLoaded: false,
         columnViews: [],
         facetViews: [],
         corrections: [],
@@ -84,6 +92,7 @@ export default {
             state.email = ""
             state.emails = []
             state.savedSearches = []
+            state.savedSearchesLoaded = false
             state.corrections = []
             state.authorId = ""
             state.plan = null
@@ -132,21 +141,36 @@ export default {
         // **************************************************
 
         // read
+        // oxjob #860: the router guard awaits this before resolving the FIRST
+        // route, and App.vue paints no chrome until then. So only /users/me is
+        // awaited here (the guards need userId/isAdmin/organizationRole); the
+        // saved-search list, corrections and rate-limit data load in the
+        // background. Anything that needs the saved-search list to be complete
+        // awaits `ensureSavedSearches` (the SERP's ?id= restore does).
+        // Returns `{me, settled}` — `settled` resolves once the background
+        // loads have all finished, for callers that want to wait.
         async fetchUser({commit, dispatch}) {
             // Restore impersonation from localStorage on page refresh
             commit('restoreImpersonation');
 
-            const resp = await axios.get(
-                apiBaseUrl + "/users/me",
-                axiosConfig({userAuth: true})
-            )
-            commit("setFromApiResp", resp.data)
-            commit("setFeatureFlags", resp.data.feature_flags || [], { root: true })
-
-            await dispatch("fetchSavedSearches");
-            await dispatch("fetchCorrections");
-            dispatch("fetchRateLimitData", null, { root: true });
-
+            return bootUser({
+                fetchMe: async () => {
+                    const resp = await axios.get(
+                        apiBaseUrl + "/users/me",
+                        axiosConfig({userAuth: true})
+                    )
+                    return resp.data
+                },
+                applyMe: (data) => {
+                    commit("setFromApiResp", data)
+                    commit("setFeatureFlags", data.feature_flags || [], { root: true })
+                },
+                background: [
+                    () => dispatch("fetchSavedSearches"),
+                    () => dispatch("fetchCorrections"),
+                    () => dispatch("fetchRateLimitData", null, { root: true }),
+                ],
+            })
         },
         
         async startImpersonation({ commit, dispatch }, { userId, userName }) {
@@ -548,18 +572,38 @@ export default {
 
 
         // read
-        async fetchSavedSearches({state}) {
-            const resp = await axios.get(
-                apiBaseUrl + "/saved-search",
-                axiosConfig({userAuth: true})
-            )
-            const sorted = [
-                ...resp.data
-            ].sort((a, b) => {
-                return a.updated > b.updated ? -1 : 1
-            })
+        fetchSavedSearches({state}) {
+            const p = (async () => {
+                const resp = await axios.get(
+                    apiBaseUrl + "/saved-search",
+                    axiosConfig({userAuth: true})
+                )
+                const sorted = [
+                    ...resp.data
+                ].sort((a, b) => {
+                    return a.updated > b.updated ? -1 : 1
+                })
 
-            state.savedSearches = sorted;
+                state.savedSearches = sorted;
+                state.savedSearchesLoaded = true;
+            })()
+            // Track the newest in-flight fetch so ensureSavedSearches can join
+            // it (oxjob #860). Not deduped on purpose: the post-write callers
+            // ("have to update the list") must always hit the server again.
+            savedSearchesInFlight = p
+            p.catch(() => {}).then(() => {
+                if (savedSearchesInFlight === p) savedSearchesInFlight = null
+            })
+            return p
+        },
+
+        // Resolve once the saved-search list is known for this session: joins
+        // an in-flight fetch, starts one if none has happened yet, and is a
+        // no-op when the list is already loaded (oxjob #860).
+        ensureSavedSearches({state, dispatch}) {
+            if (savedSearchesInFlight) return savedSearchesInFlight
+            if (state.savedSearchesLoaded) return Promise.resolve()
+            return dispatch("fetchSavedSearches")
         },
 
         // read
@@ -753,6 +797,7 @@ export default {
         hasAnyClaim: (state) => !!(state.authorId || state.claim),
         apiKey: (state) => state.apiKey,
         userSavedSearches: (state) => state.savedSearches,
+        savedSearchesLoaded: (state) => state.savedSearchesLoaded,
         userColumnViews: (state) => state.columnViews,
         userFacetViews: (state) => state.facetViews,
         userCorrections: (state) => state.corrections,
