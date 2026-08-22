@@ -10624,7 +10624,7 @@ export const oqlCorpus = [
     "oxurl_status": null,
     "status": "error",
     "oql": "works where title has (cancer~1)",
-    "note": "OQL is explicit pseudo-English; a search-engine operator character typed inside a value must not reach Lucene with its engine meaning. Before #865 this ran as Lucene fuzzy matching (prod: 3,212,830 vs 3,126,171 for `cancer`) although OQL has no word for it, and a typed `\"machine learning\"~3` was mangled into the phrase AND a stray token `~3`. Proximity is `within N (…)`; fuzzy matching is a planned explicit keyword, built only when users ask. A classic-URL `term~N` keeps working on the classic door but has no OQL form — its `x_query.oql` is null with an `oql_unavailable` reason.",
+    "note": "OQL is explicit pseudo-English; a search-engine operator character typed inside a value must not reach Lucene with its engine meaning. Before #865 this ran as Lucene fuzzy matching (prod: 3,212,830 vs 3,126,171 for `cancer`) although OQL has no word for it, and a typed `\"machine learning\"~3` was mangled into the phrase AND a stray token `~3`. Proximity is `within N (…)`; fuzzy matching is planned — ask us if you are interested. A classic-URL `term~N` keeps working on the classic door but has no OQL form — its `x_query.oql` is null with an `oql_unavailable` reason.",
     "diagnostic": "OQL_NO_FUZZY",
     "oqo": null,
     "oxurl": null
