@@ -69,13 +69,19 @@ app.mount('#app');
 // needs. Initialised from its own chunk right after mount — the Vue
 // integration attaches to app.config.errorHandler late just as well; errors in
 // the first few hundred ms fall back to tracking.setupJavaScriptErrorTracking().
-import("@sentry/vue").then((Sentry) => {
+// Scheduled after window `load` + a 1.5 s breather: on a cold load the 119 KB
+// Sentry chunk otherwise downloads right after mount, competing for bandwidth
+// with /users/me and the page's own first query (measured #860 bench-pw).
+const initSentry = () => import("@sentry/vue").then((Sentry) => {
   Sentry.init({
     app,
     dsn: "https://fb8a98f98b30ac77643b286fc1842ba9@o4505840077701120.ingest.us.sentry.io/4509509908299776",
     sendDefaultPii: true
   });
 });
+const scheduleSentry = () => setTimeout(initSentry, 1500);
+if (document.readyState === "complete") scheduleSentry();
+else window.addEventListener("load", scheduleSentry, { once: true });
 
 // UI-provenance token (oxjob #338 Phase 5a): mint an unforgeable "real GUI"
 // marker for OpenAlex API calls, replacing the spoofable mailto. Fire-and-
