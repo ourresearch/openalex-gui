@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 193.
+// corpus version: 2; rows: 195.
 
 export const oqlCorpus = [
   {
@@ -10610,5 +10610,41 @@ export const oqlCorpus = [
       ]
     },
     "oxurl": "https://openalex.org/works?filter=display_name.search:%22machine%20learning%22,display_name.search:neural"
+  },
+  {
+    "id": 203,
+    "tags": [
+      "search-semantics"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "`~` is not an OQL operator — fuzzy / slop never leak into the engine (#865)",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where title has (cancer~1)",
+    "note": "OQL is explicit pseudo-English; a search-engine operator character typed inside a value must not reach Lucene with its engine meaning. Before #865 this ran as Lucene fuzzy matching (prod: 3,212,830 vs 3,126,171 for `cancer`) although OQL has no word for it, and a typed `\"machine learning\"~3` was mangled into the phrase AND a stray token `~3`. Proximity is `within N (…)`; fuzzy matching is a planned explicit keyword, built only when users ask. A classic-URL `term~N` keeps working on the classic door but has no OQL form — its `x_query.oql` is null with an `oql_unavailable` reason.",
+    "diagnostic": "OQL_NO_FUZZY",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 204,
+    "tags": [
+      "search-semantics"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "`|` is not an OQL operator — alternatives are written `or` (#865)",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where title has (dog|cat)",
+    "note": "The pipe is the classic URL's OR syntax. Typed in an OQL value it executed as the two words ANDed (3,232) yet rendered to the SAME url leg as `has (dog or cat)` (371,675) — a url-leg lie. Rejected with a fix-it; `\\` (the engine escape character) is rejected under the same code.",
+    "diagnostic": "OQL_CHAR_NOT_OPERATOR",
+    "oqo": null,
+    "oxurl": null
   }
 ];
