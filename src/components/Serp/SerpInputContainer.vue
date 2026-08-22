@@ -234,10 +234,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount, defineAsyncComponent } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
-import { debounce } from 'lodash';
+import { debounce } from 'lodash-es';
 
 import { url } from '@/url';
 import filters from '@/filters';
@@ -268,7 +268,9 @@ import SerpDownloadButton from '@/components/Serp/SerpDownloadButton.vue';
 // (#603 round 10: the V1 grid builder import is gone — Advanced mounts the V2
 // outline builder. OqlQueryBuilder.vue stays on disk for reference/playground.)
 import OqlQueryBuilderV2 from '@/components/Oql/OqlQueryBuilderV2.vue';
-import OqlEditor from '@/components/OqlPlayground/OqlEditor.vue';
+// CodeMirror (~100 KB gz) only matters in the OQL text mode (v-else-if below);
+// load it on demand so it leaves the main bundle (oxjob #860).
+const OqlEditor = defineAsyncComponent(() => import('@/components/OqlPlayground/OqlEditor.vue'));
 import OqlStatusChip from '@/components/OqlPlayground/OqlStatusChip.vue';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import { api } from '@/api';

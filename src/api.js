@@ -1,5 +1,5 @@
 import axios from 'axios'
-import _ from 'lodash'
+import { cloneDeep } from 'lodash-es';
 import ISO6391 from 'iso-639-1'
 
 import {url} from "@/url";
@@ -18,11 +18,11 @@ const cache = {};
 
 const getFromCache = function (url) {
     if (!cache[url]) { return; }
-    return _.cloneDeep(cache[url]);
+    return cloneDeep(cache[url]);
 }
 
 const stockCache = function (url, ret) {
-    cache[url] = _.cloneDeep(ret);
+    cache[url] = cloneDeep(ret);
 }
 
 const api = (function () {
@@ -141,7 +141,7 @@ const api = (function () {
 
     const getEntityFromCache = function(id) {
         const myUrl = makeUrl(id);
-        return _.cloneDeep(cache[myUrl]);
+        return cloneDeep(cache[myUrl]);
     };
 
     const getEntityDisplayName = async function (entityName, id) {

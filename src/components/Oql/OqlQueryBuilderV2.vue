@@ -551,7 +551,7 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useStore } from "vuex";
 import { useRoute, useRouter } from "vue-router";
-import { debounce } from "lodash";
+import { debounce } from 'lodash-es';
 import { api } from "@/api";
 import OqlBrick from "@/components/Oql/OqlBrick.vue";
 import OqlTextBlockChip from "@/components/Oql/OqlTextBlockChip.vue";

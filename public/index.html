@@ -30,6 +30,16 @@
       }, true);
     </script>
     
+    <!-- Warm the TCP+TLS handshakes the app needs on every boot (oxjob #860):
+         curl measured DNS+connect+TLS to user.openalex.org at 160-250 ms, paid
+         only after the JS bundle had executed. With these the first
+         /users/me, /works query and corrections fetch reuse open sockets. -->
+    <link rel="preconnect" href="https://user.openalex.org" crossorigin>
+    <link rel="preconnect" href="https://api.openalex.org" crossorigin>
+    <link rel="preconnect" href="https://corrections.openalex.org" crossorigin>
+    <link rel="dns-prefetch" href="https://user.openalex.org">
+    <link rel="dns-prefetch" href="https://api.openalex.org">
+    <link rel="dns-prefetch" href="https://corrections.openalex.org">
     <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@200..800&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">

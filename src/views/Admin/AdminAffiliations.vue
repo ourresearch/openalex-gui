@@ -44,7 +44,7 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
-import { debounce } from 'lodash';
+import { debounce } from 'lodash-es';
 import axios from 'axios';
 import { api } from '@/api';
 import AffiliationMatchingPanel from '@/components/AffiliationMatchingPanel.vue';

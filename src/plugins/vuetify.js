@@ -1,8 +1,8 @@
 import '@mdi/font/css/materialdesignicons.css'
 
 import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
+// Components/directives are auto-imported per template by webpack-plugin-vuetify
+// (vue.config.js, oxjob #860) — no global `import * as components` any more.
 import colors from 'vuetify/util/colors'
 
 const baseWeight = "lighten5";
@@ -10,8 +10,6 @@ const darkerWeight = "lighten4";
 const darkWeight = "darken1";
 
 export default createVuetify({
-  components,
-  directives,
   defaults: {
     // Global icon size default
     VIcon: {

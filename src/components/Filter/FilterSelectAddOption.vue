@@ -41,7 +41,7 @@
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
-import _ from 'lodash';
+import { debounce } from 'lodash-es';
 
 import { api } from '@/api';
 import { getFacetConfig } from '@/facetConfigUtils';
@@ -105,7 +105,7 @@ const hasAutocomplete = computed(() =>
 // flight per typing burst).
 let suggestionTicket = 0;
 let suggestionAbort = null;
-const getSuggestions = _.debounce(async () => {
+const getSuggestions = debounce(async () => {
   const ticket = ++suggestionTicket;
   suggestionAbort?.abort();
   const ctrl = new AbortController();

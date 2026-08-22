@@ -7,7 +7,6 @@ import vuetify from './plugins/vuetify';
 import 'vuetify/styles'
 import './styles/tokens.css'  // OpenAlex design tokens (oxjob #249) — load after Vuetify base styles
 
-import * as Sentry from "@sentry/vue";
 
 import { navigation } from './navigation';
 import tracking from './tracking';
@@ -50,12 +49,6 @@ navigation.setRouter(router);
 
 const app = createApp(App);
 
-Sentry.init({
-  app,
-  dsn: "https://fb8a98f98b30ac77643b286fc1842ba9@o4505840077701120.ingest.us.sentry.io/4509509908299776",
-  sendDefaultPii: true
-});
-
 // Register plugins
 app.use(router);
 app.use(store);
@@ -71,6 +64,18 @@ app.config.globalProperties.config = {};
 window.OpenAlex = app;
 
 app.mount('#app');
+
+// Sentry (oxjob #860, bundle diet): ~29 KB gz that nothing on the first paint
+// needs. Initialised from its own chunk right after mount — the Vue
+// integration attaches to app.config.errorHandler late just as well; errors in
+// the first few hundred ms fall back to tracking.setupJavaScriptErrorTracking().
+import("@sentry/vue").then((Sentry) => {
+  Sentry.init({
+    app,
+    dsn: "https://fb8a98f98b30ac77643b286fc1842ba9@o4505840077701120.ingest.us.sentry.io/4509509908299776",
+    sendDefaultPii: true
+  });
+});
 
 // UI-provenance token (oxjob #338 Phase 5a): mint an unforgeable "real GUI"
 // marker for OpenAlex API calls, replacing the spoofable mailto. Fire-and-

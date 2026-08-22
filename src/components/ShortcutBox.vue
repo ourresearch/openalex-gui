@@ -129,7 +129,7 @@
 
 
 <script setup>
-import _ from 'lodash';
+import { debounce } from 'lodash-es';
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
@@ -321,7 +321,7 @@ function onSearchInputUpdate(val) {
 
 // Ticket guard: a slow older response must not overwrite a newer one.
 let suggestionTicket = 0;
-const getSuggestions = _.debounce(async () => {
+const getSuggestions = debounce(async () => {
   const ticket = ++suggestionTicket;
   const fulltext = createSimpleFilter(entityType.value, defaultSearchType.value, cleanedSearchString.value);
 

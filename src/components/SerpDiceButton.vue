@@ -84,7 +84,7 @@
           <!-- OQL-examples mode: no extra options -->
           <template v-else>
             <div class="text-caption text-medium-emphasis">
-              Loads a random OQL worked example ({{ OQL_EXAMPLES.length }} available,
+              Loads a random OQL worked example ({{ oqlExamples.length }} available,
               hand-picked for testing) in Advanced/OQL mode.
             </div>
           </template>
@@ -109,7 +109,6 @@ import axios from 'axios';
 
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { url } from '@/url';
-import { oqlCorpus } from '@/oqlCorpus';
 
 defineOptions({ name: 'SerpDiceButton' });
 
@@ -139,7 +138,16 @@ const SOURCE_ITEMS = [
 
 // The OQL-examples pool: only valid examples (status==="ok"). All of these carry
 // an `oql` string and `oqo.get_rows`, so every one is loadable via the ?oql= path.
-const OQL_EXAMPLES = oqlCorpus.filter((e) => e.status === 'ok');
+// The corpus is ~37 KB gz and the dice is a side feature, so it's loaded on
+// demand (menu open / first roll) instead of riding in app.js (oxjob #860).
+const oqlExamples = ref([]);
+async function loadOqlExamples() {
+  if (!oqlExamples.value.length) {
+    const { oqlCorpus } = await import('@/oqlCorpus');
+    oqlExamples.value = oqlCorpus.filter((e) => e.status === 'ok');
+  }
+  return oqlExamples.value;
+}
 
 const loading = ref(false);
 const isMenuOpen = ref(false);
@@ -148,6 +156,8 @@ const source = ref(loadSource());
 
 // Persist the source choice immediately so it's sticky across reloads.
 watch(source, (val) => localStorage.setItem(SOURCE_KEY, val));
+// Fetch the example pool when the menu opens so the tooltip count is right.
+watch(isMenuOpen, (open) => { if (open) loadOqlExamples(); });
 
 const diceTooltip = computed(() =>
   source.value === 'oql-examples' ? 'Random OQL worked example' : 'Random real query',
@@ -217,18 +227,19 @@ function pickRandom(arr) {
 async function rollDice() {
   if (loading.value) return;
   if (source.value === 'oql-examples') {
-    rollOqlExample();
+    await rollOqlExample();
     return;
   }
   await rollRandomQuery();
 }
 
-function rollOqlExample() {
-  if (!OQL_EXAMPLES.length) {
+async function rollOqlExample() {
+  const examples = await loadOqlExamples();
+  if (!examples.length) {
     snackbar('No OQL worked examples available.');
     return;
   }
-  navigateToExample(pickRandom(OQL_EXAMPLES));
+  navigateToExample(pickRandom(examples));
 }
 
 async function rollRandomQuery() {

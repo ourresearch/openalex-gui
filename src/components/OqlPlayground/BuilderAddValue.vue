@@ -67,7 +67,7 @@
 
 <script setup>
 import { ref, computed, watch } from "vue";
-import { debounce } from "lodash";
+import { debounce } from 'lodash-es';
 import { api } from "@/api";
 import { getEnumValues } from "@/components/OqlPlayground/oqlEditorApi";
 import { parseNotQuery } from "@/components/OqlPlayground/notPrefix";

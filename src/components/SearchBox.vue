@@ -362,7 +362,7 @@ import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify';
-import { debounce } from 'lodash';
+import { debounce } from 'lodash-es';
 import { getEntityConfig, getEntityConfigs } from '@/entityConfigs';
 import { api } from '@/api';
 import { createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr } from '@/filterConfigs';

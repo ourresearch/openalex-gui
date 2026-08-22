@@ -1,4 +1,4 @@
-import _ from "lodash"
+import { cloneDeep } from 'lodash-es';
 import {getFacetConfig} from "./facetConfigUtils";
 import * as openalexId from "@/openalexId";
 
@@ -431,7 +431,7 @@ const applyEntitySelection = function ({
 
 
 const sortedFilters = function (filters, sortByValue) {
-    const ret = _.cloneDeep(filters)
+    const ret = cloneDeep(filters)
 
     if (sortByValue) {
         ret.sort((a, b) => {

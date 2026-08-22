@@ -36,7 +36,7 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
 import { useAttrs, nextTick } from 'vue';
-import { debounce } from 'lodash';
+import { debounce } from 'lodash-es';
 import { api } from '@/api';
 
 defineOptions({ name: 'EntityAutocomplete' });

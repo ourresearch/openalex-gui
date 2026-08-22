@@ -129,7 +129,7 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
-import _ from 'lodash';
+import { debounce } from 'lodash-es';
 
 import { api } from '@/api';
 import { url } from '@/url';
@@ -437,7 +437,7 @@ function toggleEntity(value, row = null) {
 // Ticket guard: loadEntities is an injected prop (no abort handle), so a slow
 // older response must be dropped here or it overwrites a newer one.
 let loadTicket = 0;
-const loadEntitiesDebounced = _.debounce(async () => {
+const loadEntitiesDebounced = debounce(async () => {
   if (isCollectionField.value) return;
   const ticket = ++loadTicket;
   entitiesLoading.value = true;

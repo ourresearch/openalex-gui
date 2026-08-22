@@ -6,6 +6,12 @@ import * as openalexId from "@/openalexId";
 import {url} from "@/url";
 import {shouldAwaitLiveUser} from "@/store/userBoot";
 
+// Route views (oxjob #860, bundle diet): everything except the hot paths
+// (home, SERP, entity page, auth pages, 404) is a lazy `() => import()` so it
+// lands in its own chunk instead of app.js. The eager set is what a cold
+// visitor is most likely to hit first — keeping those in app.js avoids a
+// serial chunk fetch before the first route can resolve (the top bar is
+// gated on route resolution, see App.vue).
 import HomeV2Page from '@/views/HomeV2.vue'  // #681 landing revision — SHIPPED to / 2026-08-12 (old page: views/Home.vue, unrouted)
 import SerpPage from '@/views/Serp.vue';
 import EntityPage from '@/views/EntityPage.vue';
@@ -15,54 +21,54 @@ import SignupPage from "@/views/Signup.vue";
 import UserMagicToken from '@/components/User/UserMagicToken.vue';
 import UserVerifyEmail from '@/components/User/UserVerifyEmail.vue';
 
-import AboutPage from '@/views/About.vue';
-import TestimonialsPage from "@/views/Testimonials.vue";
-import TeamPage from "@/views/Team.vue";
-import BrandPage from "@/views/Brand.vue";
-import OqlPlayground from "@/views/OqlPlayground.vue";
-import NlWorkbench from "@/views/NlWorkbench.vue";
-import Funders2026Page from "@/views/Funders2026.vue";
-import PricingPage from '@/views/PricingPage.vue';
-import PricingPageNew from '@/views/PricingPageNew.vue';
-import MembersPage from '@/views/MembersPage.vue';
+const AboutPage = () => import('@/views/About.vue');
+const TestimonialsPage = () => import('@/views/Testimonials.vue');
+const TeamPage = () => import('@/views/Team.vue');
+const BrandPage = () => import('@/views/Brand.vue');
+const OqlPlayground = () => import('@/views/OqlPlayground.vue');
+const NlWorkbench = () => import('@/views/NlWorkbench.vue');
+const Funders2026Page = () => import('@/views/Funders2026.vue');
+const PricingPage = () => import('@/views/PricingPage.vue');
+const PricingPageNew = () => import('@/views/PricingPageNew.vue');
+const MembersPage = () => import('@/views/MembersPage.vue');
 
-import MeAbout from "@/views/Me/MeProfile.vue";
-import MeSearches from "@/views/Me/MeSearches.vue";
-import MeAlerts from "@/views/Me/MeAlerts.vue";
-import MeExports from "@/views/Me/MeExports.vue";
-import MePlan from "@/views/Me/MePlan.vue";
-import MeApiKey from "@/views/Me/MeApiKey.vue";
-import MeCollections from "@/views/Me/MeCollections.vue";
-import MeAppearance from "@/views/Me/MeAppearance.vue";
+const MeAbout = () => import('@/views/Me/MeProfile.vue');
+const MeSearches = () => import('@/views/Me/MeSearches.vue');
+const MeAlerts = () => import('@/views/Me/MeAlerts.vue');
+const MeExports = () => import('@/views/Me/MeExports.vue');
+const MePlan = () => import('@/views/Me/MePlan.vue');
+const MeApiKey = () => import('@/views/Me/MeApiKey.vue');
+const MeCollections = () => import('@/views/Me/MeCollections.vue');
+const MeAppearance = () => import('@/views/Me/MeAppearance.vue');
 
-import SettingsBase from "@/views/Settings/SettingsBase.vue";
-import SettingsLabs from "@/views/Settings/SettingsLabs.vue";
-import SettingsOrgProfile from "@/views/Settings/SettingsOrgProfile.vue";
-import SettingsOrgPlan from "@/views/Settings/SettingsOrgPlan.vue";
-import SettingsOrgUsage from "@/views/Settings/SettingsOrgUsage.vue";
-import SettingsOrgMembers from "@/views/Settings/SettingsOrgMembers.vue";
-import SettingsAffiliations from "@/views/Settings/SettingsAffiliations.vue";
-import SettingsOrgAdvisoryBoard from "@/views/Settings/SettingsOrgAdvisoryBoard.vue";
-import SettingsOrgUnsub from "@/views/Settings/SettingsOrgUnsub.vue";
-import SettingsOrgMeetings from "@/views/Settings/SettingsOrgMeetings.vue";
+const SettingsBase = () => import('@/views/Settings/SettingsBase.vue');
+const SettingsLabs = () => import('@/views/Settings/SettingsLabs.vue');
+const SettingsOrgProfile = () => import('@/views/Settings/SettingsOrgProfile.vue');
+const SettingsOrgPlan = () => import('@/views/Settings/SettingsOrgPlan.vue');
+const SettingsOrgUsage = () => import('@/views/Settings/SettingsOrgUsage.vue');
+const SettingsOrgMembers = () => import('@/views/Settings/SettingsOrgMembers.vue');
+const SettingsAffiliations = () => import('@/views/Settings/SettingsAffiliations.vue');
+const SettingsOrgAdvisoryBoard = () => import('@/views/Settings/SettingsOrgAdvisoryBoard.vue');
+const SettingsOrgUnsub = () => import('@/views/Settings/SettingsOrgUnsub.vue');
+const SettingsOrgMeetings = () => import('@/views/Settings/SettingsOrgMeetings.vue');
 
-import SettingsSiteAffiliations from "@/views/Settings/SettingsSiteAffiliations.vue";
+const SettingsSiteAffiliations = () => import('@/views/Settings/SettingsSiteAffiliations.vue');
 
 import PageNotFound from "@/views/PageNotFound.vue";
-import AdminBase from "@/views/Admin/AdminBase.vue";
-import AdminUsers from "@/views/Admin/AdminUsers.vue";
+const AdminBase = () => import('@/views/Admin/AdminBase.vue');
+const AdminUsers = () => import('@/views/Admin/AdminUsers.vue');
 // import AdminExports from "@/views/Admin/AdminExports.vue";
-import AdminUserDetail from "@/views/Admin/AdminUserDetail.vue";
-import AdminOrganizations from "@/views/Admin/AdminOrganizations.vue";
-import AdminOrganizationDetail from "@/views/Admin/AdminOrganizationDetail.vue";
-import AdminOrganizationMembers from "@/views/Admin/AdminOrganizationMembers.vue";
-import AdminPlans from "@/views/Admin/AdminPlans.vue";
+const AdminUserDetail = () => import('@/views/Admin/AdminUserDetail.vue');
+const AdminOrganizations = () => import('@/views/Admin/AdminOrganizations.vue');
+const AdminOrganizationDetail = () => import('@/views/Admin/AdminOrganizationDetail.vue');
+const AdminOrganizationMembers = () => import('@/views/Admin/AdminOrganizationMembers.vue');
+const AdminPlans = () => import('@/views/Admin/AdminPlans.vue');
 // import AdminApiKeys from "@/views/Admin/AdminApiKeys.vue";
 // import AdminMultipleApiKeys from "@/views/Admin/AdminMultipleApiKeys.vue";
-import AdminAffiliations from "@/views/Admin/AdminAffiliations.vue";
-import AdminCurations from "@/views/Admin/AdminCurations.vue";
-import AdminFeatureFlags from "@/views/Admin/AdminExperimental.vue";
-import AdminCollections from "@/views/Admin/AdminCollections.vue";
+const AdminAffiliations = () => import('@/views/Admin/AdminAffiliations.vue');
+const AdminCurations = () => import('@/views/Admin/AdminCurations.vue');
+const AdminFeatureFlags = () => import('@/views/Admin/AdminExperimental.vue');
+const AdminCollections = () => import('@/views/Admin/AdminCollections.vue');
 
 
 

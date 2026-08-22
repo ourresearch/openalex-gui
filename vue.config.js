@@ -1,6 +1,9 @@
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 const webpack = require('webpack');
+// oxjob #860 (bundle diet): register only the Vuetify components/directives the
+// templates actually use, instead of `import * as components` (all ~150, ~180 KB gz).
+const { VuetifyPlugin } = require('webpack-plugin-vuetify');
 
 module.exports = {
   lintOnSave: false,
@@ -25,6 +28,7 @@ module.exports = {
       ? 'source-map'  // High-quality source maps for production
       : 'eval-cheap-module-source-map', // Faster source maps for development
     plugins: [
+      new VuetifyPlugin({ autoImport: true }),
       new webpack.DefinePlugin({
         __VUE_OPTIONS_API__: 'true',
         __VUE_PROD_DEVTOOLS__: 'false',

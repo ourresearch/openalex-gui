@@ -6,7 +6,7 @@
 </template>
 
 <script setup>
-import _ from 'lodash';
+import { capitalize } from 'lodash-es';
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
@@ -68,7 +68,7 @@ const selectedEntityType = effectiveEntityType;
 const selectedEntityTypeConfig = computed(() => entityConfigs[selectedEntityType.value]);
 
 useHead({
-  title: computed(() => _.capitalize(selectedEntityTypeConfig.value.displayName) + ' search'),
+  title: computed(() => capitalize(selectedEntityTypeConfig.value.displayName) + ' search'),
 });
 
 const userId = computed(() => store.getters['user/userId']);
