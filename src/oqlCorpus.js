@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 191.
+// corpus version: 2; rows: 193.
 
 export const oqlCorpus = [
   {
@@ -10541,5 +10541,74 @@ export const oqlCorpus = [
       ]
     },
     "oxurl": "https://openalex.org/works?filter=display_name.search.exact:Beyond,display_name.search.exact:Data,display_name.search.exact:Gaps:,display_name.search.exact:Tracking"
+  },
+  {
+    "id": 201,
+    "tags": [
+      "phrase-exact"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Token-leading `-`/`+` and `^` are literal text, so a bare exact value carrying them still splits (#633 session 8)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title has (\"-Farm\" and \"Small\" and \"Technical\")",
+    "note": "The undocumented Lucene operators (`-`/`+` at a token start, `^N`, `{a TO b}`, `&&`) were never documented and are escaped to literal text by the engine outside quotes (core/search.py); on the analyzed plain path they were punctuation all along (`+cancer -treatment` = `cancer treatment` = 1,815,982; `machine^3 learning` = `machine 3 learning` = 229,325). So they no longer block the per-token split, and the oql leg is the faithful AND-of-words instead of the phrase fallback (which re-executed to 199,107 / 0). Real traffic shape: pasted titles with a spaced hyphen (`Small -Farm Technical Assistance`), ~3,800 req/wk of which also carry an uppercase AND/OR and used to silently EXCLUDE the paper they looked up.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "display_name.search.exact",
+          "value": "Small",
+          "operator": "has"
+        },
+        {
+          "column_id": "display_name.search.exact",
+          "value": "-Farm",
+          "operator": "has"
+        },
+        {
+          "column_id": "display_name.search.exact",
+          "value": "Technical",
+          "operator": "has"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search.exact:-Farm,display_name.search.exact:Small,display_name.search.exact:Technical"
+  },
+  {
+    "id": 202,
+    "tags": [
+      "search-semantics"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "A mixed phrase + bare-word search value is the implicit AND of its parts (#633 session 8)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title has (stemmed \"machine learning\" and neural)",
+    "note": "A value holding both a quoted phrase and bare words (`\"machine learning\" neural`) runs on the engine's query_string branch as phrase AND word. It used to stay ONE leaf the renderers could not spell — the stemmed door dropped the quotes (a different query: 314,033 vs 1,189,845) and the exact door nested them (`(\"\"machine learning\" neural\")`, unparseable OQL). The URL door now lifts it through the same tokenizer as an explicit boolean, so both legs are faithful and the phrase keeps its quotes.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "display_name.search",
+          "value": "\"machine learning\"",
+          "operator": "has"
+        },
+        {
+          "column_id": "display_name.search",
+          "value": "neural",
+          "operator": "has"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search:%22machine%20learning%22,display_name.search:neural"
   }
 ];
