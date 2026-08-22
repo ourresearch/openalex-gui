@@ -57,6 +57,20 @@ const QUERY_KEYS = ["get_rows", "filter_rows", "corpus"];
 // execution, not the query identity). `seed`/`sample` back the random-query dice.
 // #661: page/per_page/cursor left the OQO too — they travel as sibling request
 // params (state.paging → executionParams), per the query/view split.
+// Max rows the semantic (vector) search path returns; the API rejects larger
+// per_page outright. Mirrors core/vector_index.MAX_SEMANTIC_RESULTS (#862).
+export const SEMANTIC_MAX_PER_PAGE = 50;
+
+// True when any leaf anywhere in the filter tree is a semantic-search clause
+// (column_id ends in ".search.semantic"); branches are recursed.
+export function hasSemanticLeaf(rows) {
+  if (!Array.isArray(rows)) return false;
+  return rows.some((r) =>
+    r && (typeof r.column_id === "string" && r.column_id.endsWith(".search.semantic")
+      || hasSemanticLeaf(r.filter_rows)),
+  );
+}
+
 const VIEW_KEYS = ["group_by", "seed", "sample"];
 
 // Keep only the keys whose value is actually present (not null/undefined), so a
@@ -137,6 +151,14 @@ export default {
       }
       for (const k of ["page", "per_page", "cursor"]) {
         if (state.paging?.[k] != null) params[k] = state.paging[k];
+      }
+      // Semantic (vector) search returns at most SEMANTIC_MAX_PER_PAGE rows and
+      // the API 400s a larger per_page ("per_page cannot exceed 50 for semantic
+      // search"). A user whose page size is 100 would otherwise see that error
+      // on every semantic query (#862), so clamp here — the POSTed size is
+      // authoritative and the displayed size stays whatever the user picked.
+      if (params.per_page > SEMANTIC_MAX_PER_PAGE && hasSemanticLeaf(state.queryOqo?.filter_rows)) {
+        params.per_page = SEMANTIC_MAX_PER_PAGE;
       }
       return params;
     },

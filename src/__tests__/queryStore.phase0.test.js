@@ -436,3 +436,36 @@ describe("#661 — refinements reset the transient sort (a refinement is a new q
     expect(state.editEpoch).toBe(1);
   });
 });
+
+describe("#862 — executionParams clamps per_page for semantic queries", () => {
+  const semanticOqo = {
+    get_rows: "works",
+    filter_rows: [
+      { column_id: "abstract.search.semantic", value: "protein folding", operator: "has" },
+      { column_id: "publication_year", value: 2020, operator: ">=" },
+    ],
+  };
+  const params = (queryOqo, paging) =>
+    queryModule.getters.executionParams({ sort: [], paging, queryOqo });
+
+  it("caps a 100-row page size at 50 when the OQO has a semantic leaf", () => {
+    expect(params(semanticOqo, { per_page: 100 })).toEqual({ per_page: 50 });
+  });
+
+  it("leaves sizes ≤ 50 alone", () => {
+    expect(params(semanticOqo, { per_page: 25, page: 2 })).toEqual({ per_page: 25, page: 2 });
+  });
+
+  it("does not clamp non-semantic queries", () => {
+    const plain = { get_rows: "works", filter_rows: [{ column_id: "publication_year", value: 2020 }] };
+    expect(params(plain, { per_page: 100 })).toEqual({ per_page: 100 });
+  });
+
+  it("finds a semantic leaf nested inside a branch", () => {
+    const nested = {
+      get_rows: "works",
+      filter_rows: [{ join: "and", filter_rows: [semanticOqo.filter_rows[0]] }],
+    };
+    expect(params(nested, { per_page: 100 })).toEqual({ per_page: 50 });
+  });
+});
