@@ -57,9 +57,8 @@ const QUERY_KEYS = ["get_rows", "filter_rows", "corpus"];
 // execution, not the query identity). `seed`/`sample` back the random-query dice.
 // #661: page/per_page/cursor left the OQO too — they travel as sibling request
 // params (state.paging → executionParams), per the query/view split.
-// Max rows the semantic (vector) search path returns; the API rejects larger
-// per_page outright. Mirrors core/vector_index.MAX_SEMANTIC_RESULTS (#862).
-export const SEMANTIC_MAX_PER_PAGE = 50;
+import { SEMANTIC_MAX_PER_PAGE } from "@/semanticLimits";
+export { SEMANTIC_MAX_PER_PAGE };
 
 // True when any leaf anywhere in the filter tree is a semantic-search clause
 // (column_id ends in ".search.semantic"); branches are recursed.

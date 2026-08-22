@@ -18,6 +18,7 @@ import {getActionConfig, getActionDefaultValues} from "@/actionConfigs";
 import {getFacetConfig} from "@/facetConfigUtils";
 import {urlBase} from "@/apiConfig";
 import {oqlForUrl} from "@/oqlSerialize";
+import {SEMANTIC_MAX_PER_PAGE} from "@/semanticLimits";
 
 
 const urlObjectFromSearchUrl = function (searchUrl) {
@@ -1209,6 +1210,13 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         query.page = currentRoute.query.page
         query.sort = currentRoute.query.sort ?? getDefaultSortValueForRoute(currentRoute, true)
         query.per_page = getPerPage()
+        // Semantic search returns at most SEMANTIC_MAX_PER_PAGE rows and the API
+        // 400s a larger per_page; a user at 100/page would see that error on
+        // every semantic query (#862). Clamp the request, keep the displayed
+        // page-size preference as-is.
+        if (currentRoute.query["search.semantic"] && query.per_page > SEMANTIC_MAX_PER_PAGE) {
+            query.per_page = SEMANTIC_MAX_PER_PAGE
+        }
         // #492 Phase 4: the money group-bys now live in the session store, not the URL.
         const activeGroupBys = getGroupBy(currentRoute)
         query.apc_sum = activeGroupBys.includes("apc_sum")
