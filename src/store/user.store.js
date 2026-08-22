@@ -5,7 +5,7 @@ import {navigation} from '@/navigation';
 import {urlBase, axiosConfig} from "@/apiConfig.js"
 import * as openalexId from "@/openalexId";
 import {sanitizeRedirectPath} from "@/util";
-import {bootUser} from "@/store/userBoot";
+import {bootUser, readUserCache, writeUserCache, clearUserCache} from "@/store/userBoot";
 
 const shortUuid = require('short-uuid');
 
@@ -13,6 +13,8 @@ const apiBaseUrl = urlBase.userApi
 
 // Newest in-flight GET /saved-search, or null (oxjob #860; see ensureSavedSearches).
 let savedSearchesInFlight = null
+// Newest in-flight fetchUser, or null (see ensureUser).
+let userInFlight = null
 
 export default {
     namespaced: true,
@@ -42,6 +44,11 @@ export default {
         // (oxjob #860: the list loads in the background after /users/me, so an
         // empty list is not "no saved searches" until this is set).
         savedSearchesLoaded: false,
+        // True once the LIVE /users/me has been applied this session (as
+        // opposed to the localStorage copy restored at boot). Role-gated
+        // routes wait for this; see router.beforeEach.
+        userLive: false,
+        userFromCache: false,
         columnViews: [],
         facetViews: [],
         corrections: [],
@@ -54,6 +61,9 @@ export default {
     },
     mutations: {
         setToken(state, token) {
+            // A new token means a (possibly different) account: never let the
+            // previous account's cached /me boot under it.
+            clearUserCache(localStorage)
             localStorage.setItem("token", token);
         },
         setRenameId(state, id) {
@@ -105,7 +115,10 @@ export default {
             state.rateThrottled = false
             state.orgRateThrottled = false
             state.claim = null
+            state.userLive = false
+            state.userFromCache = false
             localStorage.removeItem("token")
+            clearUserCache(localStorage)
             navigation.push("/")
         },
         setFromApiResp(state, apiResp) {
@@ -149,11 +162,11 @@ export default {
         // awaits `ensureSavedSearches` (the SERP's ?id= restore does).
         // Returns `{me, settled}` — `settled` resolves once the background
         // loads have all finished, for callers that want to wait.
-        async fetchUser({commit, dispatch}) {
+        async fetchUser({commit, dispatch, state}) {
             // Restore impersonation from localStorage on page refresh
             commit('restoreImpersonation');
 
-            return bootUser({
+            const p = bootUser({
                 fetchMe: async () => {
                     const resp = await axios.get(
                         apiBaseUrl + "/users/me",
@@ -164,6 +177,13 @@ export default {
                 applyMe: (data) => {
                     commit("setFromApiResp", data)
                     commit("setFeatureFlags", data.feature_flags || [], { root: true })
+                    state.userLive = true
+                    state.userFromCache = false
+                    // Stale-while-revalidate copy for the next boot. Not while
+                    // impersonating: that body is the target user's, not ours.
+                    if (!state.impersonatingUserId) {
+                        writeUserCache(localStorage, localStorage.getItem("token"), data)
+                    }
                 },
                 background: [
                     () => dispatch("fetchSavedSearches"),
@@ -171,6 +191,33 @@ export default {
                     () => dispatch("fetchRateLimitData", null, { root: true }),
                 ],
             })
+            userInFlight = p
+            p.catch(() => {}).then(() => {
+                if (userInFlight === p) userInFlight = null
+            })
+            return p
+        },
+
+        // Resolve once any in-flight fetchUser has settled (never rejects).
+        // For code that must know whether a token-holder is really logged in
+        // before acting (the SERP's ?id= restore) now that public routes no
+        // longer wait for /users/me.
+        ensureUser() {
+            return userInFlight ? userInFlight.catch(() => {}) : Promise.resolve()
+        },
+
+        // Boot from the localStorage copy of the last /users/me (same token
+        // only). Returns true if a user was restored. The live /me still runs
+        // right after and overwrites everything here.
+        restoreUserFromCache({commit, state}) {
+            if (state.id) return true
+            if (localStorage.getItem('impersonatingUserId')) return false
+            const me = readUserCache(localStorage, localStorage.getItem("token"))
+            if (!me) return false
+            commit("setFromApiResp", me)
+            commit("setFeatureFlags", me.feature_flags || [], { root: true })
+            state.userFromCache = true
+            return true
         },
         
         async startImpersonation({ commit, dispatch }, { userId, userName }) {
@@ -798,6 +845,8 @@ export default {
         apiKey: (state) => state.apiKey,
         userSavedSearches: (state) => state.savedSearches,
         savedSearchesLoaded: (state) => state.savedSearchesLoaded,
+        userLive: (state) => state.userLive,
+        userFromCache: (state) => state.userFromCache,
         userColumnViews: (state) => state.columnViews,
         userFacetViews: (state) => state.facetViews,
         userCorrections: (state) => state.corrections,

@@ -197,6 +197,11 @@ watch(
     // The saved-search list loads in the background after /users/me (oxjob
     // #860); the "?id= not in my list → drop it" check below must see the real
     // list, not the empty not-yet-loaded one. No-op once loaded.
+    if (route.query.id && localStorage.getItem('token')) {
+      // Public routes no longer wait for /users/me (#860 round 2): a
+      // token-holder may still be "unknown" here. Settle that first.
+      await store.dispatch('user/ensureUser');
+    }
     if (route.query.id && userId.value) {
       await store.dispatch('user/ensureSavedSearches');
     }

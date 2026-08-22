@@ -89,3 +89,78 @@ describe('shouldDropSavedSearchId', () => {
     expect(shouldDropSavedSearchId({ queryId: 'ss-9', savedSearches: [], loaded: true })).toBe(true);
   });
 });
+
+import { shouldAwaitLiveUser, writeUserCache, readUserCache, clearUserCache, USER_CACHE_KEY } from '@/store/userBoot';
+
+const route = (...metas) => metas.map((meta) => ({ meta }));
+
+describe('shouldAwaitLiveUser (round 2: public routes never wait)', () => {
+  it('public route: never waits, known user or not', () => {
+    expect(shouldAwaitLiveUser({ matched: route({}), haveUser: false })).toBe(false);
+    expect(shouldAwaitLiveUser({ matched: route({}), haveUser: true })).toBe(false);
+    expect(shouldAwaitLiveUser({ matched: [], haveUser: false })).toBe(false);
+  });
+  it('requiresAuth: waits only when the user is still unknown', () => {
+    expect(shouldAwaitLiveUser({ matched: route({ requiresAuth: true }), haveUser: false })).toBe(true);
+    expect(shouldAwaitLiveUser({ matched: route({ requiresAuth: true }), haveUser: true })).toBe(false);
+  });
+  it.each(['requiresAdmin', 'requiresOrgOwner', 'requiresSiteWideAccess', 'requiresOrgCuratorOrOwner'])(
+    'role-gated (%s): always waits for the live user, even with a cached one', (k) => {
+      expect(shouldAwaitLiveUser({ matched: route({ requiresAuth: true }, { [k]: true }), haveUser: true })).toBe(true);
+    });
+  it('nested route records: any record in the chain counts', () => {
+    expect(shouldAwaitLiveUser({ matched: route({}, { requiresAdmin: true }), haveUser: true })).toBe(true);
+    expect(shouldAwaitLiveUser({ matched: [{ meta: undefined }, { meta: { requiresAuth: true } }], haveUser: false })).toBe(true);
+  });
+});
+
+describe('user cache (stale-while-revalidate /users/me)', () => {
+  const mem = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), _m: m }; };
+  const me = { id: 'user-1', display_name: 'J', email: 'j@x.org', is_admin: true, api_key: 'SECRET', retired_api_key: 'OLD', notes: 'internal', exports: [1, 2], feature_flags: ['oql'] };
+
+  it('round-trips for the same token', () => {
+    const s = mem();
+    expect(writeUserCache(s, 'tok', me)).toBe(true);
+    const back = readUserCache(s, 'tok');
+    expect(back.id).toBe('user-1');
+    expect(back.feature_flags).toEqual(['oql']);
+    expect(back.is_admin).toBe(true);
+  });
+  it('strips secrets and bulk fields', () => {
+    const s = mem(); writeUserCache(s, 'tok', me);
+    const raw = s.getItem(USER_CACHE_KEY);
+    expect(raw).not.toContain('SECRET');
+    expect(raw).not.toContain('OLD');
+    const back = readUserCache(s, 'tok');
+    expect(back).not.toHaveProperty('api_key');
+    expect(back).not.toHaveProperty('retired_api_key');
+    expect(back).not.toHaveProperty('exports');
+    expect(back).not.toHaveProperty('notes');
+  });
+  it('is bound to the token: another login or a rotated key ignores it', () => {
+    const s = mem(); writeUserCache(s, 'tok-A', me);
+    expect(readUserCache(s, 'tok-B')).toBeNull();
+    expect(readUserCache(s, null)).toBeNull();
+    expect(readUserCache(s, '')).toBeNull();
+  });
+  it('never writes without a token or a real user', () => {
+    const s = mem();
+    expect(writeUserCache(s, null, me)).toBe(false);
+    expect(writeUserCache(s, 'tok', null)).toBe(false);
+    expect(writeUserCache(s, 'tok', { display_name: 'no id' })).toBe(false);
+    expect(s.getItem(USER_CACHE_KEY)).toBeNull();
+  });
+  it('tolerates corrupt JSON and a throwing storage', () => {
+    const s = mem(); s.setItem(USER_CACHE_KEY, '{not json');
+    expect(readUserCache(s, 'tok')).toBeNull();
+    const boom = { getItem: () => { throw new Error('blocked'); }, setItem: () => { throw new Error('quota'); }, removeItem: () => { throw new Error('x'); } };
+    expect(readUserCache(boom, 'tok')).toBeNull();
+    expect(writeUserCache(boom, 'tok', me)).toBe(false);
+    expect(() => clearUserCache(boom)).not.toThrow();
+    expect(() => clearUserCache(null)).not.toThrow();
+  });
+  it('clearUserCache removes it', () => {
+    const s = mem(); writeUserCache(s, 'tok', me); clearUserCache(s);
+    expect(readUserCache(s, 'tok')).toBeNull();
+  });
+});

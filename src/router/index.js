@@ -4,6 +4,7 @@ import store from '@/store';
 import {getEntityConfigs} from "@/entityConfigs";
 import * as openalexId from "@/openalexId";
 import {url} from "@/url";
+import {shouldAwaitLiveUser} from "@/store/userBoot";
 
 import HomeV2Page from '@/views/HomeV2.vue'  // #681 landing revision — SHIPPED to / 2026-08-12 (old page: views/Home.vue, unrouted)
 import SerpPage from '@/views/Serp.vue';
@@ -651,6 +652,10 @@ const redirectFilterSearchToTopLevel = function (to, from, next) {
     return true
 }
 
+// The one live fetchUser started by the guard below (deduped across the
+// redirect-and-rerun cases of beforeEach).
+let liveUserBoot = null
+
 router.beforeEach(async (to, from, next) => {
 
     // Handle legacy v2 parameter - convert to data-version=2
@@ -665,15 +670,29 @@ router.beforeEach(async (to, from, next) => {
         });
     }
 
-    if (localStorage.getItem("token") && !store.getters["user/userId"]) {
-        try {
-            await store.dispatch("user/fetchUser")
-        } catch (e) {
-            // Only logout on 401 Unauthorized - transient errors (network, 5xx)
-            // should not log users out
-            if (e?.response?.status === 401) {
-                store.commit("user/logout")
-            }
+    // Identity at boot (oxjob #860 round 2). With a token but no live user yet:
+    // restore the cached /users/me synchronously (avatar, flags, plan), start
+    // the live fetch once, and only WAIT for it where the route needs it —
+    // role-gated routes always, requiresAuth routes only if the user is still
+    // unknown, public routes never. App.vue paints as soon as this guard
+    // resolves, so on public routes the shell no longer waits on users-api.
+    if (localStorage.getItem("token") && !store.getters["user/userLive"]) {
+        if (!store.getters["user/userId"]) {
+            store.dispatch("user/restoreUserFromCache")
+        }
+        if (!liveUserBoot) {
+            liveUserBoot = store.dispatch("user/fetchUser")
+                .catch((e) => {
+                    // Only logout on 401 Unauthorized - transient errors
+                    // (network, 5xx) should not log users out
+                    if (e?.response?.status === 401) {
+                        store.commit("user/logout")
+                    }
+                })
+                .finally(() => { liveUserBoot = null })
+        }
+        if (shouldAwaitLiveUser({ matched: to.matched, haveUser: !!store.getters["user/userId"] })) {
+            await liveUserBoot
         }
     }
 
