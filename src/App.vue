@@ -66,7 +66,7 @@
 <script setup>
 defineOptions({ name: 'App' });
 
-import { ref, computed, onMounted, onBeforeMount, getCurrentInstance } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeMount, getCurrentInstance } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify';
@@ -108,6 +108,13 @@ const chrome = computed(() => {
   if (route.matched.length === 0) return null;
   return route.meta.chrome ?? 'app';
 });
+
+// Drop the static boot skeleton (public/index.html, oxjob #860) as soon as the
+// real chrome is decided — the real bar has just rendered underneath it at the
+// same geometry (or the page is 'bare' and wants no bar at all).
+watch(chrome, (value) => {
+  if (value) document.getElementById('boot-skeleton')?.remove();
+}, { immediate: true });
 
 // Height of the in-flow chrome above <v-main>: the 56px top bar (on every
 // non-'bare' page) plus 28px per visible banner. Exposed as the --chrome-height

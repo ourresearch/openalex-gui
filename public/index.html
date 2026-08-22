@@ -60,6 +60,21 @@
     <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled.
         Please enable it to continue.</strong>
 </noscript>
+<!-- Boot skeleton (oxjob #860): a plain-HTML copy of the 56px site top bar so a
+     cold visitor sees the site chrome while the JS bundle downloads, instead of a
+     white page. Lives OUTSIDE #app (app.mount replaces #app's content) and sits
+     over the empty <v-app>; App.vue removes it the moment the real chrome
+     resolves (the real bar is in-flow at the same geometry, so no shift). Auth
+     pages use the 'bare' chrome, so the inline script drops it there up front.
+     Keep in sync with .site-top-bar / .site-top-bar-inner in SiteTopBar.vue. -->
+<style>
+  #boot-skeleton { position: absolute; top: 0; left: 0; right: 0; z-index: 1003; background: #fff; border-bottom: 0.5px solid rgba(0, 0, 0, 0.12); }
+  #boot-skeleton > div { display: flex; align-items: center; max-width: 1280px; margin: 0 auto; height: 56px; padding: 0 40px; }
+  #boot-skeleton img { height: 26px; display: block; }
+  @media (max-width: 700px) { #boot-skeleton > div { padding: 0 16px; } }
+</style>
+<div id="boot-skeleton" aria-hidden="true"><div><img src="/brand-assets/openalex-lockup.png" alt=""></div></div>
+<script>if (/^\/(login|signup)(\/|$)/.test(location.pathname)) document.getElementById('boot-skeleton').remove();</script>
 <div id="app"></div>
 <!-- built files will be auto injected -->
 
