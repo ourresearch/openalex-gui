@@ -57,6 +57,7 @@ const SettingsSiteAffiliations = () => import('@/views/Settings/SettingsSiteAffi
 import PageNotFound from "@/views/PageNotFound.vue";
 const AdminBase = () => import('@/views/Admin/AdminBase.vue');
 const AdminUsers = () => import('@/views/Admin/AdminUsers.vue');
+const AdminHiring = () => import('@/views/Admin/AdminHiring.vue');
 // import AdminExports from "@/views/Admin/AdminExports.vue";
 const AdminUserDetail = () => import('@/views/Admin/AdminUserDetail.vue');
 const AdminOrganizations = () => import('@/views/Admin/AdminOrganizations.vue');
@@ -528,6 +529,17 @@ const routes = [
                 path: 'affiliations',
                 name: 'admin-affiliations',
                 component: AdminAffiliations,
+            },
+            {
+                path: 'hiring',
+                name: 'admin-hiring',
+                component: AdminHiring,
+            },
+            {
+                path: 'hiring/:applicationId',
+                name: 'admin-hiring-detail',
+                component: () => import('@/views/Admin/AdminHiringDetail.vue'),
+                props: true,
             },
             {
                 path: 'curations',

@@ -52,6 +52,12 @@ const navSections = [
     ],
   },
   {
+    label: 'Hiring',
+    items: [
+      { title: 'Applications', route: '/admin/hiring', icon: 'mdi-account-tie-outline' },
+    ],
+  },
+  {
     label: 'Configuration',
     items: [
       { title: 'Plans', route: '/admin/plans', icon: 'mdi-card-account-details-outline' },
