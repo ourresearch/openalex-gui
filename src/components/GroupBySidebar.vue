@@ -167,8 +167,9 @@ defineProps({
 const store = useStore();
 const route = useRoute();
 const entityType = computed(() => store.getters.entityType);
-// group_by widgets exist only for works + awards (mirrors GroupByViews' toolbar gate).
-const canAddWidget = computed(() => ['works', 'awards'].includes(entityType.value));
+// group_by widgets exist for works + awards + sources (#878: sources SERP
+// sidebar parity — same edit-facets + CSV-export controls as works).
+const canAddWidget = computed(() => ['works', 'awards', 'sources'].includes(entityType.value));
 
 // ---- widget picker (quick menu + Edit-facets dialog), #440 r6 / #626 --------
 const isMenuOpen = ref(false);
