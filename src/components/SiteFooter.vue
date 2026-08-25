@@ -117,9 +117,9 @@ defineOptions({ name: 'SiteFooter' });
   color: #1a1a1a !important;
 
   .trust-badge-icon {
-    font-size: 24px !important;
-    width: 24px !important;
-    height: 24px !important;
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
     color: #1a1a1a !important;
 
     // The OSI keyhole glyph is drawn with a very thin line at this size —
@@ -130,14 +130,14 @@ defineOptions({ name: 'SiteFooter' });
   }
 
   .trust-badge-img {
-    height: 24px;
-    width: 24px;
+    height: 18px;
+    width: 18px;
     display: block;
   }
 
   .trust-badge-label {
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 400;
     letter-spacing: -0.01em;
     line-height: 1.2;
     white-space: nowrap;
