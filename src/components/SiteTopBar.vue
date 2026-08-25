@@ -1,5 +1,5 @@
 <template>
-  <header ref="barEl" class="site-top-bar">
+  <header ref="barEl" class="site-top-bar" :class="{ 'is-app-chrome': isAppChrome }">
     <!-- Stripe-style page dim behind an open mega-panel; starts just under the
          bar so the bar itself stays crisp. The bar now scrolls with the page,
          so we measure its live bottom edge on open (the panel closes on scroll,
@@ -441,6 +441,15 @@ onBeforeUnmount(() => {
   margin: 0 auto;
   height: 56px;
   padding: 0 40px;
+}
+
+/* App pages (chrome 'app'): the app content is full-bleed, so a 1280px-centered
+   bar floats on a container unrelated to the page below it. Span the full
+   viewport width instead — logo hard left, battery/avatar hard right. Static
+   'site' pages keep the centered 1280px container (it matches their heroes). */
+.site-top-bar.is-app-chrome .site-top-bar-inner {
+  max-width: none;
+  padding: 0 16px;
 }
 
 .top-bar-logo-link {
