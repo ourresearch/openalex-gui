@@ -167,7 +167,11 @@ const ACCEPTED_CATEGORIES = new Set([
     "DERIVED_COUNT_VS_FULL_LIST",   // table shows count, CSV ships underlying ID list
     "POSITIONAL_EMPTIES",           // server preserves position of null-source locations; client drops them
     "FILTERED_OWN_NAME",            // display_name_alternatives drops self-display-name; server keeps it
-    "FILTERED_SUBSET",              // child/related institutions are a client-side filter on associated_institutions
+    // FILTERED_SUBSET (child/related institutions exporting the whole
+    // associated_institutions superset) was retired 2026-08-26 (ZD 23586):
+    // the server now pre-splits by relationship into {rel}_institutions
+    // virtual fields, so these columns must MATCH. Regenerate the flat
+    // fixtures against current openalex-users-api before running the sweep.
 ]);
 
 // Classify a DIVERGE row into a known category — the categories below are
@@ -255,11 +259,10 @@ function classifyDivergence(row) {
         && only_server.every((s) => s === "")) {
         return "POSITIONAL_EMPTIES";
     }
-    // 10. Filtered subset: client extractFn filters a list by some attribute
-    //     (child_institutions = associated_institutions where relationship=child);
-    //     server flatten gives the unfiltered superset (or empty when the
-    //     subkey doesn't exist at all in the flat output).
-    if (/^(child|related)_institutions$/.test(key)) return "FILTERED_SUBSET";
+    // 10. (retired 2026-08-26, ZD 23586) child/related institutions used to
+    //     export the associated_institutions superset (FILTERED_SUBSET); the
+    //     server now pre-splits by relationship, so any divergence on these
+    //     keys is a real bug and falls through to UNCATEGORIZED.
     // 11. Client extracts fewer items than server (e.g. primary_location's
     //     source while server has all locations' sources). Different
     //     cardinalities = different semantics; needs explicit reconciliation.

@@ -1965,6 +1965,11 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.associated_institutions.filter(i => {
                 return i.relationship === "parent"
             }),
+            // The export service pre-splits associated_institutions by
+            // relationship into virtual {rel}_institutions fields
+            // (openalex-users-api formats/csv_manifest.py, ZD 23586), so the
+            // CSV column carries exactly what the table shows.
+            column: { export: { path: "parent_institutions.display_name", idsPath: "parent_institutions.id" } },
         },
         {
             key: "child_institutions",
@@ -1978,12 +1983,11 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => (entity.associated_institutions ?? []).filter(i => {
                 return i.relationship === "child"
             }),
-            // Server flatten has no `child_institutions.*` path — the
-            // relationship filter is client-only. Export ships the superset
-            // (all associated institutions) so the CSV at least carries
-            // data; the table shows the filtered subset on screen.
-            // Accepted as FILTERED_SUBSET divergence in the parity sweep.
-            column: { export: { path: "associated_institutions.display_name", idsPath: "associated_institutions.id" } },
+            // Relationship-true export path: the export service pre-splits
+            // associated_institutions into virtual {rel}_institutions fields
+            // (openalex-users-api formats/csv_manifest.py, ZD 23586). The old
+            // superset path shipped parents/predecessors under this header.
+            column: { export: { path: "child_institutions.display_name", idsPath: "child_institutions.id" } },
         },
         {
             key: "related_institutions",
@@ -1997,8 +2001,8 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => (entity.associated_institutions ?? []).filter(i => {
                 return i.relationship === "related"
             }),
-            // See `child_institutions` — same FILTERED_SUBSET pattern.
-            column: { export: { path: "associated_institutions.display_name", idsPath: "associated_institutions.id" } },
+            // See `child_institutions` — same relationship-true export path.
+            column: { export: { path: "related_institutions.display_name", idsPath: "related_institutions.id" } },
         },
         {
             key: "lineage",
