@@ -388,19 +388,21 @@ export function findMatchedAuthorshipCascade(work, queryName) {
 }
 
 // Same as `findMatchedAuthorshipCascade`, but also reports WHICH tier
-// decided: `{ idx, tier }` where tier is 1-4 for a match, 'ambiguous'
-// when a loose tier found 2+ slots (refused), and 'none' when nothing
-// matched. Used by corpus-audit tooling (oxjob #882); the component
-// only needs the idx.
+// decided: `{ idx, tier, candidateIdxs }` where tier is 1-4 for a match,
+// 'ambiguous' when a loose tier found 2+ slots (refused), and 'none'
+// when nothing matched. `candidateIdxs` lists the matching slots: the
+// single winner for tiers 1-4, ALL tied slots for 'ambiguous' (so a
+// caller with a manual-pick UI — the CV-upload path — can offer exactly
+// those), and [] for 'none'. Also used by #882 corpus-audit tooling.
 export function findMatchedAuthorshipCascadeDetail(work, queryName) {
   const auths = work.authorships || [];
-  if (!auths.length) return { idx: -1, tier: 'none' };
+  if (!auths.length) return { idx: -1, tier: 'none', candidateIdxs: [] };
   const qVariants = nameTokenVariants(queryName);
-  if (!qVariants.length) return { idx: -1, tier: 'none' };
+  if (!qVariants.length) return { idx: -1, tier: 'none', candidateIdxs: [] };
 
   // Tier 1 — today's strict rule, first hit wins.
   const strictIdx = findMatchedAuthorship(work, queryName);
-  if (strictIdx >= 0) return { idx: strictIdx, tier: 1 };
+  if (strictIdx >= 0) return { idx: strictIdx, tier: 1, candidateIdxs: [strictIdx] };
 
   const candVariants = auths.map(a =>
     nameTokenVariants(a.raw_author_name || a.author?.display_name || '')
@@ -423,17 +425,15 @@ export function findMatchedAuthorshipCascadeDetail(work, queryName) {
 
   for (let t = 0; t < tierPredicates.length; t++) {
     const pred = tierPredicates[t];
-    let hit = -1;
-    let ambiguous = false;
+    const hits = [];
     for (let i = 0; i < auths.length; i++) {
-      if (!pred(i)) continue;
-      if (hit >= 0) { ambiguous = true; break; }
-      hit = i;
+      if (pred(i)) hits.push(i);
     }
     // 2+ hits at a loose tier: the tier can't tell WHICH slot is the
-    // claimant, and every looser tier is a superset — refuse outright.
-    if (ambiguous) return { idx: -1, tier: 'ambiguous' };
-    if (hit >= 0) return { idx: hit, tier: t + 2 };
+    // claimant, and every looser tier is a superset — refuse outright,
+    // but hand back the tied slots for callers with a manual-pick UI.
+    if (hits.length >= 2) return { idx: -1, tier: 'ambiguous', candidateIdxs: hits };
+    if (hits.length === 1) return { idx: hits[0], tier: t + 2, candidateIdxs: hits };
   }
-  return { idx: -1, tier: 'none' };
+  return { idx: -1, tier: 'none', candidateIdxs: [] };
 }

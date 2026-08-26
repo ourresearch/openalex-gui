@@ -526,6 +526,7 @@ describe('mergeSortPreflight', () => {
 import {
   nameTokenVariants,
   findMatchedAuthorshipCascade,
+  findMatchedAuthorshipCascadeDetail,
 } from '../components/AuthorCuration/addWorksSearch.helpers.js';
 
 describe('nameTokenVariants', () => {
@@ -615,6 +616,21 @@ describe('findMatchedAuthorshipCascade', () => {
   it('refuses on ambiguity at a loose tier instead of guessing', () => {
     const work = mkWork('Lemoine L.', 'Lemoine L. B.');
     expect(findMatchedAuthorshipCascade(work, 'Laureline Lemoine')).toBe(-1);
+  });
+
+  it('detail: reports the tied slots on ambiguity (for manual-pick UIs)', () => {
+    const work = mkWork('Lemoine L.', 'Other Person', 'Lemoine L. B.');
+    expect(
+      findMatchedAuthorshipCascadeDetail(work, 'Laureline Lemoine')
+    ).toEqual({ idx: -1, tier: 'ambiguous', candidateIdxs: [0, 2] });
+  });
+
+  it('detail: reports the single winner and empty list on none', () => {
+    const work = mkWork('A. Coauthor', 'Jason Priem');
+    expect(findMatchedAuthorshipCascadeDetail(work, 'Jason Priem'))
+      .toEqual({ idx: 1, tier: 1, candidateIdxs: [1] });
+    expect(findMatchedAuthorshipCascadeDetail(mkWork('X Y'), 'Jason Priem'))
+      .toEqual({ idx: -1, tier: 'none', candidateIdxs: [] });
   });
 
   it('refuses junk authorship lists — the ":none" case', () => {

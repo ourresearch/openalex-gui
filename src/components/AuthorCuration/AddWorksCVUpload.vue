@@ -252,6 +252,7 @@
 import { ref, computed, onBeforeUnmount } from 'vue';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
+import { findMatchedAuthorshipCascadeDetail } from './addWorksSearch.helpers.js';
 
 defineOptions({ name: 'AddWorksCVUpload' });
 
@@ -343,47 +344,26 @@ function handleDrop(event) {
   }
 }
 
-function normalizeName(name) {
-  if (!name) return '';
-  let n = name.trim();
-  if (n.includes(',')) {
-    const parts = n.split(',').map(p => p.trim());
-    n = parts.reverse().join(' ');
-  }
-  return n.toLowerCase().replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
-}
-
-function nameSimilarity(name1, name2) {
-  if (!name1 || !name2) return 0;
-  const a = normalizeName(name1);
-  const b = normalizeName(name2);
-  if (a === b) return 1;
-  const aWords = a.split(' ');
-  const bWords = b.split(' ');
-  const aLast = aWords[aWords.length - 1];
-  const bLast = bWords[bWords.length - 1];
-  if (aLast !== bLast) return 0;
-  const aFirst = aWords[0] || '';
-  const bFirst = bWords[0] || '';
-  if (aFirst === bFirst) return 1;
-  if (aFirst.startsWith(bFirst) || bFirst.startsWith(aFirst)) return 0.9;
-  if (aFirst[0] === bFirst[0]) return 0.7;
-  return 0.6;
-}
-
+// Authorship matching — unified on the #882 cascade (shared with the
+// search path via addWorksSearch.helpers.js) so the two add-works paths
+// can't drift. Mapping onto this component's existing UX:
+//   - cascade finds ONE confident slot → single candidate, score 1
+//     (auto-selected by the `score >= 0.7` check in processFile)
+//   - cascade is ambiguous (2+ tied slots) → exactly those slots as
+//     candidates, score 0.6 (below the auto-select bar → manual pick)
+//   - cascade finds nothing → no candidates (UI falls back to the
+//     show-all-authors manual picker, as before)
+// Replaces the old local normalizeName/nameSimilarity fuzzy scorer,
+// which assumed comma = family-name-first (the CNRS-076 bug class).
 function findCandidateAuthorships(work) {
   if (!work.authorships || work.authorships.length === 0) return [];
-  const candidates = [];
-  work.authorships.forEach((authorship, idx) => {
-    const score = Math.max(
-      nameSimilarity(props.authorName, authorship.raw_author_name || ''),
-      nameSimilarity(props.authorName, authorship.author?.display_name || '')
-    );
-    if (score >= 0.6) {
-      candidates.push({ idx, authorship, score });
-    }
-  });
-  return candidates.sort((a, b) => b.score - a.score);
+  const d = findMatchedAuthorshipCascadeDetail(work, props.authorName);
+  const score = d.idx >= 0 ? 1 : 0.6;
+  return d.candidateIdxs.map(idx => ({
+    idx,
+    authorship: work.authorships[idx],
+    score,
+  }));
 }
 
 const alreadyLinked = computed(() =>
