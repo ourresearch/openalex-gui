@@ -163,3 +163,61 @@ export function consumeSearchBoxFocus() {
   _focusSearchBoxOnMount = false;
   return f;
 }
+
+// --- Split-profile author detection (oxjob #820) ---
+// The search-box dropdown collapses author suggestions that share a display
+// name to the single highest-works profile (dedupeByName). For a researcher
+// whose works are split across several profiles that reads as "OpenAlex is
+// missing my papers": they click the one suggestion and see a fraction of
+// their work. These helpers detect the collapse so the dropdown can offer a
+// door to the full Authors search, where every matching profile is listed.
+
+/** Strip diacritics so "Mélanie" matches "Melanie". */
+export function latinize(str) {
+  return String(str ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+/** At least one query word must appear fully in the display_name (latinized, lowercased). */
+export function authorNameMatchesQuery(displayName, query) {
+  const nameNorm = latinize(displayName || '').toLowerCase();
+  const queryWords = latinize(query).toLowerCase().split(/\s+/).filter(Boolean);
+  return queryWords.some(word => nameNorm.includes(word));
+}
+
+/** Collapse same-name items to the one with the highest works_count. */
+export function dedupeByName(items) {
+  const map = new Map();
+  for (const item of items) {
+    const key = (item.display_name || '').toLowerCase();
+    const existing = map.get(key);
+    if (!existing || (item.works_count || 0) > (existing.works_count || 0)) {
+      map.set(key, item);
+    }
+  }
+  return [...map.values()];
+}
+
+/**
+ * Among raw (pre-dedupe) author results matching the query, find display names
+ * held by two or more profiles — the case where dedupeByName will collapse
+ * several profiles into one suggestion. Returns the shared display_name whose
+ * profiles have the highest works_count (i.e. the name of the one suggestion
+ * the user will actually see), or null when no collapse would happen.
+ */
+export function duplicatedAuthorName(rawAuthors, query) {
+  const matching = (rawAuthors || []).filter(a => authorNameMatchesQuery(a.display_name, query));
+  const byName = new Map();
+  for (const a of matching) {
+    const key = (a.display_name || '').toLowerCase();
+    if (!key) continue;
+    const entry = byName.get(key) || { name: a.display_name, count: 0, maxWorks: 0 };
+    entry.count += 1;
+    entry.maxWorks = Math.max(entry.maxWorks, a.works_count || 0);
+    byName.set(key, entry);
+  }
+  let best = null;
+  for (const entry of byName.values()) {
+    if (entry.count >= 2 && (!best || entry.maxWorks > best.maxWorks)) best = entry;
+  }
+  return best ? best.name : null;
+}

@@ -217,7 +217,7 @@
           v-for="(item, index) in suggestions"
           :key="item.id + '-' + item._acType"
           class="autocomplete-item d-flex align-center"
-          :class="{ 'autocomplete-item--highlighted': index === highlightedIndex }"
+          :class="{ 'autocomplete-item--highlighted': index === highlightedIndex, 'autocomplete-item--see-all': item._acType === 'seeAllAuthors' }"
           @mousedown.prevent="selectSuggestion(item)"
           @mouseenter="highlightedIndex = index"
         >
@@ -368,7 +368,7 @@ import { api } from '@/api';
 import { createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr } from '@/filterConfigs';
 import { url } from '@/url';
 import { facetConfigs } from '@/facetConfigs';
-import { extractIssn, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, requestSearchBoxFocus, consumeSearchBoxFocus } from '@/components/searchBox.helpers';
+import { extractIssn, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, requestSearchBoxFocus, consumeSearchBoxFocus, authorNameMatchesQuery, dedupeByName, duplicatedAuthorName } from '@/components/searchBox.helpers';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import { entityCounts, worksCoreCount, compactCount } from '@/entityCounts';
 import { getShortId } from '@/openalexId';
@@ -733,28 +733,8 @@ function countCompleteWords(str) {
   return Math.max(0, words.length - 1);
 }
 
-function latinize(str) {
-  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-}
-
-function authorNameMatchesQuery(displayName, query) {
-  // At least one query word must appear fully in the display_name (latinized, lowercased)
-  const nameNorm = latinize(displayName || '').toLowerCase();
-  const queryWords = latinize(query).toLowerCase().split(/\s+/).filter(Boolean);
-  return queryWords.some(word => nameNorm.includes(word));
-}
-
-function dedupeByName(items) {
-  const map = new Map();
-  for (const item of items) {
-    const key = (item.display_name || '').toLowerCase();
-    const existing = map.get(key);
-    if (!existing || (item.works_count || 0) > (existing.works_count || 0)) {
-      map.set(key, item);
-    }
-  }
-  return [...map.values()];
-}
+// latinize / authorNameMatchesQuery / dedupeByName moved to searchBox.helpers.js
+// (pure + unit-tested there, oxjob #820).
 
 function topByWorksCount(items, n) {
   return [...items].sort((a, b) => (b.works_count || 0) - (a.works_count || 0)).slice(0, n);
@@ -800,6 +780,9 @@ async function fetchSuggestions(query) {
   const signal = abortCtrl.signal;
   const currentEntity = entityType.value;
   const config = getEntityConfig(currentEntity);
+  // Set when several author profiles sharing one display name were collapsed
+  // into a single suggestion (see the "See all authors" row below, #820).
+  let seeAllName = null;
 
   // Kick off an ISSN→journal lookup in parallel; merged into the dropdown below.
   const issn = extractIssn(query);
@@ -830,6 +813,7 @@ async function fetchSuggestions(query) {
 
     let authors = tag(combo.authors, 'authors');
     authors = authors.filter(a => authorNameMatchesQuery(a.display_name, query));
+    seeAllName = duplicatedAuthorName(combo.authors, query);
     let institutions = tag(combo.institutions, 'institutions');
     let keywords = tag(combo.keywords, 'keywords');
     let works = includeWorks ? tag(combo.works, 'works') : [];
@@ -853,6 +837,7 @@ async function fetchSuggestions(query) {
     let items = tag(results, currentEntity);
     if (currentEntity === 'authors') {
       items = items.filter(a => authorNameMatchesQuery(a.display_name, query));
+      seeAllName = duplicatedAuthorName(results, query);
     }
     suggestions.value = topByWorksCount(items, 5);
   } else {
@@ -877,6 +862,21 @@ async function fetchSuggestions(query) {
       const item = { ...src, _acType: 'sources', _icon: entityIcon('sources') };
       suggestions.value = [item, ...suggestions.value.filter(s => s.id !== item.id)].slice(0, 5);
     }
+  }
+
+  // #820 (CNRS webinar Q5.4): when several author profiles share the typed
+  // name, dedupeByName collapsed them into one suggestion above. That one
+  // profile holds only part of the person's works, so clicking it reads as
+  // "OpenAlex is missing my papers". Append a door to the full ranked Authors
+  // search, where every matching profile is listed.
+  if (seeAllName && suggestions.value.some(s => s._acType === 'authors')) {
+    suggestions.value = [...suggestions.value, {
+      id: 'see-all-authors',
+      display_name: `See all authors named “${seeAllName}”`,
+      _acType: 'seeAllAuthors',
+      _icon: 'mdi-account-search',
+      _searchName: seeAllName,
+    }];
   }
 
   highlightedIndex.value = -1;
@@ -905,6 +905,18 @@ function selectSuggestion(item) {
   isUserTyping.value = false;
   dismissDropdown();
   searchString.value = '';
+
+  // The "See all authors named …" row (#820) routes to the full ranked Authors
+  // search — a fresh query (no carried-over filters), the same destination as
+  // switching the entity selector to Authors and pressing Enter.
+  if (item._acType === 'seeAllAuthors') {
+    url.pushToRoute(router, {
+      name: 'Serp',
+      params: { entityType: 'authors' },
+      query: { search: item._searchName, page: 1, sort: 'relevance_score:desc' },
+    });
+    return;
+  }
 
   // Non-native ids are namespaced (https://openalex.org/keywords/kelp), so
   // stripping only the domain double-prefixes the route (/keywords/keywords%2Fkelp).
@@ -1342,6 +1354,17 @@ function focusSearchInput() {
   font-weight: 500;
   color: #1a1a1a;
   line-height: 1.4;
+}
+
+/* The "See all authors named …" door (#820): reads as a footer action, not an
+   entity row — separated by a hairline, medium-emphasis text. */
+.autocomplete-item--see-all {
+  border-top: 1px solid #F3F4F6;
+
+  .autocomplete-item-name {
+    color: #6B7280;
+    font-weight: 400;
+  }
 }
 
 </style>

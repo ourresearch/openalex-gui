@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extractIssn, extractOpenalexId, hasUnquotedWildcard, looksLikeOql } from '../components/searchBox.helpers.js';
+import { extractIssn, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, dedupeByName, duplicatedAuthorName } from '../components/searchBox.helpers.js';
 
 describe('extractIssn', () => {
   it('accepts a canonical hyphenated ISSN', () => {
@@ -196,5 +196,79 @@ describe('looksLikeOql', () => {
     expect(looksLikeOql(null)).toBe(false);
     expect(looksLikeOql(undefined)).toBe(false);
     expect(looksLikeOql(42)).toBe(false);
+  });
+});
+
+// --- Split-profile author detection (oxjob #820) ---
+
+describe('dedupeByName', () => {
+  it('keeps the highest-works profile per display name', () => {
+    const items = [
+      { id: 'A1', display_name: 'Philippe Houdry', works_count: 1 },
+      { id: 'A2', display_name: 'Philippe Houdry', works_count: 6 },
+      { id: 'A3', display_name: 'Someone Else', works_count: 3 },
+    ];
+    const out = dedupeByName(items);
+    expect(out).toHaveLength(2);
+    expect(out.find(i => i.display_name === 'Philippe Houdry').id).toBe('A2');
+  });
+
+  it('compares names case-insensitively', () => {
+    const out = dedupeByName([
+      { id: 'A1', display_name: 'wei zhang', works_count: 1 },
+      { id: 'A2', display_name: 'Wei Zhang', works_count: 2 },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0].id).toBe('A2');
+  });
+});
+
+describe('duplicatedAuthorName', () => {
+  it('returns the shared name when several profiles share it', () => {
+    const raw = [
+      { display_name: 'Philippe Houdry', works_count: 6 },
+      { display_name: 'Philippe Houdry', works_count: 1 },
+      { display_name: 'Philippe Houdry', works_count: 2 },
+    ];
+    expect(duplicatedAuthorName(raw, 'philippe houdry')).toBe('Philippe Houdry');
+  });
+
+  it('returns null when every matching profile has a distinct name', () => {
+    const raw = [
+      { display_name: 'Philippe Houdry', works_count: 6 },
+      { display_name: 'Philippe Houdrier', works_count: 2 },
+    ];
+    expect(duplicatedAuthorName(raw, 'philippe')).toBe(null);
+  });
+
+  it('ignores duplicated names that do not match the query', () => {
+    const raw = [
+      { display_name: 'John Smith', works_count: 5 },
+      { display_name: 'John Smith', works_count: 3 },
+    ];
+    expect(duplicatedAuthorName(raw, 'philippe')).toBe(null);
+  });
+
+  it('picks the duplicated name whose profiles have the highest works_count', () => {
+    const raw = [
+      { display_name: 'Wei Zhang', works_count: 100 },
+      { display_name: 'Wei Zhang', works_count: 50 },
+      { display_name: 'Wei Zhang Jr', works_count: 2 },
+      { display_name: 'Wei Zhang Jr', works_count: 1 },
+    ];
+    expect(duplicatedAuthorName(raw, 'wei zhang')).toBe('Wei Zhang');
+  });
+
+  it('matches names with diacritics against an unaccented query', () => {
+    const raw = [
+      { display_name: 'Mélanie Marcon', works_count: 2 },
+      { display_name: 'Mélanie Marcon', works_count: 1 },
+    ];
+    expect(duplicatedAuthorName(raw, 'melanie marcon')).toBe('Mélanie Marcon');
+  });
+
+  it('handles empty and null input', () => {
+    expect(duplicatedAuthorName([], 'x')).toBe(null);
+    expect(duplicatedAuthorName(null, 'x')).toBe(null);
   });
 });
