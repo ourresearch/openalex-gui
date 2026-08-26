@@ -219,7 +219,6 @@
           class="autocomplete-item d-flex align-center"
           :class="{ 'autocomplete-item--highlighted': index === highlightedIndex }"
           @mousedown.prevent="selectSuggestion(item)"
-          @mouseenter="highlightedIndex = index"
         >
           <v-icon size="16" class="autocomplete-item-icon">{{ item._icon }}</v-icon>
           <div class="autocomplete-item-name">{{ item.display_name }}</div>
@@ -893,6 +892,13 @@ watch(searchString, (val) => {
 });
 
 function dismissDropdown() {
+  // Kill anything in flight (#820 r4): a pending debounced fetch — or a slow
+  // response landing after dismissal — would silently reopen the dropdown
+  // after a submit/blur/route change, and could flip the footer's target
+  // between two quick Enters.
+  debouncedFetch.cancel();
+  fetchAbort?.abort();
+  fetchId++;
   dropdownOpen.value = false;
   highlightedIndex.value = -1;
 }
@@ -1351,6 +1357,12 @@ function focusSearchInput() {
   cursor: pointer;
   transition: background-color 0.1s ease;
 
+  /* Hover feedback is CSS-only (#820 r4): hover must NOT set highlightedIndex.
+     When the dropdown renders under a stationary cursor, Chrome fires a
+     synthetic mouseenter, and Enter would then "select" a suggestion the user
+     never touched. Enter honors only the keyboard (arrow-key) highlight; the
+     mouse selects by clicking. */
+  &:hover,
   &--highlighted {
     background-color: #F3F4F6;
   }
