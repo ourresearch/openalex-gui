@@ -868,14 +868,20 @@ async function fetchSuggestions(query) {
   // name, dedupeByName collapsed them into one suggestion above. That one
   // profile holds only part of the person's works, so clicking it reads as
   // "OpenAlex is missing my papers". Append a door to the full ranked Authors
-  // search, where every matching profile is listed.
-  if (seeAllName && suggestions.value.some(s => s._acType === 'authors')) {
+  // search, where every matching profile is listed. The row echoes the TYPED
+  // text (not the collapsed profile's display name — that surfaced names the
+  // user never typed, e.g. "Sidney C. Smith" for query "smith"), and only
+  // appears when every visible suggestion is an author — a mixed list means
+  // the query reads as a general term, not a person's name (#820 r2).
+  const typedName = query.trim();
+  if (seeAllName && typedName &&
+      suggestions.value.length > 0 && suggestions.value.every(s => s._acType === 'authors')) {
     suggestions.value = [...suggestions.value, {
       id: 'see-all-authors',
-      display_name: `See all authors named “${seeAllName}”`,
+      display_name: `See all authors named “${typedName}”`,
       _acType: 'seeAllAuthors',
       _icon: 'mdi-account-search',
-      _searchName: seeAllName,
+      _searchName: typedName,
     }];
   }
 
