@@ -296,3 +296,144 @@ export function makeResultComparator(detectedType) {
     return (b.cited_by_count || 0) - (a.cited_by_count || 0);
   };
 }
+
+// ---------------------------------------------------------------------------
+// Cascading authorship matcher (oxjob #882).
+//
+// Why: when a claimant adds a work by title/DOI/ID and the strict matcher
+// above can't find them in the author list, AddWorksSearch.vue used to fall
+// back to authorships[0] — silently attaching the claimant to the FIRST
+// author and hijacking an innocent co-author's authorship (~420 organic
+// cases since May 2026; CNRS-076/077 incident). The cascade tries
+// progressively looser name rules, but accepts a looser rule's answer ONLY
+// when it identifies exactly ONE authorship. If a loose tier matches 2+
+// slots the answer is ambiguous and we refuse (-1) — never guess.
+//
+// Tiers (strict → loose):
+//   1. The exact rule `findMatchedAuthorship` applies today (first hit wins
+//      — bit-compatible with historical good matches).
+//   2. Comma-order variants: `nameTokens` assumes a comma means
+//      "Family, Given" and flips; bylines like "Laureline, Lemoine," are
+//      actually "Given, Family," so try BOTH interpretations of both the
+//      query and the candidate under the strict rule.
+//   3. Initials, position-free: the query's family token must equal SOME
+//      candidate token, and every query given token must full- or
+//      initial-match a distinct remaining candidate token (candidate-side
+//      extra tokens — middle names — are fine; a surname-only candidate
+//      passes).
+//   4. Any-token overlap: some full (length ≥2) token shared between the
+//      two names.
+// Tiers 2-4 are uniqueness-gated. No tier matches → -1 (caller must
+// refuse to attach, NOT default to slot 0).
+
+// Both plausible token interpretations of a name: comma-flipped (the
+// `nameTokens` default, "Family, Given") and literal order (comma treated
+// as noise, for "Given, Family," bylines). Deduped; [] for empty input.
+export function nameTokenVariants(name) {
+  const flipped = nameTokens(name);
+  const literal = nameTokens((name || '').replace(/,/g, ' '));
+  const out = [];
+  if (flipped.length) out.push(flipped);
+  if (literal.length && literal.join(' ') !== flipped.join(' ')) {
+    out.push(literal);
+  }
+  return out;
+}
+
+// The strict rule of `authorshipMatches`, expressed over token arrays so
+// it can be applied to any ordering variant pair.
+function tokensStrictMatch(qT, cT) {
+  if (!qT.length || !cT.length) return false;
+  if (qT[qT.length - 1] !== cT[cT.length - 1]) return false;
+  if (qT.length === 1) return true;
+  return givenMatch(qT[0], cT[0]);
+}
+
+// Tier-3 rule. Position-free within the candidate: the query surname
+// (last token) must appear verbatim among the candidate tokens; each
+// remaining query token must full- or initial-match a DISTINCT remaining
+// candidate token. A candidate reduced to only the surname passes (e.g.
+// byline "Lemoine"). Extra unmatched candidate tokens are allowed.
+function tokensInitialsMatch(qT, cT) {
+  if (!qT.length || !cT.length) return false;
+  const surname = qT[qT.length - 1];
+  const si = cT.indexOf(surname);
+  if (si < 0) return false;
+  const rest = cT.slice(0, si).concat(cT.slice(si + 1));
+  const givens = qT.slice(0, -1);
+  if (!givens.length || !rest.length) return true;
+  const used = new Array(rest.length).fill(false);
+  for (const g of givens) {
+    let found = -1;
+    for (let i = 0; i < rest.length; i++) {
+      if (!used[i] && givenMatch(g, rest[i])) { found = i; break; }
+    }
+    if (found < 0) return false;
+    used[found] = true;
+  }
+  return true;
+}
+
+// Tier-4 rule: any shared full token (length ≥2 — single letters collide
+// on initials far too easily to identify a person).
+function tokensOverlapMatch(qT, cT) {
+  const cSet = new Set(cT);
+  return qT.some(t => t.length >= 2 && cSet.has(t));
+}
+
+// Returns the index of the ONE authorship the cascade confidently
+// identifies as `queryName`, or -1 (no confident match / ambiguous).
+export function findMatchedAuthorshipCascade(work, queryName) {
+  return findMatchedAuthorshipCascadeDetail(work, queryName).idx;
+}
+
+// Same as `findMatchedAuthorshipCascade`, but also reports WHICH tier
+// decided: `{ idx, tier }` where tier is 1-4 for a match, 'ambiguous'
+// when a loose tier found 2+ slots (refused), and 'none' when nothing
+// matched. Used by corpus-audit tooling (oxjob #882); the component
+// only needs the idx.
+export function findMatchedAuthorshipCascadeDetail(work, queryName) {
+  const auths = work.authorships || [];
+  if (!auths.length) return { idx: -1, tier: 'none' };
+  const qVariants = nameTokenVariants(queryName);
+  if (!qVariants.length) return { idx: -1, tier: 'none' };
+
+  // Tier 1 — today's strict rule, first hit wins.
+  const strictIdx = findMatchedAuthorship(work, queryName);
+  if (strictIdx >= 0) return { idx: strictIdx, tier: 1 };
+
+  const candVariants = auths.map(a =>
+    nameTokenVariants(a.raw_author_name || a.author?.display_name || '')
+  );
+
+  const tierPredicates = [
+    // Tier 2 — strict rule over every (query, candidate) ordering pair.
+    i => qVariants.some(q =>
+      candVariants[i].some(c => tokensStrictMatch(q, c))
+    ),
+    // Tier 3 — initials, position-free (token multiset; ordering variant
+    // of the candidate is irrelevant, so use the first).
+    i => candVariants[i].length > 0 && qVariants.some(q =>
+      tokensInitialsMatch(q, candVariants[i][0])
+    ),
+    // Tier 4 — any full-token overlap (both sides order-free).
+    i => candVariants[i].length > 0 &&
+      tokensOverlapMatch(qVariants[0], candVariants[i][0]),
+  ];
+
+  for (let t = 0; t < tierPredicates.length; t++) {
+    const pred = tierPredicates[t];
+    let hit = -1;
+    let ambiguous = false;
+    for (let i = 0; i < auths.length; i++) {
+      if (!pred(i)) continue;
+      if (hit >= 0) { ambiguous = true; break; }
+      hit = i;
+    }
+    // 2+ hits at a loose tier: the tier can't tell WHICH slot is the
+    // claimant, and every looser tier is a superset — refuse outright.
+    if (ambiguous) return { idx: -1, tier: 'ambiguous' };
+    if (hit >= 0) return { idx: hit, tier: t + 2 };
+  }
+  return { idx: -1, tier: 'none' };
+}

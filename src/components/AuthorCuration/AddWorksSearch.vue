@@ -65,6 +65,14 @@
         This work is already on your author profile.
       </div>
 
+      <!-- Work found, but no confident authorship match (oxjob #882):
+           we never guess — the old behavior attached the claimant to
+           the FIRST author, hijacking a co-author's authorship. -->
+      <div v-else-if="noMatchInAuthorList && !isSearching" class="text-body-2 text-medium-emphasis pa-4">
+        <v-icon size="18" class="mr-1">mdi-account-question-outline</v-icon>
+        We found that work, but we couldn't confidently match your name in its author list, so it can't be added automatically. If it's your work, please contact support and we'll add it for you.
+      </div>
+
       <!-- No results (entire merged set is empty) -->
       <div v-else-if="hasSearched && !isSearching && results.length === 0" class="text-body-2 text-medium-emphasis pa-4">
         <v-icon size="18" class="mr-1">mdi-file-search-outline</v-icon>
@@ -193,6 +201,7 @@ import {
   isAlreadyOnProfile,
   mergeSortPreflight,
   MIN_TITLE_SEARCH_WORDS,
+  findMatchedAuthorshipCascade,
 } from './addWorksSearch.helpers.js';
 
 defineOptions({ name: 'AddWorksSearch' });
@@ -240,6 +249,11 @@ const visibleCount = ref(PAGE_SIZE);
 const isSearching = ref(false);
 const hasSearched = ref(false);
 const alreadyOnProfile = ref(false);
+// oxjob #882: DOI/ID lookup found the work, but the cascade matcher
+// couldn't confidently identify the claimant in its author list — we
+// refused to attach rather than guessing. Drives an explanatory
+// empty-state instead of a misleading "No works found".
+const noMatchInAuthorList = ref(false);
 const bodyEl = ref(null);
 // Phase 4 (oxjob #240): which tab is active — 'not' = works NOT yet on
 // the user's profile (default, the add-flow target), 'in' = works
@@ -330,8 +344,15 @@ function transformWork(work, source) {
     useIdx = findMatchedAuthorship(work, matchName);
     if (useIdx < 0) return null;
   } else {
-    useIdx = findMatchedAuthorship(work, props.authorName);
-    if (useIdx < 0) useIdx = 0;
+    // oxjob #882: never guess. The old `if (useIdx < 0) useIdx = 0`
+    // fallback silently attached the claimant to the FIRST author
+    // whenever no name matched — hijacking an innocent co-author's
+    // authorship (~420 organic cases since May; CNRS-076/077). The
+    // cascade tries progressively looser name rules (comma orderings,
+    // initials, token overlap), each accepted only on a UNIQUE hit;
+    // when it can't decide (-1) we refuse to attach and drop the row.
+    useIdx = findMatchedAuthorshipCascade(work, props.authorName);
+    if (useIdx < 0) return null;
   }
   const a = work.authorships[useIdx];
   work._matchedIdx = useIdx;
@@ -393,6 +414,7 @@ async function doSearch() {
   isSearching.value = true;
   hasSearched.value = true;
   alreadyOnProfile.value = false;
+  noMatchInAuthorList.value = false;
   commonNameHint.value = '';
   overshootHint.value = false;
   results.value = [];
@@ -437,6 +459,12 @@ async function doSearch() {
       );
       if (rawResults.length === 0 && before > 0) alreadyOnProfile.value = true;
       results.value = transformWorks(rawResults, 'doi');
+      // oxjob #882: the work exists but every row was dropped because
+      // no authorship confidently matched the claimant — tell the user
+      // why instead of showing a misleading "No works found".
+      if (before > 0 && !alreadyOnProfile.value && results.value.length === 0) {
+        noMatchInAuthorList.value = true;
+      }
       return;
     }
 
@@ -601,6 +629,7 @@ function clearResults() {
   results.value = [];
   hasSearched.value = false;
   alreadyOnProfile.value = false;
+  noMatchInAuthorList.value = false;
   commonNameHint.value = '';
   overshootHint.value = false;
   visibleCount.value = PAGE_SIZE;

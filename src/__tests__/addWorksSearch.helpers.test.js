@@ -519,3 +519,124 @@ describe('mergeSortPreflight', () => {
     expect(mergeSortPreflight([], [tag('B', { source: 'title' })], 'title').map(w => w.id)).toEqual(['B']);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Cascading matcher (oxjob #882)
+
+import {
+  nameTokenVariants,
+  findMatchedAuthorshipCascade,
+} from '../components/AuthorCuration/addWorksSearch.helpers.js';
+
+describe('nameTokenVariants', () => {
+  it('returns one variant for comma-free names', () => {
+    expect(nameTokenVariants('Jason Priem')).toEqual([['jason', 'priem']]);
+  });
+
+  it('returns both interpretations for comma names', () => {
+    expect(nameTokenVariants('Priem, Jason')).toEqual([
+      ['jason', 'priem'],
+      ['priem', 'jason'],
+    ]);
+  });
+
+  it('handles the incident byline "Laureline, Lemoine,"', () => {
+    expect(nameTokenVariants('Laureline, Lemoine,')).toEqual([
+      ['lemoine', 'laureline'],
+      ['laureline', 'lemoine'],
+    ]);
+  });
+
+  it('returns [] for empty/garbage input', () => {
+    expect(nameTokenVariants('')).toEqual([]);
+    expect(nameTokenVariants(null)).toEqual([]);
+  });
+});
+
+describe('findMatchedAuthorshipCascade', () => {
+  it('tier 1: agrees with findMatchedAuthorship when the strict rule hits', () => {
+    const work = mkWork('A. Coauthor', 'Jason Priem', 'B. Coauthor');
+    expect(findMatchedAuthorshipCascade(work, 'Jason Priem')).toBe(
+      findMatchedAuthorship(work, 'Jason Priem')
+    );
+    expect(findMatchedAuthorshipCascade(work, 'Jason Priem')).toBe(1);
+  });
+
+  it('tier 1: keeps first-hit-wins semantics of the strict rule', () => {
+    const work = mkWork('Jason Priem', 'J. Priem');
+    expect(findMatchedAuthorshipCascade(work, 'Jason Priem')).toBe(0);
+  });
+
+  it('tier 2: resolves the CNRS incident — reversed-comma byline attaches to the RIGHT slot, not slot 0', () => {
+    // W7105729755: Laureline's byline is "Laureline, Lemoine," (Given,
+    // Family). The old matcher reversed it, failed, and fell back to the
+    // first author (Victoria) — the bug this job fixes.
+    const work = mkWork(
+      'Pfeffer-Meyer, Victoria',
+      'Dupont, Alice',
+      'Laureline, Lemoine,'
+    );
+    expect(findMatchedAuthorshipCascade(work, 'Laureline Lemoine')).toBe(2);
+  });
+
+  it('tier 2: query-side comma variants also work', () => {
+    const work = mkWork('A. Coauthor', 'Jason Priem');
+    expect(findMatchedAuthorshipCascade(work, 'Jason, Priem,')).toBe(1);
+  });
+
+  it('tier 3: initials out of strict position', () => {
+    // "Lemoine L." tokenizes to [lemoine, l] — surname not last, so the
+    // strict rule and comma variants both miss; position-free initials
+    // matching finds it.
+    const work = mkWork('Pfeffer-Meyer, Victoria', 'Lemoine L.');
+    expect(findMatchedAuthorshipCascade(work, 'Laureline Lemoine')).toBe(1);
+  });
+
+  it('tier 4 design tradeoff: a UNIQUE surname-only overlap does attach', () => {
+    // "Bob Lemoine" shares only the surname, but it is the single
+    // token-overlapping slot on the work — per the #882 cascade design
+    // the loosest tier accepts a unique any-token-overlap hit. The
+    // uniqueness gate is the guard: add a second Lemoine and it refuses
+    // (see ambiguity test below).
+    const work = mkWork('Bob Lemoine', 'Someone Else');
+    expect(findMatchedAuthorshipCascade(work, 'Laureline Lemoine')).toBe(0);
+  });
+
+  it('tier 4: surname overlap on TWO slots is ambiguous — refuses', () => {
+    const work = mkWork('Bob Lemoine', 'Ann Lemoine');
+    expect(findMatchedAuthorshipCascade(work, 'Laureline Lemoine')).toBe(-1);
+  });
+
+  it('tier 4: unique full-token overlap (mangled surname)', () => {
+    const work = mkWork('Smith John', 'Lemoinne Laureline');
+    expect(findMatchedAuthorshipCascade(work, 'Laureline Lemoine')).toBe(1);
+  });
+
+  it('refuses on ambiguity at a loose tier instead of guessing', () => {
+    const work = mkWork('Lemoine L.', 'Lemoine L. B.');
+    expect(findMatchedAuthorshipCascade(work, 'Laureline Lemoine')).toBe(-1);
+  });
+
+  it('refuses junk authorship lists — the ":none" case', () => {
+    // W7108204801: the work's only authorship is the literal string
+    // ":none". The old fallback attached the claimant to it.
+    const work = mkWork(':none');
+    expect(findMatchedAuthorshipCascade(work, 'Laureline Lemoine')).toBe(-1);
+  });
+
+  it('refuses when nothing overlaps at all', () => {
+    const work = mkWork('Pfeffer-Meyer, Victoria', 'Dupont, Alice');
+    expect(findMatchedAuthorshipCascade(work, 'Laureline Lemoine')).toBe(-1);
+  });
+
+  it('handles empty inputs', () => {
+    expect(findMatchedAuthorshipCascade({ authorships: [] }, 'X Y')).toBe(-1);
+    expect(findMatchedAuthorshipCascade(mkWork('A B'), '')).toBe(-1);
+  });
+
+  it('single-letter tokens never drive tier-4 overlap', () => {
+    // Sharing only the initial "l" must not identify a person.
+    const work = mkWork('L. Dubois', 'M. Martin');
+    expect(findMatchedAuthorshipCascade(work, 'L. Lemoine')).toBe(-1);
+  });
+});
