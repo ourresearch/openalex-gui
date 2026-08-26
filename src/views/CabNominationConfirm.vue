@@ -9,7 +9,7 @@
               {{ result.status === 'confirmed' ? 'mdi-check-circle' : 'mdi-close-circle-outline' }}
             </v-icon>
             <div class="text-h6 font-weight-bold">
-              {{ result.status === 'confirmed' ? "You're on the ballot!" : 'Nomination declined' }}
+              {{ result.status === 'confirmed' ? "You're on the ballot!" : "You're off the ballot" }}
             </div>
           </div>
           <div class="text-body-2 text-medium-emphasis">
@@ -19,8 +19,8 @@
               sitting board announces the new members in December. We'll be in touch.
             </template>
             <template v-else>
-              No problem — you won't appear on the ballot, and the nominating organization can
-              put someone else forward. Thanks for considering it.
+              No problem — you've been removed from the ballot, and the nominating organization
+              can put someone else forward. Thanks for considering it.
             </template>
           </div>
         </template>
@@ -40,30 +40,37 @@
             Community Advisory Board nomination
           </div>
           <div class="text-body-2 text-medium-emphasis mb-6">
-            You've been nominated to stand for the OpenAlex Community Advisory Board. So you
-            know what you'd be signing up for: a two-year term with quarterly 90-minute
-            meetings, readings in advance of each meeting, and the possibility of serving on
-            specific working groups. Please confirm whether you're willing to appear on the
-            ballot.
+            You've been nominated to stand for the OpenAlex Community Advisory Board, and your
+            nominating organization has confirmed you agreed — so you're on the ballot, and if
+            you're happy to stand there's nothing you need to do. If you did not agree to this
+            nomination, or you'd rather not stand this year, you can remove yourself here.
           </div>
+          <!-- Two-step so a stray click can't take someone off the ballot. -->
           <v-btn
-            color="primary"
-            variant="flat"
-            class="mr-2"
-            :loading="submitting === 'confirm'"
-            :disabled="!!submitting"
-            @click="respond('confirm')"
-          >
-            Confirm my candidacy
-          </v-btn>
-          <v-btn
+            v-if="!armed"
             variant="outlined"
-            :loading="submitting === 'decline'"
-            :disabled="!!submitting"
-            @click="respond('decline')"
+            color="error"
+            @click="armed = true"
           >
-            Decline
+            Remove me from the ballot
           </v-btn>
+          <template v-else>
+            <div class="text-body-2 mb-3">
+              This takes you off the ballot for this election. Are you sure?
+            </div>
+            <v-btn
+              color="error"
+              variant="flat"
+              class="mr-2"
+              :loading="submitting"
+              @click="respond('decline')"
+            >
+              Yes, remove me
+            </v-btn>
+            <v-btn variant="outlined" :disabled="submitting" @click="armed = false">
+              Cancel
+            </v-btn>
+          </template>
         </template>
       </v-card-text>
     </v-card>
@@ -79,38 +86,44 @@ import { urlBase, axiosConfig } from '@/apiConfig';
 
 defineOptions({ name: 'CabNominationConfirm' });
 
-useHead({ title: 'Confirm your nomination - OpenAlex' });
+useHead({ title: 'Your nomination - OpenAlex' });
 
 const route = useRoute();
 
 const result = ref(null);
 const error = ref('');
-const submitting = ref('');
+const submitting = ref(false);
+const armed = ref(false);
 
-// Deliberately click-to-confirm (never auto-submit on load): email link
-// prefetchers follow GETs, and confirming candidacy should be a human act.
-// The `action` query param from the email just labels which button was
-// clicked there; the user still confirms on this page.
+// Nominations are confirmed at submission (the nominator attests consent), so
+// this page is the nominee's escape hatch: the tokened link in their record
+// email lands here, and the only action is removing themselves from the
+// ballot. Deliberately click-to-act (never auto-submit on load): email link
+// prefetchers follow GETs, and leaving the ballot should be a human act.
 
 onMounted(() => {
   if (!route.query.token) {
-    error.value = 'This confirmation link is missing its token. Please use the link from your email, or contact support@openalex.org.';
+    error.value = 'This link is missing its token. Please use the link from your email, or contact support@openalex.org.';
   }
 });
 
 async function respond(action) {
-  submitting.value = action;
+  submitting.value = true;
   try {
+    // userAuth (not the default config): the default attaches the
+    // X-OpenAlex-UI provenance header meant for api.openalex.org, which the
+    // user API's CORS preflight rejected — the bug that broke this page for
+    // HHMI's nominee. The emailed token is the only credential needed here.
     const res = await axios.post(
       `${urlBase.userApi}/cab/nomination-confirmations`,
       { token: route.query.token, action },
-      axiosConfig()
+      axiosConfig({ userAuth: true })
     );
     result.value = res.data;
   } catch (e) {
     error.value = e?.response?.data?.message || 'This link is invalid or has expired. Contact support@openalex.org if you think that\'s a mistake.';
   } finally {
-    submitting.value = '';
+    submitting.value = false;
   }
 }
 </script>

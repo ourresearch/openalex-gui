@@ -120,7 +120,9 @@
               <p class="text-body-2 text-medium-emphasis mb-4">
                 Please talk to your nominee first: board membership means a quarterly 90-minute
                 meeting, readings in advance of each meeting, and possibly serving on specific
-                working groups. We'll email them to confirm before they appear on the ballot.
+                working groups. Once you confirm they've agreed to stand, they go straight onto
+                the ballot — we'll email you both a record of the nomination, and they can
+                remove themselves if anything's off.
                 <span v-if="nomination && nomination.status !== 'withdrawn'">
                   Submitting replaces your current nomination.
                 </span>
@@ -387,7 +389,7 @@ async function submitNomination() {
       body,
       axiosConfig({ userAuth: true })
     );
-    store.commit('snackbar', `Nomination submitted — we've emailed ${form.value.nominee_name} to confirm.`);
+    store.commit('snackbar', `Nomination submitted — ${form.value.nominee_name} is on the ballot.`);
     showForm.value = false;
     await fetchAll();
   } catch (e) {
