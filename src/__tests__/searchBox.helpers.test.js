@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extractIssn, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, dedupeByName, duplicatedAuthorName } from '../components/searchBox.helpers.js';
+import { extractIssn, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, dedupeByName, footerSearchEntityType } from '../components/searchBox.helpers.js';
 
 describe('extractIssn', () => {
   it('accepts a canonical hyphenated ISSN', () => {
@@ -223,52 +223,38 @@ describe('dedupeByName', () => {
   });
 });
 
-describe('duplicatedAuthorName', () => {
-  it('returns the shared name when several profiles share it', () => {
-    const raw = [
-      { display_name: 'Philippe Houdry', works_count: 6 },
-      { display_name: 'Philippe Houdry', works_count: 1 },
-      { display_name: 'Philippe Houdry', works_count: 2 },
-    ];
-    expect(duplicatedAuthorName(raw, 'philippe houdry')).toBe('Philippe Houdry');
+
+describe('footerSearchEntityType', () => {
+  it('swaps to authors when every suggestion is an author', () => {
+    expect(footerSearchEntityType(['authors', 'authors', 'authors'], 'works')).toBe('authors');
   });
 
-  it('returns null when every matching profile has a distinct name', () => {
-    const raw = [
-      { display_name: 'Philippe Houdry', works_count: 6 },
-      { display_name: 'Philippe Houdrier', works_count: 2 },
-    ];
-    expect(duplicatedAuthorName(raw, 'philippe')).toBe(null);
+  it('swaps to sources / institutions when homogeneous', () => {
+    expect(footerSearchEntityType(['sources', 'sources'], 'works')).toBe('sources');
+    expect(footerSearchEntityType(['institutions'], 'works')).toBe('institutions');
   });
 
-  it('ignores duplicated names that do not match the query', () => {
-    const raw = [
-      { display_name: 'John Smith', works_count: 5 },
-      { display_name: 'John Smith', works_count: 3 },
-    ];
-    expect(duplicatedAuthorName(raw, 'philippe')).toBe(null);
+  it('stays on the current entity for mixed lists', () => {
+    expect(footerSearchEntityType(['authors', 'institutions', 'keywords'], 'works')).toBe('works');
+    expect(footerSearchEntityType(['authors', 'authors', 'keywords'], 'works')).toBe('works');
   });
 
-  it('picks the duplicated name whose profiles have the highest works_count', () => {
-    const raw = [
-      { display_name: 'Wei Zhang', works_count: 100 },
-      { display_name: 'Wei Zhang', works_count: 50 },
-      { display_name: 'Wei Zhang Jr', works_count: 2 },
-      { display_name: 'Wei Zhang Jr', works_count: 1 },
-    ];
-    expect(duplicatedAuthorName(raw, 'wei zhang')).toBe('Wei Zhang');
+  it('does not swap for non-swappable homogeneous types', () => {
+    expect(footerSearchEntityType(['keywords', 'keywords'], 'works')).toBe('works');
+    expect(footerSearchEntityType(['works', 'works'], 'works')).toBe('works');
+    expect(footerSearchEntityType(['topics'], 'works')).toBe('works');
   });
 
-  it('matches names with diacritics against an unaccented query', () => {
-    const raw = [
-      { display_name: 'Mélanie Marcon', works_count: 2 },
-      { display_name: 'Mélanie Marcon', works_count: 1 },
-    ];
-    expect(duplicatedAuthorName(raw, 'melanie marcon')).toBe('Mélanie Marcon');
+  it('stays on the current entity for empty or missing lists', () => {
+    expect(footerSearchEntityType([], 'works')).toBe('works');
+    expect(footerSearchEntityType(null, 'topics')).toBe('topics');
   });
 
-  it('handles empty and null input', () => {
-    expect(duplicatedAuthorName([], 'x')).toBe(null);
-    expect(duplicatedAuthorName(null, 'x')).toBe(null);
+  it('a single author suggestion still swaps (no dupes required)', () => {
+    expect(footerSearchEntityType(['authors'], 'works')).toBe('authors');
+  });
+
+  it('is a no-op swap on that entity\'s own SERP', () => {
+    expect(footerSearchEntityType(['authors', 'authors'], 'authors')).toBe('authors');
   });
 });

@@ -217,13 +217,25 @@
           v-for="(item, index) in suggestions"
           :key="item.id + '-' + item._acType"
           class="autocomplete-item d-flex align-center"
-          :class="{ 'autocomplete-item--highlighted': index === highlightedIndex, 'autocomplete-item--see-all': item._acType === 'seeAllAuthors' }"
+          :class="{ 'autocomplete-item--highlighted': index === highlightedIndex }"
           @mousedown.prevent="selectSuggestion(item)"
           @mouseenter="highlightedIndex = index"
         >
           <v-icon size="16" class="autocomplete-item-icon">{{ item._icon }}</v-icon>
           <div class="autocomplete-item-name">{{ item.display_name }}</div>
         </div>
+      </div>
+      <!-- Footer = the full SERP search, which is what a bare Enter does (#820 r3).
+           Normally "Search works for …"; when every suggestion is one of
+           authors/sources/institutions it swaps to that type, so e.g. a typed
+           person's name puts the full ranked author-profile list one Enter away
+           (the CNRS Q5.4 "my works are missing" fix, generalized). -->
+      <div class="autocomplete-footer d-flex align-center" @mousedown.prevent="submitFooter">
+        <v-icon size="16" class="autocomplete-item-icon">mdi-magnify</v-icon>
+        <div class="autocomplete-footer-text">
+          Search {{ footerEntityType }} for <em>{{ searchString.trim() }}</em>
+        </div>
+        <span class="enter-keycap">enter</span>
       </div>
     </div>
 
@@ -368,7 +380,7 @@ import { api } from '@/api';
 import { createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr } from '@/filterConfigs';
 import { url } from '@/url';
 import { facetConfigs } from '@/facetConfigs';
-import { extractIssn, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, requestSearchBoxFocus, consumeSearchBoxFocus, authorNameMatchesQuery, dedupeByName, duplicatedAuthorName } from '@/components/searchBox.helpers';
+import { extractIssn, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, requestSearchBoxFocus, consumeSearchBoxFocus, authorNameMatchesQuery, dedupeByName, footerSearchEntityType } from '@/components/searchBox.helpers';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import { entityCounts, worksCoreCount, compactCount } from '@/entityCounts';
 import { getShortId } from '@/openalexId';
@@ -556,6 +568,10 @@ const highlightedIndex = ref(-1);
 const dropdownOpen = ref(false);
 const isUserTyping = ref(false);
 const showDropdown = computed(() => dropdownOpen.value && suggestions.value.length > 0);
+// The dropdown footer's target (#820 r3): the current entity type, swapped to
+// authors/sources/institutions when EVERY visible suggestion is that one type.
+const footerEntityType = computed(() =>
+  footerSearchEntityType(suggestions.value.map(s => s._acType), entityType.value));
 const showRow2 = ref(true);
 const isWorksEntity = computed(() => entityType.value === 'works');
 
@@ -780,9 +796,6 @@ async function fetchSuggestions(query) {
   const signal = abortCtrl.signal;
   const currentEntity = entityType.value;
   const config = getEntityConfig(currentEntity);
-  // Set when several author profiles sharing one display name were collapsed
-  // into a single suggestion (see the "See all authors" row below, #820).
-  let seeAllName = null;
 
   // Kick off an ISSN→journal lookup in parallel; merged into the dropdown below.
   const issn = extractIssn(query);
@@ -813,7 +826,6 @@ async function fetchSuggestions(query) {
 
     let authors = tag(combo.authors, 'authors');
     authors = authors.filter(a => authorNameMatchesQuery(a.display_name, query));
-    seeAllName = duplicatedAuthorName(combo.authors, query);
     let institutions = tag(combo.institutions, 'institutions');
     let keywords = tag(combo.keywords, 'keywords');
     let works = includeWorks ? tag(combo.works, 'works') : [];
@@ -837,7 +849,6 @@ async function fetchSuggestions(query) {
     let items = tag(results, currentEntity);
     if (currentEntity === 'authors') {
       items = items.filter(a => authorNameMatchesQuery(a.display_name, query));
-      seeAllName = duplicatedAuthorName(results, query);
     }
     suggestions.value = topByWorksCount(items, 5);
   } else {
@@ -862,27 +873,6 @@ async function fetchSuggestions(query) {
       const item = { ...src, _acType: 'sources', _icon: entityIcon('sources') };
       suggestions.value = [item, ...suggestions.value.filter(s => s.id !== item.id)].slice(0, 5);
     }
-  }
-
-  // #820 (CNRS webinar Q5.4): when several author profiles share the typed
-  // name, dedupeByName collapsed them into one suggestion above. That one
-  // profile holds only part of the person's works, so clicking it reads as
-  // "OpenAlex is missing my papers". Append a door to the full ranked Authors
-  // search, where every matching profile is listed. The row echoes the TYPED
-  // text (not the collapsed profile's display name — that surfaced names the
-  // user never typed, e.g. "Sidney C. Smith" for query "smith"), and only
-  // appears when every visible suggestion is an author — a mixed list means
-  // the query reads as a general term, not a person's name (#820 r2).
-  const typedName = query.trim();
-  if (seeAllName && typedName &&
-      suggestions.value.length > 0 && suggestions.value.every(s => s._acType === 'authors')) {
-    suggestions.value = [...suggestions.value, {
-      id: 'see-all-authors',
-      display_name: `See all authors named “${typedName}”`,
-      _acType: 'seeAllAuthors',
-      _icon: 'mdi-account-search',
-      _searchName: typedName,
-    }];
   }
 
   highlightedIndex.value = -1;
@@ -912,18 +902,6 @@ function selectSuggestion(item) {
   dismissDropdown();
   searchString.value = '';
 
-  // The "See all authors named …" row (#820) routes to the full ranked Authors
-  // search — a fresh query (no carried-over filters), the same destination as
-  // switching the entity selector to Authors and pressing Enter.
-  if (item._acType === 'seeAllAuthors') {
-    url.pushToRoute(router, {
-      name: 'Serp',
-      params: { entityType: 'authors' },
-      query: { search: item._searchName, page: 1, sort: 'relevance_score:desc' },
-    });
-    return;
-  }
-
   // Non-native ids are namespaced (https://openalex.org/keywords/kelp), so
   // stripping only the domain double-prefixes the route (/keywords/keywords%2Fkelp).
   const entityId = getShortId(item.id) || item.id;
@@ -933,10 +911,39 @@ function selectSuggestion(item) {
 function onEnter() {
   if (highlightedIndex.value >= 0 && highlightedIndex.value < suggestions.value.length) {
     selectSuggestion(suggestions.value[highlightedIndex.value]);
+  } else if (showDropdown.value) {
+    // The dropdown footer is the visible default — Enter runs what it shows
+    // (#820 r3). Only when the footer is on screen; with no dropdown (or
+    // suggestions still loading) Enter keeps its plain current-entity search,
+    // so behavior never depends on invisible state.
+    submitFooter();
   } else {
     dismissDropdown();
     submitSearch();
   }
+}
+
+// The dropdown-footer action (#820 r3): the full SERP search the footer
+// advertises. Same-entity → the normal submit path (keeps identifier/OQL
+// interception and works search modes). Entity-swapped (all suggestions were
+// authors/sources/institutions) → a clean search on that entity's SERP, with
+// no carried-over filters — the same destination as switching the entity
+// selector and pressing Enter.
+function submitFooter() {
+  const target = footerEntityType.value;
+  dismissDropdown();
+  if (target !== entityType.value) {
+    const q = searchString.value.trim();
+    isUserTyping.value = false;
+    searchString.value = '';
+    url.pushToRoute(router, {
+      name: 'Serp',
+      params: { entityType: target },
+      query: { search: q, page: 1, sort: 'relevance_score:desc' },
+    });
+    return;
+  }
+  submitSearch();
 }
 
 function onArrowDown() {
@@ -1362,15 +1369,43 @@ function focusSearchInput() {
   line-height: 1.4;
 }
 
-/* The "See all authors named …" door (#820): reads as a footer action, not an
-   entity row — separated by a hairline, medium-emphasis text. */
-.autocomplete-item--see-all {
+/* The dropdown footer (#820 r3): the full SERP search, echoing what Enter does.
+   Medium-emphasis, hairline-separated, with an "enter" keycap on the right. */
+.autocomplete-footer {
+  padding: 8px 18px;
+  cursor: pointer;
   border-top: 1px solid #F3F4F6;
+  transition: background-color 0.1s ease;
 
-  .autocomplete-item-name {
-    color: #6B7280;
-    font-weight: 400;
+  &:hover {
+    background-color: #F3F4F6;
   }
+}
+
+.autocomplete-footer-text {
+  font-size: 14px;
+  color: #6B7280;
+  line-height: 1.4;
+  flex-grow: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  em {
+    color: #374151;
+  }
+}
+
+.enter-keycap {
+  flex-shrink: 0;
+  margin-left: 12px;
+  font-size: 11px;
+  line-height: 18px;
+  color: #9CA3AF;
+  border: 1px solid #E5E7EB;
+  border-radius: 4px;
+  padding: 0 6px;
 }
 
 </style>

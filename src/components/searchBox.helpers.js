@@ -198,26 +198,21 @@ export function dedupeByName(items) {
 }
 
 /**
- * Among raw (pre-dedupe) author results matching the query, find display names
- * held by two or more profiles — the case where dedupeByName will collapse
- * several profiles into one suggestion. Returns the shared display_name whose
- * profiles have the highest works_count (i.e. the name of the one suggestion
- * the user will actually see), or null when no collapse would happen.
+ * The dropdown footer's search target (#820 r3). The footer offers the full
+ * SERP search ("Search works for …") — normally on the current entity type,
+ * but when EVERY visible suggestion is one homogeneous type from the swap set
+ * (authors / sources / institutions), the query evidently reads as that kind
+ * of thing (e.g. a person's name), so the footer targets that entity instead —
+ * putting the full ranked list (every matching author profile included) one
+ * Enter away. Mixed lists, empty lists, and non-swappable types (keywords,
+ * topics, works) all fall through to the current entity type.
  */
-export function duplicatedAuthorName(rawAuthors, query) {
-  const matching = (rawAuthors || []).filter(a => authorNameMatchesQuery(a.display_name, query));
-  const byName = new Map();
-  for (const a of matching) {
-    const key = (a.display_name || '').toLowerCase();
-    if (!key) continue;
-    const entry = byName.get(key) || { name: a.display_name, count: 0, maxWorks: 0 };
-    entry.count += 1;
-    entry.maxWorks = Math.max(entry.maxWorks, a.works_count || 0);
-    byName.set(key, entry);
+const FOOTER_SWAP_TYPES = new Set(['authors', 'sources', 'institutions']);
+export function footerSearchEntityType(suggestionTypes, currentEntityType) {
+  const types = suggestionTypes || [];
+  if (types.length > 0) {
+    const t = types[0];
+    if (FOOTER_SWAP_TYPES.has(t) && types.every(x => x === t)) return t;
   }
-  let best = null;
-  for (const entry of byName.values()) {
-    if (entry.count >= 2 && (!best || entry.maxWorks > best.maxWorks)) best = entry;
-  }
-  return best ? best.name : null;
+  return currentEntityType;
 }
