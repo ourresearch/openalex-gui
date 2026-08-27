@@ -60,7 +60,13 @@ const options = computed(() => {
   } else if (props.type === 'range') {
     return props.value.includes('-') ? ['is within range'] : ['is'];
   } else if (props.type === 'search') {
-    return [myConfig.value?.verb ?? 'includes'];
+    // Negated search shipped engine-side 2026-08-24 (oxjob #633, elastic-api
+    // 48db821): `filter=display_name.search:!dog` is the exact complement. So
+    // the default verb gets its negation. Facets with a CUSTOM verb (`is
+    // exactly`, `starts with`) stay single-option: their negation grammar (and
+    // for doi_starts_with, engine support) is unsettled.
+    const verb = myConfig.value?.verb;
+    return verb ? [verb] : ['includes', 'does not include'];
   } else if (props.type === 'selectEntity') {
     return props.value.includes('|') ? ['is any of', 'is none of'] : ['is', 'is not'];
   }
@@ -72,7 +78,8 @@ const selectedOption = computed(() =>
 );
 
 const isDisabled = computed(() =>
-  ['range', 'search'].includes(props.type)
+  props.type === 'range' ||
+  (props.type === 'search' && (options.value?.length ?? 0) < 2)
 );
 
 // Methods
