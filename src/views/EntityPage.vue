@@ -105,7 +105,29 @@
       <!-- Generic entity page (non-works) -->
       <v-row v-else>
         <v-col v-if="showEntityPageStats" cols="12" md="7">
-          <v-card variant="outlined" class="rounded-o py-6 bg-white">
+          <!-- Repository sources get a Details/Harvest tab strip (oxjob #836);
+               every other entity keeps the flat details card. -->
+          <v-card v-if="isRepositorySource" variant="outlined" class="rounded-o bg-white">
+            <v-tabs v-model="activeTab" bg-color="transparent">
+              <v-tab value="details">Details</v-tab>
+              <v-tab value="harvest">Harvest</v-tab>
+            </v-tabs>
+            <v-divider />
+            <v-window v-model="activeTab">
+              <v-window-item value="details">
+                <div class="py-6">
+                  <entity-new
+                    :data="entityData"
+                    :type="myEntityType"
+                  />
+                </div>
+              </v-window-item>
+              <v-window-item value="harvest">
+                <source-harvest-tab :entity-data="entityData" />
+              </v-window-item>
+            </v-window>
+          </v-card>
+          <v-card v-else variant="outlined" class="rounded-o py-6 bg-white">
             <entity-new
               :data="entityData"
               :type="myEntityType"
@@ -176,7 +198,25 @@
                     </v-btn>
                   </template>
                   <v-list density="compact">
-                    <v-list-item title="View as search" @click="viewMyWorks" />
+                    <!-- Sources get explicit primary/any-source works links
+                         (oxjob #836 Decision 3) instead of the ambiguous
+                         "View as search". -->
+                    <template v-if="myEntityType === 'sources'">
+                      <v-list-item
+                        title="Works with this as primary source"
+                        @click="viewWorksBy('primary_location.source.id')"
+                      />
+                      <v-list-item
+                        title="Works with this as any source"
+                        @click="viewWorksBy('locations.source.id')"
+                      />
+                      <v-list-item
+                        title="About primary vs non-primary sources"
+                        href="https://help.openalex.org/data/works/"
+                        target="_blank"
+                      />
+                    </template>
+                    <v-list-item v-else title="View as search" @click="viewMyWorks" />
                   </v-list>
                 </v-menu>
               </template>
@@ -308,7 +348,27 @@
         </v-col>
 
         <v-col v-else cols="12">
-          <v-card flat class="rounded-o py-6">
+          <v-card v-if="isRepositorySource" flat class="rounded-o">
+            <v-tabs v-model="activeTab" bg-color="transparent">
+              <v-tab value="details">Details</v-tab>
+              <v-tab value="harvest">Harvest</v-tab>
+            </v-tabs>
+            <v-divider />
+            <v-window v-model="activeTab">
+              <v-window-item value="details">
+                <div class="py-6">
+                  <entity-new
+                    :data="entityData"
+                    :type="myEntityType"
+                  />
+                </div>
+              </v-window-item>
+              <v-window-item value="harvest">
+                <source-harvest-tab :entity-data="entityData" />
+              </v-window-item>
+            </v-window>
+          </v-card>
+          <v-card v-else flat class="rounded-o py-6">
             <entity-new
               :data="entityData"
               :type="myEntityType"
@@ -366,6 +426,7 @@ import EntityMetrics from '@/components/Entity/EntityMetrics.vue';
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import SelectionToolbar from '@/components/SelectionToolbar.vue';
 import GroupBy from '@/components/GroupBy/GroupBy.vue';
+import SourceHarvestTab from '@/components/Entity/SourceHarvestTab.vue';
 import { useSelectionContext } from '@/composables/useSelectionContext';
 
 // Author curation components (feature-flagged display-name editors only)
@@ -387,7 +448,9 @@ const myEntityType = ref(route.params.entityType);
 const worksResultObject = ref({});
 const worksPage = ref(1);
 const worksLoadingMore = ref(false);
-const activeTab = ref(route.query.tab === 'locations' ? 'locations' : 'details');
+// Non-default tabs: 'locations' (works pages), 'harvest' (repository sources, #836).
+const ENTITY_TABS = ['locations', 'harvest'];
+const activeTab = ref(ENTITY_TABS.includes(route.query.tab) ? route.query.tab : 'details');
 
 const WORKS_PER_PAGE = 25;
 
@@ -409,6 +472,12 @@ const myWorksFilter = computed(() => {
 });
 
 const apiPath = computed(() => `${route.params.entityType}/${route.params.entityId}`);
+
+// Repository sources get the Harvest tab (oxjob #836). Null-tolerant:
+// entityData is null until the fetch resolves.
+const isRepositorySource = computed(() =>
+  myEntityType.value === 'sources' && entityData.value?.type === 'repository'
+);
 
 const groupByKeys = computed(() => {
   if (myEntityType.value === 'awards') {
@@ -642,6 +711,13 @@ const viewMyWorks = () => {
   return url.pushNewFilters([myWorksFilter.value], 'works');
 };
 
+// Kebab items on source pages: explicit primary-source / any-source works
+// searches (oxjob #836 Decision 3).
+const viewWorksBy = (filterKey) => {
+  const filter = createSimpleFilter('works', filterKey, route.params.entityId);
+  return url.pushNewFilters([filter], 'works');
+};
+
 // Author curation handlers (oxjob #187, partial-success aware since #291)
 const displayNamePending = ref(false);
 const handleDisplayNameUpdate = async (newName) => {
@@ -684,14 +760,19 @@ onMounted(() => {
 watch(apiPath, async () => {
   myEntityType.value = route.params.entityType;
   await getEntityData();
+  // The 'harvest' tab only exists on repository sources; landing anywhere else
+  // with ?tab=harvest (stale link, cross-entity navigation) would render an
+  // empty window. Fall back to details.
+  if (activeTab.value === 'harvest' && !isRepositorySource.value) {
+    activeTab.value = 'details';
+  }
   await getWorks();
 }, { immediate: true });
 
 // Sync activeTab to URL query parameter
 watch(activeTab, (newTab) => {
-  if (newTab === 'locations') {
-    // Add tab query parameter for locations
-    router.replace({ query: { ...route.query, tab: 'locations' } });
+  if (ENTITY_TABS.includes(newTab)) {
+    router.replace({ query: { ...route.query, tab: newTab } });
   } else {
     // Remove tab query parameter for details (default)
     const query = { ...route.query };
@@ -702,11 +783,7 @@ watch(activeTab, (newTab) => {
 
 // Update activeTab when URL changes
 watch(() => route.query.tab, (newTab) => {
-  if (newTab === 'locations') {
-    activeTab.value = 'locations';
-  } else {
-    activeTab.value = 'details';
-  }
+  activeTab.value = ENTITY_TABS.includes(newTab) ? newTab : 'details';
 });
 
 useSelectionContext(() => worksResultObject.value);
