@@ -80,17 +80,27 @@
       </div>
       <div
         v-for="endpoint in visibleEndpoints"
-        :key="endpoint.endpoint_id"
+        :key="endpoint.id"
         class="endpoint-row py-2"
       >
         <code class="endpoint-url">{{ endpoint.pmh_url }}</code>
         <span v-if="endpoint.metadata_prefix" class="text-caption text-medium-emphasis ml-2">{{ endpoint.metadata_prefix }}</span>
-        <span v-if="endpoint.pmh_set" class="text-caption text-medium-emphasis ml-2">set: {{ endpoint.pmh_set }}</span>
+        <span v-if="endpoint.set" class="text-caption text-medium-emphasis ml-2">set: {{ endpoint.set }}</span>
         <span class="text-caption ml-2 text-no-wrap">
           <a :href="identifyUrl(endpoint)" target="_blank" rel="noopener">Identify</a>
           ·
           <a :href="listRecordsUrl(endpoint)" target="_blank" rel="noopener">recent records</a>
         </span>
+        <div v-if="endpoint.last_harvest" class="text-caption mt-1">
+          <span :class="endpoint.last_harvest.status === 'success' ? 'health-ok' : 'health-bad'">●</span>
+          <span class="text-medium-emphasis ml-1">{{ healthLabel(endpoint) }}</span>
+          <div
+            v-if="endpoint.last_harvest.status !== 'success' && endpoint.last_harvest.error_message"
+            class="text-medium-emphasis error-detail"
+          >
+            {{ endpoint.last_harvest.error_message }}
+          </div>
+        </div>
       </div>
       <v-btn
         v-if="endpoints.length > endpointDisplayCap && !showAllEndpoints"
@@ -133,13 +143,14 @@
 // Harvest tab on repository source pages (oxjob #836).
 //
 // Data-source rules (see #836 EXPLORE.md, 2026-08-30):
-// - All live numbers come from api.openalex.org (/locations shipped fresh via
-//   #915; ingested_at = S3 file mtime = real harvest-delivery time via #911).
-// - user.openalex.org/repositories/<id> (the legacy #83.7 endpoint) is used for
-//   REGISTRY facts only (pmh_url / metadata_prefix / pmh_set). Its
-//   last_harvest_finished + error fields are ~2.5y-stale legacy oadoi telemetry —
-//   NEVER display them ("last harvested Jun 2000" generated its own ticket genre).
-//   Live harvest telemetry (status codes, records retrieved) arrives with #804.
+// - Counts + last-harvested come from api.openalex.org (/locations; ingested_at =
+//   S3 file mtime = real harvest-delivery time via #911).
+// - Endpoints + live per-endpoint harvest health come from
+//   user.openalex.org/oaipmh-sets (#804) — the live registry, written nightly by
+//   the harvester. (Replaced the legacy /repositories endpoint, which served a
+//   frozen 2024 copy; its stale telemetry was never displayed here.)
+// - last_harvest.record_count is null for endpoints not harvested since
+//   2026-08-30 (the column is new) — render it only when present.
 // - A harvest-history chart is deliberately absent: ingested_at is keyword-typed
 //   in locations-v2, so date-range filters silently return 0 until the v3 reindex.
 import { ref, computed, watch } from 'vue';
@@ -227,7 +238,7 @@ function identifyUrl(endpoint) {
 
 function listRecordsUrl(endpoint) {
   let u = `${endpoint.pmh_url}?verb=ListRecords&metadataPrefix=${endpoint.metadata_prefix || 'oai_dc'}`;
-  if (endpoint.pmh_set) u += `&set=${encodeURIComponent(endpoint.pmh_set)}`;
+  if (endpoint.set) u += `&set=${encodeURIComponent(endpoint.set)}`;
   return u;
 }
 
@@ -270,14 +281,28 @@ async function fetchWorksCounts() {
 async function fetchEndpoints() {
   loadingEndpoints.value = true;
   try {
-    const resp = await axios.get(`${urlBase.userApi}/repositories/${shortId.value}`, axiosConfig());
-    // Registry facts only — deliberately ignore last_harvest_* and error (stale).
-    endpoints.value = (resp.data?.endpoints || []).filter((e) => e.pmh_url);
+    const resp = await axios.get(
+      `${urlBase.userApi}/oaipmh-sets?source_id=${shortId.value}&per_page=200`,
+      axiosConfig()
+    );
+    endpoints.value = (resp.data?.results || []).filter((e) => e.pmh_url);
   } catch (e) {
     endpoints.value = [];
   } finally {
     loadingEndpoints.value = false;
   }
+}
+
+function healthLabel(endpoint) {
+  const h = endpoint.last_harvest;
+  if (!h) return null;
+  const parts = [];
+  parts.push(h.status === 'success' ? 'last harvest OK' : `last harvest: ${h.status}`);
+  if (h.checked_at) parts.push(relativeDate(h.checked_at));
+  if (h.record_count !== null && h.record_count !== undefined) {
+    parts.push(`${h.record_count.toLocaleString()} records`);
+  }
+  return parts.join(' · ');
 }
 
 watch(shortId, (id) => {
@@ -316,5 +341,18 @@ watch(shortId, (id) => {
 
 .endpoint-url {
   word-break: break-all;
+}
+
+.health-ok {
+  color: #2e7d32;
+}
+
+.health-bad {
+  color: #c62828;
+}
+
+.error-detail {
+  margin-left: 16px;
+  word-break: break-word;
 }
 </style>
