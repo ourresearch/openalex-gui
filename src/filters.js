@@ -9,6 +9,22 @@ import {entityConfigs} from "@/entityConfigs";
 import {toPrecision} from "./util";
 import * as openalexId from "@/openalexId";
 
+// Entity-page route target for a parsed OpenAlex id (oxjob #852). Component
+// entities (locations) route by PATH, not the named EntityPage route: their
+// short ids contain slashes/colons that named-route param encoding mangles,
+// and they're excluded from the router's entityNames regex while hasSerp is
+// false. The bespoke slash-tolerant `/locations/:entityId(.*)` route matches
+// the raw path form.
+const entityPageTarget = (parsed) => {
+  if (openalexId.isComponentEntityType(parsed.entityType)) {
+    return { path: `/${parsed.entityType}/${parsed.shortId}` };
+  }
+  return {
+    name: "EntityPage",
+    params: { entityType: parsed.entityType, entityId: parsed.shortId },
+  };
+};
+
 const filters = {
   entityWorksLink(id, entityData) {
     const entityType = openalexId.getEntityType(id);
@@ -56,10 +72,7 @@ const filters = {
     if (!id) { return; }
     const parsed = openalexId.parseId(id);
     if (!parsed) { return; }
-    return {
-      name: "EntityPage",
-      params: { entityType: parsed.entityType, entityId: parsed.shortId },
-    };
+    return entityPageTarget(parsed);
   },
   // Plain-string href to an entity's canonical full page, for the works-SERP
   // result links that open the zoom drawer (rendered as a plain `<a :href>` so a
@@ -70,10 +83,7 @@ const filters = {
     if (!id) { return undefined; }
     const parsed = openalexId.parseId(id);
     if (!parsed) { return undefined; }
-    return router.resolve({
-      name: "EntityPage",
-      params: { entityType: parsed.entityType, entityId: parsed.shortId },
-    }).href;
+    return router.resolve(entityPageTarget(parsed)).href;
   },
   // Click handler for the plain `<a>` works-SERP result links. A plain left click
   // opens the zoom drawer from store state (no `?zoom=` in the URL) — or, on
@@ -97,10 +107,7 @@ const filters = {
     if (isWorksSerp && targetIsWork && !isPhoneViewport) {
       store.commit('setZoomId', parsed.shortId);
     } else {
-      router.push({
-        name: "EntityPage",
-        params: { entityType: parsed.entityType, entityId: parsed.shortId },
-      });
+      router.push(entityPageTarget(parsed));
     }
   },
   toPrecision(number, precision = 4) {

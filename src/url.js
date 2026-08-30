@@ -868,7 +868,13 @@ const getDefaultSortValueForRoute = function(currentRoute, withDirection=false){
         sort = "relevance_score"
     } else {
         const entityType = entityTypeForRoute(currentRoute)
-        if (entityType === "works") {
+        // Config override (oxjob #852): entities without works_count (locations)
+        // set `defaultSort` in entityConfigs — "" means "send no sort param and
+        // take the API's own default order" (makeApiUrl omits empty values).
+        const configured = getEntityConfig(entityType)?.defaultSort
+        if (configured !== undefined) {
+            sort = configured
+        } else if (entityType === "works") {
             sort = "cited_by_count"
         } else if (entityType === "awards") {
             sort = "amount"
@@ -877,6 +883,7 @@ const getDefaultSortValueForRoute = function(currentRoute, withDirection=false){
         }
     }
 
+    if (!sort) return ""
     return sort + (withDirection ? ":desc" : "")
 }
 

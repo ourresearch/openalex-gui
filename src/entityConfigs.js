@@ -88,6 +88,9 @@ const entityConfigs = reactive({
         name: "awards",
         entityType: "awards",
         nameSingular: "award",
+        // API rows carry `title`, not `display_name` — api.js copies it over
+        // at the boundary (config-driven; oxjob #852).
+        displayNameField: "title",
         exportMode: "async",
         category: "funding",
         descr: "Grants funding scholarly research",
@@ -733,17 +736,61 @@ const entityConfigs = reactive({
         name: "locations",
         entityType: "locations",
         nameSingular: "location",
+        // Component entity (oxjob #852): a work is a roll-up of locations
+        // (1:many). Mirrors openalexId.COMPONENT_ENTITY_TYPES — opaque,
+        // case-significant, slash-bearing short ids (doi:…, pmh:/…, mag:…).
+        entityClass: "component",
+        // API rows carry `title`, not `display_name` — api.js copies it over
+        // at the boundary (displayNameField generalizes the old awards hack).
+        displayNameField: "title",
         // Kept authored: /meta/entities doesn't serve the locations
         // pseudo-entity.
         displayName: "locations",
         displayNameSingular: "work location",
-        descr: "Work location",
+        descr: "Individual copies of works, harvested from repositories and other sources",
         placeholder: "Search locations",
         filterKey: "locations.id",
         hasAutocomplete: false,
         isNative: false,
+        // SHIP GATE (oxjob #852): flip to true only when locations search
+        // works AND the ES sync has a delete path (#915 v3) — no SERP over
+        // ghost rows. Flipping this also auto-adds /locations to the router's
+        // entityNames regex and the entity-type selector.
         hasSerp: false,
+        category: "components",
+        // No works_count/cited_by_count on /locations — an empty defaultSort
+        // sends no sort param at all (API default order: work_id,native_id).
+        // The generic non-works fallback ("works_count") 400s here (url.js).
+        defaultSort: "",
+        exportMode: "client",
+        exportColumns: [
+            { key: "id", label: "ID" },
+            { key: "title", label: "Title" },
+            { key: "work_id", label: "Work ID" },
+            { key: "native_id", label: "Native ID" },
+            { key: "native_id_namespace", label: "Native ID namespace" },
+            { key: "source_name", label: "Source" },
+            { key: "version", label: "Version" },
+            { key: "license", label: "License" },
+            { key: "is_oa", label: "Open Access" },
+            { key: "provenance", label: "Provenance" },
+            { key: "landing_page_url", label: "Landing page URL" },
+            { key: "pdf_url", label: "PDF URL" },
+        ],
+        groupByDefaults: [
+            "version",
+            "license",
+            "is_oa",
+        ],
+        defaultColumns: [
+            "title",
+            "source_id",
+            "version",
+            "license",
+            "is_oa",
+        ],
         rowsToShowOnEntityPage: [
+            "work_id",
             "source_id",
             "landing_page_url",
             "pdf_url",
@@ -751,8 +798,12 @@ const entityConfigs = reactive({
             "is_oa",
             "version",
             "license",
+            "type",
+            "language",
             null,
             "id",
+            "native_id",
+            "native_id_namespace",
             "provenance",
         ],
         metricsToShowOnEntityPage: [],
@@ -816,6 +867,10 @@ const entityCategories = [
     { id: 'topics', name: 'Topics & classification' },
     { id: 'geo-language', name: 'Geography & language' },
     { id: 'open-access', name: 'Open Access' },
+    // Component entities (oxjob #852): sub-work entities a work rolls up.
+    // Empty in the browser until locations ships (getEntitiesForBrowser
+    // exclusion + hasSerp flip at ship time).
+    { id: 'components', name: 'Work components' },
 ];
 
 const getEntitiesForBrowser = function () {

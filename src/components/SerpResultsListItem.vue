@@ -308,6 +308,12 @@ const unworkSubheader = computed(() => {
       r.country_codes?.map(countryName).filter(Boolean).join(', '),
     ],
     keywords: [],
+    locations: [
+      r.source_name,
+      r.version,
+      r.license,
+      r.is_oa ? 'open access' : null,
+    ],
     countries: [
       r.continent?.display_name,
       r.is_global_south ? 'Global South' : null,

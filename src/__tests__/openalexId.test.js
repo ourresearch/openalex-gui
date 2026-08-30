@@ -15,6 +15,8 @@ import {
     toCollectionEntityType,
     fromCollectionEntityType,
     toCollectionEntityId,
+    isComponentEntityType,
+    COMPONENT_ENTITY_TYPES,
 } from '../openalexId';
 
 describe('openalexId', () => {
@@ -336,6 +338,74 @@ describe('openalexId', () => {
         it('toCollectionEntityId returns null for invalid ids', () => {
             expect(toCollectionEntityId('not an id')).toBe(null);
             expect(toCollectionEntityId(null)).toBe(null);
+        });
+    });
+
+    describe('component entities (oxjob #852)', () => {
+        it('registers locations as the only component type', () => {
+            expect(COMPONENT_ENTITY_TYPES).toEqual(['locations']);
+            expect(isComponentEntityType('locations')).toBe(true);
+            expect(isComponentEntityType('works')).toBe(false);
+            expect(isComponentEntityType('sdgs')).toBe(false);
+        });
+
+        it('normalizeId preserves case and interior slashes in component short ids', () => {
+            expect(normalizeId('locations/doi:10.1038/NatureX'))
+                .toBe('locations/doi:10.1038/NatureX');
+            expect(normalizeId('locations/pmh:/neu:cj82kt84h'))
+                .toBe('locations/pmh:/neu:cj82kt84h');
+            expect(normalizeId('locations/mag:999999992'))
+                .toBe('locations/mag:999999992');
+        });
+
+        it('normalizeId strips URL prefixes without touching component-id case', () => {
+            expect(normalizeId('https://openalex.org/locations/doi:10.1038/NatureX'))
+                .toBe('locations/doi:10.1038/NatureX');
+            expect(normalizeId('https://api.openalex.org/locations/pmh:/neu:cj82Kt84H'))
+                .toBe('locations/pmh:/neu:cj82Kt84H');
+        });
+
+        it('normalizeId folds only the entity-type namespace, never the short id', () => {
+            expect(normalizeId('LOCATIONS/doi:10.1038/NatureX'))
+                .toBe('locations/doi:10.1038/NatureX');
+        });
+
+        it('normalizeId rejects bare (un-namespaced) component short ids', () => {
+            // doi:… / pmh:… must arrive pre-namespaced as locations/<id>
+            expect(normalizeId('doi:10.1038/nature12373')).toBe(null);
+            expect(normalizeId('pmh:/neu:cj82kt84h')).toBe(null);
+        });
+
+        it('parseId / getShortId round-trip component ids losslessly', () => {
+            const parsed = parseId('locations/doi:10.1038/NatureX');
+            expect(parsed).toEqual({
+                entityType: 'locations',
+                shortId: 'doi:10.1038/NatureX',
+                isNative: false,
+                normalized: 'locations/doi:10.1038/NatureX',
+            });
+            expect(getShortId('locations/pmh:/neu:cj82kt84h')).toBe('pmh:/neu:cj82kt84h');
+        });
+
+        it('makeId does not case-fold component short ids', () => {
+            expect(makeId('locations', 'doi:10.1038/NatureX'))
+                .toBe('locations/doi:10.1038/NatureX');
+            // non-component behavior unchanged
+            expect(makeId('works', 'W123')).toBe('works/w123');
+        });
+
+        it('toApiUrl / toDisplayFormat handle component ids', () => {
+            expect(toApiUrl('locations/doi:10.1038/NatureX'))
+                .toBe('https://api.openalex.org/locations/doi:10.1038/NatureX');
+            expect(toDisplayFormat('locations/doi:10.1038/NatureX', 'bare'))
+                .toBe('doi:10.1038/NatureX');
+            expect(toDisplayFormat('locations/mag:999999992', 'short'))
+                .toBe('locations/mag:999999992');
+        });
+
+        it('idsAreEqual is case-sensitive for component ids (ES id matching is)', () => {
+            expect(idsAreEqual('locations/doi:10.1038/x', 'locations/doi:10.1038/x')).toBe(true);
+            expect(idsAreEqual('locations/doi:10.1038/X', 'locations/doi:10.1038/x')).toBe(false);
         });
     });
 });

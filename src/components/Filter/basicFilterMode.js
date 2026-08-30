@@ -121,6 +121,14 @@ export const defaultChipsByEntity = {
   "institution-types": [],
   licenses: [],
   "oa-statuses": [],
+  // Component entity (oxjob #852): the repository-manager audit set — filter
+  // to your source, then slice by version / license / OA.
+  locations: [
+    { key: 'source_id', label: 'Source', chipType: 'entity', entityToSelect: 'sources' },
+    { key: 'version', label: 'Version', chipType: 'entity' },
+    { key: 'license', label: 'License', chipType: 'entity', entityToSelect: 'licenses' },
+    { key: 'is_oa', label: 'Open Access', chipType: 'boolean' },
+  ],
 };
 
 export const semanticDefaultChipConfigs = [

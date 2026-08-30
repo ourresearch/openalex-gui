@@ -75,6 +75,22 @@ const ALL_ENTITY_TYPES = [
 const NATIVE_ENTITY_TYPES = Object.values(NATIVE_PREFIX_TO_ENTITY);
 
 /**
+ * Component entity types (oxjob #852): sub-work entities whose short ids are
+ * opaque, namespaced strings minted from external identifiers — e.g. locations
+ * "doi:10.1038/nature12373", "pmh:/neu:cj82kt84h", "mag:999999992". Unlike
+ * every other entity type, these short ids:
+ *   - are CASE-SIGNIFICANT (ES id matching is case-sensitive and the native_id
+ *     part is opaque) — never case-fold them;
+ *   - may contain interior slashes and colons — never re-split them.
+ * Mirrored by `entityClass: 'component'` in entityConfigs.js.
+ */
+const COMPONENT_ENTITY_TYPES = ['locations'];
+
+function isComponentEntityType(entityType) {
+    return COMPONENT_ENTITY_TYPES.includes(entityType);
+}
+
+/**
  * Normalize any OpenAlex ID format to the canonical namespaced format.
  * This is THE function to call when IDs enter the application.
  * 
@@ -97,26 +113,38 @@ function normalizeId(id) {
         return null;
     }
 
-    // Work with lowercase and trimmed
-    let normalized = id.trim().toLowerCase();
+    // Work with lowercase and trimmed. Component entity types (locations) have
+    // case-significant short ids, so we detect/strip on the lowercased copy but
+    // slice the shortId back out of the case-preserved original. Every strip
+    // below is applied identically to both copies (case-insensitive regexes),
+    // so the two strings stay index-aligned.
+    let original = id.trim();
+    let normalized = original.toLowerCase();
 
     // Handle legacy SDG format: https://metadata.un.org/sdg/3 => sdgs/3
     if (normalized.includes('metadata.un.org/sdg/')) {
         normalized = normalized.replace(/.*metadata\.un\.org\/sdg\//, 'sdgs/');
+        original = normalized; // sdg short ids are numeric; casing is moot
     }
 
     // Strip common URL prefixes
-    normalized = normalized
-        .replace(/^https?:\/\/openalex\.org\//, '')
-        .replace(/^https?:\/\/api\.openalex\.org\//, '')
-        .replace(/^openalex:/, '');
+    const stripPrefixes = (s) => s
+        .replace(/^https?:\/\/openalex\.org\//i, '')
+        .replace(/^https?:\/\/api\.openalex\.org\//i, '')
+        .replace(/^openalex:/i, '');
+    normalized = stripPrefixes(normalized);
+    original = stripPrefixes(original);
 
     // Check if already in namespaced format (entityType/value)
     if (normalized.includes('/')) {
         const [entityType, ...rest] = normalized.split('/');
         const shortId = rest.join('/'); // Handle cases like source-types/journal
-        
+
         if (ALL_ENTITY_TYPES.includes(entityType) && shortId) {
+            if (COMPONENT_ENTITY_TYPES.includes(entityType)) {
+                // Case-preserved, slash-preserved opaque short id.
+                return `${entityType}/${original.slice(entityType.length + 1)}`;
+            }
             return `${entityType}/${shortId}`;
         }
         // Invalid namespaced format
@@ -429,6 +457,10 @@ function toCollectionEntityId(id) {
 function makeId(entityType, shortId) {
     if (!ALL_ENTITY_TYPES.includes(entityType)) return null;
     if (!shortId) return null;
+    // Component short ids are opaque and case-significant — never case-fold.
+    if (COMPONENT_ENTITY_TYPES.includes(entityType)) {
+        return `${entityType}/${String(shortId)}`;
+    }
     return `${entityType}/${String(shortId).toLowerCase()}`;
 }
 
@@ -444,6 +476,7 @@ export {
 
     // Type checking
     isNativeEntityType,
+    isComponentEntityType,
     getNativePrefix,
     
     // Format conversion
@@ -464,4 +497,5 @@ export {
     ENTITY_TO_NATIVE_PREFIX,
     ALL_ENTITY_TYPES,
     NATIVE_ENTITY_TYPES,
+    COMPONENT_ENTITY_TYPES,
 };

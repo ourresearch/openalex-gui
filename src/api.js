@@ -111,31 +111,61 @@ const api = (function () {
         return resp;
     }
 
+    // Some entities' API rows carry their name in a field other than
+    // `display_name` (awards + locations: `title`). Resolve that field from
+    // the request URL's leading path segment via entityConfigs.displayNameField
+    // so it can be copied over at the API boundary — every downstream surface
+    // (list items, table identity column, useHead, pickers) keeps assuming
+    // `display_name`. Config-driven generalization of the old awards-only
+    // hack (oxjob #852).
+    const entityConfigForUrl = function (url) {
+        try {
+            const path = new URL(url, urlBase.api).pathname;
+            const entityType = path.split('/').filter(Boolean)[0];
+            if (!entityType) return null;
+            return getEntityConfig(entityType) || null;
+        } catch {
+            return null;
+        }
+    };
+
+    const displayNameFieldForUrl = function (url) {
+        return entityConfigForUrl(url)?.displayNameField || null;
+    };
+
     const getResultsList = async function (url) {
         const ret = await getUrl(url);
-        
-        // TEMPORARY HACK: Awards use 'title' instead of 'display_name'
-        // Copy title to display_name until API is updated
-        if (ret.results && url.includes('/awards')) {
-            ret.results = ret.results.map(award => ({
-                ...award,
-                display_name: award.title || award.display_name
+
+        const cfg = entityConfigForUrl(url);
+        const dnField = cfg?.displayNameField;
+        // Component entities (locations, oxjob #852) return BARE namespaced ids
+        // ("doi:10.1007/…") — no locations/ prefix, no URL — so nothing
+        // downstream (parseId, zoom links, identity column) recognizes them.
+        // Normalize SERP rows to the full-URL convention every other entity
+        // uses. (The entity page fetches via api.get and does its own massage.)
+        const isComponent = cfg?.entityClass === 'component';
+        if (ret.results && (dnField || isComponent)) {
+            ret.results = ret.results.map(row => ({
+                ...row,
+                ...(dnField ? { display_name: row[dnField] || row.display_name } : {}),
+                ...(isComponent && row.id && !String(row.id).includes('openalex.org/')
+                    ? { id: `https://openalex.org/${cfg.name}/${row.id}` }
+                    : {}),
             }));
         }
-        
+
         return ret;
     };
 
     const getEntity = async function (id) {
         const myUrl = makeUrl(id);
         const resp = await getUrl(myUrl);
-        
-        // TEMPORARY HACK: Awards use 'title' instead of 'display_name'
-        // Copy title to display_name until API is updated
-        if (id && id.includes('/G') && resp.title && !resp.display_name) {
-            resp.display_name = resp.title;
+
+        const dnField = displayNameFieldForUrl(myUrl);
+        if (dnField && resp && resp[dnField] && !resp.display_name) {
+            resp.display_name = resp[dnField];
         }
-        
+
         return resp;
     };
 

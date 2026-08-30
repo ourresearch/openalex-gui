@@ -69,6 +69,9 @@ const facetCategories = {
         "other",
     ],
     locations: [
+        "source",
+        "open access",
+        "ids",
         "other",
     ],
     awards: [
@@ -2432,9 +2435,15 @@ const facetConfigs = function (entityType) {
             entityToFilter: "locations",
             entityToSelect: "works",
             type: "selectEntity",
-            category: "other",
+            isManyOptions: true,
+            category: "ids",
+            actions: ["filter", "column"],
+            actionsPopular: [],
             icon: "mdi-file-document-outline",
-            extractFn: (e) => e.work,
+            // Entity page synthesizes a full `work` object; raw SERP rows only
+            // carry work_id — fall back to a minimal one.
+            extractFn: (e) => e.work
+                ?? (e.work_id ? { id: e.work_id, display_name: e.work_id } : null),
         },
         {
             key: "landing_page_url",
@@ -2453,18 +2462,27 @@ const facetConfigs = function (entityType) {
             extractFn: (e) => e.pdf_url,
         },
         {
+            // The repository's own record id (exact match server-side —
+            // TermField; the driving "paste your record ID" audit affordance).
             key: "native_id",
             entityToFilter: "locations",
             type: "search",
-            category: "other",
+            category: "ids",
+            actions: ["filter", "column"],
+            actionsPopular: [],
+            column: { render: { kind: "text" } },
             icon: "mdi-identifier",
             extractFn: (e) => e.native_id,
         },
         {
+            // Closed vocab (doi/pmh/mag/pmid/…) — selectEntity with no
+            // entityToSelect picks values via group_by (funding_type pattern).
             key: "native_id_namespace",
             entityToFilter: "locations",
-            type: "search",
-            category: "other",
+            type: "selectEntity",
+            category: "ids",
+            actions: ["filter", "group_by", "column"],
+            actionsPopular: [],
             icon: "mdi-tag-outline",
             extractFn: (e) => e.native_id_namespace,
         },
@@ -2472,31 +2490,45 @@ const facetConfigs = function (entityType) {
             key: "id",
             entityToFilter: "locations",
             type: "search",
-            category: "other",
+            category: "ids",
             icon: "mdi-identifier",
             extractFn: (e) => e.id,
         },
         {
+            // Closed vocab (which ingest pipeline minted the location) —
+            // group_by-picked, funding_type pattern.
             key: "provenance",
             entityToFilter: "locations",
-            type: "search",
+            type: "selectEntity",
             category: "other",
+            actions: ["filter", "group_by", "column"],
+            actionsPopular: [],
             icon: "mdi-source-branch",
             extractFn: (e) => e.provenance,
         },
         {
+            // The location's harvested title — the identity column on the
+            // locations SERP table (api.js copies title -> display_name at the
+            // boundary). `search=` is a server no-op until #915's v3 reindex
+            // ships the analyzed title mapping (#850), so no filter action yet.
             key: "title",
             entityToFilter: "locations",
             type: "search",
             category: "other",
+            actions: ["column"],
+            actionsPopular: [],
+            isIdentityColumn: true,
             icon: "mdi-text",
             extractFn: (e) => e.title,
         },
         {
+            // Closed vocab (article/preprint/…) — group_by-picked.
             key: "type",
             entityToFilter: "locations",
-            type: "search",
+            type: "selectEntity",
             category: "other",
+            actions: ["filter", "group_by", "column"],
+            actionsPopular: [],
             icon: "mdi-shape-outline",
             extractFn: (e) => e.type,
         },
@@ -2504,7 +2536,7 @@ const facetConfigs = function (entityType) {
             key: "source_name",
             entityToFilter: "locations",
             type: "search",
-            category: "other",
+            category: "source",
             icon: "mdi-book-open-outline",
             extractFn: (e) => e.source_name,
         },
@@ -2512,39 +2544,59 @@ const facetConfigs = function (entityType) {
             key: "publisher",
             entityToFilter: "locations",
             type: "search",
-            category: "other",
+            category: "source",
             icon: "mdi-domain",
             extractFn: (e) => e.publisher,
         },
         {
+            // THE anchor filter for the driving use case: a repository manager
+            // scoping the SERP to their own source (oxjob #852).
             key: "source_id",
             entityToFilter: "locations",
             entityToSelect: "sources",
             type: "selectEntity",
-            category: "other",
+            isManyOptions: true,
+            category: "source",
+            actions: ["filter", "group_by", "column"],
+            actionsPopular: ["filter"],
             icon: "mdi-book-open-outline",
-            extractFn: (e) => e.source,
+            // Entity page synthesizes a full `source` object; raw SERP rows
+            // only carry source_id/source_name — fall back to a minimal one
+            // (bare S-id as the label when the row has no source_name).
+            extractFn: (e) => e.source
+                ?? (e.source_id ? {
+                    id: e.source_id,
+                    display_name: e.source_name
+                        || String(e.source_id).replace(/^https?:\/\/openalex\.org\//, ''),
+                } : null),
         },
         {
             key: "is_oa",
             entityToFilter: "locations",
             type: "boolean",
-            category: "other",
-            // The one location facet exposed as a builder filter (#621): the OQL
-            // parser + OQO validator both accept `locations where is_oa is true`.
-            // Other backend location filter fields (source_id/work_id/etc.) are
-            // NOT in the OQL parser's field registry, so exposing them would break
-            // the OQL round-trip — left column-only until the OQL field vocab
-            // covers them.
-            actions: ["filter", "column"],
+            category: "open access",
+            // #852 flipped the locations facets from extract-only to real
+            // actions (was: only is_oa, per #621's OQL-round-trip caveat).
+            // The server-side OQL column-resolution fixes for the other
+            // locations fields belong to #850; until those land, these facets
+            // stay dark behind entityConfigs `hasSerp: false`. The flips are
+            // also the input that populates `supported_by` (#420: GUI client
+            // registry -> elastic-api vendored snapshot -> catalog).
+            actions: ["filter", "group_by", "column"],
+            actionsPopular: ["filter"],
             icon: "mdi-lock-open-outline",
             extractFn: (e) => e.is_oa,
         },
         {
+            // Closed vocab (submittedVersion/acceptedVersion/publishedVersion)
+            // — group_by-picked. NOTE: group_by=version returns all-zero
+            // buckets until #850's works-override fix lands server-side.
             key: "version",
             entityToFilter: "locations",
-            type: "search",
-            category: "other",
+            type: "selectEntity",
+            category: "open access",
+            actions: ["filter", "group_by", "column"],
+            actionsPopular: ["filter"],
             icon: "mdi-tag-outline",
             extractFn: (e) => e.version,
         },
@@ -2552,8 +2604,10 @@ const facetConfigs = function (entityType) {
             key: "license",
             entityToFilter: "locations",
             entityToSelect: "licenses",
-            type: "search",
-            category: "other",
+            type: "selectEntity",
+            category: "open access",
+            actions: ["filter", "group_by", "column"],
+            actionsPopular: ["filter"],
             icon: "mdi-lock-open-outline",
             extractFn: (e) => e.license,
         },
@@ -2561,8 +2615,10 @@ const facetConfigs = function (entityType) {
             key: "language",
             entityToFilter: "locations",
             entityToSelect: "languages",
-            type: "search",
+            type: "selectEntity",
             category: "other",
+            actions: ["filter", "group_by", "column"],
+            actionsPopular: [],
             icon: "mdi-translate",
             extractFn: (e) => e.language,
         },
