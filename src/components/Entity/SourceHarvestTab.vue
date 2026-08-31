@@ -65,6 +65,73 @@
 
     <v-divider class="my-5" />
 
+    <!-- Harvest history -->
+    <div class="text-overline">Harvest history</div>
+    <div v-if="loadingHistory" class="my-2">
+      <v-skeleton-loader type="image" max-width="680" height="120" />
+    </div>
+    <template v-else-if="historyBuckets.length">
+      <div class="text-body-2 text-medium-emphasis mb-3">
+        New records received per month, since our first harvest of this source.
+        Early bars can be large — a repository's first harvests include its whole
+        back catalog, not just what was new that month.
+      </div>
+      <div class="history-chart" @pointerleave="hoveredBucket = null">
+        <div
+          v-if="hoveredBucket !== null"
+          class="history-tooltip"
+          :class="tooltipEdgeClass"
+          :style="{ left: tooltipLeft }"
+        >
+          <span class="tooltip-value">{{ historyBuckets[hoveredBucket].count.toLocaleString() }}</span>
+          <span class="tooltip-label">
+            new records · {{ historyBuckets[hoveredBucket].label
+            }}<template v-if="hoveredBucket === historyBuckets.length - 1"> (to date)</template>
+          </span>
+        </div>
+        <div class="history-baseline" />
+        <div
+          v-for="(b, i) in historyBuckets"
+          :key="b.key"
+          class="history-col"
+          tabindex="0"
+          :aria-label="`${b.label}: ${b.count.toLocaleString()} new records`"
+          @pointerenter="hoveredBucket = i"
+          @focus="hoveredBucket = i"
+          @blur="hoveredBucket = null"
+        >
+          <div class="history-bar-slot">
+            <div
+              v-if="i === maxBucketIndex && hoveredBucket === null"
+              class="history-max-label"
+            >{{ compactCount(b.count) }}</div>
+            <div class="history-bar" :style="{ height: barHeightPx(b.count) }" />
+          </div>
+          <div class="history-x-label">{{ b.axisLabel }}</div>
+        </div>
+      </div>
+      <div class="text-body-2 mt-2">
+        <a href="#" @click.prevent="downloadHistoryCsv">
+          <v-icon size="14">mdi-download</v-icon>
+          Download as CSV
+        </a>
+      </div>
+      <div v-if="epochExcludedCount" class="text-caption text-medium-emphasis mt-2">
+        Excludes {{ epochExcludedCount.toLocaleString() }} records bulk-loaded on
+        January 16, 2025, during a storage migration — their original harvest dates
+        weren't preserved.
+      </div>
+      <div v-if="undatedCount" class="text-caption text-medium-emphasis">
+        {{ undatedCount.toLocaleString() }} records have no recorded harvest date
+        and aren't shown.
+      </div>
+    </template>
+    <div v-else class="text-body-2 text-medium-emphasis">
+      No dated harvest records for this source yet.
+    </div>
+
+    <v-divider class="my-5" />
+
     <!-- Endpoints on file -->
     <div class="text-overline">
       Endpoints on file
@@ -159,6 +226,7 @@ import axios from 'axios';
 import { api } from '@/api';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { createSimpleFilter } from '@/filterConfigs';
+import { exportArrayToCsv } from '@/utils/csvExport';
 
 defineOptions({ name: 'SourceHarvestTab' });
 
@@ -180,6 +248,193 @@ const locationsCount = ref(null);
 const loadingWorksCounts = ref(true);
 const worksAnyCount = ref(null);
 const worksPrimaryCount = ref(null);
+
+// --- harvest history chart ---
+// Runtime histogram over `ingested_at` (real harvest-delivery dates, #911) built
+// from N parallel /locations count queries — one per month bucket, 1 credit each.
+// `group_by=ingested_at` doesn't exist (DateField has no group_by since
+// PROPERTIES 11.0.0), so range-filter counts are the mechanism. Boundary
+// semantics verified on prod: `>{prevMonthLastDay}T23:59:59,<{nextMonthFirst}`
+// partitions cleanly (adjacent buckets sum exactly to their span).
+//
+// BULK_LOAD_TS: `ingested_at` = S3 file mtime; a storage migration rewrote a
+// large share of files at this exact second (globally — HAL 305K, Zenodo 2.1M,
+// Figshare 4.3M rows), so it's a migration artifact, not a real harvest wave.
+// We query it exactly, subtract it from its bucket, and disclose the exclusion.
+const BULK_LOAD_TS = '2025-01-16T15:52:00';
+
+const loadingHistory = ref(true);
+const historyBuckets = ref([]); // {key, label, axisLabel, count}
+const epochExcludedCount = ref(0);
+const hoveredBucket = ref(null);
+
+const maxBucketCount = computed(() =>
+  Math.max(1, ...historyBuckets.value.map((b) => b.count))
+);
+const maxBucketIndex = computed(() =>
+  historyBuckets.value.findIndex((b) => b.count === maxBucketCount.value)
+);
+const undatedCount = computed(() => {
+  if (locationsCount.value === null || !historyBuckets.value.length) return 0;
+  const dated =
+    historyBuckets.value.reduce((s, b) => s + b.count, 0) + epochExcludedCount.value;
+  return Math.max(0, locationsCount.value - dated);
+});
+const tooltipLeft = computed(() => {
+  const n = historyBuckets.value.length;
+  if (hoveredBucket.value === null || !n) return '0%';
+  return `${((hoveredBucket.value + 0.5) / n) * 100}%`;
+});
+const tooltipEdgeClass = computed(() => {
+  const n = historyBuckets.value.length;
+  if (hoveredBucket.value === null || !n) return '';
+  const frac = (hoveredBucket.value + 0.5) / n;
+  if (frac < 0.2) return 'edge-left';
+  if (frac > 0.8) return 'edge-right';
+  return '';
+});
+
+function barHeightPx(count) {
+  if (!count) return '0px';
+  return `${Math.max(1, Math.round((count / maxBucketCount.value) * 100))}px`;
+}
+
+function compactCount(n) {
+  if (n >= 1e6) return `${(n / 1e6).toFixed(n < 1e7 ? 1 : 0)}M`;
+  if (n >= 1e3) return `${Math.round(n / 1e3)}K`;
+  return String(n);
+}
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'];
+
+async function countLocationsWhere(extraFilter) {
+  const resp = await api.get('locations', {
+    filter: `source_id:${shortId.value},${extraFilter}`,
+    'per-page': 1,
+    select: 'id',
+  });
+  return resp?.meta?.count ?? 0;
+}
+
+// The API rate-limits bursts (429s at ~10 req/s per IP — verified: firing all
+// ~24 bucket queries at once gets most of them 429'd). Run them through a small
+// worker pool, retrying each query once after a backoff. A second failure
+// propagates → the whole chart falls back to its empty state rather than
+// rendering a partial histogram whose missing buckets would read as "no harvest".
+async function countWithRetry(extraFilter) {
+  try {
+    return await countLocationsWhere(extraFilter);
+  } catch (e) {
+    await new Promise((r) => setTimeout(r, 1500));
+    return await countLocationsWhere(extraFilter);
+  }
+}
+
+async function mapPool(items, limit, fn) {
+  const results = new Array(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next;
+      next += 1;
+      results[i] = await fn(items[i]);
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, worker)
+  );
+  return results;
+}
+
+async function fetchHistory() {
+  loadingHistory.value = true;
+  historyBuckets.value = [];
+  epochExcludedCount.value = 0;
+  hoveredBucket.value = null;
+  try {
+    // Earliest dated location (the >1900 filter excludes ingested_at:null rows).
+    const first = await api.get('locations', {
+      filter: `source_id:${shortId.value},ingested_at:>1900-01-01`,
+      sort: 'ingested_at:asc',
+      'per-page': 1,
+      select: 'ingested_at',
+    });
+    const firstDateStr = first?.results?.[0]?.ingested_at;
+    if (!firstDateStr) return; // no dated records — section renders its empty state
+
+    const firstDate = new Date(firstDateStr.replace(' ', 'T') + 'Z');
+    if (isNaN(firstDate)) return;
+    const now = new Date();
+
+    // Month buckets, UTC, from first-harvest month through the current month.
+    // Harvesting started 2024-11, so this is ~2 bars/month of horizontal space
+    // per year of history for the foreseeable future; revisit granularity if the
+    // program is still running in the 2030s.
+    const months = [];
+    let y = firstDate.getUTCFullYear();
+    let m = firstDate.getUTCMonth();
+    while (y < now.getUTCFullYear() || (y === now.getUTCFullYear() && m <= now.getUTCMonth())) {
+      months.push([y, m]);
+      m += 1;
+      if (m === 12) { m = 0; y += 1; }
+    }
+    if (!months.length) return;
+
+    const isoDay = (yy, mm, dd) =>
+      `${yy}-${String(mm + 1).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+
+    const bucketFilters = months.map(([yy, mm]) => {
+      const prevEnd = new Date(Date.UTC(yy, mm, 0)); // last day of previous month
+      const lower = `${prevEnd.getUTCFullYear()}-${String(prevEnd.getUTCMonth() + 1).padStart(2, '0')}-${String(prevEnd.getUTCDate()).padStart(2, '0')}T23:59:59`;
+      const next = new Date(Date.UTC(yy, mm + 1, 1));
+      const upper = isoDay(next.getUTCFullYear(), next.getUTCMonth(), 1);
+      return `ingested_at:>${lower},ingested_at:<${upper}`;
+    });
+    const allCounts = await mapPool(
+      [...bucketFilters, `ingested_at:${BULK_LOAD_TS}`],
+      4,
+      countWithRetry
+    );
+    const epochCount = allCounts[allCounts.length - 1];
+    const counts = allCounts.slice(0, -1);
+
+    const epochDate = new Date(BULK_LOAD_TS + 'Z');
+    const buckets = months.map(([yy, mm], i) => {
+      let count = counts[i];
+      if (yy === epochDate.getUTCFullYear() && mm === epochDate.getUTCMonth() && epochCount > 0) {
+        count = Math.max(0, count - epochCount);
+        epochExcludedCount.value = epochCount;
+      }
+      return {
+        key: isoDay(yy, mm, 1).slice(0, 7), // YYYY-MM
+        label: `${MONTH_NAMES[mm]} ${yy}`,
+        axisLabel: mm === 0 ? String(yy) : '',
+        count,
+      };
+    });
+    // Short spans may contain no January — anchor the axis on the first bucket.
+    if (!buckets.some((b) => b.axisLabel)) {
+      buckets[0].axisLabel = `${MONTH_NAMES[months[0][1]].slice(0, 3)} ${months[0][0]}`;
+    }
+    historyBuckets.value = buckets;
+  } catch (e) {
+    historyBuckets.value = [];
+  } finally {
+    loadingHistory.value = false;
+  }
+}
+
+function downloadHistoryCsv() {
+  exportArrayToCsv(
+    historyBuckets.value.map((b) => ({ month: b.key, new_records: b.count })),
+    [
+      { key: 'month', label: 'month' },
+      { key: 'new_records', label: 'new_records_received' },
+    ],
+    `openalex-harvest-history-${shortId.value}.csv`
+  );
+}
 
 // --- endpoints on file ---
 const loadingEndpoints = ref(true);
@@ -311,6 +566,7 @@ watch(shortId, (id) => {
   fetchLocations();
   fetchWorksCounts();
   fetchEndpoints();
+  fetchHistory();
 }, { immediate: true });
 </script>
 
@@ -328,6 +584,107 @@ watch(shortId, (id) => {
     padding-right: 12px;
     font-weight: 500;
     font-variant-numeric: tabular-nums;
+  }
+}
+
+.history-chart {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  max-width: 680px;
+  padding-top: 26px; // air for the max label / tooltip
+}
+
+.history-baseline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 17px; // just above the x-label band
+  height: 1px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.history-col {
+  flex: 1 1 0;
+  min-width: 3px;
+  max-width: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  outline: none;
+  cursor: default;
+}
+
+.history-bar-slot {
+  position: relative;
+  height: 100px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.history-bar {
+  width: 100%;
+  max-width: 24px;
+  background: #2563eb;
+  border-radius: 4px 4px 0 0; // rounded data-end, square baseline
+}
+
+.history-col:hover .history-bar,
+.history-col:focus .history-bar {
+  background: #3b82f6;
+}
+
+.history-max-label {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+}
+
+.history-x-label {
+  height: 17px;
+  padding-top: 4px;
+  font-size: 11px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.6);
+  text-align: left;
+  white-space: nowrap;
+  overflow: visible;
+}
+
+.history-tooltip {
+  position: absolute;
+  top: -6px;
+  transform: translateX(-50%);
+  z-index: 2;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 3px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+
+  &.edge-left {
+    transform: translateX(0);
+  }
+
+  &.edge-right {
+    transform: translateX(-100%);
+  }
+
+  .tooltip-value {
+    font-weight: 600;
+  }
+
+  .tooltip-label {
+    color: rgba(0, 0, 0, 0.6);
+    margin-left: 4px;
   }
 }
 
