@@ -1,6 +1,14 @@
 <template>
   <div class="pa-6 source-harvest-tab">
 
+    <!-- Beta notice -->
+    <div class="beta-banner text-body-2 mb-5">
+      <v-icon size="14" class="mr-1">mdi-flask-outline</v-icon>
+      This feature is in beta — we're still refining the data and design.
+      Feedback welcome at
+      <a href="mailto:support@openalex.org">support@openalex.org</a>.
+    </div>
+
     <!-- Harvest status -->
     <div class="text-overline">Harvest status</div>
     <div v-if="loadingLocations" class="my-2">
@@ -584,6 +592,22 @@ watch(shortId, (id) => {
     padding-right: 12px;
     font-weight: 500;
     font-variant-numeric: tabular-nums;
+  }
+}
+
+.beta-banner {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: rgba(0, 0, 0, 0.6);
+
+  .v-icon {
+    // App.vue globally forces .v-icon to 18px !important; match the banner's
+    // small text (see AGENTS.md § openalex-gui global CSS overrides)
+    font-size: 14px !important;
+    width: 14px !important;
+    height: 14px !important;
+    vertical-align: -2px;
   }
 }
 

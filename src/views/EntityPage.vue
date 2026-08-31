@@ -124,7 +124,7 @@
           <v-card v-if="isRepositorySource" variant="outlined" class="rounded-o bg-white">
             <v-tabs v-model="activeTab" bg-color="transparent">
               <v-tab value="details">Details</v-tab>
-              <v-tab value="harvest">Harvest</v-tab>
+              <v-tab value="harvest">Harvest (beta)</v-tab>
             </v-tabs>
             <v-divider />
             <v-window v-model="activeTab">
@@ -365,7 +365,7 @@
           <v-card v-if="isRepositorySource" flat class="rounded-o">
             <v-tabs v-model="activeTab" bg-color="transparent">
               <v-tab value="details">Details</v-tab>
-              <v-tab value="harvest">Harvest</v-tab>
+              <v-tab value="harvest">Harvest (beta)</v-tab>
             </v-tabs>
             <v-divider />
             <v-window v-model="activeTab">
