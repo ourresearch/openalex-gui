@@ -755,11 +755,12 @@ const entityConfigs = reactive({
         filterKey: "locations.id",
         hasAutocomplete: false,
         isNative: false,
-        // SHIP GATE (oxjob #852): flip to true only when locations search
-        // works AND the ES sync has a delete path (#915 v3) — no SERP over
-        // ghost rows. Flipping this also auto-adds /locations to the router's
+        // SHIPPED 2026-08-30 (oxjob #852): search live (elastic-api 8285f51,
+        // analyzed title.text since locations-v3). Jason dropped the
+        // delete-path gate — ghosts may re-accumulate until #915/v3's delete
+        // path lands. This also auto-adds /locations to the router's
         // entityNames regex and the entity-type selector.
-        hasSerp: false,
+        hasSerp: true,
         category: "components",
         // No works_count/cited_by_count on /locations — an empty defaultSort
         // sends no sort param at all (API default order: work_id,native_id).
@@ -871,14 +872,12 @@ const entityCategories = [
     { id: 'geo-language', name: 'Geography & language' },
     { id: 'open-access', name: 'Open Access' },
     // Component entities (oxjob #852): sub-work entities a work rolls up.
-    // Empty in the browser until locations ships (getEntitiesForBrowser
-    // exclusion + hasSerp flip at ship time).
     { id: 'components', name: 'Work components' },
 ];
 
 const getEntitiesForBrowser = function () {
     return getEntityConfigs().filter(c =>
-        c.name !== 'concepts' && c.name !== 'locations'
+        c.name !== 'concepts'
     );
 }
 

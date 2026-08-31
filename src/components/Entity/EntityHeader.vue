@@ -237,7 +237,7 @@ const isNativeCollectionType = computed(() =>
 // a URL, opening from an external link) have no `.back`, so the button stays
 // hidden.
 const cameFromSerp = ref(false);
-const SERP_PATH_RE = /^\/(works|authors|sources|institutions|topics|sdgs|funders|publishers|keywords|concepts|collections)(\/|\?|$)/;
+const SERP_PATH_RE = /^\/(works|authors|sources|institutions|topics|sdgs|funders|publishers|keywords|concepts|collections|locations)(\/|\?|$)/;
 onMounted(() => {
   const prev = window.history.state?.back || '';
   cameFromSerp.value = SERP_PATH_RE.test(prev);
