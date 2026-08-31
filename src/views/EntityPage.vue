@@ -59,8 +59,22 @@
                           />
                         </v-card-text>
                         
-                        <!-- Chips at bottom -->
-                        <v-card-actions v-if="location.isPrimary || location.isBestOa" class="d-flex justify-end">
+                        <!-- Link to the location's own page (oxjob #852) + chips.
+                             Embedded rows carry bare namespaced ids (doi:…,
+                             pmid:…) — route by path, slashes preserved, same as
+                             filters.js entityPageTarget. -->
+                        <v-card-actions class="d-flex">
+                          <v-btn
+                            v-if="location.id"
+                            variant="text"
+                            size="small"
+                            class="text-none"
+                            :to="{ path: `/locations/${location.id}` }"
+                          >
+                            Location page
+                            <v-icon size="14" class="ml-1">mdi-arrow-right</v-icon>
+                          </v-btn>
+                          <v-spacer />
                           <v-chip
                             v-if="location.isPrimary"
                             size="x-small"
@@ -134,7 +148,7 @@
             />
           </v-card>
 
-          <v-card variant="outlined" class="rounded-o mt-3 bg-white">
+          <v-card v-if="!isComponentEntity" variant="outlined" class="rounded-o mt-3 bg-white">
             <selection-toolbar :selectable="worksSelectable" :disable-master="isAuthorOwner && worksFilterActive">
               <template #trailing>
                 <v-spacer/>
@@ -376,22 +390,26 @@
           </v-card>
         </v-col>
 
-        <v-col v-if="showEntityPageStats" cols="12" md="5">
+        <!-- Component entities (oxjob #852) have no works metrics or group-bys —
+             without the guard this renders as an empty white pill. -->
+        <v-col v-if="showEntityPageStats && !isComponentEntity" cols="12" md="5">
           <v-card flat class="rounded-o px-2 pt-4 pb-3">
             <entity-metrics
               :data="entityData"
               :type="myEntityType"
               class="entity-metrics-block mb-3 pb-3"
             />
-            <group-by
-              v-for="groupByKey in groupByKeys"
-              :key="groupByKey"
-              :filter-key="groupByKey"
-              :filter-by="[myWorksFilter]"
-              entity-type="works"
-              :is-entity-page="true"
-              class="mb-3"
-            />
+            <template v-if="!isComponentEntity">
+              <group-by
+                v-for="groupByKey in groupByKeys"
+                :key="groupByKey"
+                :filter-key="groupByKey"
+                :filter-by="[myWorksFilter]"
+                entity-type="works"
+                :is-entity-page="true"
+                class="mb-3"
+              />
+            </template>
           </v-card>
         </v-col>
       </v-row>
@@ -461,6 +479,12 @@ const hasMoreWorks = computed(() => {
 });
 
 const myEntityConfig = computed(() => myEntityType.value ? getEntityConfig(myEntityType.value) : null);
+
+// Component entities (locations, oxjob #852) have no works-rollup UI: their
+// filterKey isn't a valid works filter (works?filter=locations.id:… 400s),
+// and the "works from this entity" set is exactly one work — already linked
+// from the details rows. Hide the works list + group-by rail for them.
+const isComponentEntity = computed(() => myEntityConfig.value?.entityClass === 'component');
 
 const myWorksFilter = computed(() => {
   if (!myEntityConfig.value) return null;
@@ -612,7 +636,6 @@ const allLocations = computed(() => {
     });
   }
   
-  console.log('allLocations:', locations);
   return locations;
 });
 
@@ -665,6 +688,7 @@ const getEntityData = async () => {
 const fetchWorksPage = async (page) => {
   if (myEntityType.value === 'works') return null;
   if (!myEntityConfig.value) return null;
+  if (isComponentEntity.value) return null; // no works rollup (oxjob #852)
   if (!showEntityPageStats.value) return null;
 
   const filterString = filtersAsUrlStr([myWorksFilter.value]);
@@ -707,7 +731,6 @@ const showMoreWorks = async () => {
 };
 
 const viewMyWorks = () => {
-  console.log(myWorksFilter.value);
   return url.pushNewFilters([myWorksFilter.value], 'works');
 };
 

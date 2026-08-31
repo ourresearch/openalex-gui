@@ -43,6 +43,54 @@ export function extractOpenalexId(str) {
 }
 
 /**
+ * Detect a pasted location identifier so the locations SERP search box can
+ * jump straight to that location's page (oxjob #852) — the record-lookup
+ * affordance for repository managers ("paste your own record ID"). Location
+ * short ids are `<namespace>:<native_id>` (doi:10.1038/…, pmh:/neu:cj82kt84h,
+ * mag:999999992); they're opaque, case-significant, and slash-bearing, so this
+ * NEVER case-folds anything except the namespace prefix itself.
+ *
+ * Accepts the forms a repository manager would paste:
+ *   "doi:10.1038/nature12373"                          -> doi:10.1038/nature12373
+ *   "10.1038/nature12373"                              -> doi:10.1038/nature12373  (bare DOI)
+ *   "https://doi.org/10.1038/nature12373"              -> doi:10.1038/nature12373
+ *   "pmh:/neu:cj82kt84h", "PMH:oai:HAL:hal-01234"      -> pmh:… (namespace lowercased)
+ *   "mag:999999992", "pmid:12345678"                   -> as-is
+ *   "https://openalex.org/locations/doi:10.1038/x"     -> doi:10.1038/x  (full URL)
+ *
+ * Guards: single token only (any internal whitespace = a real search);
+ * mag/pmid must be all digits. The caller still verifies the id resolves
+ * against the /locations singleton before navigating, so a lookalike falls
+ * through to a normal search.
+ */
+export function extractLocationId(str) {
+  if (!str) return null;
+  const trimmed = String(str).trim();
+  if (!trimmed || /\s/.test(trimmed)) return null;
+
+  // Full location URL — strip the prefix, keep the id verbatim.
+  const urlMatch = trimmed.match(/^https?:\/\/openalex\.org\/locations\/(.+)$/i);
+  if (urlMatch) return urlMatch[1];
+
+  // DOI in its pasteable forms → doi:<doi>.
+  const doiUrlMatch = trimmed.match(/^https?:\/\/(?:dx\.)?doi\.org\/(10\..+)$/i);
+  if (doiUrlMatch) return `doi:${doiUrlMatch[1]}`;
+  if (/^10\.\d{4,}/.test(trimmed) && trimmed.includes('/')) return `doi:${trimmed}`;
+
+  // Namespaced id — lowercase ONLY the namespace, preserve the rest.
+  const nsMatch = trimmed.match(/^(doi|pmh|mag|pmid|openalex_curation):(.+)$/i);
+  if (nsMatch) {
+    const ns = nsMatch[1].toLowerCase();
+    const rest = nsMatch[2];
+    if ((ns === 'mag' || ns === 'pmid') && !/^\d+$/.test(rest)) return null;
+    if (ns === 'doi' && !/^10\.\d{4,}/.test(rest)) return null;
+    return `${ns}:${rest}`;
+  }
+
+  return null;
+}
+
+/**
  * Detect an ISSN-shaped query and normalize it to the canonical NNNN-NNNC form
  * (hyphenated, uppercase check digit). Returns null if the input isn't an ISSN.
  *

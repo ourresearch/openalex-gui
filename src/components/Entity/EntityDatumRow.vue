@@ -104,7 +104,11 @@
       {{ valueBoolean }}
     </span>
 
-    <span v-else-if="showMissing" class="text-grey">
+    <!-- "none" is the second v-if chain's fallback, so it must also check the
+         FIRST chain (valueEntityLinks renders in its own v-if above) — else a
+         locations row that links an entity gets a stray "none" appended
+         (oxjob #852: "Work: W100000002 none"). -->
+    <span v-else-if="showMissing && !valueEntityLinks" class="text-grey">
       none
     </span>
 

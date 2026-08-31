@@ -379,7 +379,7 @@ import { api } from '@/api';
 import { createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr } from '@/filterConfigs';
 import { url } from '@/url';
 import { facetConfigs } from '@/facetConfigs';
-import { extractIssn, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, requestSearchBoxFocus, consumeSearchBoxFocus, authorNameMatchesQuery, dedupeByName, footerSearchEntityType } from '@/components/searchBox.helpers';
+import { extractIssn, extractLocationId, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, requestSearchBoxFocus, consumeSearchBoxFocus, authorNameMatchesQuery, dedupeByName, footerSearchEntityType } from '@/components/searchBox.helpers';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import { entityCounts, worksCoreCount, compactCount } from '@/entityCounts';
 import { getShortId } from '@/openalexId';
@@ -450,6 +450,32 @@ function extractOrcid(str) {
 
 async function tryIdentifierLookup() {
   const input = searchString.value;
+
+  // Locations record lookup (oxjob #852) — locations-SERP-scoped: a pasted
+  // repository record ID (doi:…, pmh:…, mag:…, a bare DOI, or a full location
+  // URL) jumps straight to that location's page, verified against the
+  // singleton first so a lookalike falls through to a normal search. Returns
+  // false either way so the works-DOI branch below can't hijack a locations
+  // lookup to a work page.
+  if (entityType.value === 'locations') {
+    const locId = extractLocationId(input);
+    if (locId) {
+      try {
+        const resp = await api.getEntity(`locations/${locId}`);
+        if (resp && resp.id) {
+          searchString.value = '';
+          dismissDropdown();
+          // Component ids are slash-bearing — route by path, not named route
+          // (matches filters.js entityPageTarget).
+          router.push({ path: `/locations/${locId}` });
+          return true;
+        }
+      } catch (e) {
+        // Not found or API error — fall through to a regular search.
+      }
+    }
+    return false;
+  }
 
   const doi = extractDoi(input);
   if (doi) {

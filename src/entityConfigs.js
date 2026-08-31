@@ -748,7 +748,10 @@ const entityConfigs = reactive({
         displayName: "locations",
         displayNameSingular: "work location",
         descr: "Individual copies of works, harvested from repositories and other sources",
-        placeholder: "Search locations",
+        // The box's headline affordance is the record lookup (paste a DOI or
+        // your repository's own record ID → jump to the location page);
+        // full-text search rides #915-v3's analyzed title.
+        placeholder: "Search locations or paste a record ID",
         filterKey: "locations.id",
         hasAutocomplete: false,
         isNative: false,

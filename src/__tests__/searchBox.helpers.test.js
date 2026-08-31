@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extractIssn, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, dedupeByName, footerSearchEntityType } from '../components/searchBox.helpers.js';
+import { extractIssn, extractLocationId, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, dedupeByName, footerSearchEntityType } from '../components/searchBox.helpers.js';
 
 describe('extractIssn', () => {
   it('accepts a canonical hyphenated ISSN', () => {
@@ -256,5 +256,49 @@ describe('footerSearchEntityType', () => {
 
   it('is a no-op swap on that entity\'s own SERP', () => {
     expect(footerSearchEntityType(['authors', 'authors'], 'authors')).toBe('authors');
+  });
+});
+
+describe('extractLocationId', () => {
+  it('accepts a labeled DOI, preserving case of the suffix', () => {
+    expect(extractLocationId('doi:10.1038/nature12373')).toBe('doi:10.1038/nature12373');
+    expect(extractLocationId('DOI:10.1002/(SICI)1096-8644')).toBe('doi:10.1002/(SICI)1096-8644');
+  });
+
+  it('accepts a bare DOI and namespaces it', () => {
+    expect(extractLocationId('10.1038/nature12373')).toBe('doi:10.1038/nature12373');
+  });
+
+  it('accepts a doi.org URL', () => {
+    expect(extractLocationId('https://doi.org/10.1038/nature12373')).toBe('doi:10.1038/nature12373');
+    expect(extractLocationId('http://dx.doi.org/10.1038/nature12373')).toBe('doi:10.1038/nature12373');
+  });
+
+  it('accepts pmh ids verbatim (slashes, colons, case) with lowercased namespace', () => {
+    expect(extractLocationId('pmh:/neu:cj82kt84h')).toBe('pmh:/neu:cj82kt84h');
+    expect(extractLocationId('PMH:oai:HAL:hal-01234')).toBe('pmh:oai:HAL:hal-01234');
+  });
+
+  it('accepts mag/pmid ids only when all-digit', () => {
+    expect(extractLocationId('mag:999999992')).toBe('mag:999999992');
+    expect(extractLocationId('pmid:12345678')).toBe('pmid:12345678');
+    expect(extractLocationId('mag:not-a-number')).toBeNull();
+  });
+
+  it('accepts a full location URL, stripping the prefix verbatim', () => {
+    expect(extractLocationId('https://openalex.org/locations/doi:10.1038/nature12373')).toBe('doi:10.1038/nature12373');
+    expect(extractLocationId('https://openalex.org/locations/pmh:/neu:cj82kt84h')).toBe('pmh:/neu:cj82kt84h');
+  });
+
+  it('rejects multi-word queries and plain text', () => {
+    expect(extractLocationId('climate change')).toBeNull();
+    expect(extractLocationId('doi:10.1038/nature12373 extra')).toBeNull();
+    expect(extractLocationId('repository records')).toBeNull();
+    expect(extractLocationId('')).toBeNull();
+    expect(extractLocationId(null)).toBeNull();
+  });
+
+  it('rejects a doi namespace with a non-DOI value', () => {
+    expect(extractLocationId('doi:not-a-doi')).toBeNull();
   });
 });
