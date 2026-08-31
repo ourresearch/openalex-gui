@@ -133,27 +133,36 @@ const api = (function () {
         return entityConfigForUrl(url)?.displayNameField || null;
     };
 
+    // Boundary normalization for entity result rows (oxjob #852):
+    //  - displayNameField entities (awards + locations: `title`) get it copied
+    //    to `display_name` so every downstream surface (list items, table
+    //    identity column, useHead, pickers) keeps assuming `display_name`.
+    //  - Component entities (locations) return BARE namespaced ids
+    //    ("doi:10.1007/…") — no locations/ prefix, no URL — so nothing
+    //    downstream (parseId, zoom links, identity column) recognizes them.
+    //    Normalize to the full-URL convention every other entity uses.
+    // Applied by getResultsList (classic list/SERP path) AND executeOqo (the
+    // OQL/OQO table path — its rows come from POST /, so there's no URL to
+    // derive the entity from; it passes the OQO's get_rows entity instead).
+    const normalizeEntityRows = function (cfg, results) {
+        const dnField = cfg?.displayNameField;
+        const isComponent = cfg?.entityClass === 'component';
+        if (!results || !(dnField || isComponent)) return results;
+        return results.map(row => ({
+            ...row,
+            ...(dnField ? { display_name: row[dnField] || row.display_name } : {}),
+            ...(isComponent && row.id && !String(row.id).includes('openalex.org/')
+                ? { id: `https://openalex.org/${cfg.name}/${row.id}` }
+                : {}),
+        }));
+    };
+
     const getResultsList = async function (url) {
         const ret = await getUrl(url);
-
         const cfg = entityConfigForUrl(url);
-        const dnField = cfg?.displayNameField;
-        // Component entities (locations, oxjob #852) return BARE namespaced ids
-        // ("doi:10.1007/…") — no locations/ prefix, no URL — so nothing
-        // downstream (parseId, zoom links, identity column) recognizes them.
-        // Normalize SERP rows to the full-URL convention every other entity
-        // uses. (The entity page fetches via api.get and does its own massage.)
-        const isComponent = cfg?.entityClass === 'component';
-        if (ret.results && (dnField || isComponent)) {
-            ret.results = ret.results.map(row => ({
-                ...row,
-                ...(dnField ? { display_name: row[dnField] || row.display_name } : {}),
-                ...(isComponent && row.id && !String(row.id).includes('openalex.org/')
-                    ? { id: `https://openalex.org/${cfg.name}/${row.id}` }
-                    : {}),
-            }));
+        if (ret.results) {
+            ret.results = normalizeEntityRows(cfg, ret.results);
         }
-
         return ret;
     };
 
@@ -649,7 +658,15 @@ const api = (function () {
         // Throws on a 4xx with a structured {validation: {errors: [...]}} body.
         const url = `${urlBase.api}/?mailto=ui@openalex.org`;
         const resp = await axios.post(url, { oql }, axiosConfig());
-        return resp.data;
+        // Same boundary normalization as getResultsList/executeOqo (oxjob
+        // #852) — the /q?oql= route fetches through here, and locations rows
+        // otherwise render a blank identity column + unlinkable rows.
+        const data = resp.data;
+        const entityType = data?.meta?.x_query?.oqo?.get_rows;
+        if (data?.results && entityType) {
+            data.results = normalizeEntityRows(getEntityConfig(entityType), data.results);
+        }
+        return data;
     }
 
     const executeOqo = async function(oqo, params = {}) {
@@ -669,7 +686,18 @@ const api = (function () {
         // structured {validation: {errors: [...]}} body, like executeOql.
         const url = `${urlBase.api}/?mailto=ui@openalex.org`;
         const resp = await axios.post(url, { oqo, ...params }, axiosConfig());
-        return resp.data;
+        // Same boundary normalization as getResultsList (oxjob #852): OQO rows
+        // for displayNameField/component entities (locations: title, bare ids)
+        // otherwise render a blank identity column + unlinkable rows in the
+        // OQL results table. Entity comes from the server-canonical echo,
+        // falling back to the submitted OQO.
+        const data = resp.data;
+        const entityType = data?.meta?.x_query?.oqo?.get_rows || oqo?.get_rows;
+        if (data?.results && entityType) {
+            const cfg = getEntityConfig(entityType);
+            data.results = normalizeEntityRows(cfg, data.results);
+        }
+        return data;
     }
 
     return {
