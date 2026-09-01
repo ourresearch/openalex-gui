@@ -274,7 +274,7 @@ function goPage(p) {
 
 function goToRepo(repo) {
   const id = repo.id?.replace('https://openalex.org/', '') || repo.id;
-  router.push(`/repositories/${id}`);
+  router.push({ path: `/sources/${id}`, query: { tab: 'harvest' } });
 }
 
 async function downloadCsv() {

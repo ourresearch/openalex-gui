@@ -399,7 +399,13 @@ const routes = [
     // Repository Dashboard
     {path: '/repositories', name: 'Repositories', component: () => import('@/views/Repositories/RepositoriesLanding.vue')},
     {path: '/repositories/add', name: 'RepositoryAdd', component: () => import('@/views/Repositories/RepositoryAdd.vue')},
-    {path: '/repositories/:sourceId', name: 'RepositoryDashboard', component: () => import('@/views/Repositories/RepositoryDashboard.vue'), props: true},
+    // Legacy standalone repository dashboard (#83.7 era) — superseded by the
+    // source page's Harvest tab (#836); users-api /repositories/<id> is retired (#804).
+    {path: '/repositories/:sourceId', redirect: (to) => {
+        const raw = String(to.params.sourceId).trim();
+        const id = /^\d+$/.test(raw) ? `S${raw}` : raw.toUpperCase().startsWith('S') ? `S${raw.slice(1)}` : raw;
+        return {path: `/sources/${id}`, query: {tab: 'harvest'}};
+    }},
 
     // static pages
     {path: '/about', name: 'About', component: AboutPage, meta: {chrome: 'site'}},

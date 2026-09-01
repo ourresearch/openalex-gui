@@ -27,6 +27,7 @@
         We check every repository for new records daily. This date is when we last
         received a record we didn't already have — if your repository hasn't changed,
         the date doesn't either.
+        <span v-if="nextHarvestText"> {{ nextHarvestText }}</span>
       </div>
     </template>
 
@@ -457,6 +458,18 @@ const visibleEndpoints = computed(() =>
 const locationsApiUrl = computed(() =>
   `${urlBase.api}/locations?filter=source_id:${shortId.value}`
 );
+
+// Next-harvest countdown from /oaipmh-sets next_harvest_at (last check + 24h,
+// active endpoints only). A source can have several endpoints — show the soonest.
+const nextHarvestText = computed(() => {
+  const times = endpoints.value
+    .map((e) => (e.next_harvest_at ? new Date(e.next_harvest_at).getTime() : NaN))
+    .filter((t) => !Number.isNaN(t));
+  if (!times.length) return null;
+  const hours = (Math.min(...times) - Date.now()) / 36e5;
+  if (hours <= 1) return 'Next harvest: within the next hour or so.';
+  return `Next harvest: in about ${Math.round(hours)} hour${Math.round(hours) === 1 ? '' : 's'}.`;
+});
 
 const docsWorksUrl = 'https://help.openalex.org/data/works/';
 const docsRepositoriesUrl = 'https://help.openalex.org/data/sources/repositories/';
