@@ -210,7 +210,7 @@ const faqs = [
   },
   {
     q: 'How do I add a new repository?',
-    a: 'Use the <a href="/repositories/add">Add repository</a> form to submit your OAI-PMH endpoint URL. We\'ll validate the endpoint and begin harvesting within a few days.',
+    a: 'Email <a href="mailto:support@openalex.org?subject=Add%20my%20repository">support@openalex.org</a> with your OAI-PMH endpoint URL (plus the set, if your endpoint serves several collections). We\'ll verify the endpoint and begin harvesting.',
   },
   {
     q: 'How often does OpenAlex harvest my repository?',
