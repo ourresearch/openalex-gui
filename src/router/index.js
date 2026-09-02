@@ -614,10 +614,10 @@ const routes = [
     {path: '/curate/moderation', name: 'moderation', component: () => import('@/views/ModerationPage.vue'), meta: { requiresAuth: true }},
     
     // Docs
-    redirect('/data-dump', "https://developers.openalex.org/download-snapshot"),
+    redirect('/data-dump', "https://help.openalex.org/access/snapshot/"),
     redirect('/rest-api', "https://developers.openalex.org/how-to-use-the-api/api-overview"),
-    redirect('/schema', "https://developers.openalex.org/download-snapshot"),
-    redirect('/mag-migration-guide', "https://developers.openalex.org/download-snapshot/mag-format"),
+    redirect('/schema', "https://help.openalex.org/access/snapshot/"),
+    redirect('/mag-migration-guide', "https://help.openalex.org/access/snapshot/"),
     
     // Curation requests (the Google forms these pointed at were retired in #811)
     redirect('/author-change-request', "https://help.openalex.org/how-to/fixing-errors/"),

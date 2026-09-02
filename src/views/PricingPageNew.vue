@@ -279,7 +279,7 @@
             Download all 60M full-text PDFs via direct storage access.
             Includes 30-day access to sync the complete archive.
           </p>
-          <a href="https://developers.openalex.org/download-all-data/full-text-pdfs" class="addon-link">Learn more →</a>
+          <a href="https://help.openalex.org/access/fulltext/" class="addon-link">Learn more →</a>
         </div>
       </div>
     </section>

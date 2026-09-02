@@ -389,7 +389,7 @@
             <a href="https://creativecommons.org/public-domain/cc0/" target="_blank">CC0</a>
             public-domain license, with no "personal use only" carve-out and no permission to
             ask. You can even
-            <a href="https://developers.openalex.org/download-all-data" target="_blank">download the entire dataset for free</a>.
+            <a href="https://help.openalex.org/access/snapshot/" target="_blank">download the entire dataset for free</a>.
             However, the services on top of the data — the API, search, sync, and support — are
             expensive for us to provide, and so we charge for those services in order to keep
             OpenAlex sustainably open.
