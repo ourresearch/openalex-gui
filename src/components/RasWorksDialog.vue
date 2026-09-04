@@ -1,6 +1,5 @@
 <template>
   <v-dialog
-    :key="showExportProgress ? 'export' : 'works'"
     :model-value="modelValue"
     @update:model-value="onDialogModel"
     :max-width="showExportProgress ? 420 : 900"
@@ -402,7 +401,6 @@ function setupObserver() {
 
 watch(() => props.modelValue, async (open) => {
   if (open && props.rasText) {
-    document.documentElement.style.overflow = 'hidden';
     // Always open on the works list (reset any export state from a prior open).
     showExportProgress.value = false;
     exportDone.value = false;
@@ -420,13 +418,11 @@ watch(() => props.modelValue, async (open) => {
     await nextTick();
     setupObserver();
   } else {
-    document.documentElement.style.overflow = '';
     if (observer) observer.disconnect();
   }
 });
 
 onBeforeUnmount(() => {
-  document.documentElement.style.overflow = '';
   if (observer) observer.disconnect();
 });
 </script>

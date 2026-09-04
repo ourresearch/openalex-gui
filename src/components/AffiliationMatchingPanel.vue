@@ -143,7 +143,7 @@
       <v-table v-else :class="{ 'table-loading': isLoading }" hover class="affiliations-table">
         <thead>
           <tr>
-            <th class="px-3">
+            <th class="px-3" style="width: 56px;">
               <v-checkbox
                 :model-value="selectionState"
                 :indeterminate="selectionState === 'indeterminate'"
@@ -161,9 +161,11 @@
             v-for="(affiliation, index) in affiliations"
             :key="affiliation.raw_affiliation_string || index"
             class="ras-row"
-            @click="openWorksDialog(affiliation)"
           >
-            <td style="vertical-align: top;" class="px-3 py-3" @click.stop>
+            <!-- Selection cell. Fixed width so the 28px checkbox control never overflows
+                 into the statement cell (at 26px it did, and the overflowing half of the
+                 checkbox then triggered the works dialog instead of the tick; ZD 23906). -->
+            <td style="vertical-align: top; width: 56px;" class="px-3 py-3" @click.stop>
               <v-checkbox
                 :model-value="selectedIds.has(affiliation.raw_affiliation_string)"
                 hide-details
@@ -171,7 +173,7 @@
                 @update:model-value="toggleSelection(affiliation.raw_affiliation_string, $event)"
               />
             </td>
-            <td class="py-3">
+            <td class="py-3" @click="openWorksDialog(affiliation)">
               <div class="d-flex align-center flex-wrap" style="gap: 6px;">
                 <span>{{ affiliation.raw_affiliation_string }}</span>
                 <span
@@ -184,7 +186,7 @@
                 </span>
               </div>
             </td>
-            <td class="py-3">
+            <td class="py-3" @click="openWorksDialog(affiliation)">
               {{ affiliation.works_count ? affiliation.works_count.toLocaleString() : '0' }}
             </td>
           </tr>
