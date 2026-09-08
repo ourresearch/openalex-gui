@@ -146,6 +146,7 @@ const myStuffItems = computed(() => {
     { title: 'Saved searches', route: '/settings/searches', icon: 'mdi-star-outline' },
     { title: 'Collections', route: '/settings/collections', icon: 'mdi-folder-outline' },
     { title: 'Exports', route: '/settings/exports', icon: 'mdi-download-outline' },
+    { title: 'Support requests', route: '/settings/tickets', icon: 'mdi-lifebuoy' },
   ];
   items.splice(2, 0, { title: 'Alerts', route: '/settings/alerts', icon: 'mdi-bell-outline' });
   // Column views (#602) are an OQL-mode feature — hide the page until launch.

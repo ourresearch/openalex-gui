@@ -287,6 +287,17 @@ const routes = [
                 component: MeExports,
             },
             {
+                path: 'tickets',
+                name: 'settings-tickets',
+                component: () => import('@/views/Me/MeTickets.vue'),
+            },
+            {
+                path: 'tickets/:ticketId',
+                name: 'settings-ticket-detail',
+                component: () => import('@/views/Me/MeTicketDetail.vue'),
+                props: true,
+            },
+            {
                 path: 'collections',
                 name: 'settings-collections',
                 component: MeCollections,

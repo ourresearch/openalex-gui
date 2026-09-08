@@ -18,8 +18,14 @@
         <div class="sf-panel-title">Thanks — your request is in.</div>
         <p class="sf-panel-body">
           We've sent a confirmation to <strong>{{ accountEmail }}</strong
-          ><span v-if="filedId"> (request {{ filedId }})</span>. You can reply to that email to
-          add more detail.
+          ><span v-if="filedId">
+            (<router-link
+              :to="{ name: 'settings-ticket-detail', params: { ticketId: filedId } }"
+              >request {{ filedId }}</router-link
+            >)</span
+          >. You can track it and reply from
+          <router-link :to="{ name: 'settings-tickets' }">your support requests</router-link>,
+          or just reply to that email.
         </p>
         <p class="sf-panel-body">
           We read everything, but we can't reply to every request — for common questions
