@@ -10,11 +10,42 @@
         variant="text"
         size="small"
         prepend-icon="mdi-plus"
-        :to="{ name: 'Support' }"
+        @click="showNewRequest = true"
       >
         New request
       </v-btn>
     </div>
+
+    <!-- New request dialog (#823 follow-up): the same form as /support, filed
+         without leaving the list. The v-if remounts the form on each open so a
+         filed state doesn't linger into the next open (an unsent draft still
+         survives — the form persists it to localStorage). -->
+    <v-dialog v-model="showNewRequest" max-width="720">
+      <v-card rounded="lg" class="new-request-card">
+        <v-card-text class="pa-8">
+          <div class="d-flex align-start">
+            <div>
+              <h2 class="nr-title">Contact support</h2>
+              <p class="nr-intro">
+                Found a problem in the data, or stuck on something? Send us a note and
+                we'll take a look.
+              </p>
+            </div>
+            <v-spacer />
+            <v-btn
+              icon
+              variant="text"
+              size="small"
+              aria-label="Close"
+              @click="showNewRequest = false"
+            >
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </div>
+          <support-request-form v-if="showNewRequest" @filed="onFiled" />
+        </v-card-text>
+      </v-card>
+    </v-dialog>
 
     <v-card flat variant="outlined" class="bg-white">
       <v-card-text v-if="isLoading" class="text-center py-8">
@@ -31,7 +62,7 @@
       <v-card-text v-else-if="!tickets.length" class="py-8 text-center text-grey">
         You haven't filed any support requests yet.
         <div class="mt-2">
-          <router-link :to="{ name: 'Support' }">Contact support</router-link>
+          <a href="#" @click.prevent="showNewRequest = true">Contact support</a>
           if something's not right.
         </div>
       </v-card-text>
@@ -90,6 +121,7 @@ import axios from 'axios';
 import { format as formatTimeago } from 'timeago.js';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { ticketStatusLabel, ticketStatusColor } from '@/ticketStatus';
+import SupportRequestForm from '@/components/SupportRequestForm.vue';
 
 defineOptions({ name: 'MeTickets' });
 
@@ -100,6 +132,13 @@ const router = useRouter();
 const tickets = ref([]);
 const isLoading = ref(false);
 const error = ref(null);
+const showNewRequest = ref(false);
+
+// The list endpoint is real-time (no index lag), so refetching right after
+// filing is what makes the new ticket appear behind the dialog.
+function onFiled() {
+  fetchTickets();
+}
 
 onMounted(fetchTickets);
 
@@ -153,5 +192,19 @@ const formatExactDate = (dateString) => {
 
 .ticket-subject {
   font-weight: 500;
+}
+
+.nr-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0a0a0a;
+  margin: 0 0 6px;
+}
+
+.nr-intro {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #52525b;
+  margin: 0 0 20px;
 }
 </style>
