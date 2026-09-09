@@ -54,6 +54,27 @@
         label="Owner"
         class="filter-select filter-select-narrow"
       />
+      <v-select
+        v-model="regionFilter"
+        :items="REGIONS"
+        variant="outlined"
+        density="compact"
+        hide-details
+        clearable
+        label="Region"
+        class="filter-select filter-select-narrow"
+      />
+      <v-select
+        v-if="myRater"
+        v-model="myRatingFilter"
+        :items="myRatingOptions"
+        variant="outlined"
+        density="compact"
+        hide-details
+        clearable
+        label="My rating"
+        class="filter-select"
+      />
     </div>
 
     <v-alert v-if="error" type="error" density="compact" class="mb-4">{{ error }}</v-alert>
@@ -80,6 +101,7 @@
               <v-icon v-if="sortKey === 'stage'" size="14">{{ sortIcon }}</v-icon>
             </th>
             <th>Owner</th>
+            <th>Ratings</th>
             <th>Attributes</th>
           </tr>
         </thead>
@@ -103,6 +125,15 @@
               <v-chip :color="STAGE_COLORS[a.stage]" size="small" variant="tonal" label>{{ a.stage }}</v-chip>
             </td>
             <td class="text-medium-emphasis">{{ a.owner || '—' }}</td>
+            <td class="col-ratings">
+              <span
+                v-for="chip in ratingChips(a)"
+                :key="chip.key"
+                class="rating-chip"
+                :class="`rating-chip--${chip.verdict || 'unrated'}`"
+                :title="chip.title"
+              >{{ chip.label }}</span>
+            </td>
             <td>
               <span v-for="(chip, i) in attrChips(a)" :key="i" class="attr-chip">{{ chip }}</span>
             </td>
@@ -120,15 +151,20 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useStore } from 'vuex';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { formatRelativeShort, formatExactDate } from '@/composables/useCurationDescriptor';
-import { ROLE_TITLES, roleTitle, STAGES, STAGE_COLORS, OWNERS, formatAttrValue } from './hiringVocab';
+import {
+  ROLE_TITLES, roleTitle, STAGES, STAGE_COLORS, OWNERS,
+  RATERS, RATER_BY_USER_ID, SCORE_VERDICTS, REGIONS, formatAttrValue,
+} from './hiringVocab';
 
 defineOptions({ name: 'AdminHiring' });
 
 const route = useRoute();
 const router = useRouter();
+const store = useStore();
 
 const applications = ref([]);
 const loading = ref(false);
@@ -138,6 +174,17 @@ const localQ = ref(route.query.q || '');
 const roleFilter = ref(route.query.role || null);
 const stageFilter = ref(route.query.stage || null);
 const ownerFilter = ref(route.query.owner || null);
+const regionFilter = ref(route.query['attr.region'] || null);
+const myRatingFilter = ref(route.query.mine || null);
+
+// Which rater the logged-in user is (undefined for admins who aren't raters).
+const myRater = computed(() => RATER_BY_USER_ID[store.getters['user/userId']]);
+const myRatingOptions = [
+  { value: 'needs', title: 'needs my rating' },
+  { value: 'yes', title: 'yes' },
+  { value: 'maybe', title: 'maybe' },
+  { value: 'no', title: 'no' },
+];
 
 const sortKey = ref('created');
 const sortAsc = ref(false);
@@ -166,8 +213,20 @@ function toggleSort(key) {
   }
 }
 
+// "My rating" is a pure client-side filter — the list is unpaginated and
+// ratings ride in the summary dict.
+const filtered = computed(() => {
+  const mine = myRatingFilter.value;
+  const rater = myRater.value;
+  if (!mine || !rater) return applications.value;
+  return applications.value.filter((a) => {
+    const r = (a.ratings || {})[rater];
+    return mine === 'needs' ? !r : r?.verdict === mine;
+  });
+});
+
 const sorted = computed(() => {
-  const arr = [...applications.value];
+  const arr = [...filtered.value];
   const key = sortKey.value;
   arr.sort((a, b) => {
     let av; let bv;
@@ -191,6 +250,24 @@ function attrChips(a) {
     .map((k) => `${k}: ${formatAttrValue(attrs[k])}`);
 }
 
+// Five compact chips: the AI verdict first, then J/C/K/R.
+function ratingChips(a) {
+  const ai = SCORE_VERDICTS[(a.attributes || {}).ai_triage_score];
+  const chips = [{ key: 'ai', label: 'AI', verdict: ai, title: ai ? `AI: ${ai}` : 'AI: unrated' }];
+  for (const r of RATERS) {
+    const rating = (a.ratings || {})[r];
+    chips.push({
+      key: r,
+      label: r[0].toUpperCase(),
+      verdict: rating?.verdict,
+      title: rating
+        ? `${r}: ${rating.verdict}${rating.comment ? ` — ${rating.comment}` : ''}`
+        : `${r}: unrated`,
+    });
+  }
+  return chips;
+}
+
 async function fetchApplications() {
   loading.value = true;
   error.value = '';
@@ -198,10 +275,13 @@ async function fetchApplications() {
   if (roleFilter.value) params.set('role', roleFilter.value);
   if (stageFilter.value) params.set('stage', stageFilter.value);
   if (ownerFilter.value) params.set('owner', ownerFilter.value);
+  if (regionFilter.value) params.set('attr.region', regionFilter.value);
   if (localQ.value.trim()) params.set('q', localQ.value.trim());
 
-  // Keep filters shareable/bookmarkable
+  // Keep filters shareable/bookmarkable. `mine` is client-side only; the API
+  // ignores it if sent, but keep it out of the request for clarity.
   const query = Object.fromEntries(params.entries());
+  if (myRatingFilter.value) query.mine = myRatingFilter.value;
   router.replace({ query }).catch(() => {});
 
   try {
@@ -218,7 +298,7 @@ async function fetchApplications() {
   }
 }
 
-watch([roleFilter, stageFilter, ownerFilter], fetchApplications);
+watch([roleFilter, stageFilter, ownerFilter, regionFilter, myRatingFilter], fetchApplications);
 onMounted(fetchApplications);
 </script>
 
@@ -275,5 +355,40 @@ onMounted(fetchApplications);
   font-size: 12px;
   color: rgba(0, 0, 0, 0.65);
   white-space: nowrap;
+}
+
+.col-ratings { white-space: nowrap; }
+
+.rating-chip {
+  display: inline-block;
+  min-width: 22px;
+  text-align: center;
+  border-radius: 4px;
+  padding: 1px 4px;
+  margin-right: 3px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.rating-chip--yes {
+  background: rgba(76, 175, 80, 0.18);
+  color: #2e7d32;
+}
+
+.rating-chip--maybe {
+  background: rgba(255, 193, 7, 0.25);
+  color: #9c6f00;
+}
+
+.rating-chip--no {
+  background: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.rating-chip--unrated {
+  background: transparent;
+  border: 1px dashed rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.25);
+  font-weight: 400;
 }
 </style>

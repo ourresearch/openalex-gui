@@ -62,6 +62,69 @@
         <span v-for="[k, v] in attrEntries" :key="k" class="attr-chip">{{ k }}: {{ formatAttrValue(v) }}</span>
       </div>
 
+      <!-- Ratings (oxjob #992) -->
+      <v-card variant="outlined" class="bg-white mb-6">
+        <v-card-text>
+          <div class="section-label">Ratings</div>
+          <div class="text-body-2 text-medium-emphasis mb-4">
+            Same bar for all of us: <strong>yes</strong> = we're positive we want to talk to
+            them — keep it rare. <strong>maybe</strong> = worth a second look if the yes pile
+            runs dry. <strong>no</strong> = pass. Use whatever method you like to get there;
+            the bar doesn't move.
+          </div>
+          <div v-for="r in RATERS" :key="r" class="d-flex align-center flex-wrap ga-3 rating-row">
+            <span class="rater-name">{{ r }}</span>
+            <template v-if="r === myRater">
+              <span class="d-flex ga-1">
+                <v-btn
+                  v-for="v in VERDICTS"
+                  :key="v"
+                  size="small"
+                  class="verdict-btn"
+                  :variant="myVerdict === v ? 'flat' : 'outlined'"
+                  :color="myVerdict === v ? verdictBtnColor(v) : undefined"
+                  @click="myVerdict = myVerdict === v ? null : v"
+                >{{ v }}</v-btn>
+              </span>
+              <v-text-field
+                v-model="myComment"
+                variant="outlined"
+                density="compact"
+                hide-details
+                label="Comment (optional)"
+                class="rating-comment-field"
+                @keydown.enter="ratingDirty && myVerdict && saveRating()"
+              />
+              <v-btn
+                color="primary"
+                variant="flat"
+                size="small"
+                :loading="savingRating"
+                :disabled="!myVerdict || !ratingDirty"
+                @click="saveRating"
+              >Save</v-btn>
+              <v-btn
+                v-if="myRating"
+                variant="outlined"
+                size="small"
+                :disabled="savingRating"
+                @click="clearRating"
+              >Clear</v-btn>
+            </template>
+            <template v-else>
+              <span class="rating-chip" :class="`rating-chip--${ratings[r]?.verdict || 'unrated'}`">
+                {{ ratings[r]?.verdict || '—' }}
+              </span>
+              <span v-if="ratings[r]?.comment" class="text-body-2 rating-comment">{{ ratings[r].comment }}</span>
+              <span v-if="ratings[r]" class="text-medium-emphasis text-body-2">
+                · {{ formatRelativeDate(ratings[r].updated) }}
+              </span>
+            </template>
+          </div>
+          <div v-if="ratingError" class="text-error text-body-2 mt-2">{{ ratingError }}</div>
+        </v-card-text>
+      </v-card>
+
       <!-- Application -->
       <v-card variant="outlined" class="bg-white mb-6">
         <v-card-text>
@@ -184,12 +247,16 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue';
+import { useStore } from 'vuex';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { formatRelativeDate } from '@/composables/useCurationDescriptor';
 import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs.vue';
 import HiringMarkdown from '@/components/Hiring/HiringMarkdown.vue';
-import { roleTitle, STAGES, OWNERS, NOTE_KINDS, noteKindMeta, formatAttrValue } from './hiringVocab';
+import {
+  roleTitle, STAGES, OWNERS, NOTE_KINDS, noteKindMeta, formatAttrValue,
+  RATERS, RATER_BY_USER_ID, VERDICTS, VERDICT_COLORS,
+} from './hiringVocab';
 
 defineOptions({ name: 'AdminHiringDetail' });
 
@@ -214,6 +281,61 @@ const confirmingDelete = ref(null);
 const newNote = reactive({ kind: null, title: '', body: '' });
 const savingNote = ref(false);
 const noteError = ref('');
+
+const store = useStore();
+// Which rater the logged-in user is; admins who aren't raters see read-only rows.
+const myRater = computed(() => RATER_BY_USER_ID[store.getters['user/userId']]);
+const ratings = computed(() => application.value?.ratings || {});
+const myRating = computed(() => (myRater.value ? ratings.value[myRater.value] : null));
+
+const myVerdict = ref(null);
+const myComment = ref('');
+const savingRating = ref(false);
+const ratingError = ref('');
+
+const ratingDirty = computed(() =>
+  myVerdict.value !== (myRating.value?.verdict || null)
+  || myComment.value.trim() !== (myRating.value?.comment || ''));
+
+function verdictBtnColor(v) {
+  const c = VERDICT_COLORS[v];
+  return c === 'grey' ? 'grey-darken-1' : c;
+}
+
+function syncRatingForm() {
+  myVerdict.value = myRating.value?.verdict || null;
+  myComment.value = myRating.value?.comment || '';
+}
+
+async function saveRating() {
+  savingRating.value = true;
+  ratingError.value = '';
+  try {
+    const payload = { verdict: myVerdict.value };
+    if (myComment.value.trim()) payload.comment = myComment.value.trim();
+    const res = await axios.put(`${apiBase.value}/rating`, payload, axiosConfig({ userAuth: true }));
+    application.value = { ...application.value, ...res.data };
+    syncRatingForm();
+  } catch (e) {
+    ratingError.value = e.response?.data?.message || 'Failed to save rating.';
+  } finally {
+    savingRating.value = false;
+  }
+}
+
+async function clearRating() {
+  savingRating.value = true;
+  ratingError.value = '';
+  try {
+    const res = await axios.delete(`${apiBase.value}/rating`, axiosConfig({ userAuth: true }));
+    application.value = { ...application.value, ...res.data };
+    syncRatingForm();
+  } catch (e) {
+    ratingError.value = e.response?.data?.message || 'Failed to clear rating.';
+  } finally {
+    savingRating.value = false;
+  }
+}
 
 const stageOptions = STAGES.map((s) => ({ value: s, title: s }));
 const ownerOptions = OWNERS.map((o) => ({ value: o, title: o }));
@@ -262,6 +384,7 @@ async function fetchApplication() {
     notes.value = res.data.notes || [];
     stage.value = res.data.stage;
     owner.value = res.data.owner;
+    syncRatingForm();
   } catch (e) {
     error.value = e.response?.data?.message || 'Failed to load application.';
   } finally {
@@ -394,5 +517,62 @@ onMounted(fetchApplication);
 
 .note-title-field {
   max-width: 320px;
+}
+
+.rating-row {
+  min-height: 44px;
+  padding: 2px 0;
+}
+
+.rater-name {
+  width: 56px;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.verdict-btn {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.rating-comment-field {
+  max-width: 340px;
+}
+
+.rating-comment {
+  max-width: 420px;
+}
+
+.rating-chip {
+  display: inline-block;
+  min-width: 52px;
+  text-align: center;
+  border-radius: 4px;
+  padding: 2px 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.rating-chip--yes {
+  background: rgba(76, 175, 80, 0.18);
+  color: #2e7d32;
+}
+
+.rating-chip--maybe {
+  background: rgba(255, 193, 7, 0.25);
+  color: #9c6f00;
+}
+
+.rating-chip--no {
+  background: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.rating-chip--unrated {
+  background: transparent;
+  border: 1px dashed rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.25);
+  font-weight: 400;
 }
 </style>

@@ -47,6 +47,39 @@ export const NOTE_KINDS = [
 export const noteKindMeta = (kind) =>
   NOTE_KINDS.find((k) => k.value === kind) || { value: kind, title: kind, icon: 'mdi-note-outline' };
 
+// Per-person ratings (oxjob #992). Mirrors job_roles.py VERDICTS + RATER_BY_USER_ID —
+// the API derives the rater from the caller; this mirror only decides what the UI
+// shows. Keep both maps in sync.
+export const VERDICTS = ['no', 'maybe', 'yes'];
+
+export const VERDICT_COLORS = {
+  yes: 'green',
+  maybe: 'amber',
+  no: 'grey',
+};
+
+// Display order for rating rows/chips.
+export const RATERS = ['jason', 'casey', 'kyle', 'rohan'];
+
+export const RATER_BY_USER_ID = {
+  'user-TSamuHxDbnhn': 'jason',       // wordslikethis@gmail.com
+  'user-WtSjPhQ5KiAk': 'jason',       // jason@ourresearch.org
+  '7PUpb9cUxP24EUnn7FK1of': 'casey',  // caseym@gmail.com
+  'user-7T8J8achwL4r': 'kyle',        // kyle@ourresearch.org
+  'user-NYwtnFt4dWzA': 'kyle',        // kyle@openalex.org
+  'urB82AJTZfVbo9QHqtxrcf': 'kyle',   // kyle.demes@gmail.com
+};
+
+// ai_triage_score (1-3) is a verdict too (1 no / 2 maybe / 3 yes) — triage v4.
+export const SCORE_VERDICTS = { 1: 'no', 2: 'maybe', 3: 'yes' };
+
+// attributes.region (auto-classified; hiring/process/attributes.md).
+export const REGIONS = [
+  { value: 'americas', title: 'Americas' },
+  { value: 'europe', title: 'Europe' },
+  { value: 'other', title: 'Other' },
+];
+
 export const formatAttrValue = (v) => {
   if (typeof v === 'boolean') return v ? 'yes' : 'no';
   if (v === null || v === undefined) return '';
