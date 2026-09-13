@@ -1,7 +1,20 @@
 <template>
   <div class="admin-layout">
+    <!-- Mobile-only bar: the sidebar is hidden behind it on narrow screens
+         (oxjob #868 mobile pass) -->
+    <div class="admin-mobile-bar">
+      <router-link to="/" class="sidebar-back-link ma-0">
+        <v-icon size="14">mdi-chevron-left</v-icon>
+        App
+      </router-link>
+      <button type="button" class="admin-mobile-toggle" @click="mobileNavOpen = !mobileNavOpen">
+        <span>{{ currentTitle }}</span>
+        <v-icon size="16">{{ mobileNavOpen ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+      </button>
+    </div>
+
     <!-- Sidebar -->
-    <aside class="admin-sidebar">
+    <aside class="admin-sidebar" :class="{ 'admin-sidebar--open': mobileNavOpen }">
       <!-- Back to app link -->
       <router-link to="/" class="sidebar-back-link">
         <v-icon size="14">mdi-chevron-left</v-icon>
@@ -32,7 +45,14 @@
 </template>
 
 <script setup>
+import { ref, computed, watch } from 'vue';
+import { useRoute } from 'vue-router';
+
 defineOptions({ name: 'AdminBase' });
+
+const route = useRoute();
+const mobileNavOpen = ref(false);
+watch(() => route.path, () => { mobileNavOpen.value = false; });
 
 const navSections = [
   {
@@ -65,6 +85,12 @@ const navSections = [
     ],
   },
 ];
+
+const currentTitle = computed(() => {
+  const all = navSections.flatMap((s) => s.items);
+  const hit = all.find((i) => route.path === i.route || route.path.startsWith(`${i.route}/`));
+  return hit ? hit.title : 'Admin';
+});
 </script>
 
 <style lang="scss" scoped>
@@ -128,6 +154,10 @@ const navSections = [
   overflow-y: auto;
 }
 
+.admin-mobile-bar {
+  display: none;
+}
+
 .admin-content-inner {
   max-width: 1200px;
 }
@@ -137,7 +167,32 @@ const navSections = [
     flex-direction: column;
   }
 
+  .admin-mobile-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 8px;
+    background: #FFFFFF;
+    border-bottom: 1px solid #E5E5E5;
+  }
+
+  .admin-mobile-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1A1A1A;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
   .admin-sidebar {
+    display: none;
     width: 100%;
     min-width: 100%;
     height: auto;
@@ -145,11 +200,19 @@ const navSections = [
     top: 0;
     border-right: none;
     border-bottom: 1px solid #E5E5E5;
-    padding: 12px;
+    padding: 4px 12px 12px;
+
+    &--open {
+      display: block;
+    }
+
+    .sidebar-back-link {
+      display: none;
+    }
   }
 
   .admin-content {
-    padding: 24px 16px;
+    padding: 16px 16px 96px;
   }
 }
 </style>

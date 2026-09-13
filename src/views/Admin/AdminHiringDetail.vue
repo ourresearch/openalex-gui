@@ -1,6 +1,17 @@
 <template>
-  <div>
+  <div class="hiring-detail" :class="{ 'hiring-detail--mobile': isMobile }">
     <DashboardBreadcrumbs :items="breadcrumbItems" />
+
+    <!-- Prev / next through the list the user came from (phones: in the sticky bar) -->
+    <div v-if="nav && !isMobile" class="nav-row">
+      <v-btn variant="text" size="small" :disabled="!nav.prev" :to="nav.prev ? `/admin/hiring/${nav.prev}` : undefined">
+        <v-icon size="16" class="mr-1">mdi-chevron-left</v-icon>Prev
+      </v-btn>
+      <span class="text-body-2 text-medium-emphasis">{{ nav.index + 1 }} of {{ nav.total }}</span>
+      <v-btn variant="text" size="small" :disabled="!nav.next" :to="nav.next ? `/admin/hiring/${nav.next}` : undefined">
+        Next<v-icon size="16" class="ml-1">mdi-chevron-right</v-icon>
+      </v-btn>
+    </div>
 
     <div v-if="loading" class="d-flex justify-center align-center" style="height: 300px;">
       <v-progress-circular indeterminate color="primary" size="48" />
@@ -13,7 +24,7 @@
     <div v-else-if="application">
       <!-- Header -->
       <div class="d-flex align-start justify-space-between flex-wrap mb-1">
-        <div>
+        <div class="header-main">
           <h1 class="text-h5 font-weight-bold">{{ name }}</h1>
           <div class="text-body-2 text-medium-emphasis mt-1">
             {{ roleTitle(application.role_slug) }}
@@ -21,14 +32,20 @@
             · applied {{ formatRelativeDate(application.created) }}
           </div>
           <div class="mt-2 header-links">
-            <a v-if="basics.email" :href="`mailto:${basics.email}`">{{ basics.email }}</a>
-            <a v-if="basics.linkedin" :href="basics.linkedin" target="_blank" rel="noopener">LinkedIn</a>
-            <a v-if="basics.github" :href="basics.github" target="_blank" rel="noopener">GitHub</a>
+            <a v-if="basics.linkedin" :href="basics.linkedin" target="_blank" rel="noopener" class="header-link">
+              <v-icon size="16">mdi-linkedin</v-icon>LinkedIn
+            </a>
+            <a v-if="basics.github" :href="basics.github" target="_blank" rel="noopener" class="header-link">
+              <v-icon size="16">mdi-github</v-icon>GitHub
+            </a>
+            <a v-if="basics.email" :href="`mailto:${basics.email}`" class="header-link">
+              <v-icon size="16">mdi-email-outline</v-icon>{{ isMobile ? 'Email' : basics.email }}
+            </a>
           </div>
         </div>
 
         <!-- Stage / owner controls -->
-        <div class="d-flex align-center ga-3 mt-2">
+        <div class="d-flex align-center ga-3 mt-2 header-controls">
           <v-select
             v-model="stage"
             :items="stageOptions"
@@ -57,16 +74,43 @@
 
       <v-alert v-if="saveError" type="error" density="compact" class="my-2">{{ saveError }}</v-alert>
 
-      <!-- Attributes -->
+      <!-- The AI one-liner leads; the rest of the attributes fold away on phones -->
+      <div v-if="triageSummary" class="triage-summary mt-3">{{ triageSummary }}</div>
       <div v-if="attrEntries.length" class="mb-4 mt-2">
-        <span v-for="[k, v] in attrEntries" :key="k" class="attr-chip">{{ k }}: {{ formatAttrValue(v) }}</span>
+        <button
+          v-if="isMobile"
+          type="button"
+          class="attr-toggle"
+          @click="attrsOpen = !attrsOpen"
+        >{{ attrEntries.length }} attributes <v-icon size="14">{{ attrsOpen ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon></button>
+        <template v-if="!isMobile || attrsOpen">
+          <span v-for="[k, v] in attrEntries" :key="k" class="attr-chip">{{ k }}: {{ formatAttrValue(v) }}</span>
+        </template>
       </div>
+
+      <!-- AI assessments first: the thing to read before anything else -->
+      <v-card
+        v-for="note in aiNotes"
+        :key="note.id"
+        variant="outlined"
+        class="bg-white mb-4 ai-card"
+      >
+        <v-card-text>
+          <div class="d-flex align-center flex-wrap ga-1 mb-2">
+            <v-icon size="16" class="mr-1" color="grey-darken-1">mdi-robot-outline</v-icon>
+            <span class="section-label mb-0 text-no-wrap">AI assessment</span>
+            <span class="text-medium-emphasis text-caption">· {{ noteAuthor(note) }} · {{ formatRelativeDate(note.created) }}</span>
+          </div>
+          <HiringMarkdown :source="note.body" />
+        </v-card-text>
+      </v-card>
+      <div v-if="!aiNotes.length" class="text-medium-emphasis text-body-2 mb-4">No AI assessment yet.</div>
 
       <!-- Ratings (oxjob #992) -->
       <v-card variant="outlined" class="bg-white mb-6">
         <v-card-text>
           <div class="section-label">Ratings</div>
-          <div class="text-body-2 text-medium-emphasis mb-4">
+          <div v-if="!isMobile" class="text-body-2 text-medium-emphasis mb-4">
             Same bar for all of us: <strong>yes</strong> = we're positive we want to talk to
             them — keep it rare. <strong>maybe</strong> = worth a second look if the yes pile
             runs dry. <strong>no</strong> = pass. Use whatever method you like to get there;
@@ -164,13 +208,13 @@
         </v-card-text>
       </v-card>
 
-      <!-- Notes timeline -->
+      <!-- Notes timeline (everything except the AI assessments shown above) -->
       <div class="section-label mb-2">Notes</div>
-      <div v-if="!notes.length" class="text-medium-emphasis text-body-2 mb-4">No notes yet.</div>
+      <div v-if="!otherNotes.length" class="text-medium-emphasis text-body-2 mb-4">No notes yet.</div>
 
-      <v-card v-for="note in notes" :key="note.id" variant="outlined" class="bg-white mb-3">
+      <v-card v-for="note in otherNotes" :key="note.id" variant="outlined" class="bg-white mb-3">
         <v-card-text>
-          <div class="d-flex align-center mb-2">
+          <div class="d-flex align-center mb-2 flex-wrap">
             <v-icon size="16" class="mr-2" color="grey-darken-1">{{ noteKindMeta(note.kind).icon }}</v-icon>
             <span class="font-weight-medium mr-2">{{ noteKindMeta(note.kind).title }}</span>
             <span v-if="note.title" class="text-medium-emphasis mr-2">· {{ note.title }}</span>
@@ -241,13 +285,47 @@
           <span v-if="noteError" class="text-error text-body-2 ml-3">{{ noteError }}</span>
         </v-card-text>
       </v-card>
+
+      <!-- Phone: sticky bar — prev/next + one-tap rating (saves immediately) -->
+      <div v-if="isMobile && (nav || myRater)" class="mobile-bar">
+        <v-btn
+          v-if="nav"
+          icon
+          variant="text"
+          :disabled="!nav.prev"
+          :to="nav.prev ? `/admin/hiring/${nav.prev}` : undefined"
+          aria-label="Previous applicant"
+        ><v-icon>mdi-chevron-left</v-icon></v-btn>
+        <span v-if="myRater" class="mobile-bar-verdicts">
+          <v-btn
+            v-for="v in VERDICTS"
+            :key="v"
+            size="small"
+            class="verdict-btn mobile-verdict-btn"
+            :variant="myRating?.verdict === v ? 'flat' : 'outlined'"
+            :color="myRating?.verdict === v ? verdictBtnColor(v) : undefined"
+            :loading="savingRating && myVerdict === v"
+            :disabled="savingRating"
+            @click="quickRate(v)"
+          >{{ v }}</v-btn>
+        </span>
+        <v-btn
+          v-if="nav"
+          icon
+          variant="text"
+          :disabled="!nav.next"
+          :to="nav.next ? `/admin/hiring/${nav.next}` : undefined"
+          aria-label="Next applicant"
+        ><v-icon>mdi-chevron-right</v-icon></v-btn>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted } from 'vue';
+import { ref, computed, reactive, onMounted, watch } from 'vue';
 import { useStore } from 'vuex';
+import { useDisplay } from 'vuetify';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { formatRelativeDate } from '@/composables/useCurationDescriptor';
@@ -256,6 +334,7 @@ import HiringMarkdown from '@/components/Hiring/HiringMarkdown.vue';
 import {
   roleTitle, STAGES, OWNERS, NOTE_KINDS, noteKindMeta, formatAttrValue,
   RATERS, RATER_BY_USER_ID, VERDICTS, VERDICT_COLORS,
+  HIRING_NAV_KEY, HIRING_MOBILE_MAX,
 } from './hiringVocab';
 
 defineOptions({ name: 'AdminHiringDetail' });
@@ -263,6 +342,9 @@ defineOptions({ name: 'AdminHiringDetail' });
 const props = defineProps({
   applicationId: { type: String, required: true },
 });
+
+const { width } = useDisplay();
+const isMobile = computed(() => width.value < HIRING_MOBILE_MAX);
 
 const application = ref(null);
 const notes = ref([]);
@@ -274,7 +356,9 @@ const owner = ref(null);
 const saving = ref(false);
 const saveError = ref('');
 
-const resumeOpen = ref(true);
+// Resume is long; on a phone it's the last thing you want auto-expanded.
+const resumeOpen = ref(!isMobile.value);
+const attrsOpen = ref(false);
 const expanded = reactive({});
 const confirmingDelete = ref(null);
 
@@ -337,6 +421,17 @@ async function clearRating() {
   }
 }
 
+// Sticky-bar tap: set the verdict and save right away (tapping the current
+// verdict again clears it). Any comment already in the field rides along.
+async function quickRate(v) {
+  if (myRating.value?.verdict === v) {
+    await clearRating();
+    return;
+  }
+  myVerdict.value = v;
+  await saveRating();
+}
+
 const stageOptions = STAGES.map((s) => ({ value: s, title: s }));
 const ownerOptions = OWNERS.map((o) => ({ value: o, title: o }));
 const noteKindOptions = NOTE_KINDS.map((k) => ({ value: k.value, title: k.title }));
@@ -351,10 +446,38 @@ const basics = computed(() => application.value?.basics || {});
 const answers = computed(() => application.value?.answers || {});
 const education = computed(() => (basics.value.education || []).filter((r) => r && (r.institution || r.degree || r.field)));
 const name = computed(() => basics.value.name || props.applicationId);
-const attrEntries = computed(() => Object.entries(application.value?.attributes || {}).sort((a, b) => (a[0] < b[0] ? -1 : 1)));
+const triageSummary = computed(() => application.value?.attributes?.ai_triage_summary || '');
+const attrEntries = computed(() => Object.entries(application.value?.attributes || {})
+  .filter(([k]) => k !== 'ai_triage_summary')
+  .sort((a, b) => (a[0] < b[0] ? -1 : 1)));
+
+const aiNotes = computed(() => notes.value.filter((n) => n.kind === 'ai-assessment'));
+const otherNotes = computed(() => notes.value.filter((n) => n.kind !== 'ai-assessment'));
+
+// Prev/next through whatever list the user came from (set by AdminHiring).
+const navState = ref(null);
+function loadNav() {
+  try {
+    navState.value = JSON.parse(sessionStorage.getItem(HIRING_NAV_KEY) || 'null');
+  } catch (e) {
+    navState.value = null;
+  }
+}
+const nav = computed(() => {
+  const ids = navState.value?.ids;
+  if (!Array.isArray(ids) || ids.length < 2) return null;
+  const index = ids.indexOf(props.applicationId);
+  if (index < 0) return null;
+  return {
+    index,
+    total: ids.length,
+    prev: index > 0 ? ids[index - 1] : null,
+    next: index < ids.length - 1 ? ids[index + 1] : null,
+  };
+});
 
 const breadcrumbItems = computed(() => [
-  { text: 'Hiring', to: '/admin/hiring' },
+  { text: 'Hiring', to: navState.value?.back || '/admin/hiring' },
   { text: name.value },
 ]);
 
@@ -437,21 +560,41 @@ async function deleteNote(note) {
   }
 }
 
-onMounted(fetchApplication);
+// The route reuses this component for prev/next, so reload on id change.
+watch(() => props.applicationId, () => {
+  window.scrollTo(0, 0);
+  fetchApplication();
+});
+
+onMounted(() => {
+  loadNav();
+  fetchApplication();
+});
 </script>
 
 <style lang="scss" scoped>
+.nav-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -4px 0 8px -8px;
+}
+
 .header-links {
   display: flex;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 12px 16px;
   font-size: 14px;
+}
 
-  a {
-    color: #1976d2;
-    text-decoration: none;
+.header-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #1976d2;
+  text-decoration: none;
 
-    &:hover { text-decoration: underline; }
-  }
+  &:hover { text-decoration: underline; }
 }
 
 .control-select {
@@ -499,6 +642,30 @@ onMounted(fetchApplication);
   margin: 2px 6px 2px 0;
   font-size: 12.5px;
   color: rgba(0, 0, 0, 0.7);
+}
+
+.ai-card {
+  border-color: rgba(25, 118, 210, 0.35);
+}
+
+.triage-summary {
+  font-size: 15px;
+  line-height: 1.5;
+  font-style: italic;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.attr-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.55);
+  background: none;
+  border: none;
+  padding: 4px 0;
+  margin-bottom: 4px;
+  cursor: pointer;
 }
 
 .note-collapsed {
@@ -574,5 +741,84 @@ onMounted(fetchApplication);
   border: 1px dashed rgba(0, 0, 0, 0.15);
   color: rgba(0, 0, 0, 0.25);
   font-weight: 400;
+}
+
+/* ---- Phone layout (oxjob #868 mobile pass) ---- */
+.mobile-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1px solid #e5e5e5;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.mobile-bar-verdicts {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+}
+
+.mobile-verdict-btn {
+  min-width: 72px;
+  height: 40px !important;
+}
+
+.hiring-detail--mobile {
+  // DashboardBreadcrumbs assumes the desktop 48px content padding (-24px top).
+  :deep(.dashboard-breadcrumbs) {
+    margin-top: 0;
+    margin-bottom: 12px;
+  }
+
+  .header-main {
+    width: 100%;
+  }
+
+  .header-links {
+    gap: 8px;
+  }
+
+  .header-link {
+    padding: 8px 12px;
+    border: 1px solid rgba(25, 118, 210, 0.35);
+    border-radius: 999px;
+    font-weight: 500;
+  }
+
+  .header-controls {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .control-select,
+  .control-select-narrow {
+    min-width: 0;
+    max-width: none;
+  }
+
+  .rating-comment-field {
+    max-width: none;
+    width: 100%;
+  }
+
+  .verdict-btn {
+    height: 40px !important;
+  }
+
+  .note-title-field {
+    max-width: none;
+    width: 100%;
+  }
 }
 </style>

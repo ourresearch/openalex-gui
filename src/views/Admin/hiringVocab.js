@@ -86,3 +86,10 @@ export const formatAttrValue = (v) => {
   if (typeof v === 'object') return JSON.stringify(v);
   return String(v);
 };
+
+// Phone review flow (oxjob #868 mobile pass): the list page stores its current
+// order here so the detail page can step prev/next through the same set.
+export const HIRING_NAV_KEY = 'hiringNav';
+// Below this width the hiring pages use the phone layout (cards, stacked
+// controls, sticky rating bar). Matches AdminBase's sidebar breakpoint.
+export const HIRING_MOBILE_MAX = 768;
