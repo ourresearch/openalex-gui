@@ -268,14 +268,37 @@ const groupByKeys = computed(() => {
   keys.sort((a) => (['apc_sum', 'cited_by_count_sum'].includes(a) ? -1 : 1));
   return keys;
 });
-const canDownload = computed(() => canAddWidget.value && groupByKeys.value.length > 0);
-const csvUrl = computed(() =>
-  url.makeGroupByUrl(entityType.value, groupByKeys.value.join(','), {
-    filters: filtersFromUrlStr(entityType.value, route.query.filter),
+// OQL mode keeps the query in `oql`, not in `filter`/`search`, so building the CSV
+// link from route.query.filter exported whole-corpus counts (ZD 24250). Use the
+// API's classic-URL echo of the running query (meta.x_query.url) instead. A
+// multi-facet summary can't be run from an OQO (the engine reads several group_by
+// columns as one cross-tab), so when the query has no classic form the download is
+// disabled rather than silently unfiltered.
+const oqlClassicParams = computed(() => {
+  if (!route.query.oql) return null;
+  const xUrl = store.state.resultsObject?.meta?.x_query?.url;
+  return xUrl ? new URLSearchParams(xUrl.split('?')[1] || '') : null;
+});
+const canDownload = computed(() =>
+  canAddWidget.value && groupByKeys.value.length > 0 && (!route.query.oql || !!oqlClassicParams.value)
+);
+const csvUrl = computed(() => {
+  const oqlParams = oqlClassicParams.value;
+  const myUrl = url.makeGroupByUrl(entityType.value, groupByKeys.value.join(','), {
+    filters: filtersFromUrlStr(entityType.value, oqlParams ? oqlParams.get('filter') : route.query.filter),
     isMultipleGroups: true,
     formatCsv: true,
-  })
-);
+  });
+  if (!oqlParams) return myUrl;
+  // makeGroupByUrl copies search/corpus params from the route; in OQL mode they
+  // live in the echo, so carry them over from there. Appended as a string (not
+  // searchParams.set) so the filter's + and ! stay unencoded, as in makeGroupByUrl.
+  // Only query-scoping params: the echo also carries view params (per_page=1, sort…).
+  const extra = [...oqlParams]
+    .filter(([key]) => key === 'corpus' || key === 'include_xpac' || key.startsWith('search'))
+    .map(([key, value]) => `${key}=${encodeURIComponent(value)}`);
+  return extra.length ? `${myUrl}&${extra.join('&')}` : myUrl;
+});
 </script>
 
 <style scoped>
