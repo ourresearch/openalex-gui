@@ -4,11 +4,40 @@ import {getPropertyDisplayName} from "@/metaCatalog";
 import {collectionFilterLabel} from "@/collectionFilter";
 import countryCodeLookup from "country-code-lookup";
 import {continentForCountryCode} from "@/continents";
+import {globalSouthCountryCodes} from "@/globalSouth";
 
 // Alternate names are alternatives *to* the display name, so the display name
 // itself should never appear in the list.
 const altNames = (entity, field) =>
     (entity[field] || []).filter(name => name && name !== entity.display_name);
+
+// Works booleans that are FILTER-ONLY: elastic-api derives them at query time
+// and the work JSON has no such key, so their table + CSV columns were always
+// blank (ZD 24281, oxjob #1209). These derive the same value from the work JSON
+// with the elastic-api filter semantics. The CSV server mirrors each one in
+// openalex-users-api/formats/csv_manifest.py WORK_DERIVED_BOOLEANS — keep the
+// two in lockstep.
+const workIds = (w) => w?.ids || {};
+const derivedWorkBoolean = {
+    has_doi: (w) => !!(workIds(w).doi || w?.doi),
+    has_pmid: (w) => !!workIds(w).pmid,
+    has_pmcid: (w) => !!workIds(w).pmcid,
+    has_orcid: (w) => (w?.authorships || []).some((a) => !!a?.author?.orcid),
+    has_abstract: (w) => w?.abstract_inverted_index != null,
+    has_references: (w) => (w?.referenced_works || []).length > 0 || (w?.referenced_works_count || 0) > 0,
+    has_oa_submitted_version: (w) =>
+        (w?.locations || []).some((l) => !!l?.is_oa && l?.version === "submittedVersion"),
+    mag_only: (w) => !!workIds(w).mag
+        && !["pmid", "pmcid", "doi", "arxiv"].some((k) => workIds(w)[k]),
+    is_oa: (w) => !!w?.open_access?.is_oa,
+    "primary_location.source.has_issn": (w) => {
+        const src = w?.primary_location?.source;
+        return !!((src?.issn || []).length || src?.issn_l);
+    },
+    "authorships.institutions.is_global_south": (w) => (w?.authorships || []).some((a) =>
+        (a?.institutions || []).some((i) =>
+            globalSouthCountryCodes.has((i?.country_code || "").toUpperCase()))),
+};
 
 const facetCategories = {
     works: [
@@ -520,7 +549,9 @@ const facetConfigs = function (entityType) {
         {
             key: "has_abstract",
             entityToFilter: "works",
+            extractFn: derivedWorkBoolean["has_abstract"],
             type: "boolean",
+            booleanValues: ["No abstract", "Has abstract"],
             actions: ["filter"],
             category: "other",
             icon: "mdi-file-document-outline",
@@ -836,6 +867,7 @@ const facetConfigs = function (entityType) {
             // still resolves via the fold in facetConfigUtils.getFacetConfig.
             key: "authorships.institutions.is_global_south",
             entityToFilter: "works",
+            extractFn: derivedWorkBoolean["authorships.institutions.is_global_south"],
             type: "boolean",
             actions: ["filter", "column", "group_by",],
             category: "geo",
@@ -984,8 +1016,9 @@ const facetConfigs = function (entityType) {
         {
             key: "has_doi",
             entityToFilter: "works",
+            extractFn: derivedWorkBoolean["has_doi"],
             type: "boolean",
-            booleanValues: ["Has a DOI", "No DOI"],
+            booleanValues: ["No DOI", "Has a DOI"],
             category: "ids",
             actions: ["filter", "group_by",],
             icon: "mdi-tag-outline",
@@ -1002,8 +1035,9 @@ const facetConfigs = function (entityType) {
         {
             key: "mag_only",
             entityToFilter: "works",
+            extractFn: derivedWorkBoolean["mag_only"],
             type: "boolean",
-            booleanValues: ["indexed by MAG only", "indexed beyond MAG"],
+            booleanValues: ["indexed beyond MAG", "indexed by MAG only"],
             category: "ids",
             actions: ["filter", "group_by",],
             icon: "mdi-tag-outline",
@@ -1022,6 +1056,7 @@ const facetConfigs = function (entityType) {
         {
             key: "has_orcid",
             entityToFilter: "works",
+            extractFn: derivedWorkBoolean["has_orcid"],
             type: "boolean",
             booleanValues: ["No ORCID", "At least one ORCID",],
             category: "ids",
@@ -1031,6 +1066,7 @@ const facetConfigs = function (entityType) {
         {
             key: "has_pmid",
             entityToFilter: "works",
+            extractFn: derivedWorkBoolean["has_pmid"],
             type: "boolean",
             category: "ids",
             actions: ["filter", "group_by",],
@@ -3435,7 +3471,11 @@ const facetConfigs = function (entityType) {
             entityToFilter: "works",
             type: "search",
             category: "ids",
-            actions: ["filter",],
+            actions: ["filter", "column",],
+            // PMID column (ZD 24281): opt this search-type id in as a column;
+            // renders + exports the same full URL the API returns (like DOI).
+            column: { render: { kind: "stringList" } },
+            extractFn: (entity) => entity.ids?.pmid,
             actionsPopular: [],
             icon: "mdi-tag-outline",
         },
@@ -3471,6 +3511,7 @@ const facetConfigs = function (entityType) {
         {
             key: "has_references",
             entityToFilter: "works",
+            extractFn: derivedWorkBoolean["has_references"],
             type: "boolean",
             booleanValues: ["not has references", "has references"],
             category: "other",
@@ -3481,6 +3522,7 @@ const facetConfigs = function (entityType) {
         {
             key: "has_pmcid",
             entityToFilter: "works",
+            extractFn: derivedWorkBoolean["has_pmcid"],
             type: "boolean",
             booleanValues: ["not has PMCID", "has PMCID"],
             category: "ids",
@@ -3550,6 +3592,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.has_issn",
             entityToFilter: "works",
+            extractFn: derivedWorkBoolean["primary_location.source.has_issn"],
             type: "boolean",
             booleanValues: ["not has ISSN", "has ISSN"],
             category: "other",
@@ -3570,6 +3613,7 @@ const facetConfigs = function (entityType) {
         {
             key: "is_oa",
             entityToFilter: "works",
+            extractFn: derivedWorkBoolean["is_oa"],
             displayName: "is oa",
             type: "boolean",
             booleanValues: ["not is oa", "is oa"],
@@ -3631,6 +3675,7 @@ const facetConfigs = function (entityType) {
         {
             key: "has_oa_submitted_version",
             entityToFilter: "works",
+            extractFn: derivedWorkBoolean["has_oa_submitted_version"],
             type: "boolean",
             booleanValues: ["not has oa submitted version", "has oa submitted version"],
             category: "other",
