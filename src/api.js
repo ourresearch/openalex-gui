@@ -10,6 +10,7 @@ import {isSmallVocabType, searchVocab} from "@/vocabAutocomplete";
 import {getFacetConfig} from "@/facetConfigUtils";
 import {collectionMatchType, filterCollectionsForField} from "@/collectionFilter";
 import {openAlexSdgs} from "@/sdgs";
+import {isListedInKey, listedInLabel} from "@/listedIn";
 import {getEntityConfig} from "@/entityConfigs";
 import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
 import store from "@/store";
@@ -207,6 +208,8 @@ const api = (function () {
             })?.display_name;
         } else if (filterKey === "language") {
             return ISO6391.getName(filterValue.toLowerCase());
+        } else if (isListedInKey(filterKey)) {
+            return listedInLabel(filterValue);
         } else if (entityId) {
             return await getEntityDisplayName(entityId, filterValue);
         } else {
@@ -244,7 +247,8 @@ const api = (function () {
                     filterKey,
                     groupKey,
                     false,
-                    group.key_display_name,
+                    // `listed_in`: the API echoes the bare id as key_display_name (#1205)
+                    isListedInKey(filterKey) ? listedInLabel(groupKey) : group.key_display_name,
                     group.count,
                     group.count / countSum,
                 )
@@ -458,6 +462,15 @@ const api = (function () {
                     (a.display_name || '').localeCompare(b.display_name || '', undefined, { sensitivity: 'base' })
                 )
                 .map(l => ({ value: l.id, displayValue: l.display_name }));
+        }
+        // `listed_in`: a handful of values whose labels live client-side, so the
+        // server's `?q=` (which matches the bare id) would miss "Conférence…".
+        // Fetch every bucket and match label or id locally (#1205).
+        if (isListedInKey(filterKey) && searchString && !oqo) {
+            const term = searchString.trim().toLowerCase()
+            const groups = await getGroups(entityType, filterKey, {filters})
+            return groups.filter(g =>
+                `${g.displayValue ?? ""} ${g.value ?? ""}`.toLowerCase().includes(term))
         }
         if (!searchString) {
             if (oqo) return await getGroupsViaOqo()

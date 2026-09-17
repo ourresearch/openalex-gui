@@ -448,7 +448,10 @@ const loadEntities = async (searchString) => {
   const allFilters = filtersFromUrlStr(entityType.value, url.chipFilterStr(route));
   const filtersWithoutMe = allFilters.filter(f => f.key !== props.chipConfig.key);
 
-  if (LOCAL_LIST_ENTITIES.has(props.chipConfig.entityToSelect)) {
+  // No `entityToSelect` at all (listed_in, provenance, funding_type, …): there is
+  // no entity to autocomplete against (`/autocomplete/undefined` 404s), so these
+  // take the same load-all-and-filter path (#1205).
+  if (!props.chipConfig.entityToSelect || LOCAL_LIST_ENTITIES.has(props.chipConfig.entityToSelect)) {
     const all = await api.getGroups(entityType.value, props.chipConfig.key, {
       filters: filtersWithoutMe,
       hideUnknown: true,
@@ -456,7 +459,7 @@ const loadEntities = async (searchString) => {
     });
     if (!searchString) return all;
     const term = searchString.toLowerCase();
-    return all.filter(r => (r.displayValue || '').toLowerCase().includes(term));
+    return all.filter(r => `${r.displayValue || ''} ${r.value || ''}`.toLowerCase().includes(term));
   }
 
   if (!searchString) {

@@ -5,6 +5,7 @@ import {collectionFilterLabel} from "@/collectionFilter";
 import countryCodeLookup from "country-code-lookup";
 import {continentForCountryCode} from "@/continents";
 import {globalSouthCountryCodes} from "@/globalSouth";
+import {listedInLabel} from "@/listedIn";
 
 // Alternate names are alternatives *to* the display name, so the display name
 // itself should never appear in the list.
@@ -749,6 +750,16 @@ const facetConfigs = function (entityType) {
             category: "source",
             actions: ["filter", "group_by",],
             icon: "mdi-book-open-outline",
+        },
+        {
+            // oxjob #1205: see sources `listed_in`.
+            key: "primary_location.source.listed_in",
+            entityToFilter: "works",
+            displayName: "source listed in",
+            type: "selectEntity",
+            category: "source",
+            actions: ["filter", "group_by",],
+            icon: "mdi-format-list-bulleted",
         },
         {
             key: "primary_location.source.is_oa",
@@ -1600,6 +1611,21 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-book-open-outline",
             extractFn: (entity) => entity.is_core,
+        },
+        {
+            // External journal lists this source appears on (oxjob #1205). No
+            // `entityToSelect`: options + counts come from group_by; labels from
+            // src/listedIn.js. Non-normative: "appears on", never "recommended".
+            key: "listed_in",
+            entityToFilter: "sources",
+            displayName: "listed in",
+            type: "selectEntity",
+            category: "other",
+            actions: ["filter", "column", "group_by"],
+            actionsPopular: ["filter"],
+            icon: "mdi-format-list-bulleted",
+            extractFn: (entity) => (entity.listed_in || []).map(listedInLabel),
+            column: { render: { kind: "stringList" }, export: { path: "listed_in" } },
         },
         {
             key: "alternate_titles",
@@ -3611,6 +3637,16 @@ const facetConfigs = function (entityType) {
             icon: "mdi-dots-horizontal",
         },
         {
+            key: "best_oa_location.source.listed_in",
+            entityToFilter: "works",
+            displayName: "best OA source listed in",
+            type: "selectEntity",
+            category: "other",
+            actions: ["filter", "group_by",],
+            actionsPopular: [],
+            icon: "mdi-dots-horizontal",
+        },
+        {
             key: "is_oa",
             entityToFilter: "works",
             extractFn: derivedWorkBoolean["is_oa"],
@@ -3669,6 +3705,16 @@ const facetConfigs = function (entityType) {
             booleanValues: ["not any location DOAJ", "any location DOAJ"],
             category: "other",
             actions: ["filter",],
+            actionsPopular: [],
+            icon: "mdi-dots-horizontal",
+        },
+        {
+            key: "locations.source.listed_in",
+            entityToFilter: "works",
+            displayName: "any location source listed in",
+            type: "selectEntity",
+            category: "other",
+            actions: ["filter", "group_by",],
             actionsPopular: [],
             icon: "mdi-dots-horizontal",
         },
