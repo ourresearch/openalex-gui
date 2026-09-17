@@ -7,15 +7,25 @@
 
     <static-section id="webinars" title="Webinars">
       <p class="section-body">
-        30-minute presentations on topics of broad relevance (recorded), followed by 15
-        minutes of Q&amp;A. Recordings of previous webinars are available on
-        <a href="https://www.youtube.com/@OurResearch" target="_blank" rel="noopener noreferrer">our YouTube channel</a>.
+        Presentations on topics of broad relevance, recorded and followed by live Q&amp;A.
+        Recordings of previous webinars are available on
+        <a href="https://www.youtube.com/@OpenAlex_org" target="_blank" rel="noopener noreferrer">our YouTube channel</a>.
       </p>
 
       <h3 class="subsection-header">Upcoming webinars</h3>
+      <ul class="section-list">
+        <li v-for="w in upcomingWebinars" :key="w.title">
+          <strong>{{ w.title }}</strong><br>
+          {{ w.date }}
+          —
+          <template v-for="(link, i) in w.links" :key="link.name">
+            <template v-if="i > 0"> · </template>
+            <a :href="link.href" target="_blank" rel="noopener noreferrer">{{ link.name }}</a>
+          </template>
+        </li>
+      </ul>
       <p class="section-body">
-        We're re-grouping for the summer and will post more webinars soon. If you have
-        ideas for webinars you'd like to see, send your suggestions to
+        If you have ideas for webinars you'd like to see, send your suggestions to
         <a href="mailto:support@openalex.org">support@openalex.org</a>.
       </p>
 
@@ -87,6 +97,33 @@ const sections = [
   { id: 'office-hours', label: 'Office hours' },
   { id: 'conferences', label: 'Conferences' },
 ];
+
+const upcomingWebinars = ref([
+  {
+    title: 'Is it time to retire the OA colours? A community vibe check',
+    date: 'Tuesday 6 October 2026, 7:00am Pacific (10am Eastern, 3pm UK, 4pm Central Europe)',
+    links: [
+      { name: 'Register', href: 'https://zoom.us/webinar/register/WN_NbIKwVu6Q4SI83Fv5qwXxw' },
+      { name: 'Background', href: 'https://blog.openalex.org/is-it-time-to-retire-the-oa-colours-tell-us-what-you-think/' },
+    ],
+  },
+  {
+    title: 'Should OpenAlex publish a novelty score? A community vibe check',
+    date: 'Wednesday 7 October 2026, 8:00am Pacific (11am Eastern, 4pm UK, 5pm Central Europe)',
+    links: [
+      { name: 'Register', href: 'https://zoom.us/webinar/register/WN_EetlA-l3QgK2FvQVxE0GLg' },
+      { name: 'Background', href: 'https://blog.openalex.org/should-openalex-publish-a-novelty-score-a-vibe-check/' },
+    ],
+  },
+  {
+    title: 'Searching OpenAlex: the new search, query builder and OQL',
+    date: 'Friday 16 October 2026, 7:00am Pacific (10am Eastern, 3pm UK, 4pm Central Europe)',
+    links: [
+      { name: 'Register', href: 'https://zoom.us/webinar/register/WN_kyXXUNnCSuexelEYZB5wMw' },
+      { name: 'OQL guide', href: 'https://help.openalex.org/access/oql/' },
+    ],
+  },
+]);
 
 const pastWebinars = ref([
   {
