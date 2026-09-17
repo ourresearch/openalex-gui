@@ -218,6 +218,7 @@ const entityConfigs = reactive({
             "topics.id",
             "is_oa",
             "is_in_doaj",
+            "listed_in",
         ],
         defaultColumns: [
             "display_name",
