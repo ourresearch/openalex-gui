@@ -33,6 +33,9 @@
         <li>
           <a href="/anti-fraud-and-bribery-policy.pdf" target="_blank">Anti-Fraud and Bribery Policy</a>
         </li>
+        <li>
+          <a href="/treasury-policy.pdf" target="_blank">Treasury Policy</a>
+        </li>
       </ul>
       <p class="section-body">
         Looking for our <router-link to="/privacy">privacy policy</router-link> or
