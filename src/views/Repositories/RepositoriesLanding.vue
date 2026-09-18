@@ -214,7 +214,7 @@ const faqs = [
   },
   {
     q: 'How often does OpenAlex harvest my repository?',
-    a: 'We harvest most repositories every few hours. The exact frequency may vary based on the repository\'s size and how often its records change.',
+    a: 'Once a day. Every registered endpoint is checked daily for records changed since its last successful harvest; a newly added repository\'s first harvest fetches its whole back catalog, which can take a few days for large or slow endpoints. Your source\'s Harvest tab shows when the next check is due.',
   },
 ];
 
