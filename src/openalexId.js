@@ -66,6 +66,7 @@ const ALL_ENTITY_TYPES = [
     'licenses',
     'oa-statuses',
     'indexes',
+    'source-lists',
     'locations',
 ];
 

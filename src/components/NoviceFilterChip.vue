@@ -439,7 +439,7 @@ function applyRange() {
 // api.getAutocompleteResponses via its static-list branch.
 const LOCAL_LIST_ENTITIES = new Set([
   'types', 'source-types', 'institution-types', 'continents',
-  'sdgs', 'licenses', 'oa-statuses', 'domains',
+  'sdgs', 'licenses', 'oa-statuses', 'domains', 'source-lists',
 ]);
 
 const loadEntities = async (searchString) => {

@@ -171,6 +171,10 @@ const facetCategories = {
         "citation",
         "other",
     ],
+    "source-lists": [
+        "citation",
+        "other",
+    ],
     keywords: [
         "citation",
         "other",
@@ -755,6 +759,7 @@ const facetConfigs = function (entityType) {
             // oxjob #1205: see sources `listed_in`.
             key: "primary_location.source.listed_in",
             entityToFilter: "works",
+            entityToSelect: "source-lists",
             displayName: "source listed in",
             type: "selectEntity",
             category: "source",
@@ -1618,6 +1623,7 @@ const facetConfigs = function (entityType) {
             // src/listedIn.js. Non-normative: "appears on", never "recommended".
             key: "listed_in",
             entityToFilter: "sources",
+            entityToSelect: "source-lists",
             displayName: "listed in",
             type: "selectEntity",
             category: "other",
@@ -3234,6 +3240,54 @@ const facetConfigs = function (entityType) {
             icon: "mdi-tag-outline",
             extractFn: (e) => e.description,
         },
+        {
+            key: "description",
+            entityToFilter: "source-lists",
+            type: "search",
+            category: "other",
+            icon: "mdi-format-list-bulleted",
+            extractFn: (e) => e.description,
+        },
+        {
+            key: "maintainer",
+            entityToFilter: "source-lists",
+            type: "search",
+            category: "other",
+            icon: "mdi-format-list-bulleted",
+            extractFn: (e) => e.maintainer,
+        },
+        {
+            key: "url",
+            entityToFilter: "source-lists",
+            displayName: "URL",
+            type: "selectEntity",
+            actions: [],
+            category: "other",
+            icon: "mdi-web",
+            extractFn: (e) => e.url,
+        },
+        {
+            key: "list_version",
+            entityToFilter: "source-lists",
+            displayName: "edition",
+            type: "search",
+            actions: ["column"],
+            category: "other",
+            icon: "mdi-format-list-bulleted",
+            extractFn: (e) => e.list_version,
+            column: { render: { kind: "date" } },
+        },
+        {
+            key: "sources_count",
+            entityToFilter: "source-lists",
+            displayName: "sources",
+            type: "range",
+            actions: ["filter", "sort", "column"],
+            category: "citation",
+            icon: "mdi-book-open-outline",
+            isDisplayedAsCount: true,
+            extractFn: (e) => e.sources_count,
+        },
 
         // ============================================================
         // DISPLAY NAME CONFIGS FOR SECONDARY ENTITY TYPES
@@ -3388,6 +3442,16 @@ const facetConfigs = function (entityType) {
             actions: ["column"],
             category: "other",
             icon: "mdi-tag-outline",
+            extractFn: (entity) => entity.display_name,
+        },
+        {
+            key: "display_name",
+            isIdentityColumn: true,
+            entityToFilter: "source-lists",
+            type: "search",
+            actions: ["column"],
+            category: "other",
+            icon: "mdi-format-list-bulleted",
             extractFn: (entity) => entity.display_name,
         },
         {
@@ -3639,6 +3703,7 @@ const facetConfigs = function (entityType) {
         {
             key: "best_oa_location.source.listed_in",
             entityToFilter: "works",
+            entityToSelect: "source-lists",
             displayName: "best OA source listed in",
             type: "selectEntity",
             category: "other",
@@ -3711,6 +3776,7 @@ const facetConfigs = function (entityType) {
         {
             key: "locations.source.listed_in",
             entityToFilter: "works",
+            entityToSelect: "source-lists",
             displayName: "any location source listed in",
             type: "selectEntity",
             category: "other",

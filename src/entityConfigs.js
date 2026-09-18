@@ -732,6 +732,42 @@ const entityConfigs = reactive({
             "description",
         ],
     },
+    // oxjob #1205: the vocabulary behind sources.listed_in. Non-normative: a list
+    // page says who maintains it and what it covers, never that we endorse it.
+    "source-lists": {
+        icon: "mdi-format-list-bulleted",
+        name: "source-lists",
+        entityType: "source-lists",
+        nameSingular: "source list",
+        // authored identity: metaSnapshot.json predates the entity (regen pulls
+        // in a month of unrelated drift); the live /meta catalog agrees.
+        displayName: "source lists",
+        displayNameSingular: "source list",
+        exportMode: "client",
+        exportColumns: [
+            { key: "id", label: "ID" },
+            { key: "display_name", label: "Name" },
+            { key: "maintainer", label: "Maintainer" },
+            { key: "url", label: "URL" },
+            { key: "list_version", label: "Edition" },
+            { key: "sources_count", label: "Sources Count" },
+            { key: "works_count", label: "Works Count" },
+            { key: "cited_by_count", label: "Cited By Count" },
+        ],
+        category: "publishing",
+        descr: "External journal lists a source can appear on: DOAJ, CWTS Core, national lists",
+        placeholder: "Search source lists",
+        filterKey: "primary_location.source.listed_in",
+        hasAutocomplete: false,
+        isNative: false,
+        rowsToShowOnEntityPage: [
+            "description",
+            "maintainer",
+            "url",
+            "list_version",
+            "sources_count",
+        ],
+    },
     "locations": {
         icon: "mdi-file-document-outline",
         name: "locations",
