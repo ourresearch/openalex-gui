@@ -6,6 +6,12 @@ const listedInLabels = {
     "doyens": "Doyens de Médecine (FR)",
     "cwts-core": "CWTS Core",
     "doaj": "DOAJ",
+    // phase-4 batch (oxjob #1205); ids appear once the registry loads land
+    "medline": "MEDLINE",
+    "norway": "Norwegian Register",
+    "jufo": "JUFO (Finland)",
+    "erih-plus": "ERIH PLUS",
+    "scielo": "SciELO",
 };
 
 const isListedInKey = (filterKey) =>
