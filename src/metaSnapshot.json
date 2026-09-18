@@ -94,6 +94,10 @@
   "works": {
    "displayName": "works",
    "displayNameSingular": "work"
+  },
+  "source-lists": {
+   "displayName": "source lists",
+   "displayNameSingular": "source list"
   }
  },
  "properties": {
@@ -955,6 +959,27 @@
    "type_crossref": "Crossref type",
    "updated_date": "updated date",
    "versions": "versions"
+  },
+  "source-lists": {
+   "cited_by_count": "citation count",
+   "collection": "collection",
+   "created_date": "created date",
+   "description": "description",
+   "display_name": "name",
+   "display_name.search": "display name",
+   "from_created_date": "from created date",
+   "from_updated_date": "from updated date",
+   "id": "id",
+   "list_version": "edition",
+   "maintainer": "maintainer",
+   "relevance_score": "relevance score",
+   "sources_api_url": "sources api url",
+   "sources_count": "sources",
+   "text.search": "text",
+   "updated_date": "updated date",
+   "url": "url",
+   "works_api_url": "works api url",
+   "works_count": "works count"
   }
  }
 }
