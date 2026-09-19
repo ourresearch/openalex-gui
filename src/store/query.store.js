@@ -129,6 +129,14 @@ export default {
     // Defaults to 'replace' (the safe, non-history-littering choice); every edit
     // action sets it explicitly via the `bumpEdit` payload.
     lastEditNav: "replace",
+    // Which surface made the LAST edit (oxjob #1245, Inist 2.6): 'builder' for a
+    // builder submit (setQueryFromOqo), null for everything else (facets, sort,
+    // paging). The builder's props.oql watcher uses it to tell its OWN post-run
+    // projection echo (skip — the display already shows it) from an external
+    // store-driven edit that landed on the same lastExecutedOql (reseed). Before
+    // this, a left-rail facet click in Advanced mode executed fine but the builder
+    // swallowed the projection as its own echo and kept drawing the old query.
+    lastEditOrigin: null,
   }),
   getters: {
     // The OQO we POST to `/` to execute: the citeable query merged with the OQO
@@ -179,8 +187,14 @@ export default {
     // Bump the edit counter — the signal the SERP execution watcher fires on — and
     // record this edit's nav intent ('push' | 'replace', default 'replace') so the
     // projector picks push-vs-replace by edit semantics (Phase 2b back-button policy).
-    bumpEdit(state, nav = "replace") {
+    // Payload: the nav string, or `{ nav, origin }` when the edit surface wants to
+    // identify itself (only the builder does, via setQueryFromOqo).
+    bumpEdit(state, payload = "replace") {
+      const { nav, origin } = typeof payload === "object" && payload !== null
+        ? payload
+        : { nav: payload, origin: null };
       state.lastEditNav = nav === "push" ? "push" : "replace";
+      state.lastEditOrigin = origin || null;
       state.editEpoch++;
     },
     // Replace the whole citeable query (entity + filters + corpus).
@@ -318,7 +332,7 @@ export default {
       commit("setQueryOqoFull", queryOqo);
       commit("setSortState", null);
       commit("patchPaging", { page: undefined, cursor: undefined });
-      commit("bumpEdit", nav === "replace" ? "replace" : "push");
+      commit("bumpEdit", { nav: nav === "replace" ? "replace" : "push", origin: "builder" });
     },
 
     // ---- Stats-widget refinements (oxjob #528) ------------------------------

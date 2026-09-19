@@ -239,6 +239,31 @@ describe("#661 — setSort edit action (transient client sort)", () => {
   });
 });
 
+describe("#1245 — bumpEdit records the edit ORIGIN (builder echo vs external edit)", () => {
+  it("a plain nav string leaves the origin null (facets, sort, paging)", () => {
+    const s = freshState();
+    queryModule.mutations.bumpEdit(s, "push");
+    expect(s.lastEditOrigin).toBeNull();
+    expect(s.lastEditNav).toBe("push");
+  });
+  it("an object payload records nav + origin", () => {
+    const s = freshState();
+    queryModule.mutations.bumpEdit(s, { nav: "replace", origin: "builder" });
+    expect(s.lastEditOrigin).toBe("builder");
+    expect(s.lastEditNav).toBe("replace");
+    expect(s.editEpoch).toBe(1);
+  });
+  it("setQueryFromOqo (the builder submit) tags 'builder'; a facet refinement clears it", () => {
+    const s = freshState();
+    const commit = commitInto(s);
+    queryModule.actions.setQueryFromOqo({ commit }, { oqo: { get_rows: "works" }, nav: "push" });
+    expect(s.lastEditOrigin).toBe("builder");
+    queryModule.actions.applyRefinementRows({ state: s, commit }, [{ column_id: "type", value: "article" }]);
+    expect(s.lastEditOrigin).toBeNull();
+    expect(s.editEpoch).toBe(2);
+  });
+});
+
 describe("#464 Phase 2b — bumpEdit records nav intent (back-button policy)", () => {
   it("defaults to 'replace' (tuning, no history entry)", () => {
     const s = freshState();

@@ -3728,7 +3728,18 @@ watch(() => props.oql, async (next) => {
   // already renders this same query. Gated on hasEmittedRun: lastExecutedOql is also
   // set by executions this builder never initiated (inbound legacy GET / the
   // legacy-interface flip), and a virgin builder must adopt that seed, not skip it.
-  if (hasEmittedRun && incoming === (store.state.query && store.state.query.lastExecutedOql)) return;
+  // …and gated on lastEditOrigin (oxjob #1245, Inist 2.6): a left-rail facet click
+  // in OQL mode is a STORE-driven edit that also executes + projects — so its
+  // canonical OQL lands here equal to lastExecutedOql, and without the origin
+  // check a builder that had run anything earlier in the session swallowed it as
+  // its own echo and kept drawing the pre-facet query (it only caught up on the
+  // Advanced→OQL→Advanced remount). Only our own submit (setQueryFromOqo) tags
+  // the edit 'builder'; anything else is external and reseeds.
+  if (
+    hasEmittedRun
+    && store.state.query?.lastEditOrigin === "builder"
+    && incoming === store.state.query.lastExecutedOql
+  ) return;
   // An external query change (the SERP dice, a shared link, back/forward) reseeds
   // us. Invalidate any in-flight renderQuery NOW so its late-resolving dispatch
   // can't fire a stale `update:oql` for the PREVIOUS query — which the SERP's
