@@ -115,6 +115,39 @@ const chipFilterStr = function (currentRoute) {
 }
 
 
+// The search clause of the CANONICAL query, as `{type, value}` in the box's own
+// vocabulary (`search.title_and_abstract` etc.), or null (oxjob #1245, Inist 2.7).
+// On the entity-less `/q?oql=` route the URL carries no `search.*=` param: the
+// server folds the search into x_query.url as a `<scope>.search:…` FILTER clause,
+// which chipFilterStr deliberately strips (search is never a chip). So Basic mode
+// under `?oql=` showed the chips but an EMPTY search box, a chip edit re-translated
+// without the search (nonFilterClausesFromCanonical dropped the whole filter), and
+// the "vanished" keywords silently fell out of the query on the next edit. Same
+// settled/entity guards as chipFilterStr; first non-negated search clause wins.
+const searchFromCanonicalXQuery = function (currentRoute) {
+    if (store.state.isLoading) return null;
+    const xqUrl = store.state.resultsObject?.meta?.x_query?.url;
+    if (!xqUrl) return null;
+    const xqRoute = routeFromOxurl(xqUrl);
+    if (!xqRoute) return null;
+    if (xqRoute.params.entityType !== entityTypeForRoute(currentRoute)) return null;
+    const q = xqRoute.query || {};
+    for (const key of searchParamKeys) {
+        if (q[key]) return {type: key, value: q[key]};
+    }
+    for (const clause of splitFilterString(q.filter || "")) {
+        const idx = clause.indexOf(":");
+        if (idx === -1) continue;
+        const key = clause.slice(0, idx);
+        if (key.startsWith("!")) continue;
+        const type = filterSearchKeyToType[key];
+        const value = clause.slice(idx + 1);
+        if (type && value) return {type, value};
+    }
+    return null;
+}
+
+
 // Entity type for the current query. On the `/:entityType` route it's the path
 // param; on the entity-less `/q` OQL route there's no path param (the OQL declares
 // the entity), so fall back to the store — which Serp.vue sets from the executed
@@ -259,6 +292,12 @@ const nonFilterClausesFromCanonical = function () {
     if (!r) return {}
     // eslint-disable-next-line no-unused-vars
     const { filter, page, per_page, ...rest } = r.query || {}
+    // The search rides INSIDE the dropped filter (folded by the server, see
+    // searchFromCanonicalXQuery) — lift it back out as the top-level param the
+    // translate understands, or every chip edit under ?oql= loses the search
+    // (oxjob #1245, Inist 2.7).
+    const search = searchFromCanonicalXQuery(router.currentRoute.value)
+    if (search && !searchParamKeys.some(k => rest[k])) rest[search.type] = search.value
     return rest
 }
 
@@ -758,11 +797,40 @@ const filterSearchKeyToType = {
     'semantic.search': 'search.semantic',
 }
 
-const setNewSearch = function (entityType, searchType, searchString) {
+// In canonical-OQL mode (oql flag + `?oql=` URL) a search-box edit must run as OQL,
+// exactly like a chip edit (pushNewFilters): translate the current chips + the new
+// search to OQL and push the `/q?oql=` route. Before this, setNewSearch spread
+// `route.query` — `oql=works` included — so a Basic search typed after an Advanced
+// query landed on `/q?oql=works&search.title_and_abstract=…`, which executed the
+// bare `oql=works` (327M works) and ignored the search, with no error (oxjob #1245,
+// Inist 2.7). Returns true when it handled the navigation; false → legacy path.
+const pushSearchAsOql = async function (entityType, searchType, searchString) {
+    const route = router.currentRoute.value
+    const inOqlMode = !!store.getters?.featureFlags?.['oql'] && !!route?.query?.oql
+    if (!inOqlMode) return false
+    const filter = chipFilterStr(route)
+    if (!filter && !searchString) return false   // nothing left: fall to the clean entity SERP
+    const query = {}
+    if (searchString) {
+        query[searchType] = searchString
+        query.sort = 'relevance_score:desc'
+    }
+    const oql = await store.dispatch('translateFiltersToOql', { entityType, filter, query })
+    if (!oql) return false
+    await pushToRoute(router, { name: "OqlQuery", query: { oql: oqlForUrl(oql) } })
+    return true
+}
+
+const setNewSearch = async function (entityType, searchType, searchString) {
+    entityType = entityType || entityTypeForRoute(router.currentRoute.value)
+    if (await pushSearchAsOql(entityType, searchType, searchString)) return
     // Build query preserving existing non-search params
     const currentQuery = {...router.currentRoute.value.query}
     // Remove any existing search params
     searchParamKeys.forEach(k => delete currentQuery[k])
+    // Never carry a stale `oql=` onto the flat route: the router would bounce it
+    // back to `/q?oql=` and the search would be ignored (oxjob #1245).
+    delete currentQuery.oql
 
     if (searchString) {
         currentQuery[searchType] = searchString
@@ -775,7 +843,7 @@ const setNewSearch = function (entityType, searchType, searchString) {
 
     const newRoute = {
         name: "Serp",
-        params: {entityType: entityType || entityTypeForRoute(router.currentRoute.value)},
+        params: {entityType},
         query: currentQuery,
     }
     pushToRoute(router, newRoute)
@@ -791,6 +859,9 @@ const getSearchFromRoute = function (currentRoute) {
             return {type: key, value: currentRoute.query[key]}
         }
     }
+    // `/q?oql=` carries no search param; read the settled canonical query instead
+    // (oxjob #1245, Inist 2.7 — Basic under ?oql= showed an empty box).
+    if (currentRoute.query?.oql) return searchFromCanonicalXQuery(currentRoute)
     return null
 }
 
@@ -826,9 +897,12 @@ const filterSearchRedirectQuery = function (query) {
     return {...rest, [type]: value}
 }
 
-const clearNewSearch = function () {
+const clearNewSearch = async function () {
+    const entityType = entityTypeForRoute(router.currentRoute.value)
+    if (await pushSearchAsOql(entityType, null, "")) return
     const currentQuery = {...router.currentRoute.value.query}
     searchParamKeys.forEach(k => delete currentQuery[k])
+    delete currentQuery.oql   // see setNewSearch (oxjob #1245)
     // Remove relevance sort if it was set by search
     if (currentQuery.sort === 'relevance_score:desc') {
         delete currentQuery.sort
@@ -1338,6 +1412,8 @@ const url = {
     urlObjectFromSearchUrl,
     routeFromOxurl,
     chipFilterStr,
+    searchFromCanonicalXQuery,
+    nonFilterClausesFromCanonical,
 
     createFilter,
     createFilterNoPush,

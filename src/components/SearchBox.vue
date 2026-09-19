@@ -1092,6 +1092,19 @@ watch(() => route.fullPath, () => {
   syncFromRoute();
   resizeTextarea();
 });
+// On `/q?oql=` the search lives only in the settled response's canonical x_query
+// (url.getSearchFromRoute reads it once the fetch has landed), so re-hydrate when
+// the response settles — never while the user is typing or has the box focused
+// (oxjob #1245, Inist 2.7).
+watch(
+  () => [store.state.resultsObject?.meta?.x_query?.url, store.state.isLoading],
+  () => {
+    if (!route.query.oql || store.state.isLoading) return;
+    if (isUserTyping.value || isFocused.value) return;
+    syncFromRoute();
+    resizeTextarea();
+  },
+);
 
 async function submitSearch(forceEntityType) {
   const targetEntityType = forceEntityType || entityType.value;
@@ -1129,6 +1142,12 @@ async function submitSearch(forceEntityType) {
     // Remove all search params
     ['search', 'search.exact', 'search.semantic', 'search.title', 'search.title.exact',
      'search.title_and_abstract', 'search.title_and_abstract.exact'].forEach(k => delete currentQuery[k]);
+    // Under `/q?oql=` the chips live in the canonical query, not the URL, and a
+    // stale `oql=` would make the router bounce this back to `/q` (oxjob #1245).
+    if (currentQuery.oql) {
+      delete currentQuery.oql;
+      currentQuery.filter = url.chipFilterStr(route);
+    }
     currentQuery['search.semantic'] = searchString.value;
     currentQuery.page = 1;
     currentQuery.sort = 'relevance_score:desc';
