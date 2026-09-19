@@ -8,8 +8,17 @@ const listedInLabels = {
     "doaj": "DOAJ",
     // phase-4 batch (oxjob #1205); ids appear once the registry loads land
     "medline": "MEDLINE",
-    "norway": "Norwegian Register",
-    "jufo": "JUFO (Finland)",
+    // level registers: one list per level, ids keep the maintainer's own labels;
+    // the label says the direction in words so nobody has to know which way counts up
+    "norway-1": "Norwegian Register, level 1",
+    "norway-2": "Norwegian Register, level 2 (highest)",
+    "jufo-1": "JUFO (Finland), level 1",
+    "jufo-2": "JUFO (Finland), level 2",
+    "jufo-3": "JUFO (Finland), level 3 (highest)",
+    "jpps-1": "JPPS, one star",
+    "jpps-2": "JPPS, two stars",
+    "jpps-3": "JPPS, three stars (highest)",
+    "latindex": "Latindex Catálogo 2.0",
     "erih-plus": "ERIH PLUS",
     "scielo": "SciELO",
 };
