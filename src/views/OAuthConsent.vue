@@ -19,7 +19,7 @@
             <v-icon size="56" class="mb-3">mdi-shield-key-outline</v-icon>
             <h1 class="text-h4 font-weight-bold mb-2">Connect to OpenAlex</h1>
             <p class="text-body-1 text-medium-emphasis">
-              <strong>{{ clientName }}</strong> wants to query OpenAlex on your behalf.
+              <strong>{{ clientName }}</strong> wants to query OpenAlex on your behalf and, if you ask it to, curate your author profile.
             </p>
           </div>
 
@@ -43,7 +43,7 @@
               <template v-else>
                 Every search {{ clientName }} runs counts against your daily budget, the same as the API.
               </template>
-              It can read OpenAlex data only; it can't change your account.
+              Profile changes (claiming your author profile, adding or removing works) go through your account as curations, which are recorded and reversible. It can't change anything else about your account.
             </p>
 
             <v-alert v-if="errorMessage" type="error" variant="tonal" density="compact" class="mb-4">
