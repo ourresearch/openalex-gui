@@ -17,6 +17,7 @@ import SerpPage from '@/views/Serp.vue';
 import EntityPage from '@/views/EntityPage.vue';
 
 import LoginPage from '@/views/Login.vue';
+import OAuthConsentPage from '@/views/OAuthConsent.vue';
 import SignupPage from "@/views/Signup.vue";
 import UserMagicToken from '@/components/User/UserMagicToken.vue';
 import UserVerifyEmail from '@/components/User/UserVerifyEmail.vue';
@@ -193,6 +194,8 @@ const routes = [
     // user pages and routes
     {path: '/signup', name: 'Signup', component: SignupPage, meta: {chrome: 'bare'}},
     {path: '/login', name: 'Login', component: LoginPage, meta: {chrome: 'bare'}},
+    // OAuth consent for the OpenAlex MCP server (oxjob #1266); requiresAuth bounces through /login and back.
+    {path: '/oauth/consent', name: 'OAuthConsent', component: OAuthConsentPage, meta: {chrome: 'bare', requiresAuth: true}},
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken, meta: {chrome: 'bare'}},
     {path: '/verify-email', name: 'VerifyEmail', component: UserVerifyEmail, meta: {chrome: 'bare'}},
     // Legacy route - redirect old password reset links to login
