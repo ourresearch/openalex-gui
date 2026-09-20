@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 195.
+// corpus version: 2; rows: 197.
 
 export const oqlCorpus = [
   {
@@ -10644,6 +10644,53 @@ export const oqlCorpus = [
     "oql": "works where title has (dog|cat)",
     "note": "The pipe is the classic URL's OR syntax. Typed in an OQL value it executed as the two words ANDed (3,232) yet rendered to the SAME url leg as `has (dog or cat)` (371,675) — a url-leg lie. Rejected with a fix-it; `\\` (the engine escape character) is rejected under the same code.",
     "diagnostic": "OQL_CHAR_NOT_OPERATOR",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 205,
+    "tags": [
+      "phrase-exact",
+      "wildcard"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "A wildcard on a hyphenated term applies to the sub-token the analyzer produces (#1260)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where title has (\"e-cigarette*\")",
+    "note": "The standard tokenizer splits `e-cigarette` into `e` + `cigarette`, so the engine compiles `e-cigarette*` as an adjacency `intervals` query: match `e` then prefix `cigarette` (ordered, max_gaps=0) — the same query `\"e cigarette*\"` already built (live works-v34: both 10,850). Before #1260 OQL rejected it as OQL_SHORT_WILDCARD_PREFIX (the check counted from the token start and saw only `e`), and the classic filter ran a literal `e-cigarette` prefix that matched nothing (0 hits, silently). The 3-char floor is measured on the run right before the `*`: `x-ray*`, `t-cell*` pass; `covid-19*` does not (row 206).",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "display_name.search.exact",
+          "value": "e-cigarette*",
+          "operator": "has"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=display_name.search.exact:e-cigarette*"
+  },
+  {
+    "id": 206,
+    "tags": [
+      "phrase-exact",
+      "wildcard"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "A wildcard on a hyphenated term applies to the sub-token the analyzer produces (#1260)",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "works where title has (\"covid-19*\")",
+    "note": "The token looks 8 chars long, but the analyzer splits it at the hyphen and the `*` applies only to `19`, a 2-char prefix. The fix-it names the split (`\"covid\", \"19*\"`) instead of telling the user to \"add characters\" to a word that already has plenty.",
+    "diagnostic": "OQL_SHORT_WILDCARD_PREFIX",
     "oqo": null,
     "oxurl": null
   }
