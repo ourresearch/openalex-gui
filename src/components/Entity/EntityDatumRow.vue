@@ -263,7 +263,11 @@ const valueEntityLinks = computed(() => {
 });
 
 const valueListOfStrings = computed(() => {
-  const items = entityDatumValues.stringItems(rawValue.value);
+  // isId arrays (e.g. authors' observed_orcids) carry full ID URLs; strip them
+  // to bare ids the same way the single-value `valueId` computed below does.
+  const items = entityDatumValues.stringItems(rawValue.value, {
+    stripIdPrefix: !!filterConfig.value?.isId,
+  });
   if (!items) return null;
   return isValueTruncated.value ? items.slice(0, maxLen.value.array) : items;
 });

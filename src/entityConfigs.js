@@ -155,6 +155,7 @@ const entityConfigs = reactive({
             "last_known_institutions.id",
             "affiliations.institution.id",
             "ids.orcid",
+            "observed_orcids",
         ],
         metricsToShowOnEntityPage: [
             "works_count",

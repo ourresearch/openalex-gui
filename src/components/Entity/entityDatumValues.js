@@ -35,15 +35,22 @@ export function entityLinkItems(rawValue) {
  * already claimed this value. The null guard is load-bearing: the template
  * renders these two branches in separate `v-if`s, so a value that satisfied
  * both would render the list twice.
+ *
+ * `stripIdPrefix` mirrors EntityDatumRow's single-value `valueId` computed
+ * (protocol + domain stripped, e.g. "https://orcid.org/0000-..." ->
+ * "0000-..."), for `isId` facets whose extractFn returns an array of full ID
+ * URLs (e.g. authors' `observed_orcids`) instead of a single string.
  */
-export function stringItems(rawValue) {
+export function stringItems(rawValue, { stripIdPrefix = false } = {}) {
   if (!Array.isArray(rawValue)) return null;
   if (entityLinkItems(rawValue)) return null;
   return rawValue
     .filter(v => v !== null && v !== undefined)
     .map(v => {
       if (typeof v === 'object' && v.display_name) return v.display_name;
-      if (typeof v === 'string') return v;
+      if (typeof v === 'string') {
+        return stripIdPrefix ? v.replace(/^https?:\/\/[^/]+\//, '') : v;
+      }
       return String(v);
     });
 }

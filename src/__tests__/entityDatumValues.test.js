@@ -80,4 +80,29 @@ describe('stringItems', () => {
     expect(stringItems(null)).toBeNull();
     expect(stringItems('a string')).toBeNull();
   });
+
+  // Authors' `observed_orcids` (oxjob #1252-ish): an isId facet whose
+  // extractFn returns an array of full ID URLs, not a single string. These
+  // should render as bare ids the same way EntityDatumRow's single-value
+  // `valueId` computed strips "https://orcid.org/" off `ids.orcid`.
+  describe('stripIdPrefix', () => {
+    const OBSERVED_ORCIDS = [
+      'https://orcid.org/0000-0002-1825-0097',
+      'https://orcid.org/0000-0001-2345-6789',
+    ];
+
+    it('strips protocol + domain off each item when requested', () => {
+      expect(stringItems(OBSERVED_ORCIDS, { stripIdPrefix: true }))
+        .toEqual(['0000-0002-1825-0097', '0000-0001-2345-6789']);
+    });
+
+    it('leaves items untouched when not requested (default)', () => {
+      expect(stringItems(OBSERVED_ORCIDS)).toEqual(OBSERVED_ORCIDS);
+    });
+
+    it('is a no-op on strings that are already bare (no protocol)', () => {
+      expect(stringItems(['0000-0002-1825-0097'], { stripIdPrefix: true }))
+        .toEqual(['0000-0002-1825-0097']);
+    });
+  });
 });
