@@ -1049,22 +1049,6 @@ const facetConfigs = function (entityType) {
             icon: "mdi-tag-outline",
         },
         {
-            // oxjob #1299: PubMed's full PublicationTypeList as raw strings, on the
-            // ~41M works with a PMID (empty list otherwise). No registry entity behind
-            // it, so no `entityToSelect`: options + counts come from group_by, the same
-            // load-all-and-filter path as awards `funding_type`. displayName must equal
-            // the registry display_name (label-consistency gate).
-            key: "pubmed_publication_types",
-            entityToFilter: "works",
-            displayName: "PubMed publication types",
-            type: "selectEntity",
-            category: "other",
-            actions: ["filter", "column", "group_by"],
-            icon: "mdi-tag-outline",
-            extractFn: (entity) => entity.pubmed_publication_types,
-            column: { render: { kind: "stringList" }, export: { path: "pubmed_publication_types" } },
-        },
-        {
             key: "mag_only",
             entityToFilter: "works",
             extractFn: derivedWorkBoolean["mag_only"],
