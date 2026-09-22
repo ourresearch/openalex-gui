@@ -80,6 +80,38 @@
             <div class="dg-label">created</div>
             <div class="dg-main">{{ curation.created ? formatRelativeDate(curation.created) : '—' }}</div>
             <div class="dg-id">{{ curation.created ? formatExactDate(curation.created) : '' }}</div>
+
+            <!-- verification history (oxjob #1282). Detail view only: the
+                 status worker re-checks every pending row until it is seen
+                 live; these say when it last looked, what it saw, and when
+                 it looks next. The curations table shows just status. -->
+            <div class="dg-divider"></div>
+
+            <div class="dg-label">last checked</div>
+            <div class="dg-main">
+              <template v-if="curation.last_checked_at">{{ formatRelativeDate(curation.last_checked_at) }}</template>
+              <span v-else class="text-medium-emphasis">not yet</span>
+            </div>
+            <div class="dg-id">{{ curation.last_checked_at ? formatExactDate(curation.last_checked_at) : '' }}</div>
+
+            <div class="dg-label">observed</div>
+            <div class="dg-main">
+              <template v-if="curation.last_observed">{{ curation.last_observed }}</template>
+              <span v-else class="text-medium-emphasis">—</span>
+            </div>
+            <div class="dg-id">
+              <span v-if="curation.last_check_error" class="dg-error">{{ curation.last_check_error }}</span>
+            </div>
+
+            <template v-if="curation.status !== 'applied'">
+              <div class="dg-label">next check</div>
+              <div class="dg-main">{{ nextCheckText }}</div>
+              <div class="dg-id">{{ curation.next_check_at ? formatExactDate(curation.next_check_at) : '' }}</div>
+            </template>
+
+            <div class="dg-label">checks</div>
+            <div class="dg-main">{{ checksText }}</div>
+            <div class="dg-id"></div>
           </div>
         </v-card-text>
       </v-card>
@@ -198,6 +230,30 @@ const previousValueShort = computed(() =>
   previousValueIsEntity.value ? shortId(descriptor.value.previousTargetRef.id) : ''
 );
 
+// Verification history (oxjob #1282). next_check_at is a future instant
+// (or null = due on the worker's next pass); the shared formatters only do
+// the past, so a small "in …" formatter lives here.
+function formatUntil(dateStr) {
+  const diffSeconds = Math.floor((new Date(dateStr) - Date.now()) / 1000);
+  if (diffSeconds < 60) return 'due now';
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  if (diffMinutes < 60) return `in ${diffMinutes} minute${diffMinutes === 1 ? '' : 's'}`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `in ${diffHours} hour${diffHours === 1 ? '' : 's'}`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `in ${diffDays} day${diffDays === 1 ? '' : 's'}`;
+}
+const nextCheckText = computed(() =>
+  curation.value?.next_check_at ? formatUntil(curation.value.next_check_at) : 'due now'
+);
+const checksText = computed(() => {
+  const n = curation.value?.check_count || 0;
+  if (curation.value?.status === 'applied') {
+    return n === 0 ? 'seen live on first check' : `seen live after ${n} miss${n === 1 ? '' : 'es'}`;
+  }
+  return n === 0 ? 'none yet' : `${n} so far, not seen live yet`;
+});
+
 const breadcrumbItems = computed(() => {
   const detail = props.curationId;
   if (isAdminContext.value) {
@@ -284,6 +340,10 @@ onMounted(() => {
 
 .dg-id code {
   font-family: inherit;
+}
+
+.dg-error {
+  color: #b71c1c;
 }
 
 .dg-divider {
