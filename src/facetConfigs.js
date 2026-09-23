@@ -1251,12 +1251,13 @@ const facetConfigs = function (entityType) {
             displayName: "Observed ORCIDs",
             type: "search",
             isId: true,
-            actions: ["filter", "column"],
+            // Column + profile-page row only (oxjob #1340, Jason 2026-09-23: no separate
+            // observed_orcids filter — the ORCID filter itself matches any observed ORCID).
+            actions: ["column"],
             actionsPopular: [],
             category: "ids",
             icon: "mdi-account-outline",
             extractFn: (e) => e.observed_orcids ?? e.ids?.observed_orcids,
-            // type:"search" is a filter; column.render opts it in as a column.
             // Server flat-path is `observed_orcids` (the |-joined list).
             column: { render: { kind: "stringList" }, export: { path: "observed_orcids" } },
             noIdsSibling: true,
