@@ -1,7 +1,7 @@
 {
- "version": "8.4.0",
- "fingerprint": "84c5bb932ba90399429809d5ac0b2e815834c7fadd2ffb647664f8ced341e009",
- "generatedAt": "2026-08-17T18:37:28.816Z",
+ "version": "14.0.0",
+ "fingerprint": "55ec609a6adea1922b54463a7fee2585ba596599c8fc45158458cb8415df55f4",
+ "generatedAt": "2026-09-23T19:20:18.997Z",
  "entities": {
   "authors": {
    "displayName": "authors",
@@ -59,6 +59,10 @@
    "displayName": "licenses",
    "displayNameSingular": "license"
   },
+  "locations": {
+   "displayName": "locations",
+   "displayNameSingular": "location"
+  },
   "oa-statuses": {
    "displayName": "Open Access statuses",
    "displayNameSingular": "Open Access status"
@@ -70,6 +74,10 @@
   "sdgs": {
    "displayName": "Sustainable Development Goals",
    "displayNameSingular": "Sustainable Development Goal"
+  },
+  "source-lists": {
+   "displayName": "source lists",
+   "displayNameSingular": "source list"
   },
   "source-types": {
    "displayName": "source types",
@@ -94,10 +102,6 @@
   "works": {
    "displayName": "works",
    "displayNameSingular": "work"
-  },
-  "source-lists": {
-   "displayName": "source lists",
-   "displayNameSingular": "source list"
   }
  },
  "properties": {
@@ -131,6 +135,7 @@
    "last_known_institutions.lineage": "last institution lineage",
    "last_known_institutions.ror": "last institution ROR",
    "last_known_institutions.type": "institution type",
+   "observed_orcids": "Observed ORCIDs",
    "orcid": "ORCID",
    "parsed_longest_name.first": "first name",
    "parsed_longest_name.last": "last name",
@@ -265,6 +270,7 @@
    "works_count": "works count"
   },
   "countries": {
+   "alpha_3": "alpha 3",
    "authors_api_url": "authors api url",
    "cited_by_count": "citation count",
    "collection": "collection",
@@ -501,8 +507,10 @@
    "works_count": "works count"
   },
   "locations": {
+   "endpoint_id": "endpoint id",
    "id": "location ID",
    "ids": "ids",
+   "ingested_at": "ingested at",
    "is_oa": "is open access",
    "is_retracted": "is retracted",
    "landing_page_url": "landing page URL",
@@ -514,7 +522,6 @@
    "pdf_url": "PDF URL",
    "provenance": "provenance",
    "publisher": "publisher",
-   "raw_source_name": "raw source name",
    "raw_type": "raw type",
    "relevance_score": "relevance score",
    "source_id": "source",
@@ -597,6 +604,27 @@
    "works_api_url": "works api url",
    "works_count": "works count"
   },
+  "source-lists": {
+   "cited_by_count": "citation count",
+   "collection": "collection",
+   "created_date": "created date",
+   "description": "description",
+   "display_name": "name",
+   "display_name.search": "display name",
+   "from_created_date": "from created date",
+   "from_updated_date": "from updated date",
+   "id": "id",
+   "list_version": "edition",
+   "maintainer": "maintainer",
+   "relevance_score": "relevance score",
+   "sources_api_url": "sources api url",
+   "sources_count": "sources",
+   "text.search": "text",
+   "updated_date": "updated date",
+   "url": "url",
+   "works_api_url": "works api url",
+   "works_count": "works count"
+  },
   "source-types": {
    "cited_by_count": "citation count",
    "collection": "collection",
@@ -659,6 +687,7 @@
    "issn": "ISSN",
    "issn_l": "ISSN-L",
    "last_publication_year": "last publication year",
+   "listed_in": "listed in",
    "oa_flip_year": "oa flip year",
    "oa_works_count": "oa works count",
    "relevance_score": "relevance score",
@@ -673,6 +702,8 @@
    "topic_share": "topic share",
    "topic_share.id": "topic share",
    "topics": "topics",
+   "topics.domain.id": "domain",
+   "topics.field.id": "field",
    "topics.id": "topic",
    "type": "source type",
    "updated_date": "updated date",
@@ -799,6 +830,7 @@
    "best_oa_location.source.is_in_doaj": "best OA source DOAJ",
    "best_oa_location.source.is_oa": "best OA source is OA",
    "best_oa_location.source.issn": "best OA source ISSN",
+   "best_oa_location.source.listed_in": "best OA source listed in",
    "best_oa_location.source.type": "best OA source type",
    "best_oa_location.version": "best OA version",
    "best_open_version": "best open version",
@@ -896,6 +928,7 @@
    "locations.source.is_in_doaj": "any location DOAJ",
    "locations.source.is_oa": "source is OA (any location)",
    "locations.source.issn": "any location source ISSN",
+   "locations.source.listed_in": "any location source listed in",
    "locations.source.type": "any location source type",
    "locations.version": "any location version",
    "locations_count": "locations count",
@@ -920,6 +953,7 @@
    "primary_location.source.is_in_doaj": "DOAJ",
    "primary_location.source.is_oa": "OA source",
    "primary_location.source.issn": "ISSN",
+   "primary_location.source.listed_in": "source listed in",
    "primary_location.source.type": "source type",
    "primary_location.version": "primary version",
    "primary_topic": "primary topic",
@@ -931,6 +965,7 @@
    "publication_year": "year",
    "raw_affiliation_strings": "exact raw affiliation",
    "raw_affiliation_strings.search": "raw affiliation",
+   "raw_affiliation_strings.search.exact": "raw affiliation",
    "raw_author_name.search": "byline",
    "referenced_works": "cites",
    "referenced_works_count": "reference count",
@@ -958,28 +993,9 @@
    "type": "type",
    "type_crossref": "Crossref type",
    "updated_date": "updated date",
-   "versions": "versions"
-  },
-  "source-lists": {
-   "cited_by_count": "citation count",
-   "collection": "collection",
-   "created_date": "created date",
-   "description": "description",
-   "display_name": "name",
-   "display_name.search": "display name",
-   "from_created_date": "from created date",
-   "from_updated_date": "from updated date",
-   "id": "id",
-   "list_version": "edition",
-   "maintainer": "maintainer",
-   "relevance_score": "relevance score",
-   "sources_api_url": "sources api url",
-   "sources_count": "sources",
-   "text.search": "text",
-   "updated_date": "updated date",
-   "url": "url",
-   "works_api_url": "works api url",
-   "works_count": "works count"
+   "versions": "versions",
+   "x_sdgs": "x sdgs",
+   "x_sdgs.id": "experimental SDGs"
   }
  }
 }
