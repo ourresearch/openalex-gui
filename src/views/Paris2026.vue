@@ -41,7 +41,7 @@
                 </div>
                 <div class="f26-card">
                     <h4>Tuesday 20 October, CNRS</h4>
-                    <p class="card-text">Community talks. Eighteen presentations from people building with OpenAlex, in four themed sessions with discussion, plus a round of lightning demos. Coffee and lunch provided. Informal reception nearby in the evening.</p>
+                    <p class="card-text">Community talks. Nineteen presentations from people building with OpenAlex, in four themed sessions with discussion, plus a round of lightning demos. Coffee and lunch provided. Informal reception nearby in the evening.</p>
                     <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-break">social</span>
                 </div>
                 <div class="f26-card">
@@ -125,10 +125,10 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">14:00 &ndash; 15:00</div>
+                    <div class="sched-time">14:00 &ndash; 15:15</div>
                     <div class="sched-content">
                         <h4>Session 3: Mapping, foresight and signal detection</h4>
-                        <p>Maps of science and patents, indicators of emerging topics, technology foresight, and early-warning signals in research output, all computed from OpenAlex.</p>
+                        <p>Maps of science and patents, indicators of emerging topics, technology foresight, research intelligence platforms, and early-warning signals in research output, all computed from OpenAlex.</p>
                         <ul class="speaker-list">
                             <li class="placeholder">Five talks, speakers to be confirmed</li>
                         </ul>
@@ -136,25 +136,25 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">15:00 &ndash; 15:20</div>
+                    <div class="sched-time">15:15 &ndash; 15:35</div>
                     <div class="sched-content">
                         <h4>Break</h4>
                         <span class="f26-tag tag-break">break</span>
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">15:20 &ndash; 16:20</div>
+                    <div class="sched-time">15:35 &ndash; 16:35</div>
                     <div class="sched-content">
                         <h4>Session 4: Coverage, comparisons and quality</h4>
                         <p>How OpenAlex compares with proprietary databases for institutional benchmarking, what affiliation and coverage checks reveal, and what national repositories and heritage collections could add to the record.</p>
                         <ul class="speaker-list">
-                            <li class="placeholder">Four talks, speakers to be confirmed</li>
+                            <li class="placeholder">Five talks, speakers to be confirmed</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">16:20 &ndash; 17:00</div>
+                    <div class="sched-time">16:35 &ndash; 17:15</div>
                     <div class="sched-content">
                         <h4>What we heard</h4>
                         <p>The OpenAlex team responds to the day: the themes that came up across sessions, what we can act on, and what we want to dig into on Wednesday.</p>
