@@ -41,7 +41,7 @@
                 </div>
                 <div class="f26-card">
                     <h4>Tuesday 20 October, CNRS</h4>
-                    <p class="card-text">Community talks. Twenty short presentations from people building with OpenAlex, in four themed sessions with discussion. Coffee and lunch provided. Informal reception nearby in the evening.</p>
+                    <p class="card-text">Community talks. Eighteen presentations from people building with OpenAlex, in four themed sessions with discussion, plus a round of lightning demos. Coffee and lunch provided. Informal reception nearby in the evening.</p>
                     <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-break">social</span>
                 </div>
                 <div class="f26-card">
@@ -55,7 +55,7 @@
         <!-- DAY 1 -->
         <div class="section" id="day1">
             <h2 class="section-header">Day 1: Tuesday 20 October at CNRS</h2>
-            <p class="section-subtitle">Auditorium, CNRS headquarters, 3 rue Michel-Ange, 75016 Paris. Talks are ten minutes each, grouped into themed sessions, with time for questions and discussion after each group. Speakers will be listed here as they confirm.</p>
+            <p class="section-subtitle">Auditorium, CNRS headquarters, 3 rue Michel-Ange, 75016 Paris. Each talk has a fifteen-minute slot: about twelve minutes of presentation and at least three for questions. Talks are grouped into themed sessions. Speakers will be listed here as they confirm.</p>
 
             <div class="day-card">
                 <h3>Programme</h3>
@@ -69,7 +69,7 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">09:00 &ndash; 09:20</div>
+                    <div class="sched-time">09:00 &ndash; 09:15</div>
                     <div class="sched-content">
                         <h4>Welcome</h4>
                         <p>A welcome from our hosts at CNRS, and from OpenAlex: what to expect over the two days, and how we see the community shaping where OpenAlex goes next.</p>
@@ -77,7 +77,7 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">09:20 &ndash; 10:30</div>
+                    <div class="sched-time">09:15 &ndash; 10:30</div>
                     <div class="sched-content">
                         <h4>Session 1: Running an institution on open data</h4>
                         <p>Universities that have built their research information on OpenAlex: institutional directories and CRIS systems, expert finders built on the topic ontology, benchmarking against the Leiden Ranking Open Edition, and what it takes to keep the data right.</p>
@@ -95,7 +95,7 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">10:50 &ndash; 12:00</div>
+                    <div class="sched-time">10:50 &ndash; 12:05</div>
                     <div class="sched-content">
                         <h4>Session 2: National monitors and funder intelligence</h4>
                         <p>OpenAlex at national and funder scale: building a national research output database, a national open science monitor, a funder's research intelligence stack, and tracing who funds the infrastructure research depends on.</p>
@@ -106,12 +106,12 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">12:00 &ndash; 12:30</div>
+                    <div class="sched-time">12:05 &ndash; 12:30</div>
                     <div class="sched-content">
                         <h4>Lightning talks: tools for the community</h4>
-                        <p>Short demos of reusable tools built on OpenAlex: ready-made dashboard templates, bulk conversion of DOIs to OpenAlex records, and lightweight scripts libraries use to answer everyday requests.</p>
+                        <p>Short demos of reusable tools and workflows built on OpenAlex: ready-made dashboard templates, lightweight scripts libraries use to answer everyday requests, and a researcher-level map of institutional strengths.</p>
                         <ul class="speaker-list">
-                            <li class="placeholder">Three five-minute talks, speakers to be confirmed</li>
+                            <li class="placeholder">Three to four six-minute talks, speakers to be confirmed</li>
                         </ul>
                         <span class="f26-tag tag-presentation">lightning</span>
                     </div>
@@ -125,10 +125,10 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">14:00 &ndash; 15:10</div>
+                    <div class="sched-time">14:00 &ndash; 15:00</div>
                     <div class="sched-content">
                         <h4>Session 3: Mapping, foresight and signal detection</h4>
-                        <p>Maps of science and patents, landscapes of a scientific membership, indicators of emerging topics, and early-warning signals in research output, all computed from OpenAlex.</p>
+                        <p>Maps of science and patents, indicators of emerging topics, technology foresight, and early-warning signals in research output, all computed from OpenAlex.</p>
                         <ul class="speaker-list">
                             <li class="placeholder">Five talks, speakers to be confirmed</li>
                         </ul>
@@ -136,14 +136,14 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">15:10 &ndash; 15:30</div>
+                    <div class="sched-time">15:00 &ndash; 15:20</div>
                     <div class="sched-content">
                         <h4>Break</h4>
                         <span class="f26-tag tag-break">break</span>
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">15:30 &ndash; 16:30</div>
+                    <div class="sched-time">15:20 &ndash; 16:20</div>
                     <div class="sched-content">
                         <h4>Session 4: Coverage, comparisons and quality</h4>
                         <p>How OpenAlex compares with proprietary databases for institutional benchmarking, what affiliation and coverage checks reveal, and what national repositories and heritage collections could add to the record.</p>
@@ -154,7 +154,7 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">16:30 &ndash; 17:15</div>
+                    <div class="sched-time">16:20 &ndash; 17:00</div>
                     <div class="sched-content">
                         <h4>What we heard</h4>
                         <p>The OpenAlex team responds to the day: the themes that came up across sessions, what we can act on, and what we want to dig into on Wednesday.</p>
@@ -197,25 +197,25 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">10:10 &ndash; 11:15</div>
+                    <div class="sched-time">10:10 &ndash; 11:25</div>
                     <div class="sched-content">
                         <h4>Talks to start the conversation</h4>
-                        <p>A short set of talks chosen because each one opens a question the room will pick up in the afternoon: what it looks like to run a research office or a library on OpenAlex after leaving a proprietary database, building institutional indicators without a data team, systematic searching with open indexes, and how a community can curate the scholarly record together. Colleagues from Sorbonne Universit&eacute; and other French institutions will share their own work alongside.</p>
+                        <p>A short set of talks chosen because each one opens a question the room will pick up in the afternoon: what it looks like to run a research office or a library on OpenAlex after leaving a proprietary database, building institutional indicators without a data team, and systematic searching with open indexes. Colleagues from Sorbonne Universit&eacute; and other French institutions will share their own work alongside. Same format as Tuesday: fifteen minutes per talk including questions.</p>
                         <ul class="speaker-list">
-                            <li class="placeholder">Five to six talks, speakers to be confirmed</li>
+                            <li class="placeholder">Five talks, speakers to be confirmed</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span>
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">11:15 &ndash; 11:30</div>
+                    <div class="sched-time">11:25 &ndash; 11:40</div>
                     <div class="sched-content">
                         <h4>Break</h4>
                         <span class="f26-tag tag-break">break</span>
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">11:30 &ndash; 12:30</div>
+                    <div class="sched-time">11:40 &ndash; 12:30</div>
                     <div class="sched-content">
                         <h4>OpenAlex: recent releases, ongoing work and priorities</h4>
                         <p>The OpenAlex team on what has shipped this year, what is in progress, and what we think matters next. This sets up the afternoon: each of the things we show is something you can dig into in a breakout, with the people who built it.</p>
