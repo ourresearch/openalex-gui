@@ -380,6 +380,7 @@ import { createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr } from '@/filter
 import { url } from '@/url';
 import { facetConfigs } from '@/facetConfigs';
 import { extractIssn, extractLocationId, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, requestSearchBoxFocus, consumeSearchBoxFocus, authorNameMatchesQuery, dedupeByName, footerSearchEntityType } from '@/components/searchBox.helpers';
+import { ensureIntentModel, classifyQuery } from '@/intent/useIntent';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import { entityCounts, worksCoreCount, compactCount } from '@/entityCounts';
 import { getShortId } from '@/openalexId';
@@ -593,10 +594,14 @@ const highlightedIndex = ref(-1);
 const dropdownOpen = ref(false);
 const isUserTyping = ref(false);
 const showDropdown = computed(() => dropdownOpen.value && suggestions.value.length > 0);
+// What the typed string looks like (oxjob #1347): {label, confidence} from the in-browser
+// classifier, recomputed synchronously on every keystroke; null until its weights load.
+const intent = ref(null);
 // The dropdown footer's target (#820 r3): the current entity type, swapped to
-// authors/sources/institutions when EVERY visible suggestion is that one type.
+// authors/sources/institutions when EVERY visible suggestion is that one type — unless a
+// confident intent says the string is a works query (boolean, title, ...) or names an entity type.
 const footerEntityType = computed(() =>
-  footerSearchEntityType(suggestions.value.map(s => s._acType), entityType.value));
+  footerSearchEntityType(suggestions.value.map(s => s._acType), entityType.value, intent.value));
 const showRow2 = ref(true);
 const isWorksEntity = computed(() => entityType.value === 'works');
 
@@ -839,7 +844,9 @@ async function fetchSuggestions(query) {
     // (see api.getFrontpageAutocomplete) — firing four parallel calls per
     // keystroke-pause tripped the anon 10 req/s cap and popped the credit-limit
     // modal mid-typing. Fails soft to empty lists; aborts with the stale signal.
-    const includeWorks = countCompleteWords(query) >= 3;
+    // A pasted title wants work suggestions however many words it has (intent, #1347).
+    const includeWorks = countCompleteWords(query) >= 3 ||
+      (intent.value?.label === 'title' && intent.value.confidence >= 0.6);
     let combo;
     try {
       combo = await api.getFrontpageAutocomplete(query, { includeWorks, signal });
@@ -908,6 +915,7 @@ const debouncedFetch = debounce(fetchSuggestions, 100);
 
 watch(searchString, (val) => {
   if (!isUserTyping.value) return;
+  intent.value = val ? classifyQuery(val) : null;
   if (val) {
     debouncedFetch(val);
   } else {
@@ -1024,6 +1032,7 @@ function resizeTextarea() {
 
 function onFocus() {
   isFocused.value = true;
+  ensureIntentModel();   // lazy, idempotent: fetch the classifier weights on first focus (#1347)
   if (suggestions.value.length > 0 && searchString.value) {
     dropdownOpen.value = true;
   }

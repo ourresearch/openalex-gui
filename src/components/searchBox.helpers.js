@@ -256,8 +256,29 @@ export function dedupeByName(items) {
  * topics, works) all fall through to the current entity type.
  */
 const FOOTER_SWAP_TYPES = new Set(['authors', 'sources', 'institutions']);
-export function footerSearchEntityType(suggestionTypes, currentEntityType) {
+// Intent classes that mean "run what I typed as a works search": never swap the footer
+// for these (oxjob #1347; CNRS "Climate OR change" → Institutions misfire).
+const FOOTER_NO_SWAP_INTENTS = new Set(['boolean', 'title', 'question', 'identifier', 'topic']);
+const INTENT_TO_ENTITY = { author: 'authors', institution: 'institutions', source: 'sources' };
+// Confidence (top prob minus runner-up) at which the classifier's word overrides the suggestion
+// rule. Measured on Opus-labelled real queries (oxjob #1347 EXPLORE § 4): ≥ 0.6 ≈ 0.87 accuracy.
+export const INTENT_VETO_CONFIDENCE = 0.6;
+
+/**
+ * Where the dropdown footer sends Enter. Without an intent, the #820 r3 rule: swap to
+ * authors/sources/institutions when EVERY visible suggestion is that one type. With an intent
+ * (oxjob #1347, {label, confidence} from the in-browser classifier, or null while it loads):
+ *   - a confident "this is a works query" intent vetoes the swap;
+ *   - a confident author/institution/source intent swaps when at least one suggestion is that type.
+ */
+export function footerSearchEntityType(suggestionTypes, currentEntityType, intent = null) {
   const types = suggestionTypes || [];
+  const confident = intent && intent.confidence >= INTENT_VETO_CONFIDENCE;
+  if (confident && FOOTER_NO_SWAP_INTENTS.has(intent.label)) return currentEntityType;
+  if (confident && INTENT_TO_ENTITY[intent.label] && currentEntityType === 'works') {
+    const want = INTENT_TO_ENTITY[intent.label];
+    if (types.includes(want)) return want;
+  }
   if (types.length > 0) {
     const t = types[0];
     if (FOOTER_SWAP_TYPES.has(t) && types.every(x => x === t)) return t;
