@@ -45,6 +45,13 @@
 
     <static-section id="user-meeting" title="User conference">
       <p class="section-body">
+        <strong>Paris, 20 and 21 October 2026.</strong> Our first in-person users meeting: a day
+        of community talks hosted by CNRS, then a day of discussion and hands-on breakouts with
+        the OpenAlex team hosted by Sorbonne Université. Free, registration required. See the
+        <router-link to="/events/paris2026">meeting page</router-link> for the programme and
+        registration.
+      </p>
+      <p class="section-body">
         The 2024 OpenAlex Virtual User Conference was a great success! We had a fantastic
         showing of presentations from around the world on May 30 and May 31, 2024 — more
         than thirty talks from users across five continents, on everything from
