@@ -36,6 +36,7 @@ const entityConfigs = reactive({
         rowsToShowOnEntityPage: [
             "publication_year",
             "type",
+            "study_designs.id",
             "abstract",
             "primary_location.source.id",
             "authorships.author.id",
@@ -767,6 +768,35 @@ const entityConfigs = reactive({
             "url",
             "list_version",
             "sources_count",
+        ],
+    },
+    // oxjob #1312: how the research inside a work was done (closed vocabulary of
+    // seven PubMed-backed designs). `type` says what kind of document a work is;
+    // an editorial has no study design.
+    "study-designs": {
+        icon: "mdi-flask-outline",
+        name: "study-designs",
+        entityType: "study-designs",
+        nameSingular: "study design",
+        // authored identity, as source-lists: the live /meta catalog agrees
+        displayName: "study designs",
+        displayNameSingular: "study design",
+        exportMode: "client",
+        exportColumns: [
+            { key: "id", label: "ID" },
+            { key: "display_name", label: "Name" },
+            { key: "description", label: "Description" },
+            { key: "works_count", label: "Works Count" },
+        ],
+        category: "topics",
+        descr: "How the research was done: randomized controlled trial, systematic review, case report and more",
+        placeholder: "Search study designs",
+        filterKey: "study_designs.id",
+        hasAutocomplete: false,
+        isNative: false,
+        rowsToShowOnEntityPage: [
+            "description",
+            "pubmed_publication_types",
         ],
     },
     "locations": {

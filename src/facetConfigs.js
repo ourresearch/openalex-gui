@@ -175,6 +175,10 @@ const facetCategories = {
         "citation",
         "other",
     ],
+    "study-designs": [
+        "citation",
+        "other",
+    ],
     keywords: [
         "citation",
         "other",
@@ -1138,6 +1142,22 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "group_by"],
             icon: "mdi-sprout-outline",
             extractFn: (entity) => entity.x_sdgs
+        },
+        {
+            // oxjob #1312: how the research was done (RCT, systematic review, ...);
+            // `type` says what kind of document it is. Closed study-designs vocabulary;
+            // works carry parents too (RCT => clinical trial). displayName must equal
+            // the registry display_name (label-consistency gate).
+            key: "study_designs.id",
+            entityToSelect: "study-designs",
+            entityToFilter: "works",
+            displayName: "study design",
+            type: "selectEntity",
+            displayNullAs: "Unknown",
+            category: "aboutness",
+            actions: ["filter", "group_by"],
+            icon: "mdi-flask-outline",
+            extractFn: (entity) => entity.study_designs
         },
         {
             key: "cited_by_count",
@@ -3275,6 +3295,26 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "description",
+            entityToFilter: "study-designs",
+            type: "search",
+            category: "other",
+            icon: "mdi-flask-outline",
+            extractFn: (e) => e.description,
+        },
+        {
+            // oxjob #1312: the PubMed publication types mapped into this design.
+            // Entity-page row only; not a filter.
+            key: "pubmed_publication_types",
+            entityToFilter: "study-designs",
+            displayName: "PubMed publication types",
+            type: "selectEntity",
+            actions: [],
+            category: "other",
+            icon: "mdi-flask-outline",
+            extractFn: (e) => e.pubmed_publication_types,
+        },
+        {
+            key: "description",
             entityToFilter: "source-lists",
             type: "search",
             category: "other",
@@ -3475,6 +3515,16 @@ const facetConfigs = function (entityType) {
             actions: ["column"],
             category: "other",
             icon: "mdi-tag-outline",
+            extractFn: (entity) => entity.display_name,
+        },
+        {
+            key: "display_name",
+            isIdentityColumn: true,
+            entityToFilter: "study-designs",
+            type: "search",
+            actions: ["column"],
+            category: "other",
+            icon: "mdi-flask-outline",
             extractFn: (entity) => entity.display_name,
         },
         {
@@ -4107,8 +4157,10 @@ const facetConfigs = function (entityType) {
     const citedByCountFilters = getEntityConfigs()
         .map(c => c.name)
         // #294: exclude 'locations' too — /locations has no works_count/cited_by_count
-        // field, so the injected filter+sort chips 400.
-        .filter(name => name !== 'works' && name !== 'awards' && name !== 'locations')
+        // field, so the injected filter+sort chips 400. study-designs records carry
+        // works_count only (oxjob #1312).
+        .filter(name => name !== 'works' && name !== 'awards' && name !== 'locations'
+            && name !== 'study-designs')
         .map(name => {
             return {
                 key: "cited_by_count",
