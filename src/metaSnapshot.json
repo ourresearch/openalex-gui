@@ -1,7 +1,7 @@
 {
- "version": "14.0.0",
- "fingerprint": "55ec609a6adea1922b54463a7fee2585ba596599c8fc45158458cb8415df55f4",
- "generatedAt": "2026-09-23T19:20:18.997Z",
+ "version": "14.1.0",
+ "fingerprint": "e7e7f08b8b392628ce1568582382718e169fcaa017843428c272a5d843dd6111",
+ "generatedAt": "2026-09-25T14:24:57.833Z",
  "entities": {
   "authors": {
    "displayName": "authors",
@@ -86,6 +86,10 @@
   "sources": {
    "displayName": "sources",
    "displayNameSingular": "source"
+  },
+  "study-designs": {
+   "displayName": "study designs",
+   "displayNameSingular": "study design"
   },
   "subfields": {
    "displayName": "subfields",
@@ -712,6 +716,22 @@
    "x_concepts": "x concepts",
    "x_concepts.id": "concept (legacy)"
   },
+  "study-designs": {
+   "collection": "collection",
+   "created_date": "created date",
+   "description": "description",
+   "display_name": "name",
+   "display_name.search": "display name",
+   "from_created_date": "from created date",
+   "from_updated_date": "from updated date",
+   "id": "id",
+   "pubmed_publication_types": "pubmed publication types",
+   "relevance_score": "relevance score",
+   "text.search": "text",
+   "updated_date": "updated date",
+   "works_api_url": "works api url",
+   "works_count": "works count"
+  },
   "subfields": {
    "cited_by_count": "citation count",
    "collection": "collection",
@@ -975,6 +995,8 @@
    "repository": "repository",
    "semantic.search": "semantic",
    "sources": "sources",
+   "study_designs": "study designs",
+   "study_designs.id": "study design",
    "sustainable_development_goals": "sustainable development goals",
    "sustainable_development_goals.id": "SDG",
    "sustainable_development_goals.score": "SDG score",
