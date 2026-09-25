@@ -1,7 +1,7 @@
 {
  "version": "14.1.0",
- "fingerprint": "e7e7f08b8b392628ce1568582382718e169fcaa017843428c272a5d843dd6111",
- "generatedAt": "2026-09-25T14:24:57.833Z",
+ "fingerprint": "4f595f9081b3516d13ffa97d5869807f1ed6009f32820a5bad03c53bb9e5c623",
+ "generatedAt": "2026-09-25T14:33:03.844Z",
  "entities": {
   "authors": {
    "displayName": "authors",
@@ -717,6 +717,7 @@
    "x_concepts.id": "concept (legacy)"
   },
   "study-designs": {
+   "cited_by_count": "citation count",
    "collection": "collection",
    "created_date": "created date",
    "description": "description",

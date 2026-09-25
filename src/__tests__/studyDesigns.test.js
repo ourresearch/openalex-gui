@@ -38,8 +38,8 @@ describe("study designs", () => {
     }
   });
 
-  it("no injected cited_by_count facet (records carry works_count only)", () => {
-    expect(getFacetConfig("study-designs", "cited_by_count")).toBeFalsy();
+  it("gets the standard injected count facets", () => {
+    expect(getFacetConfig("study-designs", "cited_by_count")).toBeTruthy();
     expect(getFacetConfig("study-designs", "works_count")).toBeTruthy();
   });
 });

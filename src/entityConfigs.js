@@ -787,6 +787,7 @@ const entityConfigs = reactive({
             { key: "display_name", label: "Name" },
             { key: "description", label: "Description" },
             { key: "works_count", label: "Works Count" },
+            { key: "cited_by_count", label: "Cited By Count" },
         ],
         category: "topics",
         descr: "How the research was done: randomized controlled trial, systematic review, case report and more",

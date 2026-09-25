@@ -4157,10 +4157,8 @@ const facetConfigs = function (entityType) {
     const citedByCountFilters = getEntityConfigs()
         .map(c => c.name)
         // #294: exclude 'locations' too — /locations has no works_count/cited_by_count
-        // field, so the injected filter+sort chips 400. study-designs records carry
-        // works_count only (oxjob #1312).
-        .filter(name => name !== 'works' && name !== 'awards' && name !== 'locations'
-            && name !== 'study-designs')
+        // field, so the injected filter+sort chips 400.
+        .filter(name => name !== 'works' && name !== 'awards' && name !== 'locations')
         .map(name => {
             return {
                 key: "cited_by_count",
