@@ -71,6 +71,17 @@
             </div>
             <div class="dg-id"></div>
 
+            <!-- oxjob #1458: the newer edit that replaced this one -->
+            <template v-if="curation.superseded_by">
+              <div class="dg-label">replaced by</div>
+              <div class="dg-main">
+                <router-link :to="{ name: route.name, params: { curationId: curation.superseded_by } }">
+                  A newer edit to the same item
+                </router-link>
+              </div>
+              <div class="dg-id">{{ curation.superseded_by }}</div>
+            </template>
+
             <!-- owner -->
             <div class="dg-label">owner</div>
             <div class="dg-main">{{ curation.user_name || '—' }}</div>
@@ -103,7 +114,7 @@
               <span v-if="curation.last_check_error" class="dg-error">{{ curation.last_check_error }}</span>
             </div>
 
-            <template v-if="curation.status !== 'applied'">
+            <template v-if="curation.status === 'pending'">
               <div class="dg-label">next check</div>
               <div class="dg-main">{{ nextCheckText }}</div>
               <div class="dg-id">{{ curation.next_check_at ? formatExactDate(curation.next_check_at) : '' }}</div>
@@ -121,7 +132,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
@@ -293,6 +304,8 @@ async function fetchCuration() {
 onMounted(() => {
   fetchCuration();
 });
+// The "replaced by" link routes to this same view with a new id (oxjob #1458).
+watch(() => props.curationId, fetchCuration);
 </script>
 
 <style scoped>
