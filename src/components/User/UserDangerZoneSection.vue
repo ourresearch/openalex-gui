@@ -18,7 +18,7 @@
 
     <SettingsRow
       label="Delete user"
-      description="Permanently remove this user and all their data"
+      description="Permanently remove this user, all their data, and all their curations"
     >
       <v-btn variant="text" class="settings-action text-error" @click="openDeleteDialog">
         Delete
@@ -26,25 +26,7 @@
     </SettingsRow>
   </SettingsSection>
 
-  <!-- Delete Confirmation Dialog -->
-  <v-dialog v-model="deleteDialogOpen" max-width="400">
-    <v-card :loading="deleteLoading" :disabled="deleteLoading" flat rounded>
-      <v-card-title>Delete User?</v-card-title>
-      <v-card-text>This action can't be undone.</v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn variant="text" @click="closeDeleteDialog" :disabled="deleteLoading">Cancel</v-btn>
-        <v-btn 
-          color="error"
-          variant="flat"
-          @click="deleteUser" 
-          :disabled="deleteLoading"
-        >
-          Delete User
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <DeleteAccountDialog v-model="deleteDialogOpen" :user-id="user.id" @deleted="onDeleted" />
 </template>
 
 <script setup>
@@ -55,6 +37,7 @@ import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
+import DeleteAccountDialog from '@/components/User/DeleteAccountDialog.vue';
 
 const props = defineProps({
   user: {
@@ -73,7 +56,6 @@ const store = useStore();
 const router = useRouter();
 
 const deleteDialogOpen = ref(false);
-const deleteLoading = ref(false);
 
 const throttled = ref(false);
 const throttleSaving = ref(false);
@@ -106,30 +88,11 @@ function openDeleteDialog() {
   deleteDialogOpen.value = true;
 }
 
-function closeDeleteDialog() {
-  deleteDialogOpen.value = false;
-}
-
-async function deleteUser() {
-  deleteLoading.value = true;
-  
-  try {
-    await axios.delete(
-      `${urlBase.userApi}/users/${props.user.id}`,
-      axiosConfig({ userAuth: true })
-    );
-    
-    closeDeleteDialog();
-    store.commit('snackbar', 'User deleted');
-    emit('deleted');
-    router.push(props.redirectTo);
-  } catch (e) {
-    console.error('Failed to delete user:', e);
-    store.commit('snackbar', e?.response?.data?.message || 'Failed to delete user');
-    closeDeleteDialog();
-  } finally {
-    deleteLoading.value = false;
-  }
+function onDeleted(resp) {
+  const n = resp?.deleted_curations || 0;
+  store.commit('snackbar', n ? `User deleted, with ${n.toLocaleString()} curations` : 'User deleted');
+  emit('deleted');
+  router.push(props.redirectTo);
 }
 </script>
 

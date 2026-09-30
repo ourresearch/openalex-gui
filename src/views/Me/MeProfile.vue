@@ -35,7 +35,27 @@
           Sign out
         </v-btn>
       </SettingsRow>
+      <SettingsRow
+        label="Delete account"
+        description="Permanently delete your account and the curations you made"
+      >
+        <v-btn
+          variant="text"
+          class="settings-action text-error"
+          @click="deleteDialogOpen = true"
+        >
+          Delete account
+        </v-btn>
+      </SettingsRow>
     </SettingsSection>
+
+    <DeleteAccountDialog
+      v-if="userId"
+      v-model="deleteDialogOpen"
+      :user-id="userId"
+      self-service
+      @deleted="onAccountDeleted"
+    />
   </div>
 </template>
 
@@ -48,6 +68,7 @@ import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
 import EmailsList from '@/components/Settings/EmailsList.vue';
 import AuthorProfileSection from '@/components/AuthorProfile/AuthorProfileSection.vue';
+import DeleteAccountDialog from '@/components/User/DeleteAccountDialog.vue';
 
 defineOptions({ name: 'MeAbout' });
 
@@ -70,6 +91,23 @@ const saveName = async () => {
   } else if (!trimmedName) {
     editableName.value = userName.value || '';
   }
+};
+
+const userId = computed(() => store.state.user.id);
+const deleteDialogOpen = ref(false);
+
+// An admin impersonating this user deleted it: drop back to the admin's
+// own session instead of signing the admin out.
+const onAccountDeleted = async () => {
+  if (store.state.user.impersonatingUserId) {
+    await store.dispatch('user/stopImpersonation');
+    store.commit('snackbar', 'User deleted');
+    router.push('/admin/users');
+    return;
+  }
+  store.commit('user/logout');
+  store.commit('snackbar', 'Your account has been deleted');
+  router.push('/');
 };
 
 const logout = () => {
