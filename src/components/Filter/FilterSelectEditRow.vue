@@ -16,8 +16,8 @@
       {{ (disabled) ? "(applied)" : "" }}
     </v-list-item-title>
     <v-list-item-subtitle v-if="hint" style="white-space: normal;">
-      <span v-if="myEntityConfig">{{ filters.capitalize(filters.pluralize(myEntityConfig.displayName, 1)) }} </span>
-      <span v-if="hint"> {{ filters.truncate(hint, 100) }}</span>
+      <span v-if="myEntityConfig">{{ filters.capitalize(filters.pluralize(myEntityConfig.displayName, 1)) + ' ' }}</span>
+      <span v-if="hint">{{ filters.truncate(hint, 100) }}</span>
     </v-list-item-subtitle>
     
     <v-list-item-subtitle class="text-body-1">
