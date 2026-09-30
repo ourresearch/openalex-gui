@@ -71,9 +71,9 @@
             </div>
             <div class="dg-id"></div>
 
-            <!-- oxjob #1458: the newer edit that replaced this one -->
+            <!-- oxjob #1458: the newer edit that superseded this one -->
             <template v-if="curation.superseded_by">
-              <div class="dg-label">replaced by</div>
+              <div class="dg-label">superseded by</div>
               <div class="dg-main">
                 <router-link :to="{ name: route.name, params: { curationId: curation.superseded_by } }">
                   A newer edit to the same item
@@ -304,7 +304,7 @@ async function fetchCuration() {
 onMounted(() => {
   fetchCuration();
 });
-// The "replaced by" link routes to this same view with a new id (oxjob #1458).
+// The "superseded by" link routes to this same view with a new id (oxjob #1458).
 watch(() => props.curationId, fetchCuration);
 </script>
 

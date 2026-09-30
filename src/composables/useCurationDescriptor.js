@@ -127,11 +127,11 @@ export function actionMeta(action) {
 // Driven by `curation.status` ('pending'|'applied'|'superseded'|
 // 'timed_out'); the backend keeps is_applied in sync but the gui no longer
 // reads it. Anything unknown/missing falls back to the pending presentation.
-// 'superseded' (oxjob #1458): a newer edit to the same item replaced it, so
-// it will never apply; `curation.superseded_by` names that edit.
+// 'superseded' (oxjob #1458): a newer edit to the same item superseded it,
+// so it will never apply; `curation.superseded_by` names that edit.
 const STATUS_META = {
   applied: { label: 'Applied', icon: 'mdi-check-circle', color: 'success' },
-  superseded: { label: 'Replaced', icon: 'mdi-swap-horizontal', color: 'medium-emphasis' },
+  superseded: { label: 'Superseded', icon: 'mdi-swap-horizontal', color: 'medium-emphasis' },
   timed_out: { label: 'Timed out', icon: 'mdi-close-circle', color: 'error' },
   pending: { label: 'Pending', icon: 'mdi-clock-outline', color: 'medium-emphasis' },
 };
