@@ -49,11 +49,11 @@
           <!-- No loading spinner (#648): fetches are fast enough that a spinner just
                makes typing feel jerky — prior results stay put until new ones land.
                `loading` still gates "No matches" below so it can't flash mid-fetch. -->
-          <v-list-item v-for="(r, i) in results" :key="r.id || r.value" :title="r.display_name || r.value"
+          <v-list-item v-for="(r, i) in items" :key="r._null ? '__null' : (r.id || r.value)" :title="r.display_name || r.value"
             :subtitle="r.hint" :active="ext && i === hl" @click="pick(r)" />
           <!-- suppressed = the input is a bare "n"/"no"/"not" (#603 r28): show NOTHING —
                "No matches" would read as a failed search when we simply aren't searching. -->
-          <v-list-item v-if="!loading && !results.length && !suppressed && (ext ? externalSearch : search)"
+          <v-list-item v-if="!loading && !items.length && !suppressed && (ext ? externalSearch : search)"
             class="text-medium-emphasis text-center py-3">No matches</v-list-item>
         </v-list>
       </div>
@@ -96,6 +96,9 @@ const props = defineProps({
   // chip itself and passed in here; the menu renders NO search box (options only). The
   // parent drives result navigation via the exposed moveHl()/pickHl().
   externalSearch: { type: String, default: null },
+  // the column accepts the null sentinel (catalog operators include "null"): offer an
+  // "unknown" row that picks value null → `field is (unknown)` (#554's sentinel).
+  nullable: { type: Boolean, default: false },
 });
 const emit = defineEmits(["add", "pick", "abandon"]);
 
@@ -136,7 +139,24 @@ const activeQuery = () => (ext.value ? (props.externalSearch || "") : search.val
 // Bare "n"/"no"/"not" → the autocomplete is OFF (#603 r28; see notPrefix.js).
 const suppressed = computed(() => parseNotQuery(activeQuery()).suppress);
 
+// The "unknown" (null) row — a fringe need, so it stays out of the default list: it
+// appears (last, never stealing the highlight) only once the typed query is a 2+ char
+// prefix of "unknown" or "null".
+const NULL_ROW = { _null: true, display_name: "unknown", hint: "no value recorded" };
+const showNullRow = computed(() => {
+  if (!props.nullable || suppressed.value) return false;
+  const q = parseNotQuery(activeQuery()).query.trim().toLowerCase();
+  return q.length >= 2 && ("unknown".startsWith(q) || "null".startsWith(q));
+});
+const items = computed(() => (showNullRow.value ? [...results.value, NULL_ROW] : results.value));
+
 const pick = (r) => {
+  if (r._null) {
+    const typedNeg = parseNotQuery(activeQuery()).negate;
+    emit("pick", { value: null, label: "unknown", negate: negate.value || typedNeg });
+    search.value = ""; results.value = [];
+    return;
+  }
   const raw = props.listVocab ? r.value : (r.short_id || r.id || r.value);
   const id = props.slugValues ? String(raw).split("/").pop() : raw;
   const typedNeg = parseNotQuery(activeQuery()).negate;
@@ -186,7 +206,7 @@ watch(search, (q) => { if (isPicker.value) applyQuery(q); });
 watch(() => props.externalSearch, (q) => {
   if (ext.value && open.value) { hl.value = 0; applyQuery(q || ""); }
 });
-watch(results, () => { if (hl.value >= results.value.length) hl.value = 0; });
+watch(items, () => { if (hl.value >= items.value.length) hl.value = 0; });
 watch(open, (o) => {
   if (o) {
     if (!liveTarget.value || !liveTarget.value.isConnected) resolveTarget();
@@ -205,11 +225,11 @@ defineExpose({
   openPicker: () => { resolveTarget(); open.value = true; },
   closePicker: () => { open.value = false; },
   moveHl: (d) => {
-    const n = results.value.length;
+    const n = items.value.length;
     if (n) hl.value = ((hl.value + d) % n + n) % n;
   },
   pickHl: () => {
-    const r = results.value[hl.value] || results.value[0];
+    const r = items.value[hl.value] || items.value[0];
     if (r) pick(r);
   },
 });

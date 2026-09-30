@@ -369,7 +369,7 @@
                 :value-kind="tok._kind"
                 :anchor-target="`[data-vid='${tok._targetId}_ph']`"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
-                :slug-values="tok._slugValues"
+                :slug-values="tok._slugValues" :nullable="tok._nullable"
                 :external-search="typeOnQuery"
                 @pick="(p) => onPickEntityValueTo(tok._targetId, p, tok._draft)"
                 @abandon="onAbandonValue(tok._targetId)" />
@@ -389,7 +389,7 @@
                 :anchor-target="`[data-vid='${tok.id}']`"
                 :external-search="typeOnQuery"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
-                :slug-values="tok._slugValues"
+                :slug-values="tok._slugValues" :nullable="tok._nullable"
                 @pick="(p) => onPickEntityValue(tok, p)"
                 @abandon="onAbandonEntityValue(tok)" />
             </template>
@@ -564,7 +564,7 @@ import BuilderAddValue from "@/components/OqlPlayground/BuilderAddValue.vue";
 import { ALL_ENTITY_TYPES, normalizeId } from "@/openalexId";
 import {
   valueKindForProperty, autocompleteEntityFor, isListVocabEntity, isSlugAutocompleteEntity,
-  uiOperatorsForProperty, resolvePropertyKey,
+  isNullableProperty, uiOperatorsForProperty, resolvePropertyKey,
 } from "@/components/OqlPlayground/oqoTree";
 import { v2ToOqo } from "@/components/OqlPlayground/v2ToOqo";
 import * as rawEdit from "@/components/OqlPlayground/v2Edit";
@@ -960,6 +960,7 @@ function enrichToken(tok) {
     t._autocompleteEntity = autocompleteEntityFor(p);
     t._listVocab = isListVocabEntity(p);
     t._slugValues = isSlugAutocompleteEntity(p); // keywords: autocomplete + bare-slug values (r20)
+    t._nullable = isNullableProperty(p); // picker offers "unknown" (the null sentinel)
     t._sole = !!idx.sole[tok.id];
     // (oxjob #494: no more inline trailing "+" add-value chip — values are added by clicking the
     // gap in the value list, so `_addChip` / the `addvaluechip` token are gone.)
@@ -1482,7 +1483,8 @@ function draftBodyTokens(d) {
       }
       tokens.push({ t: "addvalue", _targetId: d.id, _kind: kind,
         _autocompleteEntity: autocompleteEntityFor(p),
-        _listVocab: isListVocabEntity(p), _slugValues: isSlugAutocompleteEntity(p), _draft: true });
+        _listVocab: isListVocabEntity(p), _slugValues: isSlugAutocompleteEntity(p),
+        _nullable: isNullableProperty(p), _draft: true });
     }
   } else if (d.column_id && d.unary) {
     tokens.push(enrichToken({ t: "op", id: d.id, column_id: d.column_id, text: ` ${d.operator} `, _draft: true }));

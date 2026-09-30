@@ -49,6 +49,12 @@ export function autocompleteEntityFor(prop) {
   return prop?.entity_type || null;
 }
 
+// The column accepts the null sentinel (`field is (unknown)`, #554) — the catalog
+// lists "null" among its operator classes.
+export function isNullableProperty(prop) {
+  return !!(prop && (prop.operators || []).includes("null"));
+}
+
 // Resolve a picked field key to its canonical /properties catalog key (#603 r30).
 // The builder's field pickers offer curated facetConfigs keys, a few of which are
 // legacy ALTERNATE keys of a catalog column rather than the column's own key —

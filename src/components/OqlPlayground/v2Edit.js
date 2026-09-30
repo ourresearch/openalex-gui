@@ -1308,8 +1308,10 @@ export function draftComplete(draft) {
   if (draft._numericFilter) return true;
   return !!(draft.value && draft.value.children.some(vFilled));
 }
+// `value: null` is the null sentinel (`unknown`, #554) — a real value; only "" is a
+// blank box (matches vFilled in v2ToOqo).
 function vFilled(v) {
-  return v.node === "vgroup" ? v.children.some(vFilled) : v.value !== "" && v.value != null;
+  return v.node === "vgroup" ? v.children.some(vFilled) : v.value !== "";
 }
 
 // A completed draft -> an OQO filter (leaf or same-column branch), to append to
