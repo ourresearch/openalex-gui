@@ -18,40 +18,20 @@
       {{ words.linkButton }}
     </v-btn>
 
-    <!-- Unlink asks first, in the row (no browser dialog) -->
-    <div v-else-if="confirmingUnlink" class="orcid-confirm text-body-2">
-      <span>{{ words.unlinkConfirm }}</span>
-      <v-btn
-        size="small"
-        variant="text"
-        class="settings-action"
-        :disabled="busy"
-        @click="confirmingUnlink = false"
-      >
-        {{ copy.profileSettings.cancel }}
-      </v-btn>
-      <v-btn
-        size="small"
-        variant="flat"
-        rounded
-        color="error"
-        :loading="busy"
-        @click="unlink"
-      >
-        {{ words.unlinkButton }}
-      </v-btn>
-    </div>
-
-    <v-btn
+    <!-- Linked: "✓ Linked" and a ⋮ menu (Copy iD, Open on ORCID, Unlink) -->
+    <SettingsValueActions
       v-else
-      variant="outlined"
-      rounded
-      size="small"
-      class="orcid-btn"
-      @click="confirmingUnlink = true"
-    >
-      {{ words.unlinkButton }}
-    </v-btn>
+      :label="words.label"
+      :badge="words.linkedBadge"
+      :value="`https://orcid.org/${linkedOrcid}`"
+      :copy-label="words.copy"
+      :open-label="words.open"
+      :open-href="`https://orcid.org/${linkedOrcid}`"
+      :remove-label="words.unlinkButton"
+      :confirm-text="words.unlinkConfirm"
+      :busy="busy"
+      @remove="unlink"
+    />
   </SettingsRow>
 </template>
 
@@ -60,6 +40,7 @@
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
+import SettingsValueActions from '@/components/Settings/SettingsValueActions.vue';
 import OrcidIcon from './OrcidIcon.vue';
 import OrcidIdLink from './OrcidIdLink.vue';
 import { copy, orcidAuthorizeUrl, ORCID_STATE_SETTINGS } from '@/components/Entity/claimCopy.js';
@@ -75,7 +56,6 @@ const linkUrl = computed(() => orcidAuthorizeUrl({
   state: ORCID_STATE_SETTINGS,
 }));
 
-const confirmingUnlink = ref(false);
 const busy = ref(false);
 
 async function unlink() {
@@ -87,18 +67,11 @@ async function unlink() {
     store.commit('snackbar', { msg: 'Could not unlink your ORCID. Please try again.', color: 'error' });
   } finally {
     busy.value = false;
-    confirmingUnlink.value = false;
   }
 }
 </script>
 
 <style scoped>
-.orcid-confirm {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
 .orcid-btn {
   text-transform: none;
   letter-spacing: normal;

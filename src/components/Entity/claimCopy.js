@@ -80,6 +80,9 @@ export const copy = {
     label: 'ORCID',
     notLinked: 'Link your ORCID iD to your OpenAlex account.',
     linkButton: LINK_ORCID,
+    linkedBadge: 'Linked',
+    copy: 'Copy iD',
+    open: 'Open on ORCID',
     unlinkButton: 'Unlink',
     unlinkConfirm: 'Unlink your ORCID iD?',
     unlinked: 'Your ORCID is unlinked.',
@@ -89,9 +92,11 @@ export const copy = {
     notClaimed: 'Claim your author profile to add missing works, remove works that are not yours, and fix your name.',
     findButton: 'Find your author profile',
     pending: (authorId) => `${authorId}: we are checking your claim.`,
+    claimedBadge: 'Claimed',
+    copy: 'Copy ID',
+    open: 'Open profile',
     unclaimButton: 'Unclaim',
     unclaimConfirm: 'Unclaim this profile?',
-    cancel: 'Cancel',
   },
 };
 

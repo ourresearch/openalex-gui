@@ -5,19 +5,20 @@
       <router-link :to="`/${claimedId}`" class="author-id-link novice-link">https://openalex.org/{{ claimedId }}</router-link>
     </template>
 
-    <!-- Claimed: Unclaim, confirmed in the row (no browser dialog) -->
-    <div v-if="claimedId && confirmingUnclaim" class="unclaim-confirm text-body-2">
-      <span>{{ words.unclaimConfirm }}</span>
-      <v-btn size="small" variant="text" class="settings-action" :disabled="busy" @click="confirmingUnclaim = false">
-        {{ words.cancel }}
-      </v-btn>
-      <v-btn size="small" variant="flat" rounded color="error" :loading="busy" @click="unclaim">
-        {{ words.unclaimButton }}
-      </v-btn>
-    </div>
-    <v-btn v-else-if="claimedId" variant="outlined" rounded size="small" class="unclaim-btn" @click="confirmingUnclaim = true">
-      {{ words.unclaimButton }}
-    </v-btn>
+    <!-- Claimed: "✓ Claimed" and a ⋮ menu (Copy ID, Open profile, Unclaim) -->
+    <SettingsValueActions
+      v-if="claimedId"
+      :label="words.label"
+      :badge="words.claimedBadge"
+      :value="`https://openalex.org/${claimedId}`"
+      :copy-label="words.copy"
+      :open-label="words.open"
+      :open-to="`/${claimedId}`"
+      :remove-label="words.unclaimButton"
+      :confirm-text="words.unclaimConfirm"
+      :busy="busy"
+      @remove="unclaim"
+    />
 
     <!-- Being checked right now (a minute or so; #1466). -->
     <v-chip
@@ -54,6 +55,7 @@
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
+import SettingsValueActions from '@/components/Settings/SettingsValueActions.vue';
 import { copy, reasonText, shortId } from '@/components/Entity/claimCopy.js';
 
 defineOptions({ name: 'AuthorProfileSection' });
@@ -88,7 +90,6 @@ const findProfileRoute = computed(() => ({
   query: { filter: `default.search:${userName.value}` },
 }));
 
-const confirmingUnclaim = ref(false);
 const busy = ref(false);
 
 async function unclaim() {
@@ -99,22 +100,11 @@ async function unclaim() {
     store.commit('snackbar', { msg: 'Could not unclaim your profile. Please try again.', color: 'error' });
   } finally {
     busy.value = false;
-    confirmingUnclaim.value = false;
   }
 }
 </script>
 
 <style scoped>
-.unclaim-confirm {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.unclaim-btn {
-  text-transform: none;
-  letter-spacing: normal;
-}
 .author-id-link {
   color: inherit; /* a value, not a link; novice-link opts out of the global blue */
   text-decoration: none;
