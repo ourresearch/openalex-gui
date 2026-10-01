@@ -197,6 +197,8 @@ const routes = [
     {path: '/login', name: 'Login', component: LoginPage, meta: {chrome: 'bare'}},
     // OAuth consent for the OpenAlex MCP server (oxjob #1266); requiresAuth bounces through /login and back.
     {path: '/oauth/consent', name: 'OAuthConsent', component: OAuthConsentPage, meta: {chrome: 'bare', requiresAuth: true}},
+    // Password sign-in for the OpenAI plugin reviewer account only (oxjob #1294); unlinked.
+    {path: '/login/reviewer', name: 'ReviewerLogin', component: () => import('@/views/ReviewerLogin.vue'), meta: {chrome: 'bare'}},
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken, meta: {chrome: 'bare'}},
     {path: '/verify-email', name: 'VerifyEmail', component: UserVerifyEmail, meta: {chrome: 'bare'}},
     // ORCID sign-in return for profile claims (oxjob #1466).

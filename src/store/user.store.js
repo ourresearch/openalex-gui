@@ -246,6 +246,14 @@ export default {
             return resp.data
         },
 
+        // Password login: ONLY the OpenAI plugin reviewer account can use it
+        // (oxjob #1294; /login/reviewer). Everyone else uses the magic link.
+        async loginWithPassword({commit, dispatch}, {email, password}) {
+            const resp = await axios.post(apiBaseUrl + "/users/login", {email, password})
+            commit("setToken", resp.data.api_key)
+            await dispatch("fetchUser")
+        },
+
         async requestSignupEmail(_, signupObj) {
             const body = {
                 email: signupObj.email,
