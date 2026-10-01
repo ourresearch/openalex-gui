@@ -98,7 +98,7 @@ const ENTITY_META = {
   institution: { label: 'Institution', icon: 'mdi-town-hall' },
 };
 export function entityMeta(entity) {
-  return ENTITY_META[entity] || { collection: entity || 'Curation', icon: 'mdi-help-circle-outline' };
+  return ENTITY_META[entity] || { label: entity || 'Curation', icon: 'mdi-help-circle-outline' };
 }
 
 // Icon for a resolved-entity ref (used in front of the name in the Entity and
@@ -120,7 +120,7 @@ const ACTION_META = {
   replace: { label: 'Replace', icon: 'mdi-pen' },
 };
 export function actionMeta(action) {
-  return ACTION_META[action] || { collection: action || '—', icon: 'mdi-help-circle-outline' };
+  return ACTION_META[action] || { label: action || '—', icon: 'mdi-help-circle-outline' };
 }
 
 // Single source of truth for the curation lifecycle display (oxjob #198).

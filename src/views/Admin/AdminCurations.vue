@@ -112,7 +112,7 @@
             <th class="col-status" />
             <th>Target entity</th>
             <th>Property</th>
-            <th>New value</th>
+            <th>Value</th>
             <th>Owner</th>
             <th class="col-created">Created</th>
           </tr>
@@ -121,7 +121,7 @@
           <tr v-for="curation in curations" :key="curation.id">
             <!-- Status: applied/pending icon -->
             <td class="col-status">
-              <v-tooltip location="bottom" :text="statusMeta(curation).collection">
+              <v-tooltip location="bottom" :text="statusMeta(curation).label">
                 <template #activator="{ props: tipProps }">
                   <v-icon
                     v-bind="tipProps"
@@ -143,8 +143,9 @@
               />
             </td>
 
-            <!-- Property: action icon + human property collection.
-                 Tooltip (oxjob #193 R9): two rows — action icon + collection on
+            <!-- Property: action icon + action verb + human property label, so a
+                 remove reads "Remove institution" and not just a trash icon.
+                 Tooltip (oxjob #193 R9): two rows — action icon + label on
                  top, the raw techy property string in monospace below. -->
             <td>
               <v-tooltip location="bottom" max-width="320">
@@ -155,18 +156,19 @@
                       size="small"
                       class="cur-action-icon"
                     />
-                    <span class="cur-property-label">{{ propertyLabel(curation) }}</span>
+                    <span class="cur-property-label">{{ actionMeta(curation.action).label }} {{ propertyLabel(curation) }}</span>
                   </span>
                 </template>
                 <CurationTooltipBody
                   :icon="actionMeta(curation.action).icon"
-                  :primary="actionMeta(curation.action).collection"
+                  :primary="actionMeta(curation.action).label"
                   :secondary="curation.property || '—'"
                 />
               </v-tooltip>
             </td>
 
-            <!-- New value: entity (icon+name) when resolvable, else text.
+            <!-- Value: entity (icon+name) when resolvable, else text. For a
+                 remove this is the value being removed, hence not "New value".
                  The previous value is intentionally NOT shown here (oxjob #193
                  R9 — it added little in the list and often just duplicated the
                  new value); the before→after diff lives on the detail page. -->
