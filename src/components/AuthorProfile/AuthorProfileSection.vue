@@ -1,8 +1,8 @@
 <template>
   <SettingsRow :label="words.label" :description="description">
-    <!-- Claimed: the description is the OpenAlex author id -->
+    <!-- Claimed: the description is the full OpenAlex author id, as the ORCID row shows the full iD -->
     <template v-if="claimedId" #description>
-      <router-link :to="`/${claimedId}`" class="author-id-link novice-link">{{ claimedId }}</router-link>
+      <router-link :to="`/${claimedId}`" class="author-id-link novice-link">https://openalex.org/{{ claimedId }}</router-link>
     </template>
 
     <!-- Claimed: Unclaim, confirmed in the row (no browser dialog) -->

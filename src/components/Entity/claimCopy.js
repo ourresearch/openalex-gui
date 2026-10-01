@@ -78,8 +78,7 @@ export const copy = {
   // description is the value (the iD, the author id) and the button undoes it.
   orcidSettings: {
     label: 'ORCID',
-    notLinked: 'Link your ORCID iD to your OpenAlex account. '
-      + 'If your author profile has this iD, we claim it for you.',
+    notLinked: 'Link your ORCID iD to your OpenAlex account.',
     linkButton: LINK_ORCID,
     unlinkButton: 'Unlink',
     unlinkConfirm: 'Unlink your ORCID iD?',
