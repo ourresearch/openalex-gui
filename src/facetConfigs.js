@@ -597,6 +597,30 @@ const facetConfigs = function (entityType) {
             column: { render: { kind: "stringList" } },
             extractFn: (entity) => entity.corresponding_author_ids || [],
         },
+        // oxjob #1474: author position. ES can't pair authorships.author_position with
+        // the author on the same authorship, so the API filters precomputed top-level
+        // fields. Filter + group_by only: the work JSON doesn't carry these fields
+        // (positions are on authorships), so there's no column.
+        {
+            key: "first_author_ids",
+            entityToFilter: "works",
+            entityToSelect: "authors",
+            type: "selectEntity",
+            isManyOptions: true,
+            category: "author",
+            actions: ["filter", "group_by"],
+            icon: "mdi-account-arrow-right-outline",
+        },
+        {
+            key: "last_author_ids",
+            entityToFilter: "works",
+            entityToSelect: "authors",
+            type: "selectEntity",
+            isManyOptions: true,
+            category: "author",
+            actions: ["filter", "group_by"],
+            icon: "mdi-account-arrow-left-outline",
+        },
         // works: open access
         {
             key: "open_access.is_oa",
@@ -829,6 +853,29 @@ const facetConfigs = function (entityType) {
                 return names;
             },
         },
+        // oxjob #1474: countries of the first / last author (see first_author_ids).
+        {
+            key: "first_author_countries",
+            entityToFilter: "works",
+            entityToSelect: "countries",
+            type: "selectEntity",
+            isManyOptions: true,
+            isCountry: true,
+            actions: ["filter", "group_by"],
+            category: "geo",
+            icon: "mdi-earth",
+        },
+        {
+            key: "last_author_countries",
+            entityToFilter: "works",
+            entityToSelect: "countries",
+            type: "selectEntity",
+            isManyOptions: true,
+            isCountry: true,
+            actions: ["filter", "group_by"],
+            category: "geo",
+            icon: "mdi-earth",
+        },
         {
             key: "countries_distinct_count",
             entityToFilter: "works",
@@ -919,6 +966,27 @@ const facetConfigs = function (entityType) {
             // pays). stringList render + verbatim flat-path export.
             column: { render: { kind: "stringList" } },
             extractFn: (entity) => entity.corresponding_institution_ids || [],
+        },
+        // oxjob #1474: institutions of the first / last author (see first_author_ids).
+        {
+            key: "first_author_institution_ids",
+            entityToFilter: "works",
+            entityToSelect: "institutions",
+            category: "institution",
+            type: "selectEntity",
+            isManyOptions: true,
+            actions: ["filter", "group_by"],
+            icon: "mdi-town-hall",
+        },
+        {
+            key: "last_author_institution_ids",
+            entityToFilter: "works",
+            entityToSelect: "institutions",
+            category: "institution",
+            type: "selectEntity",
+            isManyOptions: true,
+            actions: ["filter", "group_by"],
+            icon: "mdi-town-hall",
         },
 
         // works: repository

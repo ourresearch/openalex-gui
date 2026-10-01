@@ -138,13 +138,17 @@ describe('worksFieldsForCollectionType (#356 hub "Show works by …")', () => {
         expect(keys('institutions')).toEqual([
             'authorships.institutions.lineage',
             'corresponding_institution_ids',
+            'first_author_institution_ids',
+            'last_author_institution_ids',
         ]);
     });
 
-    it('authors → author + corresponding author', () => {
+    it('authors → author + corresponding, first and last author', () => {
         expect(keys('authors')).toEqual([
             'authorships.author.id',
             'corresponding_author_ids',
+            'first_author_ids',
+            'last_author_ids',
         ]);
     });
 
@@ -188,6 +192,8 @@ describe('derivedWorksMenu — collection homepage launcher (oxjob #366)', () =>
         expect(m.fields).toEqual([
             { key: 'authorships.institutions.lineage', label: 'Institution', to: '/works?filter=authorships.institutions.lineage:col_DdDdDd4444' },
             { key: 'corresponding_institution_ids', label: 'Corresponding institution', to: '/works?filter=corresponding_institution_ids:col_DdDdDd4444' },
+            { key: 'first_author_institution_ids', label: 'First author institution', to: '/works?filter=first_author_institution_ids:col_DdDdDd4444' },
+            { key: 'last_author_institution_ids', label: 'Last author institution', to: '/works?filter=last_author_institution_ids:col_DdDdDd4444' },
         ]);
     });
 
