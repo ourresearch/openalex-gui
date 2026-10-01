@@ -3,9 +3,9 @@
 // sentences, one idea each. The same texts are in users-api's reply emails
 // (templates/_claim_reason.*) and the MCP connector; change them together.
 
-// Public client id of the OpenAlex ORCID app (/authenticate scope). Empty
-// until the app is registered; the ORCID option stays hidden while empty.
-export const ORCID_CLIENT_ID = '';
+// Public client id of the OpenAlex ORCID app (/authenticate scope, oxjob #1471).
+// The ORCID option stays hidden while this is empty.
+export const ORCID_CLIENT_ID = 'APP-GRFFQ9KH4BY82LCV';
 export const ORCID_AUTHORIZE_URL = 'https://orcid.org/oauth/authorize';
 
 export const copy = {
