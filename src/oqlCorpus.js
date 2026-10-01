@@ -2249,7 +2249,7 @@ export const oqlCorpus = [
     "oxurl_status": "has-oxurl",
     "status": "ok",
     "oql": "works where ORCID is (0000-0002-1838-9363)",
-    "note": "",
+    "note": "Literal string, no name resolution. Since #1340 (2026-09-23) the works ORCID word matches the resolved author's primary OR any observed ORCID (authorships.author.observed_orcids), like sources' ISSN vs ISSN-L.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -3675,7 +3675,7 @@ export const oqlCorpus = [
         }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=primary_location.source.type:book%20series|conference|ebook%20platform|journal"
+    "oxurl": "https://openalex.org/works?filter=primary_location.source.type:%22book%20series|conference|ebook%20platform|journal%22"
   },
   {
     "id": 102,
@@ -4176,7 +4176,7 @@ export const oqlCorpus = [
     "oxurl_status": "has-oxurl",
     "status": "ok",
     "oql": "authors where ORCID is (0000-0002-1825-0097)",
-    "note": "#406 Part B: a vendor-ID homonym — the curated word ORCID maps to works' authorships.author.orcid, but on authors the column is bare `orcid`. Entity-aware resolution (registry display_name 'ORCID') picks the entity-correct column. Literal string, no name resolution.",
+    "note": "#406 Part B: a vendor-ID homonym — the curated word ORCID maps to works' authorships.author.orcid, but on authors the column is bare `orcid`. Entity-aware resolution (registry display_name 'ORCID') picks the entity-correct column. Literal string, no name resolution. On both entities the word matches the primary OR any observed ORCID (#1267 authors, #1340 works); there is no separate observed_orcids word (Jason 2026-09-23: no new filters).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "authors",
