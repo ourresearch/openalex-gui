@@ -87,7 +87,9 @@ export const copy = {
   // A linked ORCID iD is on OpenAlex profiles and the account has none (#1475).
   orcidFound: {
     one: (name, works) => `We found your profile: ${name} (${worksText(works)}). It has your ORCID iD.`,
-    several: (n) => `We found ${n} profiles with your ORCID iD:`,
+    several: (n, shown) => (n > shown
+      ? `We found ${n.toLocaleString('en-US')} profiles with your ORCID iD. These ${shown} have the most works:`
+      : `We found ${n} profiles with your ORCID iD:`),
     button: 'Claim it',
   },
 };

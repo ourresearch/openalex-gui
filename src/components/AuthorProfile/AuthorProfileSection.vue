@@ -33,7 +33,7 @@
         </v-btn>
       </template>
       <template v-else>
-        <div>{{ copy.orcidFound.several(foundProfiles.length) }}</div>
+        <div>{{ copy.orcidFound.several(foundCount, foundProfiles.length) }}</div>
         <div v-for="a in foundProfiles" :key="a.id" class="found-profile">
           <router-link :to="`/${shortId(a.id)}`" class="text-decoration-none">
             {{ a.display_name }}
@@ -111,18 +111,27 @@ const findProfileRoute = computed(() => ({
 // `orcid_login` within about a minute.
 const linkedOrcid = computed(() => bareOrcid(store.getters['user/verifiedOrcid']));
 const foundProfiles = ref([]);
+const foundCount = ref(0);
+const FOUND_SHOWN = 5;
 const claimingId = ref(null);
 const claimError = ref('');
 const shortId = (x) => (x || '').split('/').pop();
 
 async function findProfiles() {
   foundProfiles.value = [];
+  foundCount.value = 0;
   if (!linkedOrcid.value || userAuthorId.value || pendingClaim.value) return;
   try {
     const resp = await axios.get(`${urlBase.api}/authors`, {
-      params: { filter: `orcid:${linkedOrcid.value}`, select: 'id,display_name,works_count', 'per-page': 10 },
+      params: {
+        filter: `orcid:${linkedOrcid.value},works_count:>0`,
+        select: 'id,display_name,works_count',
+        sort: 'works_count:desc',
+        'per-page': FOUND_SHOWN,
+      },
     });
-    foundProfiles.value = (resp.data?.results || []).sort((a, b) => b.works_count - a.works_count);
+    foundProfiles.value = resp.data?.results || [];
+    foundCount.value = resp.data?.meta?.count || foundProfiles.value.length;
   } catch (e) {
     foundProfiles.value = [];
   }

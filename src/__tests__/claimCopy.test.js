@@ -63,5 +63,7 @@ describe('claim copy (oxjob #1466)', () => {
     expect(copy.orcidSettings.linkButton).toBe(copy.orcid.button);
     expect(copy.orcidFound.one('Ana Silva', 1234)).toBe('We found your profile: Ana Silva (1,234 works). It has your ORCID iD.');
     expect(copy.orcidFound.one('Ana Silva', 1)).toContain('(1 work)');
+    expect(copy.orcidFound.several(3, 3)).toBe('We found 3 profiles with your ORCID iD:');
+    expect(copy.orcidFound.several(1200, 5)).toBe('We found 1,200 profiles with your ORCID iD. These 5 have the most works:');
   });
 });
