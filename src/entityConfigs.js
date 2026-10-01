@@ -370,6 +370,9 @@ const entityConfigs = reactive({
         hasAutocomplete: true,
         isNative: false,
         rowsToShowOnEntityPage: [
+            "description",
+            null,
+            "ids.wikidata",
         ],
     },
     topics: {

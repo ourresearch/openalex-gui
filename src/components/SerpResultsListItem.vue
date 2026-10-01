@@ -307,7 +307,7 @@ const unworkSubheader = computed(() => {
       r.parent_publisher?.display_name,
       r.country_codes?.map(countryName).filter(Boolean).join(', '),
     ],
-    keywords: [],
+    keywords: [r.description],
     locations: [
       r.source_name,
       r.version,

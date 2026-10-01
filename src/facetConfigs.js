@@ -3547,6 +3547,28 @@ const facetConfigs = function (entityType) {
             icon: "mdi-tag-outline",
             extractFn: (entity) => entity.display_name,
         },
+        {
+            key: "description",
+            entityToFilter: "keywords",
+            type: "selectEntity",
+            category: "other",
+            actions: [],
+            actionsPopular: [],
+            icon: "mdi-text",
+            extractFn: (entity) => entity.description,
+        },
+        {
+            key: "ids.wikidata",
+            entityToFilter: "keywords",
+            displayName: "Wikidata ID",
+            isId: true,
+            type: "selectEntity",
+            category: "ids",
+            actions: [],
+            actionsPopular: [],
+            icon: "mdi-web",
+            extractFn: (e) => e.ids?.wikidata,
+        },
         // ------------------------------------------------------------------
         // Strict GUI==OQL parity additions (oxjob #573, generated): every
         // curated OQL word is filter-faceted on every entity where it parses
