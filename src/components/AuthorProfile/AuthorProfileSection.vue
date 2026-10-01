@@ -5,31 +5,10 @@
       <router-link :to="`/${claimedId}`" class="author-id-link novice-link">https://openalex.org/{{ claimedId }}</router-link>
     </template>
 
-    <!-- Claimed: "✓ Claimed" and a ⋮ menu (Copy ID, Open profile, Unclaim) -->
-    <SettingsValueActions
-      v-if="claimedId"
-      :label="words.label"
-      :badge="words.claimedBadge"
-      :value="`https://openalex.org/${claimedId}`"
-      :copy-label="words.copy"
-      :open-label="words.open"
-      :open-to="`/${claimedId}`"
-      :remove-label="words.unclaimButton"
-      :confirm-text="words.unclaimConfirm"
-      :busy="busy"
-      @remove="unclaim"
-    />
-
-    <!-- Being checked right now (a minute or so; #1466). -->
-    <v-chip
-      v-else-if="pendingClaim"
-      color="warning"
-      variant="flat"
-      size="small"
-      label
-    >
-      Claim pending
-    </v-chip>
+    <!-- Being checked right now (a minute or so; #1466). Same width as the other states. -->
+    <div v-if="!claimedId && pendingClaim" class="pending-control">
+      <v-chip color="warning" variant="flat" size="small" label>Claim pending</v-chip>
+    </div>
 
     <!-- Sent back: what's missing, and where to fix it. -->
     <div v-else-if="needsEvidenceClaim" class="text-body-2">
@@ -40,14 +19,27 @@
       </router-link>
     </div>
 
-    <!-- No claim — send them to a search for their own name. -->
-    <router-link
+    <!-- No claim: a button to a search for their own name. Claimed: "✓ Claimed"
+         and a ⋮ menu (Copy ID, Open profile, Unclaim). -->
+    <SettingsValueActions
       v-else
-      :to="findProfileRoute"
-      class="settings-action text-decoration-none"
+      :is-set="!!claimedId"
+      :label="words.label"
+      :badge="words.claimedBadge"
+      :value="`https://openalex.org/${claimedId}`"
+      :copy-label="words.copy"
+      :open-label="words.open"
+      :open-to="`/${claimedId}`"
+      :remove-label="words.unclaimButton"
+      :confirm-title="words.unclaimConfirm"
+      :confirm-body="words.unclaimBody"
+      :busy="busy"
+      @remove="unclaim"
     >
-      {{ words.findButton }}
-    </router-link>
+      <v-btn :to="findProfileRoute" variant="outlined" rounded size="small" block>
+        {{ words.findButton }}
+      </v-btn>
+    </SettingsValueActions>
   </SettingsRow>
 </template>
 
@@ -105,6 +97,11 @@ async function unclaim() {
 </script>
 
 <style scoped>
+.pending-control {
+  width: 150px;  /* SettingsValueActions' width */
+  display: flex;
+  justify-content: center;
+}
 .author-id-link {
   color: inherit; /* a value, not a link; novice-link opts out of the global blue */
   text-decoration: none;

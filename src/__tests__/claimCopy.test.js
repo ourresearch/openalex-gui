@@ -61,7 +61,9 @@ describe('claim copy (oxjob #1466)', () => {
 
   it('says "Link your ORCID" in the claim window and in Settings', () => {
     expect(copy.orcid.button).toBe('Link your ORCID');
-    expect(copy.orcidSettings.linkButton).toBe(copy.orcid.button);
+    // One verb for the concept everywhere; Settings uses the short form.
+    expect(copy.orcidSettings.linkButton).toBe('Link ORCID');
+    expect(copy.orcid.button).toMatch(/^Link /);
   });
 
   it('claims the linked iD\'s profile automatically after linking (#1475)', () => {

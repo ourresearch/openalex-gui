@@ -79,24 +79,26 @@ export const copy = {
   orcidSettings: {
     label: 'ORCID',
     notLinked: 'Link your ORCID iD to your OpenAlex account.',
-    linkButton: LINK_ORCID,
+    linkButton: 'Link ORCID',   // short: the right side of the row has one fixed width
     linkedBadge: 'Linked',
     copy: 'Copy iD',
     open: 'Open on ORCID',
     unlinkButton: 'Unlink',
     unlinkConfirm: 'Unlink your ORCID iD?',
+    unlinkBody: 'Your ORCID iD will no longer be linked to your OpenAlex account. You can link it again at any time.',
     unlinked: 'Your ORCID is unlinked.',
   },
   profileSettings: {
     label: 'Author profile',
     notClaimed: 'Claim your author profile to add missing works, remove works that are not yours, and fix your name.',
-    findButton: 'Find your author profile',
+    findButton: 'Claim profile',
     pending: (authorId) => `${authorId}: we are checking your claim.`,
     claimedBadge: 'Claimed',
     copy: 'Copy ID',
     open: 'Open profile',
     unclaimButton: 'Unclaim',
     unclaimConfirm: 'Unclaim this profile?',
+    unclaimBody: 'You will no longer be able to fix its works or its name. You can claim it again later.',
   },
 };
 

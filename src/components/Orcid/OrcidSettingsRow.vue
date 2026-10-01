@@ -5,22 +5,10 @@
       <OrcidIdLink :orcid="linkedOrcid" />
     </template>
 
-    <!-- Not linked: one button to orcid.org and back -->
-    <v-btn
-      v-if="!linkedOrcid"
-      :href="linkUrl"
-      variant="outlined"
-      rounded
-      size="small"
-      class="orcid-btn"
-    >
-      <OrcidIcon :size="16" class="mr-2" />
-      {{ words.linkButton }}
-    </v-btn>
-
-    <!-- Linked: "✓ Linked" and a ⋮ menu (Copy iD, Open on ORCID, Unlink) -->
+    <!-- Not linked: one button to orcid.org and back. Linked: "✓ Linked" and a
+         ⋮ menu (Copy iD, Open on ORCID, Unlink). -->
     <SettingsValueActions
-      v-else
+      :is-set="!!linkedOrcid"
       :label="words.label"
       :badge="words.linkedBadge"
       :value="`https://orcid.org/${linkedOrcid}`"
@@ -28,10 +16,16 @@
       :open-label="words.open"
       :open-href="`https://orcid.org/${linkedOrcid}`"
       :remove-label="words.unlinkButton"
-      :confirm-text="words.unlinkConfirm"
+      :confirm-title="words.unlinkConfirm"
+      :confirm-body="words.unlinkBody"
       :busy="busy"
       @remove="unlink"
-    />
+    >
+      <v-btn :href="linkUrl" variant="outlined" rounded size="small" block>
+        <OrcidIcon :size="16" class="mr-2" />
+        {{ words.linkButton }}
+      </v-btn>
+    </SettingsValueActions>
   </SettingsRow>
 </template>
 
@@ -70,10 +64,3 @@ async function unlink() {
   }
 }
 </script>
-
-<style scoped>
-.orcid-btn {
-  text-transform: none;
-  letter-spacing: normal;
-}
-</style>

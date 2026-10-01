@@ -1,38 +1,48 @@
 <template>
-  <!-- A set value's state and actions (oxjob #1475): "✓ Linked" plus a ⋮ menu
-       (Copy, Open, then the red undo), shaped like the Emails rows' menu.
-       The undo asks first, in the row: no browser dialog. -->
-  <div v-if="confirming" class="value-actions text-body-2">
-    <span>{{ confirmText }}</span>
-    <v-btn size="small" variant="text" class="settings-action" :disabled="busy" @click="confirming = false">
-      Cancel
-    </v-btn>
-    <v-btn size="small" variant="flat" rounded color="error" :loading="busy" @click="$emit('remove')">
-      {{ removeLabel }}
-    </v-btn>
-  </div>
-  <div v-else class="value-actions">
-    <v-chip size="small" color="success" variant="tonal" label prepend-icon="mdi-check">
-      {{ badge }}
-    </v-chip>
-    <v-menu location="bottom end">
-      <template v-slot:activator="{ props: menuProps }">
-        <v-btn icon variant="plain" size="small" v-bind="menuProps" :aria-label="`${label} actions`">
-          <v-icon>mdi-dots-vertical</v-icon>
-        </v-btn>
-      </template>
-      <v-list density="compact" min-width="200">
-        <v-list-item @click="copy">
-          <v-list-item-title>{{ copyLabel }}</v-list-item-title>
-        </v-list-item>
-        <v-list-item :href="openHref" :to="openTo" :target="openHref ? '_blank' : undefined">
-          <v-list-item-title>{{ openLabel }}</v-list-item-title>
-        </v-list-item>
-        <v-list-item @click="confirming = true">
-          <v-list-item-title class="text-error">{{ removeLabel }}</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+  <!-- The right side of a settings row whose value can be set (oxjob #1475).
+       One fixed width in every state, so stacked rows line up whether each is
+       set or not. Unset: the default slot (a full-width button). Set: "✓ Linked"
+       plus a ⋮ menu (Copy, Open, then the red undo), shaped like the Emails
+       rows' menu; the undo asks first, in a dialog. -->
+  <div class="value-control">
+    <slot v-if="!isSet" />
+    <template v-else>
+      <v-chip size="small" color="success" variant="tonal" label prepend-icon="mdi-check" class="value-badge">
+        {{ badge }}
+      </v-chip>
+      <v-menu location="bottom end">
+        <template v-slot:activator="{ props: menuProps }">
+          <v-btn icon variant="plain" size="small" v-bind="menuProps" :aria-label="`${label} actions`">
+            <v-icon>mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+        <v-list density="compact" min-width="200">
+          <v-list-item @click="copy">
+            <v-list-item-title>{{ copyLabel }}</v-list-item-title>
+          </v-list-item>
+          <v-list-item :href="openHref" :to="openTo" :target="openHref ? '_blank' : undefined">
+            <v-list-item-title>{{ openLabel }}</v-list-item-title>
+          </v-list-item>
+          <v-list-item @click="confirming = true">
+            <v-list-item-title class="text-error">{{ removeLabel }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </template>
+
+    <v-dialog v-model="confirming" max-width="420" :persistent="busy">
+      <v-card rounded>
+        <v-card-title>{{ confirmTitle }}</v-card-title>
+        <v-card-text>{{ confirmBody }}</v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn rounded variant="text" :disabled="busy" @click="confirming = false">Cancel</v-btn>
+          <v-btn rounded variant="flat" color="error" :loading="busy" @click="$emit('remove')">
+            {{ removeLabel }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -43,22 +53,24 @@ import { useStore } from 'vuex';
 defineOptions({ name: 'SettingsValueActions' });
 
 const props = defineProps({
-  label: { type: String, required: true },       // the row's name, for the menu's aria-label
-  badge: { type: String, required: true },       // Linked | Claimed
-  value: { type: String, required: true },       // what Copy puts on the clipboard
-  copyLabel: { type: String, required: true },
-  openLabel: { type: String, required: true },
+  isSet: { type: Boolean, required: true },
+  label: { type: String, required: true },        // the row's name, for the menu's aria-label
+  badge: { type: String, default: '' },           // Linked | Claimed
+  value: { type: String, default: '' },           // what Copy puts on the clipboard
+  copyLabel: { type: String, default: '' },
+  openLabel: { type: String, default: '' },
   openHref: { type: String, default: undefined }, // another site, new tab
   openTo: { type: String, default: undefined },   // a page in the app
-  removeLabel: { type: String, required: true },
-  confirmText: { type: String, required: true },
+  removeLabel: { type: String, default: '' },
+  confirmTitle: { type: String, default: '' },
+  confirmBody: { type: String, default: '' },
   busy: { type: Boolean, default: false },
 });
 defineEmits(['remove']);
 
 const store = useStore();
 const confirming = ref(false);
-// The parent clears `busy` when the undo finishes: close the confirm then.
+// The parent clears `busy` when the undo finishes: close the dialog then.
 watch(() => props.busy, (now, before) => { if (before && !now) confirming.value = false; });
 
 async function copy() {
@@ -72,10 +84,20 @@ async function copy() {
 </script>
 
 <style scoped>
-.value-actions {
+/* One width for every state of every row: fits "✓ Claimed" + ⋮ and "Link ORCID". */
+.value-control {
+  width: 150px;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.value-badge {
+  flex: 1;
+  justify-content: center;
+}
+.value-control :deep(.v-btn--block) {
+  text-transform: none;
+  letter-spacing: normal;
 }
 </style>
