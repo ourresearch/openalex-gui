@@ -8,7 +8,8 @@
       <div class="settings-row-label" :class="labelClass">
         {{ label }}
       </div>
-      <div v-if="description" class="settings-row-description" v-html="description">
+      <div v-if="description || $slots.description" class="settings-row-description">
+        <slot name="description"><span v-html="description" /></slot>
       </div>
     </div>
     <div class="settings-row-control">

@@ -6,6 +6,7 @@ import {urlBase, axiosConfig} from "@/apiConfig.js"
 import * as openalexId from "@/openalexId";
 import {sanitizeRedirectPath} from "@/util";
 import {bootUser, readUserCache, writeUserCache, clearUserCache} from "@/store/userBoot";
+import {orcidAutoClaim} from "@/components/Entity/claimCopy.js";
 
 const shortUuid = require('short-uuid');
 
@@ -456,20 +457,39 @@ export default {
             return resp.data
         },
 
+        // After linking from Settings (#1475): claim the profile that carries
+        // the linked iD (rules: orcidAutoClaim). The verifier approves it by
+        // `orcid_login` in about a minute. Returns the author id claimed, or null.
+        async claimOrcidProfile({state, dispatch}) {
+            if (!state.verifiedOrcid || state.authorId) return null
+            const resp = await axios.get(urlBase.api + "/authors", {params: {
+                filter: `orcid:${state.verifiedOrcid},works_count:>0`,
+                sort: "works_count:desc",
+                select: "id",
+                "per-page": 1,
+            }})
+            const authorId = orcidAutoClaim({
+                authorId: state.authorId,
+                claim: state.claim,
+                profileIds: (resp.data?.results || []).map((a) => a.id),
+            })
+            if (!authorId) return null
+            await dispatch("setAuthorId", {authorId, evidence: ""})
+            return {authorId}
+        },
+
         async unlinkOrcid({dispatch}) {
             await axios.delete(apiBaseUrl + "/users/me/orcid", axiosConfig({userAuth: true}))
             await dispatch("fetchUser")
         },
 
         async deleteAuthorId({commit, dispatch, state, getters}) {
-            const authorId = state.authorId
-            const myUrl = apiBaseUrl + `/users/${getters.userId}/author/${authorId}`
-            console.log("user.store deleteAuthorId", authorId, myUrl)
-            const resp = await axios.delete(
-                myUrl,
+            // Short id: a full-URL author id would put "https://" inside the path.
+            const authorId = (state.authorId || "").split("/").pop().toUpperCase()
+            await axios.delete(
+                apiBaseUrl + `/users/${getters.userId}/author/${authorId}`,
                 axiosConfig({userAuth: true})
             )
-            console.log("user.store deleteAuthorId resp: ", resp)
             await dispatch("fetchUser")
             commit("snackbar", "Profile unclaimed", {root: true})
         },

@@ -29,11 +29,10 @@
     />
 
     <!-- Linked ORCID iD (#1475) -->
-    <SettingsRow
-      label="ORCID"
-      :description="user.verified_orcid ? 'Linked by signing in to ORCID.' : 'Not linked.'"
-    >
-      <OrcidIdLink v-if="user.verified_orcid" :orcid="user.verified_orcid" />
+    <SettingsRow label="ORCID" :description="user.verified_orcid ? '' : 'Not linked.'">
+      <template v-if="user.verified_orcid" #description>
+        <OrcidIdLink :orcid="user.verified_orcid" />
+      </template>
     </SettingsRow>
   </SettingsSection>
 </template>

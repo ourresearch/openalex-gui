@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
-  copy, reasonText, claimView, orcidAuthorizeUrl, orcidCallbackFlow, bareOrcid, sameOrcid, ORCID_STATE_SETTINGS,
+  copy, reasonText, claimView, orcidAuthorizeUrl, orcidCallbackFlow, orcidAutoClaim, bareOrcid, sameOrcid,
+  ORCID_STATE_SETTINGS,
 } from '@/components/Entity/claimCopy.js';
 
 describe('claim copy (oxjob #1466)', () => {
@@ -61,9 +62,18 @@ describe('claim copy (oxjob #1466)', () => {
   it('says "Link your ORCID" in the claim window and in Settings', () => {
     expect(copy.orcid.button).toBe('Link your ORCID');
     expect(copy.orcidSettings.linkButton).toBe(copy.orcid.button);
-    expect(copy.orcidFound.one('Ana Silva', 1234)).toBe('We found your profile: Ana Silva (1,234 works). It has your ORCID iD.');
-    expect(copy.orcidFound.one('Ana Silva', 1)).toContain('(1 work)');
-    expect(copy.orcidFound.several(3, 3)).toBe('We found 3 profiles with your ORCID iD:');
-    expect(copy.orcidFound.several(1200, 5)).toBe('We found 1,200 profiles with your ORCID iD. These 5 have the most works:');
+  });
+
+  it('claims the linked iD\'s profile automatically after linking (#1475)', () => {
+    const ids = ['https://openalex.org/A1', 'https://openalex.org/A2'];
+    expect(orcidAutoClaim({ authorId: null, claim: null, profileIds: ids })).toBe('A1');
+    expect(orcidAutoClaim({ authorId: null, claim: null, profileIds: [] })).toBe(null);
+    // Already has a profile: never replaced.
+    expect(orcidAutoClaim({ authorId: 'https://openalex.org/A9', claim: null, profileIds: ids })).toBe(null);
+    // A pending claim on that profile is left to the verifier.
+    expect(orcidAutoClaim({ authorId: null, claim: { decision: 'pending', author_id: 'https://openalex.org/a1' }, profileIds: ids })).toBe(null);
+    // A claim sent back, or pending on another profile, gives way to the iD's profile.
+    expect(orcidAutoClaim({ authorId: null, claim: { decision: 'needs_evidence', author_id: 'A1' }, profileIds: ids })).toBe('A1');
+    expect(orcidAutoClaim({ authorId: null, claim: { decision: 'pending', author_id: 'A7' }, profileIds: ids })).toBe('A1');
   });
 });

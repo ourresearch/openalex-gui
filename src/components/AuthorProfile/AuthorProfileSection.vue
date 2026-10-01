@@ -1,9 +1,23 @@
 <template>
-  <SettingsRow
-    label="Claimed author profile"
-  >
-    <!-- Already claimed (approved) -->
-    <AuthorProfileClaimed v-if="userAuthorId" :author-id="userAuthorId" />
+  <SettingsRow :label="words.label" :description="description">
+    <!-- Claimed: the description is the OpenAlex author id -->
+    <template v-if="claimedId" #description>
+      <router-link :to="`/${claimedId}`" class="author-id-link novice-link">{{ claimedId }}</router-link>
+    </template>
+
+    <!-- Claimed: Unclaim, confirmed in the row (no browser dialog) -->
+    <div v-if="claimedId && confirmingUnclaim" class="unclaim-confirm text-body-2">
+      <span>{{ words.unclaimConfirm }}</span>
+      <v-btn size="small" variant="text" class="settings-action" :disabled="busy" @click="confirmingUnclaim = false">
+        {{ words.cancel }}
+      </v-btn>
+      <v-btn size="small" variant="flat" rounded color="error" :loading="busy" @click="unclaim">
+        {{ words.unclaimButton }}
+      </v-btn>
+    </div>
+    <v-btn v-else-if="claimedId" variant="outlined" rounded size="small" class="unclaim-btn" @click="confirmingUnclaim = true">
+      {{ words.unclaimButton }}
+    </v-btn>
 
     <!-- Being checked right now (a minute or so; #1466). -->
     <v-chip
@@ -15,34 +29,6 @@
     >
       Claim pending
     </v-chip>
-
-    <!-- The linked ORCID iD is on OpenAlex profiles: claim in one click (#1475). -->
-    <div v-else-if="foundProfiles.length" class="text-body-2">
-      <div v-if="foundProfiles.length === 1">
-        {{ copy.orcidFound.one(foundProfiles[0].display_name, foundProfiles[0].works_count) }}
-      </div>
-      <div v-else>{{ copy.orcidFound.several(foundCount, foundProfiles.length) }}</div>
-      <div v-for="a in foundProfiles" :key="a.id" class="found-profile">
-        <template v-if="foundProfiles.length > 1">
-          <router-link :to="`/${shortId(a.id).toUpperCase()}`" class="text-decoration-none">
-            {{ a.display_name }}
-          </router-link>
-          <span class="text-medium-emphasis">({{ worksText(a.works_count) }})</span>
-        </template>
-        <v-btn
-          size="small"
-          rounded
-          color="primary"
-          :variant="foundProfiles.length === 1 ? 'flat' : 'outlined'"
-          :loading="claimingId === a.id"
-          :disabled="!!claimingId"
-          @click="claim(a.id)"
-        >
-          {{ copy.orcidFound.button }}
-        </v-btn>
-      </div>
-      <div v-if="claimError" class="text-error mt-1">{{ claimError }}</div>
-    </div>
 
     <!-- Sent back: what's missing, and where to fix it. -->
     <div v-else-if="needsEvidenceClaim" class="text-body-2">
@@ -59,27 +45,34 @@
       :to="findProfileRoute"
       class="settings-action text-decoration-none"
     >
-      Find your author profile
+      {{ words.findButton }}
     </router-link>
   </SettingsRow>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
-import axios from 'axios';
-import { urlBase } from '@/apiConfig';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
-import AuthorProfileClaimed from './AuthorProfileClaimed.vue';
-import { copy, reasonText, worksText, shortId } from '@/components/Entity/claimCopy.js';
+import { copy, reasonText, shortId } from '@/components/Entity/claimCopy.js';
 
 defineOptions({ name: 'AuthorProfileSection' });
 
 const store = useStore();
+const words = copy.profileSettings;
 
 const userAuthorId = computed(() => store.getters['user/userAuthorId']);
 const pendingClaim = computed(() => store.getters['user/pendingClaim']);
 const needsEvidenceClaim = computed(() => store.getters['user/needsEvidenceClaim']);
+const claimedId = computed(() => (userAuthorId.value ? shortId(userAuthorId.value).toUpperCase() : null));
+
+// Unset, the row says what it does; set, its description is the value (#1475).
+const description = computed(() => {
+  if (claimedId.value) return '';
+  if (pendingClaim.value) return words.pending(shortId(pendingClaim.value.author_id).toUpperCase());
+  if (needsEvidenceClaim.value) return '';
+  return words.notClaimed;
+});
 const reason = computed(() => reasonText(needsEvidenceClaim.value?.feedback_code, {
   email: store.getters['user/userEmail'],
   link: needsEvidenceClaim.value?.feedback_link,
@@ -95,59 +88,38 @@ const findProfileRoute = computed(() => ({
   query: { filter: `default.search:${userName.value}` },
 }));
 
-// Profiles that carry the account's linked ORCID iD, when it has no claimed
-// or pending profile (#1475). The verifier approves such a claim by
-// `orcid_login` within about a minute.
-const linkedOrcid = computed(() => store.getters['user/verifiedOrcid']);
-const foundProfiles = ref([]);
-const foundCount = ref(0);
-const FOUND_SHOWN = 5;
-const claimingId = ref(null);
-const claimError = ref('');
+const confirmingUnclaim = ref(false);
+const busy = ref(false);
 
-async function findProfiles() {
-  foundProfiles.value = [];
-  foundCount.value = 0;
-  if (!linkedOrcid.value || userAuthorId.value || pendingClaim.value) return;
+async function unclaim() {
+  busy.value = true;
   try {
-    const resp = await axios.get(`${urlBase.api}/authors`, {
-      params: {
-        filter: `orcid:${linkedOrcid.value},works_count:>0`,
-        select: 'id,display_name,works_count',
-        sort: 'works_count:desc',
-        'per-page': FOUND_SHOWN,
-      },
-    });
-    foundProfiles.value = resp.data?.results || [];
-    foundCount.value = resp.data?.meta?.count || foundProfiles.value.length;
+    await store.dispatch('user/deleteAuthorId');
   } catch (e) {
-    // No list: the row falls back to "Find your author profile".
-  }
-}
-watch([linkedOrcid, userAuthorId, () => !!pendingClaim.value], findProfiles, { immediate: true });
-
-async function claim(authorId) {
-  claimError.value = '';
-  claimingId.value = authorId;
-  try {
-    const data = await store.dispatch('user/setAuthorId', { authorId: shortId(authorId), evidence: '' });
-    if (!data?.auto_approved) await store.dispatch('user/pollClaim', { timeoutMs: 90000 });
-    if (store.getters['user/userAuthorId']) {
-      store.commit('snackbar', { msg: 'Your claim is approved.', color: 'success' });
-    }
-  } catch (err) {
-    claimError.value = err?.response?.data?.message || 'Could not send your claim. Please try again.';
+    store.commit('snackbar', { msg: 'Could not unclaim your profile. Please try again.', color: 'error' });
   } finally {
-    claimingId.value = null;
+    busy.value = false;
+    confirmingUnclaim.value = false;
   }
 }
 </script>
 
 <style scoped>
-.found-profile {
+.unclaim-confirm {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-top: 6px;
+}
+.unclaim-btn {
+  text-transform: none;
+  letter-spacing: normal;
+}
+.author-id-link {
+  color: inherit; /* a value, not a link; novice-link opts out of the global blue */
+  text-decoration: none;
+}
+.author-id-link:hover {
+  text-decoration: underline;
 }
 </style>

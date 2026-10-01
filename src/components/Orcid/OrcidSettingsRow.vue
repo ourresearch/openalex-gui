@@ -1,8 +1,10 @@
 <template>
-  <SettingsRow
-    :label="words.label"
-    :description="linkedOrcid ? words.linked : words.notLinked"
-  >
+  <SettingsRow :label="words.label" :description="linkedOrcid ? '' : words.notLinked">
+    <!-- Linked: the description is the iD itself -->
+    <template v-if="linkedOrcid" #description>
+      <OrcidIdLink :orcid="linkedOrcid" />
+    </template>
+
     <!-- Not linked: one button to orcid.org and back -->
     <v-btn
       v-if="!linkedOrcid"
@@ -10,7 +12,7 @@
       variant="outlined"
       rounded
       size="small"
-      class="orcid-link-btn"
+      class="orcid-btn"
     >
       <OrcidIcon :size="16" class="mr-2" />
       {{ words.linkButton }}
@@ -18,10 +20,7 @@
 
     <!-- Unlink asks first, in the row (no browser dialog) -->
     <div v-else-if="confirmingUnlink" class="orcid-confirm text-body-2">
-      <span>
-        {{ words.unlinkConfirm }}
-        <template v-if="hasClaimedProfile">{{ words.unlinkKeepsProfile }}</template>
-      </span>
+      <span>{{ words.unlinkConfirm }}</span>
       <v-btn
         size="small"
         variant="text"
@@ -29,7 +28,7 @@
         :disabled="busy"
         @click="confirmingUnlink = false"
       >
-        {{ words.unlinkNo }}
+        {{ copy.profileSettings.cancel }}
       </v-btn>
       <v-btn
         size="small"
@@ -43,26 +42,21 @@
       </v-btn>
     </div>
 
-    <!-- Linked: the iD as an orcid.org link, "Linked", and Unlink -->
-    <div v-else class="orcid-linked">
-      <OrcidIdLink :orcid="linkedOrcid" />
-      <v-chip size="small" color="success" variant="tonal" label prepend-icon="mdi-check">
-        {{ words.linkedChip }}
-      </v-chip>
-      <v-btn
-        size="small"
-        variant="text"
-        class="settings-action"
-        @click="confirmingUnlink = true"
-      >
-        {{ words.unlinkButton }}
-      </v-btn>
-    </div>
+    <v-btn
+      v-else
+      variant="outlined"
+      rounded
+      size="small"
+      class="orcid-btn"
+      @click="confirmingUnlink = true"
+    >
+      {{ words.unlinkButton }}
+    </v-btn>
   </SettingsRow>
 </template>
 
 <script setup>
-// Settings → Profile: link your ORCID, see that it's linked, unlink it (oxjob #1475).
+// Settings → Profile: link your ORCID, see the linked iD, unlink it (oxjob #1475).
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
@@ -76,7 +70,6 @@ const store = useStore();
 const words = copy.orcidSettings;
 
 const linkedOrcid = computed(() => store.getters['user/verifiedOrcid']);
-const hasClaimedProfile = computed(() => !!store.getters['user/userAuthorId']);
 const linkUrl = computed(() => orcidAuthorizeUrl({
   origin: window.location.origin,
   state: ORCID_STATE_SETTINGS,
@@ -100,14 +93,13 @@ async function unlink() {
 </script>
 
 <style scoped>
-.orcid-linked,
 .orcid-confirm {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
 }
-.orcid-link-btn {
+.orcid-btn {
   text-transform: none;
   letter-spacing: normal;
 }

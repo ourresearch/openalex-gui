@@ -70,36 +70,31 @@ export const copy = {
     linking: 'Linking your ORCID…',
     failed: 'We could not link your ORCID. Please try again.',
     linked: 'Your ORCID is linked.',
+    linkedAndClaiming: (authorId) => `Your ORCID is linked. We are claiming your author profile, ${authorId}.`,
+    claimFailed: (message) => `Your ORCID is linked, but we could not claim your author profile. ${message}`,
     backToSettings: 'Back to Settings',
   },
-  // Settings → Profile (#1475). "Link" is the one word for this everywhere.
+  // Settings → Profile (#1475). Unset, a row says what it does; set, its
+  // description is the value (the iD, the author id) and the button undoes it.
   orcidSettings: {
     label: 'ORCID',
     notLinked: 'Link your ORCID iD to your OpenAlex account. '
-      + 'If your author profile has this iD, you can then claim it in one click.',
-    linked: 'Your ORCID iD is linked to your account.',
+      + 'If your author profile has this iD, we claim it for you.',
     linkButton: LINK_ORCID,
-    linkedChip: 'Linked',
     unlinkButton: 'Unlink',
     unlinkConfirm: 'Unlink your ORCID iD?',
-    unlinkKeepsProfile: 'Your claimed profile stays yours.',
-    unlinkNo: 'Cancel',
     unlinked: 'Your ORCID is unlinked.',
   },
-  // A linked ORCID iD is on OpenAlex profiles and the account has none (#1475).
-  orcidFound: {
-    one: (name, works) => `We found your profile: ${name} (${worksText(works)}). It has your ORCID iD.`,
-    several: (n, shown) => (n > shown
-      ? `We found ${n.toLocaleString('en-US')} profiles with your ORCID iD. These ${shown} have the most works:`
-      : `We found ${n} profiles with your ORCID iD:`),
-    button: 'Claim it',
+  profileSettings: {
+    label: 'Author profile',
+    notClaimed: 'Claim your author profile to add missing works, remove works that are not yours, and fix your name.',
+    findButton: 'Find your author profile',
+    pending: (authorId) => `${authorId}: we are checking your claim.`,
+    unclaimButton: 'Unclaim',
+    unclaimConfirm: 'Unclaim this profile?',
+    cancel: 'Cancel',
   },
 };
-
-export function worksText(n) {
-  const k = Number(n) || 0;
-  return `${k.toLocaleString('en-US')} ${k === 1 ? 'work' : 'works'}`;
-}
 
 // The middle paragraph of a "not yet" answer, by users-api feedback_code.
 export function reasonText(code, { email, link } = {}) {
@@ -163,6 +158,17 @@ export function orcidAuthorizeUrl({ clientId = ORCID_CLIENT_ID, origin, authorId
     state: state || shortId(authorId).toUpperCase(),
   });
   return `${ORCID_AUTHORIZE_URL}?${params.toString()}`;
+}
+
+// After linking from Settings (#1475): the profile to claim for the user, or
+// null. `profileIds` carry the linked iD, most works first; splinters can share
+// an iD, so the biggest wins. Never touches a claimed profile, nor a pending
+// claim on that same profile (the verifier approves it by the iD anyway).
+export function orcidAutoClaim({ authorId, claim, profileIds }) {
+  const target = (profileIds || [])[0];
+  if (!target || authorId) return null;
+  if (claim && claim.decision === 'pending' && shortId(claim.author_id) === shortId(target)) return null;
+  return shortId(target).toUpperCase();
 }
 
 // Where /orcid-callback goes after linking, from the `state` ORCID sends back.

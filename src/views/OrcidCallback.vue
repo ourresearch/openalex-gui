@@ -47,6 +47,28 @@ const reason = computed(() => {
   return reasonText(c?.feedback_code, { email: store.getters['user/userEmail'], link: c?.feedback_link });
 });
 
+// Linked from Settings: claim the profile that carries the iD, then go back to
+// Settings, where the row shows the claim pending until the verifier approves.
+async function linkedFromSettings() {
+  let msg = copy.orcidCallback.linked;
+  try {
+    const claimed = await store.dispatch('user/claimOrcidProfile');
+    if (claimed) msg = copy.orcidCallback.linkedAndClaiming(claimed.authorId);
+    // Keeps polling after we leave this page; the Settings row follows the claim.
+    if (store.getters['user/pendingClaim']) {
+      store.dispatch('user/pollClaim', { timeoutMs: 120000 }).then(() => {
+        if (store.getters['user/userAuthorId']) {
+          store.commit('snackbar', { msg: 'Your claim is approved.', color: 'success' });
+        }
+      });
+    }
+  } catch (err) {
+    msg = copy.orcidCallback.claimFailed(err?.response?.data?.message || '');
+  }
+  store.commit('snackbar', { msg, color: 'success' });
+  router.replace(settingsRoute);
+}
+
 onMounted(async () => {
   const code = route.query.code;
   if (!code || route.query.error) {
@@ -56,8 +78,7 @@ onMounted(async () => {
   try {
     await store.dispatch('user/linkOrcid', { code, redirectUri: `${window.location.origin}/orcid-callback` });
     if (flow.value === 'settings') {
-      store.commit('snackbar', { msg: copy.orcidCallback.linked, color: 'success' });
-      router.replace(settingsRoute);
+      await linkedFromSettings();
       return;
     }
     if (authorId.value && !store.getters['user/userAuthorId']) {

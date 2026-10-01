@@ -4,9 +4,9 @@
     :href="`https://orcid.org/${orcid}`"
     target="_blank"
     rel="noopener"
-    class="orcid-id-link"
+    class="orcid-id-link novice-link"
   >
-    <OrcidIcon :size="16" class="mr-1" />https://orcid.org/{{ orcid }}
+    <OrcidIcon :size="14" class="mr-1" />https://orcid.org/{{ orcid }}
   </a>
 </template>
 
@@ -21,8 +21,7 @@ defineProps({ orcid: { type: String, required: true } });
 .orcid-id-link {
   display: inline-flex;
   align-items: center;
-  font-size: 13px;
-  color: #1A1A1A;
+  color: inherit; /* a value, not a link; novice-link opts out of the global blue */
   text-decoration: none;
 }
 .orcid-id-link:hover {
