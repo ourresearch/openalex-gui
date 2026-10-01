@@ -245,7 +245,7 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig.js';
-import { copy, reasonText, claimView, orcidAuthorizeUrl, sameOrcid, ORCID_CLIENT_ID } from './claimCopy.js';
+import { copy, reasonText, claimView, orcidAuthorizeUrl, sameOrcid, bareOrcid, shortId, ORCID_CLIENT_ID } from './claimCopy.js';
 import OrcidIcon from '@/components/Orcid/OrcidIcon.vue';
 
 defineOptions({ name: 'EntityHeaderClaimProfileButton' });
@@ -320,9 +320,6 @@ const claimedTooltip = computed(() =>
     ? `Claimed by ${claimedByUser.value.display_name || claimedByUser.value.email || 'a user'} — open admin`
     : 'A user has claimed this profile'
 );
-// Compare OpenAlex ids regardless of URL shape / casing
-// (https://openalex.org/A123, https://openalex.org/authors/a123, A123 …).
-const shortId = (x) => (x || '').split('/').pop().toLowerCase();
 
 // Shown to EVERYONE while a claim on this profile is awaiting review:
 // either anyone's pending claim (from claim-status) or — for immediate
@@ -412,7 +409,7 @@ async function fetchProfileOrcid() {
   orcidLoading.value = true;
   try {
     const resp = await axios.get(`${urlBase.api}/authors/${shortId(props.authorId)}?select=orcid`);
-    profileOrcid.value = (resp.data?.orcid || '').split('/').pop() || null;
+    profileOrcid.value = bareOrcid(resp.data?.orcid) || null;
   } catch (e) {
     profileOrcid.value = null;
   } finally {

@@ -29,7 +29,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
-import { copy, reasonText, orcidCallbackFlow } from '@/components/Entity/claimCopy.js';
+import { copy, reasonText, orcidCallbackFlow, shortId } from '@/components/Entity/claimCopy.js';
 
 defineOptions({ name: 'OrcidCallback' });
 
@@ -62,7 +62,7 @@ onMounted(async () => {
     }
     if (authorId.value && !store.getters['user/userAuthorId']) {
       const claim = store.getters['user/userClaim'];
-      const sameProfile = claim && (claim.author_id || '').split('/').pop().toUpperCase() === authorId.value;
+      const sameProfile = claim && shortId(claim.author_id) === shortId(authorId.value);
       if (!sameProfile || claim.decision !== 'pending') {
         await store.dispatch('user/setAuthorId', { authorId: authorId.value, evidence: '' });
       }

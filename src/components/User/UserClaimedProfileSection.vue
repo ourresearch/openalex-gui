@@ -33,16 +33,7 @@
       label="ORCID"
       :description="user.verified_orcid ? 'Linked by signing in to ORCID.' : 'Not linked.'"
     >
-      <a
-        v-if="user.verified_orcid"
-        :href="`https://orcid.org/${user.verified_orcid}`"
-        target="_blank"
-        rel="noopener"
-        class="d-inline-flex align-center text-decoration-none"
-        style="font-size: 13px;"
-      >
-        <OrcidIcon :size="16" class="mr-1" />https://orcid.org/{{ user.verified_orcid }}
-      </a>
+      <OrcidIdLink v-if="user.verified_orcid" :orcid="user.verified_orcid" />
     </SettingsRow>
   </SettingsSection>
 </template>
@@ -52,7 +43,7 @@ import { computed } from 'vue';
 import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
 import AuthorProfileClaimed from '@/components/AuthorProfile/AuthorProfileClaimed.vue';
-import OrcidIcon from '@/components/Orcid/OrcidIcon.vue';
+import OrcidIdLink from '@/components/Orcid/OrcidIdLink.vue';
 
 defineOptions({ name: 'UserClaimedProfileSection' });
 

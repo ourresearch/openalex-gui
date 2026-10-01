@@ -8,6 +8,9 @@
 export const ORCID_CLIENT_ID = 'APP-GRFFQ9KH4BY82LCV';
 export const ORCID_AUTHORIZE_URL = 'https://orcid.org/oauth/authorize';
 
+// "Link" is the one word for this everywhere: claim window, Settings, callback (#1475).
+const LINK_ORCID = 'Link your ORCID';
+
 export const copy = {
   title: 'Claim this profile',
   instant: {
@@ -27,7 +30,7 @@ export const copy = {
     body: (orcid) =>
       `This profile has the ORCID iD ${orcid}. If this is your ORCID iD, link your ORCID to your OpenAlex account. `
       + 'Then we approve your claim right away.',
-    button: 'Link your ORCID',
+    button: LINK_ORCID,
   },
   // The account's linked ORCID iD is on this profile (#1475): one click.
   orcidLinked: {
@@ -75,12 +78,11 @@ export const copy = {
     notLinked: 'Link your ORCID iD to your OpenAlex account. '
       + 'If your author profile has this iD, you can then claim it in one click.',
     linked: 'Your ORCID iD is linked to your account.',
-    linkButton: 'Link your ORCID',
+    linkButton: LINK_ORCID,
     linkedChip: 'Linked',
     unlinkButton: 'Unlink',
     unlinkConfirm: 'Unlink your ORCID iD?',
     unlinkKeepsProfile: 'Your claimed profile stays yours.',
-    unlinkYes: 'Unlink',
     unlinkNo: 'Cancel',
     unlinked: 'Your ORCID is unlinked.',
   },
@@ -94,7 +96,7 @@ export const copy = {
   },
 };
 
-function worksText(n) {
+export function worksText(n) {
   const k = Number(n) || 0;
   return `${k.toLocaleString('en-US')} ${k === 1 ? 'work' : 'works'}`;
 }
@@ -124,7 +126,8 @@ export function reasonText(code, { email, link } = {}) {
   }
 }
 
-const shortId = (x) => (x || '').split('/').pop().toLowerCase();
+// A123 from any OpenAlex author id shape, lowercased for comparing.
+export const shortId = (x) => (x || '').split('/').pop().toLowerCase();
 
 // Which screen the claim window shows for this user and this profile.
 //   instant | orcid | form | checking | approved | needs_evidence

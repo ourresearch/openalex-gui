@@ -17,41 +17,30 @@
     </v-chip>
 
     <!-- The linked ORCID iD is on OpenAlex profiles: claim in one click (#1475). -->
-    <div v-else-if="foundProfiles.length" class="text-body-2 found-profiles">
-      <template v-if="foundProfiles.length === 1">
-        <div>{{ copy.orcidFound.one(foundProfiles[0].display_name, foundProfiles[0].works_count) }}</div>
+    <div v-else-if="foundProfiles.length" class="text-body-2">
+      <div v-if="foundProfiles.length === 1">
+        {{ copy.orcidFound.one(foundProfiles[0].display_name, foundProfiles[0].works_count) }}
+      </div>
+      <div v-else>{{ copy.orcidFound.several(foundCount, foundProfiles.length) }}</div>
+      <div v-for="a in foundProfiles" :key="a.id" class="found-profile">
+        <template v-if="foundProfiles.length > 1">
+          <router-link :to="`/${shortId(a.id).toUpperCase()}`" class="text-decoration-none">
+            {{ a.display_name }}
+          </router-link>
+          <span class="text-medium-emphasis">({{ worksText(a.works_count) }})</span>
+        </template>
         <v-btn
           size="small"
           rounded
           color="primary"
-          variant="flat"
-          class="mt-2"
-          :loading="claimingId === foundProfiles[0].id"
-          @click="claim(foundProfiles[0].id)"
+          :variant="foundProfiles.length === 1 ? 'flat' : 'outlined'"
+          :loading="claimingId === a.id"
+          :disabled="!!claimingId"
+          @click="claim(a.id)"
         >
           {{ copy.orcidFound.button }}
         </v-btn>
-      </template>
-      <template v-else>
-        <div>{{ copy.orcidFound.several(foundCount, foundProfiles.length) }}</div>
-        <div v-for="a in foundProfiles" :key="a.id" class="found-profile">
-          <router-link :to="`/${shortId(a.id)}`" class="text-decoration-none">
-            {{ a.display_name }}
-          </router-link>
-          <span class="text-medium-emphasis">({{ a.works_count.toLocaleString('en-US') }} works)</span>
-          <v-btn
-            size="small"
-            rounded
-            color="primary"
-            variant="outlined"
-            :loading="claimingId === a.id"
-            :disabled="!!claimingId"
-            @click="claim(a.id)"
-          >
-            {{ copy.orcidFound.button }}
-          </v-btn>
-        </div>
-      </template>
+      </div>
       <div v-if="claimError" class="text-error mt-1">{{ claimError }}</div>
     </div>
 
@@ -82,7 +71,7 @@ import axios from 'axios';
 import { urlBase } from '@/apiConfig';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
 import AuthorProfileClaimed from './AuthorProfileClaimed.vue';
-import { copy, reasonText, bareOrcid } from '@/components/Entity/claimCopy.js';
+import { copy, reasonText, worksText, shortId } from '@/components/Entity/claimCopy.js';
 
 defineOptions({ name: 'AuthorProfileSection' });
 
@@ -109,13 +98,12 @@ const findProfileRoute = computed(() => ({
 // Profiles that carry the account's linked ORCID iD, when it has no claimed
 // or pending profile (#1475). The verifier approves such a claim by
 // `orcid_login` within about a minute.
-const linkedOrcid = computed(() => bareOrcid(store.getters['user/verifiedOrcid']));
+const linkedOrcid = computed(() => store.getters['user/verifiedOrcid']);
 const foundProfiles = ref([]);
 const foundCount = ref(0);
 const FOUND_SHOWN = 5;
 const claimingId = ref(null);
 const claimError = ref('');
-const shortId = (x) => (x || '').split('/').pop();
 
 async function findProfiles() {
   foundProfiles.value = [];
@@ -133,7 +121,7 @@ async function findProfiles() {
     foundProfiles.value = resp.data?.results || [];
     foundCount.value = resp.data?.meta?.count || foundProfiles.value.length;
   } catch (e) {
-    foundProfiles.value = [];
+    // No list: the row falls back to "Find your author profile".
   }
 }
 watch([linkedOrcid, userAuthorId, () => !!pendingClaim.value], findProfiles, { immediate: true });
@@ -142,8 +130,8 @@ async function claim(authorId) {
   claimError.value = '';
   claimingId.value = authorId;
   try {
-    await store.dispatch('user/setAuthorId', { authorId: shortId(authorId), evidence: '' });
-    await store.dispatch('user/pollClaim', { timeoutMs: 90000 });
+    const data = await store.dispatch('user/setAuthorId', { authorId: shortId(authorId), evidence: '' });
+    if (!data?.auto_approved) await store.dispatch('user/pollClaim', { timeoutMs: 90000 });
     if (store.getters['user/userAuthorId']) {
       store.commit('snackbar', { msg: 'Your claim is approved.', color: 'success' });
     }

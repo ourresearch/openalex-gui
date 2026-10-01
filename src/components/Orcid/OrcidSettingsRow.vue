@@ -39,20 +39,13 @@
         :loading="busy"
         @click="unlink"
       >
-        {{ words.unlinkYes }}
+        {{ words.unlinkButton }}
       </v-btn>
     </div>
 
     <!-- Linked: the iD as an orcid.org link, "Linked", and Unlink -->
     <div v-else class="orcid-linked">
-      <a
-        :href="`https://orcid.org/${linkedOrcid}`"
-        target="_blank"
-        rel="noopener"
-        class="orcid-id"
-      >
-        <OrcidIcon :size="16" class="mr-1" />https://orcid.org/{{ linkedOrcid }}
-      </a>
+      <OrcidIdLink :orcid="linkedOrcid" />
       <v-chip size="small" color="success" variant="tonal" label prepend-icon="mdi-check">
         {{ words.linkedChip }}
       </v-chip>
@@ -74,14 +67,15 @@ import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
 import OrcidIcon from './OrcidIcon.vue';
-import { copy, bareOrcid, orcidAuthorizeUrl, ORCID_STATE_SETTINGS } from '@/components/Entity/claimCopy.js';
+import OrcidIdLink from './OrcidIdLink.vue';
+import { copy, orcidAuthorizeUrl, ORCID_STATE_SETTINGS } from '@/components/Entity/claimCopy.js';
 
 defineOptions({ name: 'OrcidSettingsRow' });
 
 const store = useStore();
 const words = copy.orcidSettings;
 
-const linkedOrcid = computed(() => bareOrcid(store.getters['user/verifiedOrcid']));
+const linkedOrcid = computed(() => store.getters['user/verifiedOrcid']);
 const hasClaimedProfile = computed(() => !!store.getters['user/userAuthorId']);
 const linkUrl = computed(() => orcidAuthorizeUrl({
   origin: window.location.origin,
@@ -112,16 +106,6 @@ async function unlink() {
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-}
-.orcid-id {
-  display: inline-flex;
-  align-items: center;
-  font-size: 13px;
-  color: #1A1A1A;
-  text-decoration: none;
-}
-.orcid-id:hover {
-  text-decoration: underline;
 }
 .orcid-link-btn {
   text-transform: none;
