@@ -13,7 +13,6 @@ const getStore = () => {
 const urlBase = {
     api: "https://api.openalex.org",
     userApi: "https://user.openalex.org",
-    correctionsApi: "https://corrections.openalex.org",
     cvParseApi: "https://openalex-cv-parser.our-research.workers.dev",  // CV parser worker (direct, bypasses proxy)
 };
 
@@ -42,10 +41,8 @@ if (window.location.port && parseInt(window.location.port) === 8081) {
     urlBase.userApi = "http://localhost:5106";
     console.log("Setting User API base URL to local machine (dev use only): " + urlBase.userApi);
 
-// 8085: Local Corrections API + CV Parse Server
+// 8085: Local CV Parse Server
 } else if (window.location.port && parseInt(window.location.port) === 8085) {
-    urlBase.correctionsApi = "http://localhost:5006";
-    console.log("Setting Corrections API base URL to local machine (dev use only): " + urlBase.correctionsApi);
     urlBase.cvParseApi = "http://localhost:3456";
     console.log("Setting CV Parse API base URL to local machine (dev use only): " + urlBase.cvParseApi);
 }

@@ -139,7 +139,7 @@ const doLogin = async () => {
     isLoading.value = false;
 
     // Check if login actually succeeded despite the error
-    // (fetchUser sub-calls like fetchCorrections may fail even after successful login)
+    // (fetchUser sub-calls like fetchSavedSearches may fail even after successful login)
     if (localStorage.getItem('token')) {
       // Login succeeded despite a sub-call failing. We don't have the login
       // response body here, so fall back to a generic welcome (invite-aware).

@@ -623,13 +623,10 @@ const routes = [
         redirect: '/settings/org-members',
     },
 
-    // curation
-    {path: '/curate', name: 'curation', component: () => import('@/views/CurationPage.vue')},
-    {path: '/curate/works', name: 'curate-works', component: () => import('@/views/CurateWorks.vue')},
-    {path: '/curate/works/:workId', name: 'curate-work-item', component: () => import('@/views/CurateWorkItem.vue'), props: true},
-    {path: '/curate/sources', name: 'curate-sources', component: () => import('@/views/CurateSources.vue')},
-    {path: '/curate/sources/:sourceId', name: 'curate-source-item', component: () => import('@/views/CurateSourceItem.vue'), props: true},
-    {path: '/curate/moderation', name: 'moderation', component: () => import('@/views/ModerationPage.vue'), meta: { requiresAuth: true }},
+    // The corrections service and its Unpaywall Curation pages were retired (#1479); fixes go
+    // through the help site until curations cover open-access links (#1483).
+    redirect('/curate', "https://help.openalex.org/how-to/fixing-errors/"),
+    redirect('/curate/:rest(.*)', "https://help.openalex.org/how-to/fixing-errors/"),
     
     // Docs
     redirect('/data-dump', "https://help.openalex.org/access/snapshot/"),

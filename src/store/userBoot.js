@@ -16,7 +16,7 @@
  *
  * - A `fetchMe` failure propagates (the router guard logs out on 401).
  * - Background loaders start only after `applyMe` (they may read user state,
- *   e.g. fetchCorrections needs the email).
+ *   e.g. fetchSavedSearches needs the user id).
  * - A background failure never rejects anything; it's logged and the rest
  *   still run. `settled` resolves when all of them have finished, for callers
  *   (tests, impersonation) that want to wait.

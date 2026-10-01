@@ -3,7 +3,6 @@ import {url} from "@/url";
 import {api} from "@/api";
 import {navigation} from '@/navigation';
 import {urlBase, axiosConfig} from "@/apiConfig.js"
-import * as openalexId from "@/openalexId";
 import {sanitizeRedirectPath} from "@/util";
 import {bootUser, readUserCache, writeUserCache, clearUserCache} from "@/store/userBoot";
 import {orcidAutoClaim} from "@/components/Entity/claimCopy.js";
@@ -54,7 +53,6 @@ export default {
         userFromCache: false,
         columnViews: [],
         facetViews: [],
-        corrections: [],
         isSaving: false,
         renameId: null,
         editAlertId: null,
@@ -93,9 +91,6 @@ export default {
             state.impersonatingUserId = localStorage.getItem('impersonatingUserId') || null;
             state.impersonatingUserName = localStorage.getItem('impersonatingUserName') || null;
         },
-        setCorrections(state, corrections) {
-            state.corrections = corrections;
-        },
         setAuthorIdDirect(state, authorId) {
             state.authorId = authorId;
         },
@@ -106,7 +101,6 @@ export default {
             state.emails = []
             state.savedSearches = []
             state.savedSearchesLoaded = false
-            state.corrections = []
             state.authorId = ""
             state.plan = null
             state.planExpiresAt = null
@@ -162,7 +156,7 @@ export default {
         // oxjob #860: the router guard awaits this before resolving the FIRST
         // route, and App.vue paints no chrome until then. So only /users/me is
         // awaited here (the guards need userId/isAdmin/organizationRole); the
-        // saved-search list, corrections and rate-limit data load in the
+        // saved-search list and rate-limit data load in the
         // background. Anything that needs the saved-search list to be complete
         // awaits `ensureSavedSearches` (the SERP's ?id= restore does).
         // Returns `{me, settled}` — `settled` resolves once the background
@@ -192,7 +186,6 @@ export default {
                 },
                 background: [
                     () => dispatch("fetchSavedSearches"),
-                    () => dispatch("fetchCorrections"),
                     () => dispatch("fetchRateLimitData", null, { root: true }),
                 ],
             })
@@ -847,46 +840,7 @@ export default {
             await navigation.replace(newUrl.pathname + newUrl.search);
         },
 
-        // **************************************************
-        // CORRECTIONS
-        // **************************************************
 
-
-        // create
-        async createCorrection(_, correctionObj) {
-            console.log("user.store createCorrection", correctionObj)
-        },
-
-        // read
-        async fetchCorrections({state, commit}) {
-            if (!state.email) {
-                console.log('No user email, skipping corrections fetch');
-                return;
-            }
-
-            try {
-                // mine=true + the auth header: the corrections API looks the
-                // user up itself, so their email never goes in a URL (#1479).
-                const params = new URLSearchParams({
-                    mine: 'true',
-                    per_page: 200,
-                    sort_order: 'desc',
-                });
-
-                const resp = await axios.get(
-                    `${urlBase.correctionsApi}/v2/corrections?${params.toString()}`,
-                    axiosConfig({ userAuth: true })
-                );
-                
-                commit('setCorrections', resp.data.results || []);
-            } catch (error) {
-                console.error('Error fetching corrections:', error);
-                commit('setCorrections', []);
-            }
-        },
-        async deleteCorrection(_, id) {
-            console.log("user.store deleteCorrection", id)
-        },
     },
     getters: {
         userName: (state) => state.name,
@@ -911,7 +865,6 @@ export default {
         userFromCache: (state) => state.userFromCache,
         userColumnViews: (state) => state.columnViews,
         userFacetViews: (state) => state.facetViews,
-        userCorrections: (state) => state.corrections,
         isAdmin: (state) => state.isAdmin || state.email?.trim() === 'jalperin@sfu.ca',
         isLibrarian: (state) => state.isLibrarian,
         isSiteCurator: (state) => state.isSiteCurator,
@@ -927,18 +880,5 @@ export default {
         impersonatingUserId: (state) => state.impersonatingUserId,
         impersonatingUserName: (state) => state.impersonatingUserName,
         isImpersonating: (state) => !!state.impersonatingUserId,
-        // Check if there's a pending (not yet live) correction for an entity+property
-        hasPendingCorrection: (state) => (entityId, property) => {
-            if (!entityId || !property) return false;
-            
-            // Normalize entity ID using openalexId module
-            const normalizedId = openalexId.getShortId(entityId) || entityId;
-            
-            return state.corrections.some(correction => 
-                correction.entity_id === normalizedId && 
-                correction.property === property && 
-                !correction.is_live
-            );
-        },
     }
 };

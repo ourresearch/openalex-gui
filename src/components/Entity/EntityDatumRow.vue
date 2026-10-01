@@ -132,15 +132,6 @@
       (less)
     </a>
 
-    <curation-edit-button
-      v-if="shouldShowCurationButton"
-      :entity="props.data"
-      :entity-type="entityType"
-      :property="props.filterKey"
-      :facet-config="filterConfig"
-      :size="entityType === 'locations' ? 'x-small' : 'small'"
-    />
-
   </div>
 </template>
 
@@ -154,7 +145,6 @@ import { url } from '@/url';
 import { getFacetConfig } from '@/facetConfigUtils';
 import * as openalexId from '@/openalexId';
 import * as entityDatumValues from '@/components/Entity/entityDatumValues';
-import CurationEditButton from '@/components/Curation/CurationEditButton.vue';
 
 defineOptions({ name: 'EntityDatumRow' });
 
@@ -189,20 +179,6 @@ const ownerVisibleNames = computed(() => {
   return rawValue.value
     .filter((name) => !ownerCuration.isNameRemoved(name))
     .map((name) => ({ name, pending: ownerCuration.isNamePending(name) }));
-});
-
-const shouldShowCurationButton = computed(() => {
-  // Show curation button for curate-able properties
-  if (entityType.value === 'works' && ['type', 'language'].includes(props.filterKey)) {
-    return true;
-  }
-  if (entityType.value === 'sources' && ['type', 'is_oa'].includes(props.filterKey)) {
-    return true;
-  }
-  if (entityType.value === 'locations' && ['is_oa'].includes(props.filterKey)) {
-    return true;
-  }
-  return false;
 });
 
 const isTruncateSet = ref(true);
