@@ -72,11 +72,14 @@ app.mount('#app');
 // Scheduled after window `load` + a 1.5 s breather: on a cold load the 119 KB
 // Sentry chunk otherwise downloads right after mount, competing for bandwidth
 // with /users/me and the page's own first query (measured #860 bench-pw).
-const initSentry = () => import("@sentry/vue").then((Sentry) => {
+// No personal data by default (no visitor IPs), and API keys filtered out of recorded URLs (oxjob #1479).
+const initSentry = () => Promise.all([import("@sentry/vue"), import("@/sentryScrub")]).then(([Sentry, scrub]) => {
   Sentry.init({
     app,
     dsn: "https://fb8a98f98b30ac77643b286fc1842ba9@o4505840077701120.ingest.us.sentry.io/4509509908299776",
-    sendDefaultPii: true
+    sendDefaultPii: false,
+    beforeBreadcrumb: scrub.scrubBreadcrumb,
+    beforeSend: scrub.scrubEvent,
   });
 });
 const scheduleSentry = () => setTimeout(initSentry, 1500);
