@@ -199,6 +199,8 @@ const routes = [
     {path: '/oauth/consent', name: 'OAuthConsent', component: OAuthConsentPage, meta: {chrome: 'bare', requiresAuth: true}},
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken, meta: {chrome: 'bare'}},
     {path: '/verify-email', name: 'VerifyEmail', component: UserVerifyEmail, meta: {chrome: 'bare'}},
+    // ORCID sign-in return for profile claims (oxjob #1466).
+    {path: '/orcid-callback', name: 'OrcidCallback', component: () => import('@/views/OrcidCallback.vue'), meta: {requiresAuth: true}},
     // Legacy route - redirect old password reset links to login
     {path: '/reset-password', redirect: { name: 'Login' }},
 

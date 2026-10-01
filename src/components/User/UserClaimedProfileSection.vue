@@ -5,10 +5,10 @@
       <AuthorProfileClaimed :author-id="user.author_id" />
     </div>
 
-    <!-- Pending claim (submitted, not yet approved) -->
+    <!-- Unresolved claim: being checked, sent back, or closed by staff (#1466) -->
     <SettingsRow
       v-else-if="pendingClaim"
-      label="Pending claim"
+      :label="pendingClaimLabel"
       :description="pendingClaimDescription"
     >
       <a
@@ -47,8 +47,13 @@ const props = defineProps({
 
 const pendingClaim = computed(() => {
   const claim = props.user?.claim;
-  return claim && !claim.auto_approved ? claim : null;
+  return claim && claim.decision !== 'approved' ? claim : null;
 });
+const pendingClaimLabel = computed(() => ({
+  pending: 'Claim being checked',
+  needs_evidence: 'Claim needs evidence',
+  rejected: 'Claim rejected',
+}[pendingClaim.value?.decision] || 'Claim'));
 
 const pendingClaimUrl = computed(() => {
   if (!pendingClaim.value?.author_id) return '#';
@@ -60,8 +65,10 @@ const pendingClaimDescription = computed(() => {
   const when = pendingClaim.value?.submitted_at
     ? new Date(pendingClaim.value.submitted_at).toLocaleDateString()
     : '';
-  return when
-    ? `Submitted ${when}. Under review.`
-    : 'Under review.';
+  const c = pendingClaim.value || {};
+  const state = c.decision === 'needs_evidence'
+    ? `Sent back: ${c.feedback_code || 'unknown'}${c.feedback_link ? ` (${c.feedback_link})` : ''}.`
+    : c.decision === 'rejected' ? 'Rejected by staff.' : 'Being checked.';
+  return when ? `Submitted ${when}. ${state}` : state;
 });
 </script>

@@ -18,7 +18,7 @@
       <AuthorProfileSection />
     </SettingsSection>
 
-    <SettingsSection title="Emails">
+    <SettingsSection id="emails" title="Emails">
       <EmailsList />
     </SettingsSection>
 

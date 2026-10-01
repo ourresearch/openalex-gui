@@ -85,40 +85,104 @@
       </v-card>
     </v-dialog>
 
+    <!-- One dialog whose content swaps by screen (stacked v-dialogs drop
+         closes in Vuetify 3). Words: ./claimCopy.js (#1466). -->
     <v-dialog
       rounded
-      max-width="560"
+      max-width="600"
       v-model="isEvidenceDialogOpen"
       :persistent="isLoading"
     >
-      <v-card rounded :loading="isLoading">
-        <v-card-title>{{ resultMessage ? 'Claim submitted' : 'Claim this profile' }}</v-card-title>
-        <div class="pa-4">
-          <template v-if="resultMessage">
-            <p>{{ resultMessage }}</p>
+      <v-card rounded :loading="isLoading || view === 'checking'">
+        <v-card-title>{{ copy.title }}</v-card-title>
+        <div class="pa-4 pt-1 text-body-2 claim-dialog">
+
+          <!-- University email on the account: one click -->
+          <template v-if="view === 'instant'">
+            <p>{{ copy.instant.body(eligibleEmail) }}</p>
           </template>
-          <template v-else>
-            <p class="mb-2 text-body-2">
-              To prove you're this author, please link to a webpage or paper
-              that includes both
-            </p>
-            <ol class="mb-3 ml-5 text-body-2">
-              <li>your OpenAlex account email ({{ userEmail }}), and</li>
-              <li>the name on this author profile.</li>
-            </ol>
-            <v-textarea
+
+          <!-- Being checked right now -->
+          <template v-else-if="view === 'checking'">
+            <p v-if="!pollTimedOut">{{ copy.checking }}</p>
+            <p v-else>{{ copy.stillChecking }}</p>
+          </template>
+
+          <!-- Approved -->
+          <template v-else-if="view === 'approved'">
+            <p>{{ copy.approved }}</p>
+          </template>
+
+          <!-- Not yet: reason, fastest fix, send a new link -->
+          <template v-else-if="view === 'needs_evidence'">
+            <p class="font-weight-medium">{{ copy.notYet }}</p>
+            <p style="white-space: pre-line;">{{ reason }}</p>
+            <div class="claim-option best">
+              <p>{{ copy.fastestFix }}</p>
+              <v-btn size="small" rounded color="primary" variant="flat" @click="goToEmails">
+                {{ copy.universityEmail.button }}
+              </v-btn>
+            </div>
+            <div v-if="orcidOffer" class="claim-option">
+              <p>{{ copy.orcid.body(profileOrcid) }}</p>
+              <v-btn size="small" rounded variant="outlined" color="primary" :href="orcidUrl">
+                {{ copy.orcid.button }}
+              </v-btn>
+            </div>
+            <p class="mt-4 mb-1">{{ copy.sendNewLink }}</p>
+            <v-text-field
               v-model="evidence"
-              :rows="5"
-              auto-grow
-              maxlength="2000"
-              :placeholder="evidencePlaceholder"
+              :placeholder="copy.link.placeholder"
               variant="outlined"
+              density="compact"
               hide-details="auto"
+              maxlength="2000"
+              @keydown.enter="canSubmit && submitClaim()"
             />
-            <div v-if="errorMessage" class="text-error mt-2">
-              {{ errorMessage }}
+          </template>
+
+          <!-- The form: university email, ORCID, or a link -->
+          <template v-else>
+            <div class="claim-option best">
+              <div class="font-weight-bold mb-1">{{ copy.universityEmail.title }}</div>
+              <p>{{ copy.universityEmail.body }}</p>
+              <v-btn size="small" rounded color="primary" variant="flat" @click="goToEmails">
+                {{ copy.universityEmail.button }}
+              </v-btn>
+            </div>
+            <div v-if="orcidOffer" class="claim-option">
+              <div class="font-weight-bold mb-1">{{ copy.orcid.title }}</div>
+              <p>{{ copy.orcid.body(profileOrcid) }}</p>
+              <v-btn size="small" rounded variant="outlined" color="primary" :href="orcidUrl">
+                {{ copy.orcid.button }}
+              </v-btn>
+            </div>
+            <div class="claim-option">
+              <div class="font-weight-bold mb-1">{{ copy.link.title }}</div>
+              <p class="mb-1">{{ copy.link.intro }} <span class="claim-email">{{ userEmail }}</span></p>
+              <ul class="claim-evidence">
+                <li class="yes">{{ copy.link.good[0] }}</li>
+                <li class="yes">{{ copy.link.good[1](userEmail) }}</li>
+                <li class="no">{{ copy.link.bad[0] }}</li>
+                <li class="no">{{ copy.link.bad[1] }}</li>
+              </ul>
+              <p><b>{{ copy.link.whyTitle }}</b> {{ copy.link.why }}</p>
+              <v-text-field
+                v-model="evidence"
+                :placeholder="copy.link.placeholder"
+                variant="outlined"
+                density="compact"
+                hide-details="auto"
+                maxlength="2000"
+                @keydown.enter="canSubmit && submitClaim()"
+              />
+              <p class="text-medium-emphasis mt-2 mb-0">{{ copy.link.after }}</p>
             </div>
           </template>
+
+          <div v-if="errorMessage" class="text-error mt-2">
+            {{ errorMessage }}
+          </div>
         </div>
         <v-card-actions>
           <v-spacer />
@@ -128,17 +192,27 @@
             :disabled="isLoading"
             @click="closeEvidenceDialog"
           >
-            {{ resultMessage ? 'Close' : 'Cancel' }}
+            {{ ['form', 'needs_evidence', 'instant'].includes(view) ? 'Cancel' : 'Close' }}
           </v-btn>
           <v-btn
-            v-if="!resultMessage"
+            v-if="view === 'instant'"
             color="primary"
             rounded
-            variant="text"
+            variant="flat"
+            :disabled="isLoading"
+            @click="submitClaim"
+          >
+            {{ copy.instant.button }}
+          </v-btn>
+          <v-btn
+            v-else-if="view === 'form' || view === 'needs_evidence'"
+            color="primary"
+            rounded
+            variant="flat"
             :disabled="!canSubmit || isLoading"
             @click="submitClaim"
           >
-            Submit claim
+            {{ copy.link.button }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -153,6 +227,7 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig.js';
+import { copy, reasonText, claimView, orcidAuthorizeUrl, ORCID_CLIENT_ID } from './claimCopy.js';
 
 defineOptions({ name: 'EntityHeaderClaimProfileButton' });
 
@@ -168,25 +243,46 @@ const userEmail = computed(() => store.getters['user/userEmail']);
 const hasAnyClaim = computed(() => store.getters['user/hasAnyClaim']);
 const pendingClaim = computed(() => store.getters['user/pendingClaim']);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
+const userClaim = computed(() => store.getters['user/userClaim']);
+const claimEligibility = computed(() => store.getters['user/claimEligibility']);
 const claimedByUser = ref(null);
+const pollTimedOut = ref(false);
+const profileOrcid = ref(null);
 
-const evidencePlaceholder = "here's my departmental webpage: example.edu/~me";
+// The trusted email that makes the claim instant (else the account email).
+const eligibleEmail = computed(() => {
+  const emails = store.state.user?.emails || [];
+  const verified = emails.filter((e) => e.is_verified || e.verified_at).map((e) => e.email);
+  return verified.find((e) => e && e !== userEmail.value) || userEmail.value;
+});
+const view = computed(() => claimView({
+  claim: userClaim.value,
+  eligibility: claimEligibility.value,
+  authorId: props.authorId,
+}));
+const reason = computed(() => reasonText(userClaim.value?.feedback_code, {
+  email: userEmail.value,
+  link: userClaim.value?.feedback_link,
+}));
+const orcidOffer = computed(() => !!ORCID_CLIENT_ID && !!profileOrcid.value);
+const orcidUrl = computed(() => orcidAuthorizeUrl({
+  origin: window.location.origin,
+  authorId: props.authorId,
+}));
 
 const isLoginPromptDialogOpen = ref(false);
 const isEvidenceDialogOpen = ref(false);
 const isLoading = ref(false);
 const evidence = ref('');
 const errorMessage = ref('');
-const resultMessage = ref('');
 const claimStatusKnown = ref(false);
 const claimedByOther = ref(false);
 // A pending (submitted, not-yet-approved) claim by ANYONE on this author.
 const pendingByAnyone = ref(false);
 
-// No minimum length; just require non-empty (after stripping any tags) and
-// within the 2000-char cap.
+// A link is required on the review path; the server decides if it's good.
 const trimmedLength = computed(() => evidence.value.replace(/<[^>]*>/g, '').trim().length);
-const canSubmit = computed(() => trimmedLength.value > 0 && trimmedLength.value <= 2000);
+const canSubmit = computed(() => trimmedLength.value > 3 && trimmedLength.value <= 2000);
 
 const showClaimedBadge = computed(() =>
   claimStatusKnown.value && claimedByOther.value
@@ -240,8 +336,8 @@ const pendingTooltip = computed(() => {
     return `Claim pending by ${who} — open admin`;
   }
   return ownPendingHere.value
-    ? 'Your claim is under review'
-    : 'A claim on this profile is under review';
+    ? 'We are checking your claim'
+    : 'A claim on this profile is being checked';
 });
 
 async function fetchClaimStatus() {
@@ -288,15 +384,31 @@ watch(() => props.authorId, fetchClaimStatus);
 // isAdmin can resolve after mount (user loads async) — fetch claimant then.
 watch(isAdmin, maybeFetchClaimedBy);
 
+async function fetchProfileOrcid() {
+  if (!ORCID_CLIENT_ID || !props.authorId) return;
+  try {
+    const resp = await axios.get(`${urlBase.api}/authors/${shortId(props.authorId)}?select=orcid`);
+    profileOrcid.value = (resp.data?.orcid || '').split('/').pop() || null;
+  } catch (e) {
+    profileOrcid.value = null;
+  }
+}
+
 function clickClaim() {
   errorMessage.value = '';
-  resultMessage.value = '';
   evidence.value = '';
+  pollTimedOut.value = false;
   if (!userId.value) {
     isLoginPromptDialogOpen.value = true;
   } else {
     isEvidenceDialogOpen.value = true;
+    fetchProfileOrcid();
   }
+}
+
+function goToEmails() {
+  isEvidenceDialogOpen.value = false;
+  router.push({ name: 'settings-profile', hash: '#emails' });
 }
 
 function goToLogin() {
@@ -311,33 +423,31 @@ function closeEvidenceDialog() {
 async function submitClaim() {
   errorMessage.value = '';
   isLoading.value = true;
+  pollTimedOut.value = false;
   try {
     const data = await store.dispatch('user/setAuthorId', {
       authorId: props.authorId,
-      evidence: evidence.value,
+      evidence: view.value === 'instant' ? '' : evidence.value,
     });
-    resultMessage.value = data?.message
-      || (data?.auto_approved
-        ? 'Claim accepted — this is now your profile.'
-        : 'Thanks, your claim is being reviewed.');
-    // Immediate confirmation that survives the dialog/button swap.
-    store.commit('snackbar', {
-      msg: resultMessage.value,
-      color: data?.auto_approved ? 'success' : 'warning',
-    });
-    // Refresh public status so the pending/claimed state is coherent here
-    // without a reload (and for anyone who lands on this page next).
+    evidence.value = '';
+    isLoading.value = false;
+    if (!data?.auto_approved) {
+      // The verifier answers within about a minute; the view follows the claim.
+      const claim = await store.dispatch('user/pollClaim', { timeoutMs: 120000 });
+      if (claim?.decision === 'pending') pollTimedOut.value = true;
+    }
+    if (store.getters['user/userAuthorId']) {
+      store.commit('snackbar', { msg: 'Your claim is approved.', color: 'success' });
+    }
+    // Refresh public status so the pending/claimed state is coherent here.
     fetchClaimStatus();
   } catch (err) {
     const status = err?.response?.status;
-    if (status === 409) {
+    if (status === 409 || status === 400 || status === 429) {
       errorMessage.value = err?.response?.data?.message
-        || 'This author is already claimed, or you already have a claim on file.';
-    } else if (status === 400) {
-      errorMessage.value = err?.response?.data?.message
-        || 'Could not submit claim. Please check your evidence and try again.';
+        || 'Could not send your claim. Please try again.';
     } else {
-      errorMessage.value = 'Could not submit claim. Please try again later.';
+      errorMessage.value = 'Could not send your claim. Please try again later.';
     }
   } finally {
     isLoading.value = false;
@@ -347,6 +457,50 @@ async function submitClaim() {
 
 
 <style scoped lang="scss">
+.claim-dialog p {
+  margin-bottom: 8px;
+}
+.claim-option {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 10px 0;
+
+  &.best {
+    border-color: rgb(var(--v-theme-primary));
+    background: rgba(var(--v-theme-primary), 0.04);
+  }
+}
+.claim-email {
+  font-family: ui-monospace, Menlo, monospace;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.claim-evidence {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 10px;
+
+  li {
+    padding: 2px 0 2px 24px;
+    position: relative;
+  }
+  li.yes::before {
+    content: "✓";
+    color: rgb(var(--v-theme-success));
+    position: absolute;
+    left: 4px;
+    font-weight: 700;
+  }
+  li.no::before {
+    content: "✗";
+    color: rgb(var(--v-theme-error));
+    position: absolute;
+    left: 4px;
+    font-weight: 700;
+  }
+}
 .admin-claim-link {
   cursor: pointer;
 

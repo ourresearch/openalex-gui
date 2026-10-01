@@ -39,6 +39,8 @@ export default {
         orgRateThrottled: false,
         emails: [],
         claim: null,
+        claimEligibility: null,  // 'instant' | 'review' (users-api /users/me)
+        verifiedOrcid: null,     // ORCID iD proven by ORCID sign-in (#1466)
         savedSearches: [],
         // True once /saved-search has returned at least once this session
         // (oxjob #860: the list loads in the background after /users/me, so an
@@ -142,6 +144,8 @@ export default {
             state.orgRateThrottled = !!apiResp.org_rate_throttled
             state.emails = apiResp.emails || []
             state.claim = apiResp.claim || null
+            state.claimEligibility = apiResp.claim_eligibility || null
+            state.verifiedOrcid = apiResp.verified_orcid || null
         },
         setEmails(state, emails) {
             state.emails = emails || []
@@ -426,7 +430,30 @@ export default {
                 axiosConfig({userAuth: true})
             )
             await dispatch("fetchUser")
-            return resp.data  // {auto_approved, claim_id, message}
+            return resp.data  // {auto_approved, claim_id, decision, message}
+        },
+
+        // The verifier answers a claim within about a minute (#1466). Poll
+        // /users/me until the claim leaves 'pending', or give up after timeoutMs.
+        async pollClaim({dispatch, state}, {timeoutMs = 120000, everyMs = 3000} = {}) {
+            const until = Date.now() + timeoutMs
+            while (Date.now() < until) {
+                await new Promise((res) => setTimeout(res, everyMs))
+                await dispatch("fetchUser")
+                if (!state.claim || state.claim.decision !== 'pending') break
+            }
+            return state.claim
+        },
+
+        // ORCID sign-in (#1466): exchange the code from orcid.org for a verified iD.
+        async linkOrcid({dispatch}, {code, redirectUri}) {
+            const resp = await axios.post(
+                apiBaseUrl + "/users/me/orcid",
+                {code, redirect_uri: redirectUri},
+                axiosConfig({userAuth: true})
+            )
+            await dispatch("fetchUser")
+            return resp.data
         },
 
         async deleteAuthorId({commit, dispatch, state, getters}) {
@@ -839,9 +866,16 @@ export default {
         userEmail: (state) => state.email,
         userAuthorId: (state) => state.authorId,
         userClaim: (state) => state.claim,
+        // 'pending' = the verifier is checking it right now (a minute or so).
+        // A needs_evidence claim is not pending: the user can send a new link
+        // or claim another profile (#1466).
         pendingClaim: (state) =>
-            state.claim && !state.claim.auto_approved ? state.claim : null,
-        hasAnyClaim: (state) => !!(state.authorId || state.claim),
+            state.claim && state.claim.decision === 'pending' ? state.claim : null,
+        needsEvidenceClaim: (state) =>
+            state.claim && state.claim.decision === 'needs_evidence' ? state.claim : null,
+        claimEligibility: (state) => state.claimEligibility,
+        verifiedOrcid: (state) => state.verifiedOrcid,
+        hasAnyClaim: (state) => !!(state.authorId || (state.claim && state.claim.decision === 'pending')),
         apiKey: (state) => state.apiKey,
         userSavedSearches: (state) => state.savedSearches,
         savedSearchesLoaded: (state) => state.savedSearchesLoaded,

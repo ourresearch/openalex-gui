@@ -157,7 +157,10 @@
 
               <!-- Decision state / actions -->
               <div class="text-right">
-                <template v-if="claim.decision === 'pending'">
+                <template v-if="claim.decision === 'pending' || claim.decision === 'needs_evidence'">
+                  <div v-if="claim.decision === 'needs_evidence'" class="text-caption text-medium-emphasis mb-1">
+                    Needs evidence: {{ claim.feedback_code }}<template v-if="claim.feedback_link"> · {{ claim.feedback_link }}</template>
+                  </div>
                   <div class="d-flex ga-2">
                     <v-btn
                       color="success"
@@ -192,6 +195,7 @@
                   <div class="text-caption text-medium-emphasis mt-1">
                     {{ formatRelativeShort(claim.decided_at) }}
                     <template v-if="claim.decision_note"> · "{{ claim.decision_note }}"</template>
+                    <template v-if="claim.verified_by"> · via {{ claim.verified_by }}</template>
                   </div>
                 </template>
               </div>
@@ -270,6 +274,7 @@ const loading = ref(false);
 const decisionFilter = ref('pending');
 const decisionOptions = [
   { title: 'Pending', value: 'pending' },
+  { title: 'Needs evidence', value: 'needs_evidence' },
   { title: 'Approved', value: 'approved' },
   { title: 'Rejected', value: 'rejected' },
   { title: 'All', value: 'all' },
