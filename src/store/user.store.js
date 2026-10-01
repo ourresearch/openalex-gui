@@ -456,6 +456,11 @@ export default {
             return resp.data
         },
 
+        async unlinkOrcid({dispatch}) {
+            await axios.delete(apiBaseUrl + "/users/me/orcid", axiosConfig({userAuth: true}))
+            await dispatch("fetchUser")
+        },
+
         async deleteAuthorId({commit, dispatch, state, getters}) {
             const authorId = state.authorId
             const myUrl = apiBaseUrl + `/users/${getters.userId}/author/${authorId}`

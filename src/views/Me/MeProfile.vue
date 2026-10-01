@@ -15,6 +15,7 @@
           @keydown.enter="$event.target.blur()"
         />
       </SettingsRow>
+      <OrcidSettingsRow id="orcid" />
       <AuthorProfileSection />
     </SettingsSection>
 
@@ -68,6 +69,7 @@ import SettingsSection from '@/components/Settings/SettingsSection.vue';
 import SettingsRow from '@/components/Settings/SettingsRow.vue';
 import EmailsList from '@/components/Settings/EmailsList.vue';
 import AuthorProfileSection from '@/components/AuthorProfile/AuthorProfileSection.vue';
+import OrcidSettingsRow from '@/components/Orcid/OrcidSettingsRow.vue';
 import DeleteAccountDialog from '@/components/User/DeleteAccountDialog.vue';
 
 defineOptions({ name: 'MeAbout' });

@@ -23,12 +23,19 @@ export const copy = {
     button: 'Add a university email',
   },
   orcid: {
-    title: 'Or prove it with ORCID',
+    title: 'Or link your ORCID',
     body: (orcid) =>
-      `This profile has the ORCID iD ${orcid}. If this is your ORCID iD, sign in to ORCID. `
-      + 'We approve your claim right away.',
-    button: 'Sign in with ORCID',
+      `This profile has the ORCID iD ${orcid}. If this is your ORCID iD, link your ORCID to your OpenAlex account. `
+      + 'Then we approve your claim right away.',
+    button: 'Link your ORCID',
   },
+  // The account's linked ORCID iD is on this profile (#1475): one click.
+  orcidLinked: {
+    body: (orcid) =>
+      `Your linked ORCID iD (${orcid}) is on this profile, so we approve your claim right away.`,
+    button: 'Claim this profile',
+  },
+  checkingOrcid: 'Checking your ORCID iD…',
   link: {
     title: 'Or send a link that shows your email',
     intro: 'Send a link to a page that shows this email address:',
@@ -57,10 +64,38 @@ export const copy = {
     + 'we approve your claim right away.',
   sendNewLink: 'Or send us a new link:',
   orcidCallback: {
-    linking: 'Signing you in with ORCID…',
-    failed: 'We could not finish the ORCID sign-in. Please try again from the profile page.',
+    linking: 'Linking your ORCID…',
+    failed: 'We could not link your ORCID. Please try again.',
+    linked: 'Your ORCID is linked.',
+    backToSettings: 'Back to Settings',
+  },
+  // Settings → Profile (#1475). "Link" is the one word for this everywhere.
+  orcidSettings: {
+    label: 'ORCID',
+    notLinked: 'Link your ORCID iD to your OpenAlex account. '
+      + 'If your author profile has this iD, you can then claim it in one click.',
+    linked: 'Your ORCID iD is linked to your account.',
+    linkButton: 'Link your ORCID',
+    linkedChip: 'Linked',
+    unlinkButton: 'Unlink',
+    unlinkConfirm: 'Unlink your ORCID iD?',
+    unlinkKeepsProfile: 'Your claimed profile stays yours.',
+    unlinkYes: 'Unlink',
+    unlinkNo: 'Cancel',
+    unlinked: 'Your ORCID is unlinked.',
+  },
+  // A linked ORCID iD is on OpenAlex profiles and the account has none (#1475).
+  orcidFound: {
+    one: (name, works) => `We found your profile: ${name} (${worksText(works)}). It has your ORCID iD.`,
+    several: (n) => `We found ${n} profiles with your ORCID iD:`,
+    button: 'Claim it',
   },
 };
+
+function worksText(n) {
+  const k = Number(n) || 0;
+  return `${k.toLocaleString('en-US')} ${k === 1 ? 'work' : 'works'}`;
+}
 
 // The middle paragraph of a "not yet" answer, by users-api feedback_code.
 export function reasonText(code, { email, link } = {}) {
@@ -90,22 +125,46 @@ export function reasonText(code, { email, link } = {}) {
 const shortId = (x) => (x || '').split('/').pop().toLowerCase();
 
 // Which screen the claim window shows for this user and this profile.
-//   instant | form | checking | approved | needs_evidence
-export function claimView({ claim, eligibility, authorId }) {
+//   instant | orcid | form | checking | approved | needs_evidence
+// `orcidMatch`: the account's linked ORCID iD is this profile's iD.
+export function claimView({ claim, eligibility, authorId, orcidMatch = false }) {
   const here = claim && shortId(claim.author_id) === shortId(authorId);
   if (here && claim.decision === 'approved') return 'approved';
   if (here && claim.decision === 'pending') return 'checking';
   if (here && claim.decision === 'needs_evidence') return 'needs_evidence';
-  return eligibility === 'instant' ? 'instant' : 'form';
+  if (eligibility === 'instant') return 'instant';
+  return orcidMatch ? 'orcid' : 'form';
 }
 
-export function orcidAuthorizeUrl({ clientId = ORCID_CLIENT_ID, origin, authorId }) {
+// The bare iD (0000-0002-1825-0097) from an iD or an orcid.org URL; '' if none.
+export function bareOrcid(x) {
+  return (x || '').trim().split('/').pop().toUpperCase();
+}
+
+export function sameOrcid(a, b) {
+  return !!bareOrcid(a) && bareOrcid(a) === bareOrcid(b);
+}
+
+// ORCID accepts one registered redirect (/orcid-callback), so `state` says where
+// the user started: 'settings' (link only) or an author id (link, then claim).
+export const ORCID_STATE_SETTINGS = 'settings';
+
+export function orcidAuthorizeUrl({ clientId = ORCID_CLIENT_ID, origin, authorId, state }) {
   const params = new URLSearchParams({
     client_id: clientId,
     response_type: 'code',
     scope: '/authenticate',
     redirect_uri: `${origin}/orcid-callback`,
-    state: shortId(authorId).toUpperCase(),
+    state: state || shortId(authorId).toUpperCase(),
   });
   return `${ORCID_AUTHORIZE_URL}?${params.toString()}`;
+}
+
+// Where /orcid-callback goes after linking, from the `state` ORCID sends back.
+//   {flow: 'claim', authorId: 'A123'} | {flow: 'settings'}
+// Anything that isn't an author id links the iD and returns to Settings.
+export function orcidCallbackFlow(state) {
+  const s = String(state || '').trim();
+  if (/^A\d+$/i.test(s)) return { flow: 'claim', authorId: s.toUpperCase() };
+  return { flow: 'settings' };
 }

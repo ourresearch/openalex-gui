@@ -93,7 +93,7 @@
       v-model="isEvidenceDialogOpen"
       :persistent="isLoading"
     >
-      <v-card rounded :loading="isLoading || view === 'checking'">
+      <v-card rounded :loading="isLoading || orcidLoading || view === 'checking'">
         <v-card-title>{{ copy.title }}</v-card-title>
         <div class="pa-4 pt-1 text-body-2 claim-dialog">
 
@@ -102,9 +102,17 @@
             <p>{{ copy.instant.body(eligibleEmail) }}</p>
           </template>
 
+          <!-- The linked ORCID iD is this profile's iD: one click (#1475) -->
+          <template v-else-if="view === 'orcid'">
+            <p class="d-flex align-center ga-2">
+              <OrcidIcon :size="18" />
+              <span>{{ copy.orcidLinked.body(profileOrcid) }}</span>
+            </p>
+          </template>
+
           <!-- Being checked right now -->
           <template v-else-if="view === 'checking'">
-            <p v-if="!pollTimedOut">{{ copy.checking }}</p>
+            <p v-if="!pollTimedOut">{{ orcidMatch ? copy.checkingOrcid : copy.checking }}</p>
             <p v-else>{{ copy.stillChecking }}</p>
           </template>
 
@@ -126,7 +134,7 @@
             <div v-if="orcidOffer" class="claim-option">
               <p>{{ copy.orcid.body(profileOrcid) }}</p>
               <v-btn size="small" rounded variant="outlined" color="primary" :href="orcidUrl">
-                {{ copy.orcid.button }}
+                <OrcidIcon :size="14" class="mr-2" />{{ copy.orcid.button }}
               </v-btn>
             </div>
             <p class="mt-4 mb-1">{{ copy.sendNewLink }}</p>
@@ -154,7 +162,7 @@
               <div class="font-weight-bold mb-1">{{ copy.orcid.title }}</div>
               <p>{{ copy.orcid.body(profileOrcid) }}</p>
               <v-btn size="small" rounded variant="outlined" color="primary" :href="orcidUrl">
-                {{ copy.orcid.button }}
+                <OrcidIcon :size="14" class="mr-2" />{{ copy.orcid.button }}
               </v-btn>
             </div>
             <div class="claim-option">
@@ -192,7 +200,7 @@
             :disabled="isLoading"
             @click="closeEvidenceDialog"
           >
-            {{ ['form', 'needs_evidence', 'instant'].includes(view) ? 'Cancel' : 'Close' }}
+            {{ ['form', 'needs_evidence', 'instant', 'orcid'].includes(view) ? 'Cancel' : 'Close' }}
           </v-btn>
           <v-btn
             v-if="view === 'instant'"
@@ -203,6 +211,16 @@
             @click="submitClaim"
           >
             {{ copy.instant.button }}
+          </v-btn>
+          <v-btn
+            v-else-if="view === 'orcid'"
+            color="primary"
+            rounded
+            variant="flat"
+            :disabled="isLoading"
+            @click="submitClaim"
+          >
+            {{ copy.orcidLinked.button }}
           </v-btn>
           <v-btn
             v-else-if="view === 'form' || view === 'needs_evidence'"
@@ -227,7 +245,8 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig.js';
-import { copy, reasonText, claimView, orcidAuthorizeUrl, ORCID_CLIENT_ID } from './claimCopy.js';
+import { copy, reasonText, claimView, orcidAuthorizeUrl, sameOrcid, ORCID_CLIENT_ID } from './claimCopy.js';
+import OrcidIcon from '@/components/Orcid/OrcidIcon.vue';
 
 defineOptions({ name: 'EntityHeaderClaimProfileButton' });
 
@@ -248,6 +267,9 @@ const claimEligibility = computed(() => store.getters['user/claimEligibility']);
 const claimedByUser = ref(null);
 const pollTimedOut = ref(false);
 const profileOrcid = ref(null);
+const orcidLoading = ref(false);
+const verifiedOrcid = computed(() => store.getters['user/verifiedOrcid']);
+const orcidMatch = computed(() => sameOrcid(verifiedOrcid.value, profileOrcid.value));
 
 // The trusted email that makes the claim instant (else the account email).
 const eligibleEmail = computed(() => {
@@ -259,12 +281,13 @@ const view = computed(() => claimView({
   claim: userClaim.value,
   eligibility: claimEligibility.value,
   authorId: props.authorId,
+  orcidMatch: orcidMatch.value,
 }));
 const reason = computed(() => reasonText(userClaim.value?.feedback_code, {
   email: userEmail.value,
   link: userClaim.value?.feedback_link,
 }));
-const orcidOffer = computed(() => !!ORCID_CLIENT_ID && !!profileOrcid.value);
+const orcidOffer = computed(() => !!ORCID_CLIENT_ID && !!profileOrcid.value && !orcidMatch.value);
 const orcidUrl = computed(() => orcidAuthorizeUrl({
   origin: window.location.origin,
   authorId: props.authorId,
@@ -386,11 +409,14 @@ watch(isAdmin, maybeFetchClaimedBy);
 
 async function fetchProfileOrcid() {
   if (!ORCID_CLIENT_ID || !props.authorId) return;
+  orcidLoading.value = true;
   try {
     const resp = await axios.get(`${urlBase.api}/authors/${shortId(props.authorId)}?select=orcid`);
     profileOrcid.value = (resp.data?.orcid || '').split('/').pop() || null;
   } catch (e) {
     profileOrcid.value = null;
+  } finally {
+    orcidLoading.value = false;
   }
 }
 
@@ -427,7 +453,7 @@ async function submitClaim() {
   try {
     const data = await store.dispatch('user/setAuthorId', {
       authorId: props.authorId,
-      evidence: view.value === 'instant' ? '' : evidence.value,
+      evidence: ['instant', 'orcid'].includes(view.value) ? '' : evidence.value,
     });
     evidence.value = '';
     isLoading.value = false;
