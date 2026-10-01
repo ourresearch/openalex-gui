@@ -622,13 +622,9 @@
 </template>
 
 <script setup>
-import { useHead } from '@unhead/vue';
-
 defineOptions({
   name: 'Funders2026Page',
 });
-
-useHead({ title: 'Enriching OpenAlex with Comprehensive Grant Metadata — London Workshop 2026' });
 </script>
 
 <style scoped>

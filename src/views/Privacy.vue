@@ -32,13 +32,10 @@
 </template>
 
 <script setup>
-import { useHead } from '@unhead/vue';
 import StaticPage from '@/components/StaticPage/StaticPage.vue';
 import StaticSection from '@/components/StaticPage/StaticSection.vue';
 
 defineOptions({ name: 'PrivacyPage' });
-
-useHead({ title: 'Privacy' });
 
 const sections = [
   { id: 'policy', label: 'Privacy policy' },

@@ -111,7 +111,6 @@
 
 
 <script setup>
-import { useHead } from '@unhead/vue';
 import StaticPage from '@/components/StaticPage/StaticPage.vue';
 import StaticSection from '@/components/StaticPage/StaticSection.vue';
 import JobsAboutUs from '@/components/Jobs/JobsAboutUs.vue';
@@ -121,10 +120,6 @@ import JobApplicationForm from '@/components/Jobs/JobApplicationForm.vue';
 import JobHiringProcess from '@/components/Jobs/JobHiringProcess.vue';
 
 defineOptions({ name: 'JobsOperationsAssociatePage' });
-
-useHead({
-  title: 'Operations Associate',
-});
 
 const crumbs = [
   { label: 'OpenAlex', to: '/' },

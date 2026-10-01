@@ -477,20 +477,12 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useHead } from '@unhead/vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 
 defineOptions({ name: 'PricingPageNewer' });
-
-useHead({
-  title: 'Pricing - OpenAlex',
-  meta: [
-    { name: 'description', content: 'Simple, transparent pricing for the OpenAlex API. Start free, scale as you grow.' }
-  ]
-});
 
 // Docs live on the new help center (oxjob #354/#750); flip to
 // https://help.openalex.org/access at cutover — MembersPage.vue HELP_BASE too.

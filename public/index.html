@@ -60,9 +60,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@200..800&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 </head>
 <body>
+<!-- The only body text a client without JavaScript sees, on every page
+     (oxjob #1486). Bots read this: point them at the API for the data. -->
 <noscript>
-    <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled.
-        Please enable it to continue.</strong>
+    <p><strong>OpenAlex needs JavaScript to run in your browser.</strong></p>
+    <p>OpenAlex is a free and open catalog of the world's research. To get the data without a browser, use the
+        OpenAlex API: <a href="https://help.openalex.org/">help.openalex.org</a> explains how, and
+        <a href="https://help.openalex.org/llms.txt">help.openalex.org/llms.txt</a> lists every docs page.</p>
 </noscript>
 <!-- Boot skeleton (oxjob #860): a plain-HTML copy of the 56px site top bar so a
      cold visitor sees the site chrome while the JS bundle downloads, instead of a

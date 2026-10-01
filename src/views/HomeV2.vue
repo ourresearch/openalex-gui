@@ -202,7 +202,6 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useGoTo } from 'vuetify';
-import { useHead } from '@unhead/vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
 
@@ -213,11 +212,6 @@ import { urlBase } from '@/apiConfig';
 
 const store = useStore();
 const goTo = useGoTo();
-
-useHead({
-  title: 'OpenAlex: The open catalog to the global research system',
-  titleTemplate: undefined,
-});
 
 import layerCake from '@/assets/landing/layer-cake.webp';
 

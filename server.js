@@ -1,4 +1,5 @@
 const express = require('express');
+const fs = require('fs');
 const path = require('path');
 const compression = require('compression');
 const serveStatic = require('serve-static');
@@ -53,12 +54,44 @@ app.use(serveStatic(dist, {
     },
 }));
 
+// A missing file is a 404, not the app (oxjob #1486): otherwise /js/anything
+// boots the SPA, which makes the asset prefixes a way into it. Covers the
+// asset directories above plus any top-level file (/favicon.ico,
+// /sitemap.xml) or brand asset: no app route is a single segment with a file
+// extension. Deeper paths are left alone, since entity routes can end in one
+// (DOIs, location URLs).
+const MISSING_FILE = /^\/((js|css|fonts|img)\/|(brand-assets\/)?[^/]+\.\w+$)/i;
+
+// The SPA shell, plus a copy per company page carrying its own title,
+// description, canonical and Open Graph tags so bots that don't run
+// JavaScript can read them (oxjob #1486; the map is src/companyPages.mjs).
+// Neither is cached: the hashed asset URLs inside change per deploy.
+const shell = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
+let companyPageHtml = new Map();
+
 app.get('*', function (req, res) {
-    // The SPA shell: never cache (hashed asset URLs inside it change per deploy).
-    res.sendFile(path.join(dist, 'index.html'), {cacheControl: false, headers: {'Cache-Control': 'no-cache'}});
+    if (MISSING_FILE.test(req.path)) {
+        res.status(404).type('text/plain').send('Not found');
+        return;
+    }
+    const pagePath = req.path.length > 1 ? req.path.replace(/\/+$/, '') : req.path;
+    res.set('Cache-Control', 'no-cache').type('html').send(companyPageHtml.get(pagePath) || shell);
 });
 
+async function loadCompanyPageHtml() {
+    try {
+        const { renderCompanyPageHtml } = await import('./companyPageHtml.mjs');
+        companyPageHtml = await renderCompanyPageHtml(shell);
+        console.log('Company page heads rendered: ' + companyPageHtml.size);
+    } catch (err) {
+        // Never keep the site down over this: every page falls back to the shell.
+        console.error('Company page heads not rendered; serving the shell for every page.', err);
+    }
+}
+
 const port = process.env.PORT || 5000;
-app.listen(port, () => {
-    console.log('Listening on port ' + port)
+loadCompanyPageHtml().then(() => {
+    app.listen(port, () => {
+        console.log('Listening on port ' + port)
+    });
 });

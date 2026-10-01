@@ -397,13 +397,9 @@
 </template>
 
 <script setup>
-import { useHead } from '@unhead/vue';
-
 defineOptions({
   name: 'Paris2026Page',
 });
-
-useHead({ title: 'OpenAlex Users Meeting — Paris, 20–21 October 2026' });
 </script>
 
 <style scoped>

@@ -172,13 +172,10 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { useHead } from '@unhead/vue';
 
 defineOptions({
   name: 'BrandPage',
 });
-
-useHead({ title: 'Brand' });
 
 const logoAssets = ref([
   { label: 'Logo lockup', file: 'openalex-lockup.png', src: '/brand-assets/openalex-lockup.png', dark: false },

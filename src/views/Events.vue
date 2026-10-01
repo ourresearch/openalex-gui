@@ -90,13 +90,10 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useHead } from '@unhead/vue';
 import StaticPage from '@/components/StaticPage/StaticPage.vue';
 import StaticSection from '@/components/StaticPage/StaticSection.vue';
 
 defineOptions({ name: 'EventsPage' });
-
-useHead({ title: 'Events' });
 
 const sections = [
   { id: 'webinars', label: 'Webinars' },

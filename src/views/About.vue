@@ -229,15 +229,12 @@
 </template>
 
 <script setup>
-import { useHead } from '@unhead/vue';
 import StaticPage from '@/components/StaticPage/StaticPage.vue';
 import StaticSection from '@/components/StaticPage/StaticSection.vue';
 
 defineOptions({
   name: 'AboutPage',
 });
-
-useHead({ title: 'About' });
 
 const sections = [
   { id: 'what-we-do', label: 'What we do' },

@@ -71,6 +71,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify';
 import { useHead } from '@unhead/vue';
+import { titleTemplate, companyPageHead } from '@/companyPages.mjs';
 import axios from 'axios';
 
 import SavedSearchRenameDialog from '@/components/SavedSearch/SavedSearchRenameDialog.vue';
@@ -141,10 +142,14 @@ const homeRoute = computed(() => {
 
 // Head
 useHead({
-  titleTemplate: (title) => (title ? `${title} | OpenAlex` : 'OpenAlex'),
+  titleTemplate,
   link: [],
   meta: []
 });
+// Company pages (/about, /pricing, ...) take their whole head from the map in
+// companyPages.mjs, the same one server.js renders into their HTML for bots
+// (oxjob #1486). Those views don't call useHead themselves.
+useHead(() => companyPageHead(route.matched.at(-1)?.path) ?? {});
 
 function setFeatureFlags() {
   let urlParams = new URLSearchParams(window.location.search);

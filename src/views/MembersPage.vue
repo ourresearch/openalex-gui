@@ -75,7 +75,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
-import { useHead } from '@unhead/vue';
 import { urlBase } from '@/apiConfig';
 import StaticPage from '@/components/StaticPage/StaticPage.vue';
 import StaticSection from '@/components/StaticPage/StaticSection.vue';
@@ -89,13 +88,6 @@ const tocSections = [
   { id: 'partner', label: 'Partner' },
   { id: 'join', label: 'Become a supporter' },
 ];
-
-useHead({
-  title: 'Institutional supporters',
-  meta: [
-    { name: 'description', content: 'The academic institutions, libraries, and government agencies supporting OpenAlex as open research infrastructure — Member, Member+, and Partner tiers, benefits, and pricing.' }
-  ]
-});
 
 // Benefits content lives in ONE place now: the help center's Pricing docs
 // (oxjob #750) — this page is just the supporters lists + join CTA, so there's

@@ -34,17 +34,12 @@
 
 
 <script setup>
-import { useHead } from '@unhead/vue';
 import StaticPage from '@/components/StaticPage/StaticPage.vue';
 import StaticSection from '@/components/StaticPage/StaticSection.vue';
 import JobsAboutUs from '@/components/Jobs/JobsAboutUs.vue';
 import JobsAboutYou from '@/components/Jobs/JobsAboutYou.vue';
 
 defineOptions({ name: 'JobsPage' });
-
-useHead({
-  title: 'Jobs',
-});
 
 const sections = [
   { id: 'about-us', label: 'About us' },

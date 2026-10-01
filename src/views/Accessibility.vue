@@ -31,13 +31,10 @@
 </template>
 
 <script setup>
-import { useHead } from '@unhead/vue';
 import StaticPage from '@/components/StaticPage/StaticPage.vue';
 import StaticSection from '@/components/StaticPage/StaticSection.vue';
 
 defineOptions({ name: 'AccessibilityPage' });
-
-useHead({ title: 'Accessibility' });
 
 const sections = [
   { id: 'statement', label: 'Statement' },
