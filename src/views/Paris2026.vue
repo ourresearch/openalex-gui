@@ -26,7 +26,7 @@
                 <span class="meta-tag">Hosted by CNRS and Sorbonne Universit&eacute;</span>
                 <span class="meta-tag">Free, registration required</span>
             </div>
-            <p class="intro-note">This page is a draft. We are confirming speakers now and will fill in the programme as talks are confirmed. Session titles, times and breakout topics are our current plan and may still move.</p>
+            <p class="intro-note">This page is a draft. Confirmed talks are listed with their times; we will fill the remaining slots as speakers confirm. Times and breakout topics may still move a little.</p>
         </header>
 
         <!-- THE WEEK -->
@@ -41,7 +41,7 @@
                 </div>
                 <div class="f26-card">
                     <h4>Tuesday 20 October, CNRS</h4>
-                    <p class="card-text">Community talks. Nineteen presentations from people building with OpenAlex, in four themed sessions with discussion, plus a round of lightning demos. Coffee and lunch provided. Informal reception nearby in the evening.</p>
+                    <p class="card-text">Community talks. Around twenty presentations from people building with OpenAlex, in four themed sessions with discussion, plus a round of lightning demos. Coffee and lunch provided. Informal reception nearby in the evening.</p>
                     <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-break">social</span>
                 </div>
                 <div class="f26-card">
@@ -55,7 +55,7 @@
         <!-- DAY 1 -->
         <div class="section" id="day1">
             <h2 class="section-header">Day 1: Tuesday 20 October at CNRS</h2>
-            <p class="section-subtitle">Auditorium, CNRS headquarters, 3 rue Michel-Ange, 75016 Paris. Each talk has a fifteen-minute slot: about twelve minutes of presentation and at least three for questions. Talks are grouped into themed sessions. Speakers will be listed here as they confirm.</p>
+            <p class="section-subtitle">Auditorium, CNRS headquarters, 3 rue Michel-Ange, 75016 Paris. Each talk has a fifteen-minute slot: about twelve minutes of presentation and at least three for questions. Talks are grouped into themed sessions. Confirmed speakers are listed below with their slot; the remaining slots will be filled as speakers confirm.</p>
 
             <div class="day-card">
                 <h3>Programme</h3>
@@ -82,7 +82,11 @@
                         <h4>Session 1: Running an institution on open data</h4>
                         <p>Universities that have built their research information on OpenAlex: institutional directories and CRIS systems, expert finders built on the topic ontology, benchmarking against the Leiden Ranking Open Edition, and what it takes to keep the data right.</p>
                         <ul class="speaker-list">
-                            <li class="placeholder">Five talks, speakers to be confirmed</li>
+                            <li><span class="talk-time">09:15</span><span class="talk-title">UOC&rsquo;s journey with OpenAlex: data analysis, workflows, and transparency from an institutional perspective</span><span class="talk-speaker">Bruna Santanach L&oacute;pez and Maia Francisco Borruel, Universitat Oberta de Catalunya</span></li>
+                            <li><span class="talk-time">09:30</span><span class="talk-title">Druid: an institutional directory and dashboard powering research analytics with OpenAlex</span><span class="talk-speaker">Guillaume Godet, Nantes Universit&eacute;</span></li>
+                            <li><span class="talk-time">09:45</span><span class="talk-title">OpenAlex for institutional benchmarking and research strategy: a CRISalid approach</span><span class="talk-speaker">Henri Bretel, Universit&eacute; Paris-Saclay</span></li>
+                            <li><span class="talk-time">10:00</span><span class="talk-title">Sorbobot: turning OpenAlex&rsquo;s ontology into a conversational expert-finder</span><span class="talk-speaker">Nicolas Alarcon, Sorbonne Universit&eacute;</span></li>
+                            <li class="placeholder"><span class="talk-time">10:15</span>Talk to be confirmed</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
                     </div>
@@ -100,7 +104,11 @@
                         <h4>Session 2: National monitors and funder intelligence</h4>
                         <p>OpenAlex at national and funder scale: building a national research output database, a national open science monitor, a funder's research intelligence stack, and tracing who funds the infrastructure research depends on.</p>
                         <ul class="speaker-list">
-                            <li class="placeholder">Five talks, speakers to be confirmed</li>
+                            <li><span class="talk-time">10:50</span><span class="talk-title">OpenAlex as the research intelligence foundation for Cancer Research UK</span><span class="talk-speaker">Andrew Knowles, Cancer Research UK, and Jorge Gomez Magenti, Magenti Methodologies</span></li>
+                            <li><span class="talk-time">11:05</span><span class="talk-title">Observations from a study for creating a national output database</span><span class="talk-speaker">Patrick Peiffer, Biblioth&egrave;que nationale du Luxembourg</span></li>
+                            <li><span class="talk-time">11:20</span><span class="talk-title">Who pays for the plumbing? Tracing research infrastructure funding with OpenAlex</span><span class="talk-speaker">Sarah Lippincott, Invest in Open Infrastructure</span></li>
+                            <li><span class="talk-time">11:35</span><span class="talk-title">We placed 2,200 EMBO Members on a map with OpenAlex</span><span class="talk-speaker">Thomas Eidens, EMBO</span></li>
+                            <li class="placeholder"><span class="talk-time">11:50</span>Talk to be confirmed</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
                     </div>
@@ -130,7 +138,11 @@
                         <h4>Session 3: Mapping, foresight and signal detection</h4>
                         <p>Maps of science and patents, indicators of emerging topics, technology foresight, research intelligence platforms, and early-warning signals in research output, all computed from OpenAlex.</p>
                         <ul class="speaker-list">
-                            <li class="placeholder">Five talks, speakers to be confirmed</li>
+                            <li><span class="talk-time">14:00</span><span class="talk-title">KATI and OpenAlex: open science intelligence for technology foresight</span><span class="talk-speaker">Melanie Martini, Fraunhofer FKIE</span></li>
+                            <li><span class="talk-time">14:15</span><span class="talk-title">Building Map of Science and Map of Patents</span><span class="talk-speaker">Shruti Agarwal, Center for Security and Emerging Technology (CSET), Georgetown University</span></li>
+                            <li class="placeholder"><span class="talk-time">14:30</span>Talk to be confirmed</li>
+                            <li class="placeholder"><span class="talk-time">14:45</span>Talk to be confirmed</li>
+                            <li class="placeholder"><span class="talk-time">15:00</span>Talk to be confirmed</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
                     </div>
@@ -148,7 +160,10 @@
                         <h4>Session 4: Coverage, comparisons and quality</h4>
                         <p>How OpenAlex compares with proprietary databases for institutional benchmarking, what affiliation and coverage checks reveal, and what national repositories and heritage collections could add to the record.</p>
                         <ul class="speaker-list">
-                            <li class="placeholder">Five talks, speakers to be confirmed</li>
+                            <li><span class="talk-time">15:35</span><span class="talk-title">Through the OpenAlex looking-glass, and what Pers&eacute;e found there</span><span class="talk-speaker">Sitthida Samath, with Carole Vinot and Yuanyuan Bao, Pers&eacute;e (CNRS, ENS de Lyon), and Armelle Thomas, MSH Dijon</span></li>
+                            <li><span class="talk-time">15:50</span><span class="talk-title">How OpenAlex can benefit from HAL metadata richness</span><span class="talk-speaker">Yannick Barborini, CCSD (CNRS)</span></li>
+                            <li class="placeholder"><span class="talk-time">16:05</span>Talk to be confirmed</li>
+                            <li class="placeholder"><span class="talk-time">16:20</span>Talk to be confirmed</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
                     </div>
@@ -202,7 +217,11 @@
                         <h4>Talks to start the conversation</h4>
                         <p>A short set of talks chosen because each one opens a question the room will pick up in the afternoon: what it looks like to run a research office or a library on OpenAlex after leaving a proprietary database, building institutional indicators without a data team, and systematic searching with open indexes. Colleagues from Sorbonne Universit&eacute; and other French institutions will share their own work alongside. Same format as Tuesday: fifteen minutes per talk including questions.</p>
                         <ul class="speaker-list">
-                            <li class="placeholder">Five talks, speakers to be confirmed</li>
+                            <li><span class="talk-time">10:10</span><span class="talk-title">Building institutional indicators without being a data analyst, or knowing how to code</span><span class="talk-speaker">H&eacute;lo&iuml;se Gazeau, Universit&eacute; de Strasbourg</span></li>
+                            <li class="placeholder"><span class="talk-time">10:25</span>Talk to be confirmed</li>
+                            <li class="placeholder"><span class="talk-time">10:40</span>Talk to be confirmed</li>
+                            <li class="placeholder"><span class="talk-time">10:55</span>Talk to be confirmed</li>
+                            <li class="placeholder"><span class="talk-time">11:10</span>Talk to be confirmed</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span>
                     </div>
@@ -369,14 +388,15 @@
                         <li>Register for Tuesday, Wednesday, or both</li>
                         <li>Tuesday at CNRS has space for about 80 people</li>
                         <li>Wednesday at Sorbonne is limited to 50 by the rooms</li>
-                        <li>Registration closes on <strong>Monday 5 October</strong></li>
+                        <li>OpenAlex members, Member+ and Partner organisations have first access until <strong>Tuesday 6 October</strong></li>
+                        <li>Registration then opens to everyone and closes on <strong>Monday 12 October</strong></li>
                         <li>We confirm places by email shortly after, so you can book travel</li>
                     </ul>
                 </div>
                 <div class="f26-card">
                     <h4>If we are oversubscribed</h4>
                     <ul>
-                        <li>Speakers and hosts are confirmed first</li>
+                        <li>Speakers and hosts are confirmed first, then registrants from member organisations</li>
                         <li>Then people travelling to Paris for both days</li>
                         <li>Then we spread places across institutions and countries</li>
                         <li>Tuesday can take more local attendees than Wednesday</li>
@@ -690,6 +710,14 @@ useHead({ title: 'OpenAlex Users Meeting — Paris, 20–21 October 2026' });
     color: var(--f26-text-muted);
 }
 .speaker-list { margin-top: 0.5rem; }
+.speaker-list .talk-time {
+    display: inline-block;
+    width: 3.25rem;
+    font-weight: 600;
+    color: var(--f26-text-secondary);
+}
+.speaker-list .talk-title { color: var(--f26-text); font-weight: 500; }
+.speaker-list .talk-speaker { display: block; padding-left: 3.25rem; }
 .placeholder {
     font-style: italic;
     color: var(--f26-text-muted);
