@@ -865,14 +865,17 @@ export default {
             }
 
             try {
+                // mine=true + the auth header: the corrections API looks the
+                // user up itself, so their email never goes in a URL (#1479).
                 const params = new URLSearchParams({
-                    submitter_email: state.email,
+                    mine: 'true',
                     per_page: 200,
                     sort_order: 'desc',
                 });
-                
+
                 const resp = await axios.get(
-                    `${urlBase.correctionsApi}/v2/corrections?${params.toString()}`
+                    `${urlBase.correctionsApi}/v2/corrections?${params.toString()}`,
+                    axiosConfig({ userAuth: true })
                 );
                 
                 commit('setCorrections', resp.data.results || []);

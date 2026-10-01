@@ -475,7 +475,7 @@ import { useHead } from '@unhead/vue';
 import axios from 'axios';
 
 import { useParams } from '@/composables/useStorage';
-import { urlBase } from '@/apiConfig';
+import { urlBase, axiosConfig } from '@/apiConfig';
 
 useHead({ title: 'Unpaywall Curation Moderation' });
 
@@ -635,7 +635,8 @@ const getCurations = async () => {
       params.append('per_page', perPage.value);
     }
     
-    const response = await axios.get(`${correctionsHost}/v2/corrections?${params.toString()}`);
+    // Admin auth: the corrections API shows submitter emails only to admins (#1479)
+    const response = await axios.get(`${correctionsHost}/v2/corrections?${params.toString()}`, axiosConfig({ userAuth: true }));
     
     curations.value = response.data.results;
     pagination.value = response.data.pagination;
@@ -663,7 +664,7 @@ const isModerationQueue = computed(() => {
 const moderateCorrection = (id, value) => {
   const status = value ? "approved" : "denied";
   try {
-    axios.post(`${correctionsHost}/v2/corrections/${id}`, { status: status, moderator_email: moderatorEmail.value });
+    axios.post(`${correctionsHost}/v2/corrections/${id}`, { status: status, moderator_email: moderatorEmail.value }, axiosConfig({ userAuth: true }));
     curations.value = curations.value.map(c => c.id === id ? { ...c, status: status } : c);
     if (statusFilter.value === "needs-moderation") {
       moderatedOffset.value++;
