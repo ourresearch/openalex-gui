@@ -203,8 +203,14 @@ const filtersFromFiltersApiResponse = function (entityType, apiFacets) {
 }
 
 
-const createFilterValue = function (rawValue, filterType) {
+const createFilterValue = function (rawValue, filterType, exactValue = false) {
     if (filterType === "search") {
+        // An exact-value facet (#1473) comes back from the URL quoted when it has a
+        // space; strip the quotes so createSimpleFilter doesn't quote it twice.
+        if (exactValue && typeof rawValue === "string" && rawValue.length >= 2
+            && rawValue.startsWith('"') && rawValue.endsWith('"')) {
+            return rawValue.slice(1, -1)
+        }
         return rawValue
     }
     if (typeof rawValue === "string") {
@@ -269,7 +275,7 @@ const createSimpleFilter = function (entityType, key, value, isNegated) {
             isNullValue: (passValue === null),
         }
     }
-    const myValue = createFilterValue(value, facetConfig.type)
+    const myValue = createFilterValue(value, facetConfig.type, facetConfig.exactValue)
     if (!myValue) isNegated = true
 
     const nullValues = ["unknown", "null"]
@@ -283,7 +289,9 @@ const createSimpleFilter = function (entityType, key, value, isNegated) {
     // their value is a raw API query string that may already contain quotes,
     // proximity (`~N`), or Boolean groups (`|`/`+`). Wrapping those would
     // double-quote the query and corrupt it (regression c8e689f7 → #191.5).
-    const isSearchFilter = facetConfig.type === "search"
+    // A `search`-type facet that holds one exact value (MeSH names, #1473) still gets
+    // quoted: unquoted, the API reads "Pregnant Women" as two ANDed words.
+    const isSearchFilter = facetConfig.type === "search" && !facetConfig.exactValue
     const quotedValue = (typeof apiValue === "string" && apiValue.includes(" ") && !isSearchFilter) ? `"${apiValue}"` : apiValue
     const asStr = facetConfig.key + ":" + negationSymbol + quotedValue
 

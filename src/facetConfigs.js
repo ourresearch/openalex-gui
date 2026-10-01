@@ -1159,6 +1159,59 @@ const facetConfigs = function (entityType) {
             icon: "mdi-flask-outline",
             extractFn: (entity) => entity.study_designs
         },
+        // oxjob #1473: PubMed MeSH headings (only works PubMed indexed carry them). There
+        // is no MeSH entity to pick from, so these are typed exact-value filters;
+        // `exactValue` makes filterConfigs quote a multi-word name ("Pregnant Women") so
+        // the API reads it as one value, not two ANDed words. displayName must equal the
+        // registry display_name (label-consistency gate).
+        {
+            key: "mesh.descriptor_name",
+            entityToFilter: "works",
+            displayName: "MeSH descriptor",
+            type: "search",
+            exactValue: true,
+            actions: ["filter"],
+            actionsPopular: [],
+            category: "aboutness",
+            icon: "mdi-medical-bag",
+            verb: "is",
+        },
+        {
+            key: "mesh.descriptor_ui",
+            entityToFilter: "works",
+            displayName: "MeSH descriptor ID",
+            type: "search",
+            exactValue: true,
+            actions: ["filter"],
+            actionsPopular: [],
+            category: "aboutness",
+            icon: "mdi-medical-bag",
+            verb: "is",
+        },
+        {
+            key: "mesh.qualifier_name",
+            entityToFilter: "works",
+            displayName: "MeSH qualifier",
+            type: "search",
+            exactValue: true,
+            actions: ["filter"],
+            actionsPopular: [],
+            category: "aboutness",
+            icon: "mdi-medical-bag",
+            verb: "is",
+        },
+        {
+            key: "mesh.qualifier_ui",
+            entityToFilter: "works",
+            displayName: "MeSH qualifier ID",
+            type: "search",
+            exactValue: true,
+            actions: ["filter"],
+            actionsPopular: [],
+            category: "aboutness",
+            icon: "mdi-medical-bag",
+            verb: "is",
+        },
         {
             key: "cited_by_count",
             entityToFilter: "works",
