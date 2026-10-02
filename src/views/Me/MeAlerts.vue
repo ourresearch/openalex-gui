@@ -23,8 +23,8 @@
             <v-icon color="grey" start>mdi-bell</v-icon>
             {{ search.name }}
             <!-- Alerts switched on before the API refused them, e.g. a works collection (oxjob #1505) -->
-            <div v-if="search.alert_unavailable_reason" class="text-caption text-medium-emphasis">
-              {{ search.alert_unavailable_reason }}
+            <div v-if="search.cannot_alert" class="text-caption text-medium-emphasis">
+              {{ search.cannot_alert.message }}
             </div>
           </td>
           <td @click.stop>
