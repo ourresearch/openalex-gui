@@ -26,7 +26,7 @@
           </template>
           <v-list-item-title>{{ activeSearchObj ? 'Search is saved' : 'Save search' }}</v-list-item-title>
         </v-list-item>
-        <v-list-item @click="handleAlertToggle">
+        <v-list-item v-if="canAlert" @click="handleAlertToggle">
           <template #prepend>
             <v-icon>{{ activeSearchObj?.has_alert ? 'mdi-bell' : 'mdi-bell-outline' }}</v-icon>
           </template>
@@ -123,6 +123,7 @@
 import { ref, computed, reactive } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
+import { canAlertOnFilter } from '@/collectionFilter';
 
 import { oqlForUrl } from '@/oqlSerialize';
 
@@ -130,6 +131,8 @@ defineOptions({ name: 'SerpHeaderActions' });
 
 const store = useStore();
 const route = useRoute();
+// No alert item on a works-collection search: it can never gain new works (oxjob #1505).
+const canAlert = computed(() => canAlertOnFilter(route.query.filter));
 const router = useRouter();
 
 const isShareMenuOpen = ref(false);

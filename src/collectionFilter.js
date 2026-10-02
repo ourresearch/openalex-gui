@@ -173,3 +173,22 @@ export function derivedWorksMenu(collection) {
             })),
     };
 }
+
+/**
+ * Can a works search with this `filter=` value have an alert? Not when it keeps only
+ * the members of a works collection (`collection:col_x`, not negated): a works
+ * collection is a fixed list of works, so it never gains new ones, and the alert
+ * menu item is hidden (oxjob #1505). Mirrors users-api
+ * `new_works_alert.has_works_collection_filter`, which refuses the same alerts.
+ *
+ * @param {string|undefined|null} filter - the route's `filter` query value
+ * @returns {boolean}
+ */
+export function canAlertOnFilter(filter) {
+    return ![].concat(filter || []).join(",").split(",").some((clause) => {
+        const i = clause.indexOf(":");
+        if (i < 0) return false;
+        return clause.slice(0, i).trim() === "collection"
+            && !clause.slice(i + 1).trim().startsWith("!");
+    });
+}
