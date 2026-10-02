@@ -636,7 +636,7 @@ export default {
 
 
         // create
-        async createSearch({dispatch}, {search_url, name, description, has_alert}) {
+        async createSearch({commit, dispatch}, {search_url, name, description, has_alert}) {
             const id = shortUuid.generate()
 
             // add id to search_url
@@ -644,16 +644,27 @@ export default {
             searchUrlObj.searchParams.set("id", id)
             search_url = searchUrlObj.toString()
 
-            const resp = await axios.put(
+            const put = (withAlert) => axios.put(
                 apiBaseUrl + "/saved-search/" + id,
                 {
                     search_url,
                     name,
                     description,
-                    has_alert: has_alert ?? false
+                    has_alert: withAlert
                 },
                 axiosConfig({userAuth: true}),
             )
+            let resp
+            try {
+                resp = await put(has_alert ?? false)
+            } catch (e) {
+                // The API refuses alerts it can't run, with the reason, e.g. a works
+                // collection never gains new works (oxjob #1505). Save the search
+                // without the alert and say why.
+                if (!(has_alert && e?.response?.status === 400 && e.response.data?.message)) throw e
+                resp = await put(false)
+                commit("snackbar", {msg: e.response.data.message, color: "error"}, {root: true})
+            }
             await dispatch("fetchSavedSearches") // have to update the list
             await url.pushSearchUrlToRoute(navigation, search_url);
             return resp;
@@ -768,11 +779,22 @@ export default {
         // update
         async updateSearchAlert({commit, dispatch, state}, {id, has_alert}) {
             const oldSearchObj = state.savedSearches.find(s => s.id === id)
-            const resp = await axios.put(
-                apiBaseUrl + "/saved-search/" + id,
-                {...oldSearchObj, has_alert},
-                axiosConfig({userAuth: true}),
-            )
+            let resp
+            try {
+                resp = await axios.put(
+                    apiBaseUrl + "/saved-search/" + id,
+                    {...oldSearchObj, has_alert},
+                    axiosConfig({userAuth: true}),
+                )
+            } catch (e) {
+                // The API refuses alerts it can't run, with the reason, e.g. a works
+                // collection never gains new works (oxjob #1505). Say why.
+                if (has_alert && e?.response?.status === 400 && e.response.data?.message) {
+                    commit("snackbar", {msg: e.response.data.message, color: "error"}, {root: true})
+                    return e.response
+                }
+                throw e
+            }
             await dispatch("fetchSavedSearches") // have to update the list
             const snackbarString = has_alert ? "Alert added" : "Alert removed"
             commit("snackbar", snackbarString, {root: true});

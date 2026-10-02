@@ -123,7 +123,7 @@
           </template>
           <v-list-item-title>{{ activeSearchObj ? 'Search is saved' : 'Save search' }}</v-list-item-title>
         </v-list-item>
-        <v-list-item v-if="isWorks" @click="handleAlertToggle">
+        <v-list-item v-if="isWorks && canAlert" @click="handleAlertToggle">
           <template #prepend>
             <v-icon>{{ activeSearchObj?.has_alert ? 'mdi-bell' : 'mdi-bell-outline' }}</v-icon>
           </template>
@@ -233,6 +233,7 @@
 import { ref, computed, reactive } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
+import { canAlertOnFilter } from '@/collectionFilter';
 import { useDisplay } from 'vuetify';
 import QrcodeVue from 'qrcode.vue';
 
@@ -259,6 +260,8 @@ const emit = defineEmits(['toggle-oql']);
 
 const store = useStore();
 const route = useRoute();
+// No alert item on a works-collection search: it can never gain new works (oxjob #1505).
+const canAlert = computed(() => canAlertOnFilter(route.query.filter));
 const router = useRouter();
 const { mdAndUp } = useDisplay();
 

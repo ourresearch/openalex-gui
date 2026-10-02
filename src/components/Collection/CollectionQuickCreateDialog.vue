@@ -3,6 +3,7 @@
     :model-value="modelValue"
     @update:model-value="$emit('update:modelValue', $event)"
     max-width="560"
+    :z-index="zIndex ?? undefined"
   >
     <v-card flat rounded>
       <v-card-title>Create collection</v-card-title>
@@ -66,6 +67,8 @@ const props = defineProps({
   modelValue: Boolean,
   entityType: { type: String, required: true },
   entityIds: { type: Array, default: () => [] },
+  // Only the entity fly-in sets this, to lift the dialog above the drawer.
+  zIndex: { type: Number, default: null },
 });
 const emit = defineEmits(["update:modelValue", "created"]);
 

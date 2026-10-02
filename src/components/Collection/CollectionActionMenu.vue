@@ -1,16 +1,32 @@
 <template>
+  <!-- Labeled activator: the entity page header's primary action (#1507). -->
   <v-btn
+    v-if="label"
+    ref="activatorRef"
+    variant="outlined"
+    rounded
+    prepend-icon="mdi-folder-plus-outline"
+    class="collection-labeled-btn"
+    :aria-expanded="menuOpen ? 'true' : 'false'"
+    aria-haspopup="menu"
+    @click="onActivatorClick"
+  >
+    {{ label }}
+  </v-btn>
+  <v-btn
+    v-else
     ref="activatorRef"
     icon
     variant="text"
     size="small"
     class="collection-toolbar-btn"
+    aria-label="Add to or remove from collection"
     @click="onActivatorClick"
   >
     <v-icon icon="mdi-folder-outline" />
     <!-- tooltipClass: the flag-on SERP passes 'linear-tooltip' (#440 r12);
          default empty keeps the app-standard tooltip everywhere else. -->
-    <v-tooltip activator="parent" location="bottom" :content-class="tooltipClass || undefined">
+    <v-tooltip activator="parent" location="bottom" :content-class="tooltipClass || undefined" :z-index="zIndex ?? undefined">
       Add to or remove from collection
     </v-tooltip>
   </v-btn>
@@ -22,6 +38,7 @@
     :close-on-content-click="false"
     location="bottom end"
     offset="6"
+    :z-index="zIndex ?? undefined"
   >
     <v-card flat rounded width="320" class="collection-action-menu">
       <div class="px-3 py-2">
@@ -55,7 +72,11 @@
             v-if="rowState(collection) !== 'mixed'"
             class="collection-row"
             :class="{ 'is-pending': pendingCollectionId === collection.id }"
+            role="button"
+            tabindex="0"
             @click="onApply(collection, rowState(collection))"
+            @keydown.enter.prevent="onApply(collection, rowState(collection))"
+            @keydown.space.prevent="onApply(collection, rowState(collection))"
           >
             <div class="collection-row-name text-truncate">{{ collection.display_name }}</div>
             <span class="collection-row-affordance">
@@ -72,6 +93,7 @@
             open-on-hover
             location="end"
             :offset="2"
+            :z-index="zIndex == null ? undefined : zIndex + 1"
           >
             <template #activator="{ props: subProps }">
               <div
@@ -93,11 +115,25 @@
 
       <v-divider />
 
-      <div class="footer-row" @click="onNewCollection">
+      <div
+        class="footer-row"
+        role="button"
+        tabindex="0"
+        @click="onNewCollection"
+        @keydown.enter.prevent="onNewCollection"
+        @keydown.space.prevent="onNewCollection"
+      >
         <v-icon size="18" class="mr-2">mdi-plus</v-icon>
         Create collection
       </div>
-      <div class="footer-row" @click="onManage">
+      <div
+        class="footer-row"
+        role="button"
+        tabindex="0"
+        @click="onManage"
+        @keydown.enter.prevent="onManage"
+        @keydown.space.prevent="onManage"
+      >
         <v-icon size="18" class="mr-2">mdi-cog-outline</v-icon>
         Manage collections
       </div>
@@ -167,6 +203,7 @@
 
   <collection-quick-create-dialog
     v-model="showQuickCreate"
+    :z-index="zIndex == null ? undefined : zIndex + 2"
     :entity-type="collectionEntityType"
     :entity-ids="selectedShortIds"
     @created="onQuickCreated"
@@ -193,6 +230,16 @@ const props = defineProps({
   // Optional tooltip content-class (#440 r12): flag-on SERP passes
   // 'linear-tooltip'; default keeps the app-standard tooltip style.
   tooltipClass: { type: String, default: '' },
+  // Single-entity use (the entity page header, #1507): the ids of the
+  // collections this one entity is already in. When set, it decides each row's
+  // Add/Remove state instead of the SERP's pageCollectionsByEntity map.
+  memberCollectionIds: { type: Array, default: null },
+  // When set, the activator is a labeled outlined button with this text
+  // instead of the SERP toolbar's folder icon.
+  label: { type: String, default: '' },
+  // Base z-index for the menu and its dialogs. Only the entity fly-in sets it:
+  // EntityDrawer forces z-index 10000, which Vuetify's overlay stack can't see.
+  zIndex: { type: Number, default: null },
 });
 const emit = defineEmits(["applied"]);
 
@@ -262,6 +309,9 @@ const entityTypeSingular = computed(() => {
 // instances on the SERP. Only authoritative for currently-rendered rows; in
 // select-all mode `enumerationBlocked` gates the menu from opening at all.
 function rowState(collection) {
+  if (props.memberCollectionIds) {
+    return props.memberCollectionIds.includes(collection.id) ? "remove" : "add";
+  }
   const map = store.state.collections?.pageCollectionsByEntity || {};
   let inCount = 0;
   for (const sid of selectedShortIds.value) {
@@ -320,7 +370,7 @@ async function onApply(collection, op) {
     // collection (pageCollectionsByEntity is authoritative for the rendered
     // page, which is also what's selectable).
     const map = store.state.collections?.pageCollectionsByEntity || {};
-    const toAdd = ids.filter((sid) => {
+    const toAdd = props.memberCollectionIds ? ids : ids.filter((sid) => {
       const list = map[sid] || [];
       return !list.some((c) => c.id === collection.id);
     });
@@ -395,8 +445,14 @@ function onQuickCreated() {
   font-size: 14px;
   gap: 8px;
 }
-.collection-row:hover {
+.collection-row:hover,
+.collection-row:focus-visible {
   background: rgba(0, 0, 0, 0.04);
+}
+.collection-row:focus-visible,
+.footer-row:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: -2px;
 }
 .collection-row.is-pending {
   opacity: 0.6;
