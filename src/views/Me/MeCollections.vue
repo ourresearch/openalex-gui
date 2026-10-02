@@ -50,7 +50,7 @@
             <strong>{{ deletingCollection?.display_name }}</strong>
             and all
             {{ deletingCollection?.entity_count ?? 0 }} entit{{ (deletingCollection?.entity_count ?? 0) === 1 ? "y" : "ies" }}
-            in it. Its page and any search that uses it, yours or anyone's you shared it with, will say "Collection not found or not shared".
+            in it. Its page and any search that uses it, yours or anyone's you shared it with, will say "Collection doesn't exist or isn't shared".
           </p>
           <p class="text-body-2 text-grey mt-2">This cannot be undone.</p>
         </v-card-text>

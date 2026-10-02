@@ -59,7 +59,7 @@
           density="compact"
           class="mt-4 people-warning"
         >
-          Lists of people say something about them. Don't share lists drawn from HR records.
+          {{ PEOPLE_COLLECTION_WARNING }}
         </v-alert>
 
         <div v-if="access === 'shared_by_link'" class="mt-5">
@@ -103,6 +103,7 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { useStore } from "vuex";
+import { PEOPLE_COLLECTION_WARNING } from "@/components/Collection/peopleCollectionWarning";
 
 defineOptions({ name: "CollectionShareDialog" });
 

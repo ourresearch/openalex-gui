@@ -4,7 +4,7 @@
   The owner manages it here (rename, share, add, remove). Anyone else sees it only
   when the owner has shared it by link (oxjob #646): read-only, logged in or not,
   with Make a copy. A private collection, or one that doesn't exist, shows the same
-  "Collection not found or not shared" (the server answers both the same way). The
+  "Collection doesn't exist or isn't shared" (the server answers both the same way). The
   page is `noindex`; shared collections are never listed or indexed.
 -->
 <template>
@@ -231,6 +231,8 @@
       @updated="onShareUpdated"
     />
 
+    <people-collection-warning-dialog v-model="peopleWarningOpen" @continue="doCopy" />
+
     <!-- Make a copy while logged out: log in first, then come back and click again.
          Never copy automatically after the login redirect (labels-v1 security
          review H1: a link must not be able to write to someone's account). -->
@@ -287,6 +289,8 @@ import CollectionNameEditor from "@/components/Collection/CollectionNameEditor.v
 import CollectionDerivedWorksButton from "@/components/Collection/CollectionDerivedWorksButton.vue";
 import CollectionAddEntitiesDialog from "@/components/Collection/CollectionAddEntitiesDialog.vue";
 import CollectionShareDialog from "@/components/Collection/CollectionShareDialog.vue";
+import PeopleCollectionWarningDialog from "@/components/Collection/PeopleCollectionWarningDialog.vue";
+import { isPeopleCollectionType } from "@/components/Collection/peopleCollectionWarning";
 import SelectionToolbar from "@/components/SelectionToolbar.vue";
 
 const route = useRoute();
@@ -313,6 +317,7 @@ const addDialogOpen = ref(false);
 const shareDialogOpen = ref(false);
 const loginToCopyOpen = ref(false);
 const copying = ref(false);
+const peopleWarningOpen = ref(false);
 
 // Remove confirmation. target = { type: 'single', result } | { type: 'bulk' }.
 // removeTitle/removeBody are snapshotted at open-time (not computed off the
@@ -382,7 +387,7 @@ async function loadCollection() {
   try {
     // Public routes don't wait for /users/me, but the member list goes through
     // elastic-api with the user's API key: without it a private collection reads
-    // as "not found or not shared" to its own owner on a first load.
+    // as "doesn't exist or isn't shared" to its own owner on a first load.
     await store.dispatch("user/ensureUser");
     collection.value = await store.dispatch("collections/fetchPublic", collectionId.value);
     store.commit("setEntityType", openalexId.fromCollectionEntityType(collection.value.entity_type));
@@ -409,7 +414,7 @@ function membersUrl(p, per) {
 // One wording for "can't read it", whatever the cause (oxjob #646).
 function collectionErrorMessage(e) {
   const status = e.response?.status;
-  if (status === 404) return "Collection not found or not shared.";
+  if (status === 404) return "Collection doesn't exist or isn't shared.";
   if (status === 429) return "Too many requests. Try again in a minute.";
   return e.response?.data?.message || "Could not load this collection. Try again.";
 }
@@ -433,7 +438,7 @@ async function loadResults() {
     console.error("Failed to load collection results", e);
     results.value = [];
     resultsError.value = e.response?.status === 404
-      ? "Collection not found or not shared."
+      ? "Collection doesn't exist or isn't shared."
       : "Couldn't load the members. Try again in a moment.";
   } finally {
     resultsLoading.value = false;
@@ -465,6 +470,15 @@ async function makeCopy() {
     loginToCopyOpen.value = true;
     return;
   }
+  // A copy of a collection of people is a new collection of people (oxjob #646).
+  if (isPeopleCollectionType(collection.value.entity_type)) {
+    peopleWarningOpen.value = true;
+    return;
+  }
+  await doCopy();
+}
+
+async function doCopy() {
   copying.value = true;
   try {
     const copy = await store.dispatch("collections/copy", collection.value.id);

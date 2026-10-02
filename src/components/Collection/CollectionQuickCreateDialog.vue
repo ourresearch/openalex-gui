@@ -7,6 +7,16 @@
     <v-card flat rounded>
       <v-card-title>Create collection</v-card-title>
       <div class="px-4 pb-2">
+        <!-- A collection of people: warn before it's made (oxjob #646). -->
+        <v-alert
+          v-if="isPeopleCollectionType(entityType)"
+          type="warning"
+          variant="tonal"
+          density="compact"
+          class="mb-4 people-warning"
+        >
+          {{ PEOPLE_COLLECTION_WARNING }}
+        </v-alert>
         <v-text-field
           v-model="displayName"
           autofocus
@@ -48,6 +58,7 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { useStore } from "vuex";
+import { PEOPLE_COLLECTION_WARNING, isPeopleCollectionType } from "@/components/Collection/peopleCollectionWarning";
 
 defineOptions({ name: "CollectionQuickCreateDialog" });
 
@@ -117,3 +128,10 @@ function onCancel() {
   emit("update:modelValue", false);
 }
 </script>
+
+<style scoped>
+/* Vuetify's tonal warning text is ~2.3:1 on its tint; darken it to pass WCAG AA. */
+.people-warning {
+  color: #7a4100 !important;
+}
+</style>

@@ -166,6 +166,8 @@
         </v-stepper>
       </v-card-text>
 
+      <people-collection-warning-dialog v-model="peopleWarningOpen" @continue="onPeopleWarningContinue" />
+
       <v-card-actions class="px-4 pb-4">
         <v-btn variant="text" :disabled="creating || step === 1" @click="back">Back</v-btn>
         <v-spacer />
@@ -198,6 +200,8 @@
 import { ref, computed, watch } from "vue";
 import { useStore } from "vuex";
 import { resolveIds, enrichDisplayNames } from "@/collectionResolve";
+import PeopleCollectionWarningDialog from "@/components/Collection/PeopleCollectionWarningDialog.vue";
+import { isPeopleCollectionType } from "@/components/Collection/peopleCollectionWarning";
 import CollectionMatchTable from "@/components/Collection/CollectionMatchTable.vue";
 
 // `value` is the entity_type sent to users-api, so these must be exact
@@ -249,6 +253,19 @@ const store = useStore();
 
 const step = ref(1);
 const entityType = ref("works");
+const peopleWarningOpen = ref(false);
+// Set once the user has seen the warning for the current type choice.
+const peopleWarningSeen = ref(false);
+watch(entityType, () => { peopleWarningSeen.value = false; });
+
+function needsPeopleWarning() {
+  return isPeopleCollectionType(entityType.value) && !peopleWarningSeen.value;
+}
+
+function onPeopleWarningContinue() {
+  peopleWarningSeen.value = true;
+  step.value = 2;
+}
 const rawIds = ref("");
 const resolving = ref(false);
 const resolveDone = ref(0);
@@ -323,12 +340,19 @@ watch([rawIds, entityType], () => {
 
 // Jump directly to a step via the stepper header (clickable steps).
 watch(step, async (to, from) => {
+  // The stepper headers are clickable: don't let them skip the people warning.
+  if (from === 1 && to > 1 && needsPeopleWarning()) {
+    step.value = 1;
+    peopleWarningOpen.value = true;
+    return;
+  }
   if (to === 3 && from !== 3) {
     await runResolutionIfNeeded();
   }
 });
 
 function reset() {
+  peopleWarningSeen.value = false;
   step.value = 1;
   entityType.value = "works";
   rawIds.value = "";
@@ -388,6 +412,11 @@ async function next() {
     return;
   }
   if (step.value === 1) {
+    // A collection of people: warn before it's made (oxjob #646).
+    if (needsPeopleWarning()) {
+      peopleWarningOpen.value = true;
+      return;
+    }
     step.value = 2;
     return;
   }

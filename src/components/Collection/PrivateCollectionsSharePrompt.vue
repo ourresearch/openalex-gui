@@ -1,7 +1,7 @@
 <!--
   Shown when you copy a search link (or its OQL, API URL or OQO) that uses one of
   your private collections (oxjob #646): the people you send it to would get
-  "Collection not found or not shared". Offers to share the collections by link
+  "Collection doesn't exist or isn't shared". Offers to share the collections by link
   first, or to copy anyway.
 -->
 <template>
@@ -28,7 +28,7 @@
           density="compact"
           class="mt-4 people-warning"
         >
-          Lists of people say something about them. Don't share lists drawn from HR records.
+          {{ PEOPLE_COLLECTION_WARNING }}
         </v-alert>
         <v-alert v-if="error" type="error" variant="tonal" density="compact" class="mt-4">
           {{ error }}
@@ -48,6 +48,7 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { useStore } from "vuex";
+import { PEOPLE_COLLECTION_WARNING } from "@/components/Collection/peopleCollectionWarning";
 
 defineOptions({ name: "PrivateCollectionsSharePrompt" });
 

@@ -80,7 +80,7 @@
     </v-menu>
 
     <!-- Copying a search that uses your private collections: offer to share them
-         by link first, or the recipient gets "not found or not shared" (#646). -->
+         by link first, or the recipient gets "doesn't exist or isn't shared" (#646). -->
     <private-collections-share-prompt
       v-model="sharePrompt.open"
       :collections="sharePrompt.collections"
