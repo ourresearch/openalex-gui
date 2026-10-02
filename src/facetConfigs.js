@@ -1289,22 +1289,6 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.sustainable_development_goals
         },
         {
-            // oxjob #1300: shadow SDG field (x_sdgs) from the Jev-trained head on the work's
-            // embedding, served beside sustainable_development_goals while under evaluation.
-            // Same sdgs entity behind it. displayName must equal the registry display_name
-            // (label-consistency gate; case is the GUI's).
-            key: "x_sdgs.id",
-            entityToSelect: "sdgs",
-            entityToFilter: "works",
-            displayName: "Experimental SDGs",
-            type: "selectEntity",
-            displayNullAs: "Unknown",
-            category: "aboutness",
-            actions: ["filter", "group_by"],
-            icon: "mdi-sprout-outline",
-            extractFn: (entity) => entity.x_sdgs
-        },
-        {
             // oxjob #1312: how the research was done (RCT, systematic review, ...);
             // `type` says what kind of document it is. Closed study-designs vocabulary;
             // works carry parents too (RCT => clinical trial). displayName must equal

@@ -1,7 +1,7 @@
 {
- "version": "14.9.0",
- "fingerprint": "3ead2503208471f506e8e5fcaf2aae909042c00c1a1324d471be065e1f60440c",
- "generatedAt": "2026-10-03T20:19:04.299Z",
+ "version": "15.0.0",
+ "fingerprint": "a6abb9461a0d6438b8c5ae369490b37b6aada2d3a5bf46bd531110e671544939",
+ "generatedAt": "2026-10-04T11:46:01.707Z",
  "entities": {
   "authors": {
    "displayName": "authors",
@@ -1040,6 +1040,7 @@
    "sustainable_development_goals": "sustainable development goals",
    "sustainable_development_goals.id": "SDG",
    "sustainable_development_goals.score": "SDG score",
+   "sustainable_development_goals_aurora": "deprecated Aurora SDGs",
    "title": "title",
    "title_abstract_keywords.search": "title-abstract-keywords",
    "title_abstract_keywords.search.exact": "title abstract keywords",
@@ -1057,9 +1058,7 @@
    "type": "type",
    "type_crossref": "Crossref type",
    "updated_date": "updated date",
-   "versions": "versions",
-   "x_sdgs": "x sdgs",
-   "x_sdgs.id": "experimental SDGs"
+   "versions": "versions"
   }
  },
  "aliases": {
