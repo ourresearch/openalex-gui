@@ -46,7 +46,7 @@
         <!-- Header -->
         <div class="d-flex align-center pa-4 pb-0">
           <span class="text-h6">
-            {{ exportState === 'submitted' ? 'Export submitted' : (scope ? 'Export works' : 'Export results') }}
+            {{ exportState === 'submitted' ? 'Export submitted' : (scope ? (scope.title || 'Export works') : 'Export results') }}
           </span>
           <v-spacer />
           <v-btn icon variant="text" size="small" @click="closeExportDialog">
@@ -217,10 +217,12 @@ import { resolveExportSelection, idsOpenAlexFilter } from '@/utils/selectionExpo
 import ColumnEditorPanel from '@/components/Results/Table/ColumnEditorPanel.vue';
 
 const props = defineProps({
-  // Fixed works query from outside the search page (#1507: Export as CSV on an
-  // entity page): { filter, count }. When set, the dialog exports the works
-  // matching `filter` and ignores the route's query, OQL, corpus and the row
-  // selection, which belong to the search page.
+  // Fixed query from outside the search page: { filter, count }, and optionally
+  // { entityType, title, includeXpac }. #1507: Export as CSV on an entity page
+  // (its works). #1508: a collection's members (entityType = the member type,
+  // includeXpac so expansion works in a works collection aren't dropped). When
+  // set, the dialog exports the rows matching `filter` and ignores the route's
+  // query, OQL, corpus and the row selection, which belong to the search page.
   scope: { type: Object, default: null },
   // Only the entity fly-in sets this, to lift the dialogs above the drawer
   // (it forces z-index 10000).
@@ -296,7 +298,7 @@ const rowsNoun = computed(() => exportSelection.value.scoped ? 'selected rows' :
 const userId = computed(() => store.getters['user/userId']);
 const userApiKey = computed(() => store.getters['user/apiKey']);
 const isLoggedIn = computed(() => !!userId.value);
-const entityType = computed(() => props.scope ? 'works' : store.getters.entityType);
+const entityType = computed(() => props.scope ? (props.scope.entityType || 'works') : store.getters.entityType);
 const formatOptions = computed(() => entityType.value === 'works' ? allFormatOptions : csvOnlyFormatOptions);
 const isCsvFormat = computed(() => exportFormat.value === 'csv' || exportFormat.value === 'csv-excel');
 
@@ -537,7 +539,7 @@ async function startExport() {
   // a `?corpus=` route (#763) faithfully — all -> include_xpac alone;
   // expansion -> include_xpac + is_xpac:true filter (the exact legacy recipe).
   const exportCorpus = props.scope ? null : url.corpusFromRouteQuery(route.query);
-  if (exportCorpus === 'all' || (!props.scope && route.query.include_xpac === 'true')) {
+  if (exportCorpus === 'all' || props.scope?.includeXpac || (!props.scope && route.query.include_xpac === 'true')) {
     body.include_xpac = 'true';
   } else if (exportCorpus === 'expansion') {
     body.include_xpac = 'true';

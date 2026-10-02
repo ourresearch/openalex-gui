@@ -12,7 +12,7 @@
   <v-btn
     v-if="menu.isWorksCollection"
     color="primary"
-    variant="flat"
+    :variant="variant"
     :size="size"
     :to="menu.fullSearchUrl"
   >
@@ -22,7 +22,7 @@
 
   <v-menu v-else-if="menu.fields.length" location="bottom start">
     <template #activator="{ props: menuProps }">
-      <v-btn color="primary" variant="flat" :size="size" v-bind="menuProps">
+      <v-btn color="primary" :variant="variant" :size="size" v-bind="menuProps">
         View works by these {{ menu.entityPlural }}
         <v-icon end>mdi-menu-down</v-icon>
       </v-btn>
@@ -50,6 +50,9 @@ const props = defineProps({
   // Public collection object ({ id, entity_type, ... }) as loaded by CollectionPublic.
   collection: { type: Object, required: true },
   size: { type: String, default: "default" },
+  // The collection page shows it outlined: the page's one filled button is
+  // Share / Make a copy (#1508).
+  variant: { type: String, default: "flat" },
 });
 
 const menu = computed(() => derivedWorksMenu(props.collection));

@@ -85,6 +85,9 @@
         {{ filters.capitalize(myEntityConfig.displayNameSingular) }}
       </div>
 
+      <!-- Status that belongs next to the type, not among the actions (#1508:
+           a collection's Private / Shared by link). -->
+      <slot name="meta-status" />
       <template v-if="!isCollection && entityData?.id">
         <entity-header-claim-profile-button
           v-if="myEntityType === 'authors'"

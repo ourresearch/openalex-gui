@@ -42,27 +42,57 @@
           :type-label="`Collection of ${entityCollectionPlural.toLowerCase()}`"
           class="mb-4"
         >
+          <!-- One hierarchy (#1508, on #1507's entity header): status on the
+               left; on the right the page's one filled button (owner: Share;
+               anyone else: Make a copy) and one More menu (export, API, delete).
+               Searching and adding members belong to the member list below;
+               opening searches over the members sits under the title. -->
+          <template #meta-status>
+            <span class="access-status ml-3">
+              <v-icon size="x-small" aria-hidden="true">{{ isShared ? 'mdi-link-variant' : 'mdi-lock-outline' }}</v-icon>
+              {{ isShared ? 'Shared by link' : 'Private' }}
+            </span>
+          </template>
+
           <template #header-actions>
             <v-btn
               v-if="isOwner"
               color="primary"
               variant="flat"
-              class="ml-2"
+              rounded
+              :prepend-icon="isShared ? 'mdi-link-variant' : 'mdi-lock-outline'"
               @click="shareDialogOpen = true"
             >
-              <v-icon start aria-hidden="true">{{ isShared ? 'mdi-link-variant' : 'mdi-lock-outline' }}</v-icon>
               Share
             </v-btn>
             <v-btn
               v-else
-              variant="outlined"
-              class="ml-2"
+              color="primary"
+              variant="flat"
+              rounded
+              prepend-icon="mdi-content-copy"
               :loading="copying"
               @click="makeCopy"
             >
-              <v-icon start aria-hidden="true">mdi-content-copy</v-icon>
               Make a copy
             </v-btn>
+            <entity-more-menu
+              class="ml-1"
+              :api-url="apiUrl"
+              show-export
+              :export-label="`Export ${entityCollectionPlural.toLowerCase()} as CSV`"
+              @export="onExport"
+            >
+              <template v-if="isOwner" #append-items>
+                <v-divider class="my-1" />
+                <v-list-item
+                  prepend-icon="mdi-delete-outline"
+                  base-color="error"
+                  title="Delete collection"
+                  @click="deleteDialogOpen = true"
+                />
+              </template>
+            </entity-more-menu>
           </template>
 
           <template v-if="isOwner" #after-title>
@@ -75,16 +105,7 @@
 
           <template #after-header>
             <div class="text-body-2 meta-line mt-1">
-              {{ (collection.entity_count ?? 0).toLocaleString() }} {{ collection.entity_count === 1 ? "entity" : "entities" }} ·
-              Created {{ formattedDate }} ·
-              <span v-if="isShared">
-                <v-icon size="x-small" aria-hidden="true">mdi-link-variant</v-icon>
-                Shared by link
-              </span>
-              <span v-else>
-                <v-icon size="x-small" aria-hidden="true">mdi-lock-outline</v-icon>
-                Private
-              </span>
+              {{ memberCountLabel }} · Created {{ formattedDate }}
             </div>
             <div v-if="!isOwner && isShared" class="text-body-2 meta-line mt-1">
               Shared with you by link. Only its owner can change it; make a copy to edit your own.
@@ -93,76 +114,78 @@
               v-if="collection.description"
               class="collection-description mt-4"
             >{{ collection.description }}</div>
+
+            <!-- Use the collection: open searches over its members. These leave
+                 the page, so they sit with the collection, not the member list
+                 (#366: discover on the real search page, manage here). -->
+            <div class="d-flex flex-wrap align-center ga-2 mt-4">
+              <collection-derived-works-button :collection="collection" variant="outlined" />
+              <v-btn
+                v-if="collection.entity_type !== 'works'"
+                variant="text"
+                :to="`/${guiEntityType}?filter=collection:${collection.id}`"
+              >
+                View as {{ entityCollectionPlural.toLowerCase() }} search
+                <v-icon end>mdi-arrow-right</v-icon>
+              </v-btn>
+            </div>
           </template>
         </entity-header>
 
-        <!-- Search this collection (oxjob #366): always present, in all modes.
-             Server-side — searches ALL members by name and pages through matches
-             (like an entity SERP), not just the loaded page. -->
-        <v-text-field
-          v-model="searchInput"
-          variant="outlined"
-          density="comfortable"
-          hide-details
-          clearable
-          prepend-inner-icon="mdi-magnify"
-          :placeholder="`Search this collection of ${entityCollectionPlural.toLowerCase()}`"
-          class="mb-4"
-          @keydown.enter="submitSearch"
-          @click:clear="clearSearch"
+        <!-- Export as CSV: the search page's export dialog, scoped to the members.
+             Its own activator stays hidden; the More menu opens it. -->
+        <serp-results-export-button
+          v-if="exportMode === 'async'"
+          ref="exportButtonRef"
+          :scope="exportScope"
+          class="d-none"
         />
 
-        <!-- Action bar: launch the derived works / member SERP. Discovery happens
-             on the real SERP; this page manages the members. -->
-        <div class="d-flex flex-wrap align-center ga-3 mb-6">
-          <collection-derived-works-button :collection="collection" />
-          <!-- Typed collections: open the MEMBERS themselves on their native SERP
-               (full sort/facet/export). Redundant for a works-collection. -->
-          <v-btn
-            v-if="collection.entity_type !== 'works'"
-            variant="outlined"
-            :to="`/${guiEntityType}?filter=collection:${collection.id}`"
-          >
-            View as {{ entityCollectionPlural.toLowerCase() }} search
-            <v-icon end>mdi-arrow-right</v-icon>
-          </v-btn>
-
-          <v-spacer />
-
-          <!-- Owner: add members. Opens the shared value-picker dialog (search,
-               multi-select). Server enforces ownership on the mutation. -->
-          <v-btn
-            v-if="isOwner"
-            color="primary"
-            variant="flat"
-            @click="addDialogOpen = true"
-          >
-            <v-icon start>mdi-plus</v-icon>
-            Add {{ entityCollectionSingular.toLowerCase() }}
-          </v-btn>
-        </div>
-
-        <!-- Members list -->
+        <!-- Members list. Its toolbar holds what acts on the list: search the
+             members (server-side, all of them, oxjob #366) and, for the owner,
+             add more. -->
         <v-card variant="outlined" class="rounded-o bg-white">
-          <!-- Owner: select-all master checkbox + bulk-remove. Follows the SERP /
-               entity-page selection pattern (selection store). -->
-          <selection-toolbar v-if="isOwner" :selectable="true">
+          <!-- One toolbar row: the owner's select-all checkbox (SERP selection
+               pattern), search, then Remove N when rows are ticked, and Add. -->
+          <selection-toolbar :selectable="isOwner">
             <template #trailing>
-              <v-spacer />
-              <v-btn
-                v-if="selectedCount > 0"
-                color="error"
-                variant="text"
-                size="small"
-                class="mr-1"
-                @click="askRemoveBulk"
-              >
-                <v-icon start>mdi-delete-outline</v-icon>
-                Remove {{ selectedCount.toLocaleString() }}
-              </v-btn>
+              <div class="members-toolbar d-flex flex-wrap align-center ga-3 py-2" :class="{ 'ml-2': isOwner }">
+                <v-text-field
+                  v-model="searchInput"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  clearable
+                  prepend-inner-icon="mdi-magnify"
+                  :placeholder="`Search these ${memberCountLabel}`"
+                  :aria-label="`Search the ${entityCollectionPlural.toLowerCase()} in this collection`"
+                  class="members-search"
+                  @keydown.enter="submitSearch"
+                  @click:clear="clearSearch"
+                />
+                <v-btn
+                  v-if="isOwner && selectedCount > 0"
+                  color="error"
+                  variant="text"
+                  @click="askRemoveBulk"
+                >
+                  <v-icon start>mdi-delete-outline</v-icon>
+                  Remove {{ selectedCount.toLocaleString() }}
+                </v-btn>
+                <!-- Opens the shared value-picker dialog; the server enforces ownership. -->
+                <v-btn
+                  v-if="isOwner"
+                  variant="outlined"
+                  rounded
+                  prepend-icon="mdi-plus"
+                  @click="addDialogOpen = true"
+                >
+                  Add {{ entityCollectionPlural.toLowerCase() }}
+                </v-btn>
+              </div>
             </template>
           </selection-toolbar>
-          <v-divider v-if="isOwner" />
+          <v-divider />
 
           <div v-if="resultsLoading" class="d-flex justify-center my-12">
             <v-progress-circular indeterminate />
@@ -262,6 +285,28 @@
       :collection="collection"
     />
 
+    <!-- Delete the collection (owner, from the More menu). Same words as the
+         Settings list's delete. -->
+    <v-dialog v-model="deleteDialogOpen" max-width="480">
+      <v-card flat rounded>
+        <v-card-title>Delete collection?</v-card-title>
+        <v-card-text>
+          <p>
+            This will permanently delete
+            <strong>{{ collection?.display_name }}</strong>
+            and all {{ memberCountLabel }} in it. Its page and any search that uses it,
+            yours or anyone's you shared it with, will say "Collection not found".
+          </p>
+          <p class="text-body-2 text-grey mt-2">This cannot be undone.</p>
+        </v-card-text>
+        <v-card-actions class="px-4 pb-4">
+          <v-spacer />
+          <v-btn variant="text" :disabled="deleting" @click="deleteDialogOpen = false">Cancel</v-btn>
+          <v-btn variant="flat" color="error" :loading="deleting" @click="confirmDelete">Delete</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Remove confirmation (single + bulk) -->
     <v-dialog v-model="removeDialog" max-width="440">
       <v-card class="rounded-o">
@@ -296,6 +341,9 @@ import CollectionShareDialog from "@/components/Collection/CollectionShareDialog
 import PeopleCollectionWarningDialog from "@/components/Collection/PeopleCollectionWarningDialog.vue";
 import { isPeopleCollectionType } from "@/components/Collection/peopleCollectionWarning";
 import SelectionToolbar from "@/components/SelectionToolbar.vue";
+import EntityMoreMenu from "@/components/Entity/EntityMoreMenu.vue";
+import SerpResultsExportButton from "@/components/SerpResultsExportButton.vue";
+import { exportToCsv } from "@/utils/csvExport";
 
 const route = useRoute();
 const router = useRouter();
@@ -322,6 +370,9 @@ const shareDialogOpen = ref(false);
 const loginToCopyOpen = ref(false);
 const copying = ref(false);
 const peopleWarningOpen = ref(false);
+const deleteDialogOpen = ref(false);
+const deleting = ref(false);
+const exportButtonRef = ref(null);
 
 // Remove confirmation. target = { type: 'single', result } | { type: 'bulk' }.
 // removeTitle/removeBody are snapshotted at open-time (not computed off the
@@ -358,6 +409,73 @@ const entityCollectionSingular = computed(() => {
   const p = entityCollectionPlural.value;
   return p.endsWith("s") ? p.slice(0, -1) : p;
 });
+
+// "42 institutions", "1 institution".
+const memberCountLabel = computed(() => {
+  const n = collection.value?.entity_count ?? 0;
+  const noun = n === 1 ? entityCollectionSingular.value : entityCollectionPlural.value;
+  return `${n.toLocaleString()} ${noun.toLowerCase()}`;
+});
+
+// The members as an API query. Only offered once the collection is shared by
+// link: a private one reads as "not found" in a new tab without the owner's key.
+const apiUrl = computed(() => (isShared.value && collection.value)
+  ? `https://api.openalex.org/${guiEntityType.value}?filter=collection:${collection.value.id}`
+  : "");
+
+// Export the members as CSV (#1508). Big types go through the search page's
+// export dialog (columns, emailed when ready); small ones (countries, SDGs...)
+// download in the browser, as their search pages do.
+const exportMode = computed(() => entityConfigs?.[guiEntityType.value]?.exportMode || "async");
+const exportScope = computed(() => ({
+  filter: `collection:${collection.value?.id}`,
+  count: collection.value?.entity_count ?? 0,
+  entityType: guiEntityType.value,
+  title: `Export ${entityCollectionPlural.value.toLowerCase()}`,
+  // Expansion works stay in a works collection's members (see membersUrl).
+  includeXpac: collection.value?.entity_type === "works",
+}));
+
+async function onExport() {
+  if (exportMode.value === "async") {
+    exportButtonRef.value?.openExportDialog();
+    return;
+  }
+  const columns = entityConfigs?.[guiEntityType.value]?.exportColumns;
+  if (!columns) return;
+  store.commit("snackbar", "Exporting...");
+  try {
+    const count = await exportToCsv({
+      url: `${urlBase.api}/${guiEntityType.value}`,
+      params: { filter: `collection:${collection.value.id}` },
+      columns,
+      filename: `openalex_${collection.value.id}.csv`,
+      perPage: 200,
+      maxPages: 50,
+    });
+    store.commit("snackbar", `Exported ${count.toLocaleString()} ${entityCollectionPlural.value.toLowerCase()}.`);
+  } catch (e) {
+    console.error("Member export failed", e);
+    store.commit("snackbar", { msg: "Export failed. Try again.", color: "error" });
+  }
+}
+
+async function confirmDelete() {
+  deleting.value = true;
+  try {
+    await store.dispatch("collections/remove", collection.value.id);
+    store.commit("snackbar", "Collection deleted.");
+    deleteDialogOpen.value = false;
+    router.push({ name: "settings-collections" });
+  } catch (e) {
+    store.commit("snackbar", {
+      msg: e.response?.data?.message || "Could not delete collection.",
+      color: "error",
+    });
+  } finally {
+    deleting.value = false;
+  }
+}
 
 const formattedDate = computed(() => {
   if (!collection.value?.created_at) return "";
@@ -625,6 +743,19 @@ onUnmounted(() => store.commit("selection/deselectAll"));
 <style lang="scss" scoped>
 .meta-line {
   color: rgba(0, 0, 0, 0.7);
+}
+.access-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.members-toolbar {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.members-search {
+  flex: 1 1 240px;
 }
 .collection-description {
   white-space: pre-wrap;
