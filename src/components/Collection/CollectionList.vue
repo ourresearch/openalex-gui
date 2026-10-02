@@ -28,7 +28,7 @@
           <tr>
             <th>Name</th>
             <th>Type</th>
-            <th class="text-right">Entities</th>
+            <th class="text-right">Members</th>
             <th></th>
           </tr>
         </thead>
@@ -66,7 +66,7 @@
                 {{ entityPlural(collection.entity_type) }}
               </v-chip>
             </td>
-            <td class="text-right">{{ collection.entity_count ?? 0 }}</td>
+            <td class="text-right">{{ collection.member_count ?? 0 }}</td>
             <td class="text-right" @click.stop>
               <v-menu location="bottom end">
                 <template #activator="{ props: menuProps }">
@@ -150,7 +150,7 @@
       <div v-else class="color-3 d-flex flex-column my-12 mx-4 pa-12">
         <div class="text-grey mb-2">You don't have any collections yet.</div>
         <div class="text-grey text-body-2">
-          Collections are named sets of entities (works, sources, authors, institutions…)
+          Collections are named lists of works, sources, authors, institutions and more
           you can re-use as search filters, here and in the API. They're private to you
           unless you share one by link.
         </div>

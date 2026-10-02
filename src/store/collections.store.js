@@ -1,7 +1,11 @@
 import axios from "axios";
 import { urlBase, axiosConfig } from "@/apiConfig.js";
 
-const apiBaseUrl = urlBase.userApi;
+// The collections API on api.openalex.org (oxjob #1515): one resource per collection,
+// its members under /members. Components go through this store, never raw URLs.
+const collectionsUrl = `${urlBase.collectionsApi}/collections`;
+// The API takes at most 100 IDs in a query string (?member_ids=).
+const MAX_IDS_PER_QUERY = 100;
 // Defense-in-depth: never trust callers to have pre-validated a collection id.
 // `fetchPublic`/`fetchEntities` accept route-param values; even mutation
 // helpers, where the id originates server-side, are encoded so a future
@@ -12,8 +16,8 @@ const enc = encodeURIComponent;
 // SERP rows each ask "which of my collections contain entity X?". As a per-row
 // GET that turned every 25-row list render into a request storm. Rows now
 // dispatch `fetchEntityCollections`; ids arriving in the same ~25ms window are
-// coalesced into ONE `entity_ids=` batch request (users-api annotates each
-// collection with `matching_entity_ids`), and results are cached per entity for
+// coalesced into ONE `member_ids=` batch request (the API annotates each
+// collection with `matching_member_ids`), and results are cached per entity for
 // the session. `bumpEntityMutations` clears the cache — rows watch the counter
 // and re-dispatch, so a post-mutation page costs one fresh batch.
 const _entityCollectionsCache = new Map(); // shortId -> [collection, ...]
@@ -25,21 +29,21 @@ async function _flushEntityCollectionsBatch() {
     _pendingEntityIds = new Map();
     _flushTimer = null;
     const ids = [...pending.keys()];
-    // users-api caps entity_ids at 100 per request; a SERP page is ≤100 rows so
+    // The API caps member_ids at 100 per request; a SERP page is ≤100 rows so
     // this is one chunk in practice.
-    for (let i = 0; i < ids.length; i += 100) {
-        const chunk = ids.slice(i, i + 100);
+    for (let i = 0; i < ids.length; i += MAX_IDS_PER_QUERY) {
+        const chunk = ids.slice(i, i + MAX_IDS_PER_QUERY);
         try {
             const resp = await axios.get(
-                `${apiBaseUrl}/me/collections?entity_ids=${chunk.map(enc).join(",")}&per_page=100`,
+                `${collectionsUrl}?member_ids=${chunk.map(enc).join(",")}&per_page=100`,
                 axiosConfig({ userAuth: true })
             );
-            // The server echoes each requested id verbatim in matching_entity_ids
-            // (string-equality match), so ids not present in ANY collection
-            // resolve to [] — cache those too, or every empty row would refetch.
+            // The server echoes each requested id in matching_member_ids, so ids
+            // not present in ANY collection resolve to [] — cache those too, or
+            // every empty row would refetch.
             const byEntity = new Map(chunk.map((id) => [id, []]));
             for (const collection of resp.data?.results || []) {
-                for (const eid of collection.matching_entity_ids || []) {
+                for (const eid of collection.matching_member_ids || []) {
                     if (byEntity.has(eid)) byEntity.get(eid).push(collection);
                 }
             }
@@ -66,8 +70,8 @@ export default {
         collections: [],
         loaded: false,
         loading: false,
-        // Bumped whenever a collection's entity membership changes (add/remove
-        // entities, delete collection, create-with-entity_ids). Watched by
+        // Bumped whenever a collection's membership changes (add/remove
+        // members, delete collection, create with members). Watched by
         // EntityCollectionsRow so per-row chips refresh after a SERP-level apply.
         entityMutationCounter: 0,
         // Compact EntityCollectionsRow instances (SERP rows) write their resolved
@@ -139,9 +143,9 @@ export default {
             }
             commit("setLoading", true);
             try {
-                // /me/collections paginates; per_page max 100. v1 cap is 100 per user so one page is enough.
+                // GET /collections pages at 100 at most; the cap is 100 per user so one page is enough.
                 const resp = await axios.get(
-                    `${apiBaseUrl}/me/collections?per_page=100`,
+                    `${collectionsUrl}?per_page=100`,
                     axiosConfig({ userAuth: true })
                 );
                 const collections = resp.data.results || [];
@@ -169,22 +173,21 @@ export default {
 
         async create({ commit }, payload = {}) {
             // Normal create. Making a copy of another collection is `copy` below.
-            const { display_name, description, entity_type, entity_ids } = payload;
+            const { display_name, description, entity_type, member_ids } = payload;
             const body = {
                 display_name,
                 description: description || "",
                 entity_type,
-                entity_ids: entity_ids || [],
+                member_ids: member_ids || [],
             };
             const resp = await axios.post(
-                `${apiBaseUrl}/me/collections`,
+                collectionsUrl,
                 body,
                 axiosConfig({ userAuth: true })
             );
             commit("addCollection", resp.data);
-            // create-with-entity_ids changes per-entity memberships
-            const createdEntityCount = (resp.data?.entity_count ?? 0);
-            if (createdEntityCount > 0) commit("bumpEntityMutations");
+            // creating with members changes per-entity memberships
+            if ((resp.data?.member_count ?? 0) > 0) commit("bumpEntityMutations");
             return resp.data;
         },
 
@@ -194,19 +197,19 @@ export default {
         // redirect (labels-v1 security review H1).
         async copy({ commit }, sourceId) {
             const resp = await axios.post(
-                `${apiBaseUrl}/me/collections`,
-                { source_collection_id: sourceId },
+                collectionsUrl,
+                { copy_of: sourceId },
                 axiosConfig({ userAuth: true })
             );
             commit("addCollection", resp.data);
-            if ((resp.data?.entity_count ?? 0) > 0) commit("bumpEntityMutations");
+            if ((resp.data?.member_count ?? 0) > 0) commit("bumpEntityMutations");
             return resp.data;
         },
 
-        // Private, or shared by link (oxjob #646). Owner only; the server 404s anyone else.
+        // Private, or shared by link (oxjob #646). Owner only.
         async setAccess({ commit }, { id, access }) {
             const resp = await axios.patch(
-                `${apiBaseUrl}/me/collections/${enc(id)}`,
+                `${collectionsUrl}/${enc(id)}`,
                 { access },
                 axiosConfig({ userAuth: true })
             );
@@ -220,7 +223,7 @@ export default {
             // when there is one; the response says whether the caller can edit
             // (`can_edit`). The name `fetchPublic` is historical.
             const resp = await axios.get(
-                `${apiBaseUrl}/collections/${enc(id)}`,
+                `${collectionsUrl}/${enc(id)}`,
                 axiosConfig({ userAuth: true })
             );
             return resp.data;
@@ -231,7 +234,7 @@ export default {
             if (display_name !== undefined) body.display_name = display_name;
             if (description !== undefined) body.description = description;
             const resp = await axios.patch(
-                `${apiBaseUrl}/me/collections/${enc(id)}`,
+                `${collectionsUrl}/${enc(id)}`,
                 body,
                 axiosConfig({ userAuth: true })
             );
@@ -241,68 +244,68 @@ export default {
 
         async remove({ commit }, id) {
             await axios.delete(
-                `${apiBaseUrl}/me/collections/${enc(id)}`,
+                `${collectionsUrl}/${enc(id)}`,
                 axiosConfig({ userAuth: true })
             );
             commit("removeCollection", id);
             commit("bumpEntityMutations");
         },
 
-        async addEntities({ commit, state }, { id, entity_ids }) {
+        // Add members: {added, already_present, member_count}.
+        async addEntities({ commit }, { id, member_ids }) {
             const resp = await axios.post(
-                `${apiBaseUrl}/me/collections/${enc(id)}/entities`,
-                { entity_ids },
+                `${collectionsUrl}/${enc(id)}/members`,
+                { member_ids },
                 axiosConfig({ userAuth: true })
             );
-            // server returns counts; bump local entity_count
-            const collection = state.collections.find(l => l.id === id);
-            if (collection) {
-                commit("updateCollection", {
-                    id,
-                    entity_count: (collection.entity_count || 0) + (resp.data?.added || 0),
-                });
-            }
+            commit("updateCollection", { id, member_count: resp.data?.member_count });
             commit("bumpEntityMutations");
             return resp.data;
         },
 
-        async removeEntities({ commit, state }, { id, entity_ids }) {
-            const resp = await axios.delete(
-                `${apiBaseUrl}/me/collections/${enc(id)}/entities`,
-                { ...axiosConfig({ userAuth: true }), data: { entity_ids } }
-            );
+        // Remove members, 100 per request (they ride in the query string):
+        // {removed, member_count}.
+        async removeEntities({ commit }, { id, member_ids }) {
+            let removed = 0;
+            let member_count;
+            for (let i = 0; i < member_ids.length; i += MAX_IDS_PER_QUERY) {
+                const chunk = member_ids.slice(i, i + MAX_IDS_PER_QUERY);
+                const resp = await axios.delete(
+                    `${collectionsUrl}/${enc(id)}/members?member_ids=${chunk.map(enc).join(",")}`,
+                    axiosConfig({ userAuth: true })
+                );
+                removed += resp.data?.removed || 0;
+                member_count = resp.data?.member_count;
+            }
+            if (member_count !== undefined) commit("updateCollection", { id, member_count });
+            commit("bumpEntityMutations");
+            return { removed, member_count };
+        },
+
+        async removeEntity({ commit, state }, { id, member_id }) {
+            try {
+                await axios.delete(
+                    `${collectionsUrl}/${enc(id)}/members/${enc(member_id)}`,
+                    axiosConfig({ userAuth: true })
+                );
+            } catch (e) {
+                // Already gone is the outcome the caller wanted.
+                if (e.response?.data?.code !== "member_not_found") throw e;
+            }
             const collection = state.collections.find(l => l.id === id);
             if (collection) {
                 commit("updateCollection", {
                     id,
-                    entity_count: Math.max(0, (collection.entity_count || 0) - (resp.data?.removed || 0)),
-                });
-            }
-            commit("bumpEntityMutations");
-            return resp.data;
-        },
-
-        async removeEntity({ commit, state }, { id, entity_id }) {
-            await axios.delete(
-                `${apiBaseUrl}/me/collections/${enc(id)}/entities/${enc(entity_id)}`,
-                axiosConfig({ userAuth: true })
-            );
-            const collection = state.collections.find(l => l.id === id);
-            if (collection) {
-                commit("updateCollection", {
-                    id,
-                    entity_count: Math.max(0, (collection.entity_count || 0) - 1),
+                    member_count: Math.max(0, (collection.member_count || 0) - 1),
                 });
             }
             commit("bumpEntityMutations");
         },
 
+        // A page of members: {meta: {count, page, per_page}, results: [{id, added_at}]}.
         async fetchEntities(_ctx, { id, page = 1, per_page = 200 }) {
-            // Entity listings live on the public endpoint — there is no
-            // /me/collections/:id/entities route. Auth header is harmless on the
-            // public path and lets ad-hoc local-dev tokens through.
             const resp = await axios.get(
-                `${apiBaseUrl}/collections/${enc(id)}/entities?page=${page}&per_page=${per_page}`,
+                `${collectionsUrl}/${enc(id)}/members?page=${page}&per_page=${per_page}`,
                 axiosConfig({ userAuth: true })
             );
             return resp.data;

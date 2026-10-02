@@ -412,7 +412,7 @@ const entityCollectionSingular = computed(() => {
 
 // "42 institutions", "1 institution".
 const memberCountLabel = computed(() => {
-  const n = collection.value?.entity_count ?? 0;
+  const n = collection.value?.member_count ?? 0;
   const noun = n === 1 ? entityCollectionSingular.value : entityCollectionPlural.value;
   return `${n.toLocaleString()} ${noun.toLowerCase()}`;
 });
@@ -429,7 +429,7 @@ const apiUrl = computed(() => (isShared.value && collection.value)
 const exportMode = computed(() => entityConfigs?.[guiEntityType.value]?.exportMode || "async");
 const exportScope = computed(() => ({
   filter: `collection:${collection.value?.id}`,
-  count: collection.value?.entity_count ?? 0,
+  count: collection.value?.member_count ?? 0,
   entityType: guiEntityType.value,
   title: `Export ${entityCollectionPlural.value.toLowerCase()}`,
   // Expansion works stay in a works collection's members (see membersUrl).
@@ -644,7 +644,7 @@ function askRemoveBulk() {
   const n = selectedCount.value;
   removeTarget.value = { type: "bulk" };
   removeTitle.value = `Remove ${n.toLocaleString()} ${n === 1 ? entityCollectionSingular.value.toLowerCase() : entityCollectionPlural.value.toLowerCase()}?`;
-  removeBody.value = "These will be removed from this collection. The entities themselves are not deleted.";
+  removeBody.value = `These will be removed from this collection. The ${entityCollectionPlural.value.toLowerCase()} themselves are not deleted.`;
   removeDialog.value = true;
 }
 
@@ -670,7 +670,7 @@ async function removeShortIds(shortIds) {
   for (let i = 0; i < shortIds.length; i += size) {
     await store.dispatch("collections/removeEntities", {
       id: collection.value.id,
-      entity_ids: shortIds.slice(i, i + size),
+      member_ids: shortIds.slice(i, i + size),
     });
   }
 }
@@ -718,7 +718,7 @@ async function confirmRemove() {
 async function refetchAfterMutation() {
   if (!collection.value) return;
   await loadResults();
-  collection.value = { ...collection.value, entity_count: totalCount.value };
+  collection.value = { ...collection.value, member_count: totalCount.value };
   if (!results.value.length && page.value > 1) page.value -= 1;
 }
 

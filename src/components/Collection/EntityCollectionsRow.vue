@@ -87,7 +87,7 @@ async function fetchCollections() {
   }
   try {
     // Batched + cached via the collections.store (oxjob #564): ids requested in
-    // the same tick coalesce into one `entity_ids=` request, so a page of SERP
+    // the same tick coalesce into one `member_ids=` request, so a page of SERP
     // rows costs one users-api call instead of one per row.
     const all = await store.dispatch(
       "collections/fetchEntityCollections",

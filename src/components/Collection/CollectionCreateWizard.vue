@@ -466,16 +466,16 @@ async function create() {
   apiError.value = "";
   creating.value = true;
   try {
-    const entity_ids = resolvedRows.value
+    const member_ids = resolvedRows.value
       .map(r => r.resolved)
       .filter(Boolean);
     // Dedupe (defensive — the API also dedupes via composite PK).
-    const unique = [...new Set(entity_ids)];
+    const unique = [...new Set(member_ids)];
     const collection = await store.dispatch("collections/create", {
       display_name: displayName.value.trim(),
       description: description.value,
       entity_type: entityType.value,
-      entity_ids: unique,
+      member_ids: unique,
     });
     store.commit("snackbar", "Collection created.");
     emit("created", collection);

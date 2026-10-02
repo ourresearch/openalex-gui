@@ -13,6 +13,9 @@ const getStore = () => {
 const urlBase = {
     api: "https://api.openalex.org",
     userApi: "https://user.openalex.org",
+    // The collections API (oxjob #1515): api.openalex.org/collections, which the proxy
+    // routes to users-api's /api/collections. Local users-api serves it at /api.
+    collectionsApi: "https://api.openalex.org",
     cvParseApi: "https://openalex-cv-parser.our-research.workers.dev",  // CV parser worker (direct, bypasses proxy)
 };
 
@@ -32,6 +35,7 @@ if (window.location.port && parseInt(window.location.port) === 8081) {
 // 8083: Local User API
 } else if (window.location.port && parseInt(window.location.port) === 8083) {
     urlBase.userApi = "http://localhost:5106";
+    urlBase.collectionsApi = "http://localhost:5106/api";
     console.log("Setting User API base URL to local machine (dev use only): " + urlBase.userApi);
 
 // 8084: Local Elastic & User API
@@ -39,6 +43,7 @@ if (window.location.port && parseInt(window.location.port) === 8081) {
     urlBase.api = "http://localhost:5006";
     console.log("Setting API base URL to local machine (dev use only): " + urlBase.api);
     urlBase.userApi = "http://localhost:5106";
+    urlBase.collectionsApi = "http://localhost:5106/api";
     console.log("Setting User API base URL to local machine (dev use only): " + urlBase.userApi);
 
 // 8085: Local CV Parse Server

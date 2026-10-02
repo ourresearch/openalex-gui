@@ -76,7 +76,7 @@ async function onApply(entityValues) {
   try {
     const resp = await store.dispatch("collections/addEntities", {
       id: props.collection.id,
-      entity_ids: shortIds,
+      member_ids: shortIds,
     });
     const added = resp?.added ?? shortIds.length;
     store.commit(

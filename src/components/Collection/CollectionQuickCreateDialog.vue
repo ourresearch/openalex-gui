@@ -109,7 +109,7 @@ async function onCreate() {
       display_name: name,
       description: description.value,
       entity_type: props.entityType,
-      entity_ids: props.entityIds,
+      member_ids: props.entityIds,
     });
     emit("created", newCollection);
     emit("update:modelValue", false);

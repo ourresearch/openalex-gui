@@ -7,10 +7,10 @@ import { optionsFromString, filtersFromUrlStr, filtersAsUrlStr } from '../filter
 // can be a value of any entity-ID field whose selected type matches the
 // collection's entity_type. These cover the PURE decision logic.
 
-const SOURCES_A = { id: 'col_AaAaAa1111', display_name: 'Elsevier journals', entity_type: 'sources', entity_count: 42, description: 'big publisher' };
-const SOURCES_B = { id: 'col_BbBbBb2222', display_name: 'arXiv mirrors', entity_type: 'sources', entity_count: 7 };
-const AUTHORS_A = { id: 'col_CcCcCc3333', display_name: 'My coauthors', entity_type: 'authors', entity_count: 3 };
-const INSTS_A = { id: 'col_DdDdDd4444', display_name: 'R1 universities', entity_type: 'institutions', entity_count: 130 };
+const SOURCES_A = { id: 'col_AaAaAa1111', display_name: 'Elsevier journals', entity_type: 'sources', member_count: 42, description: 'big publisher' };
+const SOURCES_B = { id: 'col_BbBbBb2222', display_name: 'arXiv mirrors', entity_type: 'sources', member_count: 7 };
+const AUTHORS_A = { id: 'col_CcCcCc3333', display_name: 'My coauthors', entity_type: 'authors', member_count: 3 };
+const INSTS_A = { id: 'col_DdDdDd4444', display_name: 'R1 universities', entity_type: 'institutions', member_count: 130 };
 
 const ALL = [SOURCES_A, SOURCES_B, AUTHORS_A, INSTS_A];
 

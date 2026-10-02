@@ -39,8 +39,8 @@
           <div v-if="entityData?.description" class="mb-1 text-body-2">
             {{ entityData.description }}
           </div>
-          <div v-if="entityData?.entity_count !== undefined">
-            <strong>Entity count:</strong> {{ filters.toPrecision(entityData.entity_count) }}
+          <div v-if="entityData?.member_count !== undefined">
+            <strong>Members:</strong> {{ filters.toPrecision(entityData.member_count) }}
           </div>
         </div>
         <template v-else>

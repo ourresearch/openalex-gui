@@ -190,7 +190,7 @@
       <v-card-title>This would exceed the collection cap</v-card-title>
       <v-card-text>
         <strong>{{ overflowCollection?.display_name }}</strong> already has
-        {{ overflowCollection?.entity_count?.toLocaleString() }} items. Adding
+        {{ overflowCollection?.member_count?.toLocaleString() }} members. Adding
         {{ overflowAddCount.toLocaleString() }} more would push it past the
         {{ MAX_ENTITIES_PER_COLLECTION.toLocaleString() }} cap.
       </v-card-text>
@@ -374,7 +374,7 @@ async function onApply(collection, op) {
       const list = map[sid] || [];
       return !list.some((c) => c.id === collection.id);
     });
-    const projected = (collection.entity_count || 0) + toAdd.length;
+    const projected = (collection.member_count || 0) + toAdd.length;
     if (projected > MAX_ENTITIES_PER_COLLECTION) {
       overflowCollection.value = collection;
       overflowAddCount.value = toAdd.length;
@@ -389,13 +389,13 @@ async function onApply(collection, op) {
   try {
     if (op === "add") {
       const resp = await store.dispatch("collections/addEntities", {
-        id: collection.id, entity_ids: ids,
+        id: collection.id, member_ids: ids,
       });
       const n = (resp?.added ?? 0) + (resp?.already_present ?? 0);
       store.commit("snackbar", `Added "${collection.display_name}" to ${n} ${nounFor(n)}.`);
     } else {
       const resp = await store.dispatch("collections/removeEntities", {
-        id: collection.id, entity_ids: ids,
+        id: collection.id, member_ids: ids,
       });
       const n = resp?.removed ?? 0;
       store.commit("snackbar", `Removed "${collection.display_name}" from ${n} ${nounFor(n)}.`);

@@ -30,8 +30,6 @@
 import { ref, computed, watch } from "vue";
 import { useStore } from "vuex";
 import { useRoute, useRouter } from "vue-router";
-import axios from "axios";
-import { urlBase, axiosConfig } from "@/apiConfig.js";
 import * as openalexId from "@/openalexId";
 import CollectionActionMenu from "@/components/Collection/CollectionActionMenu.vue";
 
@@ -75,11 +73,9 @@ async function fetchMembership() {
     return;
   }
   try {
-    const resp = await axios.get(
-      `${urlBase.userApi}/me/collections?entity_id=${encodeURIComponent(shortId.value)}&per_page=100`,
-      axiosConfig({ userAuth: true })
-    );
-    memberCollectionIds.value = (resp.data?.results || [])
+    // Batched and cached in the store; the cache clears on every membership change.
+    const collections = await store.dispatch("collections/fetchEntityCollections", shortId.value);
+    memberCollectionIds.value = (collections || [])
       .filter((c) => c.entity_type === collectionEntityType.value)
       .map((c) => c.id);
   } catch (e) {

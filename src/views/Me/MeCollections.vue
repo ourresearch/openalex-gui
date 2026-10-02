@@ -49,7 +49,7 @@
             This will permanently delete
             <strong>{{ deletingCollection?.display_name }}</strong>
             and all
-            {{ deletingCollection?.entity_count ?? 0 }} entit{{ (deletingCollection?.entity_count ?? 0) === 1 ? "y" : "ies" }}
+            {{ deletingCollection?.member_count ?? 0 }} member{{ (deletingCollection?.member_count ?? 0) === 1 ? "" : "s" }}
             in it. Its page and any search that uses it, yours or anyone's you shared it with, will say "Collection not found".
           </p>
           <p class="text-body-2 text-grey mt-2">This cannot be undone.</p>
@@ -133,7 +133,7 @@ async function confirmDelete() {
 }
 
 function onCreated() {
-  // Refresh to pick up server-side fields (entity_count, timestamps).
+  // Refresh to pick up server-side fields (member_count, timestamps).
   store.dispatch("collections/fetchAll");
 }
 

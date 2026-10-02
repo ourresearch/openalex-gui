@@ -85,7 +85,7 @@ export function filterCollectionsForField(collections, selectType, searchString)
         .map(c => ({
             value: c.id,
             displayValue: c.display_name,
-            entityCount: c.entity_count,
+            entityCount: c.member_count,
             isCollection: true,
         }));
 }
