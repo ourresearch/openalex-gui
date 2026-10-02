@@ -1,7 +1,7 @@
 {
- "version": "14.1.0",
- "fingerprint": "4f595f9081b3516d13ffa97d5869807f1ed6009f32820a5bad03c53bb9e5c623",
- "generatedAt": "2026-09-25T14:33:03.844Z",
+ "version": "15.0.0",
+ "fingerprint": "c68bb2b8977b31f937a5ee2c9f6e46b15a326cbc38f244cff7e0fd5c5c7c1ad8",
+ "generatedAt": "2026-10-02T10:09:27.000Z",
  "entities": {
   "authors": {
    "displayName": "authors",
@@ -188,6 +188,7 @@
    "funder_name": "funder name",
    "funder_scheme": "funder scheme",
    "funding_type": "funding type",
+   "has_parent_award": "has parent award",
    "id": "OpenAlex ID",
    "institution_awarded": "institution awarded",
    "institution_awarded.continent": "institution awarded continent",
@@ -204,6 +205,10 @@
    "lead_investigator.family_name": "lead investigator family name",
    "lead_investigator.given_name": "lead investigator given name",
    "lead_investigator.orcid": "lead investigator orcid",
+   "parent_awards": "parent awards",
+   "parent_awards.funder.id": "parent awards funder id",
+   "parent_awards.id": "parent awards id",
+   "parent_awards.relationship": "parent awards relationship",
    "primary_topic": "primary topic",
    "primary_topic.domain.id": "domain",
    "primary_topic.field.id": "field",
@@ -213,6 +218,11 @@
    "relevance_score": "relevance score",
    "start_date": "start date",
    "start_year": "start year",
+   "sub_awards": "sub awards",
+   "sub_awards.funder.id": "sub awards funder id",
+   "sub_awards.id": "sub awards id",
+   "sub_awards.relationship": "sub awards relationship",
+   "sub_awards_count": "sub awards count",
    "text.search": "text",
    "topics": "topics",
    "topics.domain.id": "topics domain id",
@@ -466,11 +476,14 @@
    "cited_by_count": "citation count",
    "collection": "collection",
    "created_date": "created date",
+   "description": "description",
    "display_name": "name",
    "display_name.search": "display name",
+   "display_name_alternatives": "alternate names",
    "from_created_date": "from created date",
    "from_updated_date": "from updated date",
    "id": "id",
+   "ids": "ids",
    "relevance_score": "relevance score",
    "text.search": "text",
    "updated_date": "updated date",
@@ -1001,6 +1014,7 @@
    "sustainable_development_goals": "sustainable development goals",
    "sustainable_development_goals.id": "SDG",
    "sustainable_development_goals.score": "SDG score",
+   "sustainable_development_goals_aurora": "deprecated Aurora SDGs",
    "title": "title",
    "title_and_abstract.search": "title/abstract",
    "title_and_abstract.search.exact": "title and abstract",
@@ -1016,9 +1030,7 @@
    "type": "type",
    "type_crossref": "Crossref type",
    "updated_date": "updated date",
-   "versions": "versions",
-   "x_sdgs": "x sdgs",
-   "x_sdgs.id": "experimental SDGs"
+   "versions": "versions"
   }
  }
 }
