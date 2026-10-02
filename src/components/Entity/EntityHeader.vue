@@ -120,6 +120,16 @@
       </template>
     </div>
 
+    <!-- Export as CSV: the search page's export dialog, scoped to this entity's
+         works. Its own activator stays hidden; the More menu opens it. -->
+    <serp-results-export-button
+      v-if="canExport"
+      ref="exportButtonRef"
+      :scope="{ filter: worksExportFilter, count: exportCount }"
+      :z-index="isDrawer ? 10001 : null"
+      class="d-none"
+    />
+
     <!-- Row 1: title. -->
     <div class="d-flex align-start">
       <div
@@ -149,6 +159,8 @@ import { useRouter } from 'vue-router';
 
 import filters from '@/filters';
 import { getEntityConfig } from '@/entityConfigs';
+import { createSimpleFilter, filtersAsUrlStr } from '@/filterConfigs';
+import { api } from '@/api';
 import * as openalexId from '@/openalexId';
 
 import LinkEntityRolesList from '@/components/LinkEntityRolesList.vue';
@@ -158,6 +170,7 @@ import EntityHeaderClaimProfileButton from '@/components/Entity/EntityHeaderClai
 import EntityCollectionsRow from '@/components/Collection/EntityCollectionsRow.vue';
 import EntityCollectionButton from '@/components/Entity/EntityCollectionButton.vue';
 import EntityMoreMenu from '@/components/Entity/EntityMoreMenu.vue';
+import SerpResultsExportButton from '@/components/SerpResultsExportButton.vue';
 
 defineOptions({ name: 'EntityHeader' });
 
@@ -189,9 +202,33 @@ defineEmits(["close"]);
 
 const isDrawer = computed(() => props.layout === "drawer");
 
-// Export as CSV (#1507). Off until the export is built.
-const canExport = computed(() => false);
-function onExport() {}
+// Export as CSV (#1507): exports this entity's works through the search page's
+// export dialog (columns, cost, emailed when ready). On a work page the filter
+// is the work's own id, so it exports that one work with the same columns.
+const exportButtonRef = ref(null);
+const worksExportFilter = computed(() => {
+  if (props.isCollection || !shortId.value) return null;
+  const config = myEntityConfig.value;
+  if (!config?.filterKey) return null;
+  // Repository sources: works where the repo is any location, as the page's
+  // works list does.
+  const isRepository = myEntityType.value === 'sources' && props.entityData?.type === 'repository';
+  const filterKey = isRepository ? 'locations.source.id' : config.filterKey;
+  return filtersAsUrlStr([createSimpleFilter('works', filterKey, shortId.value)]);
+});
+const canExport = computed(() => !!worksExportFilter.value);
+const exportCount = ref(0);
+async function onExport() {
+  try {
+    const resp = await api.getResultsList(
+      api.makeUrl('works', { filter: worksExportFilter.value, 'per-page': 1 }, true)
+    );
+    exportCount.value = resp?.meta?.count ?? 0;
+  } catch (e) {
+    exportCount.value = 0;
+  }
+  exportButtonRef.value?.openExportDialog();
+}
 
 const store = useStore();
 const router = useRouter();
