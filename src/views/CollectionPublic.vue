@@ -4,7 +4,7 @@
   The owner manages it here (rename, share, add, remove). Anyone else sees it only
   when the owner has shared it by link (oxjob #646): read-only, logged in or not,
   with Make a copy. A private collection, or one that doesn't exist, shows the same
-  "Collection doesn't exist or isn't shared" (the server answers both the same way). The
+  "Collection not found" (the server answers both the same way). The
   page is `noindex`; shared collections are never listed or indexed.
 -->
 <template>
@@ -23,6 +23,10 @@
         class="my-6"
       >
         {{ errorMessage }}
+        <!-- Helps a recipient without confirming the collection exists (oxjob #646). -->
+        <div v-if="errorMessage === 'Collection not found.'" class="mt-1">
+          If someone sent you this link, ask them to share the collection by link.
+        </div>
       </v-alert>
 
       <!-- Main content -->
@@ -387,7 +391,7 @@ async function loadCollection() {
   try {
     // Public routes don't wait for /users/me, but the member list goes through
     // elastic-api with the user's API key: without it a private collection reads
-    // as "doesn't exist or isn't shared" to its own owner on a first load.
+    // as "not found" to its own owner on a first load.
     await store.dispatch("user/ensureUser");
     collection.value = await store.dispatch("collections/fetchPublic", collectionId.value);
     store.commit("setEntityType", openalexId.fromCollectionEntityType(collection.value.entity_type));
@@ -414,7 +418,7 @@ function membersUrl(p, per) {
 // One wording for "can't read it", whatever the cause (oxjob #646).
 function collectionErrorMessage(e) {
   const status = e.response?.status;
-  if (status === 404) return "Collection doesn't exist or isn't shared.";
+  if (status === 404) return "Collection not found.";
   if (status === 429) return "Too many requests. Try again in a minute.";
   return e.response?.data?.message || "Could not load this collection. Try again.";
 }
@@ -438,7 +442,7 @@ async function loadResults() {
     console.error("Failed to load collection results", e);
     results.value = [];
     resultsError.value = e.response?.status === 404
-      ? "Collection doesn't exist or isn't shared."
+      ? "Collection not found."
       : "Couldn't load the members. Try again in a moment.";
   } finally {
     resultsLoading.value = false;

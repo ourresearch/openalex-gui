@@ -1,7 +1,7 @@
 <!--
   Shown when you copy a search link (or its OQL, API URL or OQO) that uses one of
   your private collections (oxjob #646): the people you send it to would get
-  "Collection doesn't exist or isn't shared". Offers to share the collections by link
+  "Collection not found". Offers to share the collections by link
   first, or to copy anyway.
 -->
 <template>
