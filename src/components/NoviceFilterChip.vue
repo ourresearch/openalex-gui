@@ -311,10 +311,10 @@ watch(
             // filter value (case-preserved) and cache under the
             // lowercased option key the chipLabel reads from.
             const rawValue = activeFilters.value[0]?.value || optId;
-            // Collections are private (v1.1): /collections/:id requires auth. Sending
-            // the JWT lets the owner / admin resolve the chip's display name;
-            // anon callers will 401 and we'll fall through to showing the
-            // raw id (better than crashing).
+            // The owner (and admins) can read a private collection; anyone can read
+            // one shared by link (oxjob #646). The auth header rides along when there
+            // is one. A collection the viewer can't read 404s and the chip shows the
+            // raw id.
             const resp = await axios.get(
               `${urlBase.userApi}/collections/${encodeURIComponent(rawValue)}`,
               axiosConfig({ userAuth: true })

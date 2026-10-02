@@ -168,9 +168,7 @@ export default {
         },
 
         async create({ commit }, payload = {}) {
-            // Collections v1.1 (oxjob #228 QA-040): collections are now private, the
-            // public-page Copy-to-my-collections fork flow is gone. POST /me/collections
-            // accepts only the normal-create shape.
+            // Normal create. Making a copy of another collection is `copy` below.
             const { display_name, description, entity_type, entity_ids } = payload;
             const body = {
                 display_name,
@@ -190,10 +188,37 @@ export default {
             return resp.data;
         },
 
+        // Make a copy (oxjob #646): snapshot a collection the user can read (their
+        // own, or one shared by link) into a new private collection they own. Only
+        // ever called from an explicit click, never on page load or after a login
+        // redirect (labels-v1 security review H1).
+        async copy({ commit }, sourceId) {
+            const resp = await axios.post(
+                `${apiBaseUrl}/me/collections`,
+                { source_collection_id: sourceId },
+                axiosConfig({ userAuth: true })
+            );
+            commit("addCollection", resp.data);
+            if ((resp.data?.entity_count ?? 0) > 0) commit("bumpEntityMutations");
+            return resp.data;
+        },
+
+        // Private, or shared by link (oxjob #646). Owner only; the server 404s anyone else.
+        async setAccess({ commit }, { id, access }) {
+            const resp = await axios.patch(
+                `${apiBaseUrl}/me/collections/${enc(id)}`,
+                { access },
+                axiosConfig({ userAuth: true })
+            );
+            commit("updateCollection", resp.data);
+            return resp.data;
+        },
+
         async fetchPublic(_ctx, id) {
-            // Auth header is required (collections are private). The route name
-            // remains `fetchPublic` for historical reasons and to keep call
-            // sites stable.
+            // Readable by the owner (and admins) when private, and by anyone, logged
+            // in or not, when shared by link (oxjob #646). The auth header rides along
+            // when there is one; the response says whether the caller can edit
+            // (`can_edit`). The name `fetchPublic` is historical.
             const resp = await axios.get(
                 `${apiBaseUrl}/collections/${enc(id)}`,
                 axiosConfig({ userAuth: true })

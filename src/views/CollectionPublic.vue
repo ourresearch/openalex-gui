@@ -1,10 +1,11 @@
 <!--
-  Route `/collections/:id`. The filename says "Public" for historical reasons only —
-  this is NOT a public page. Collections are private to their owner (admins can also
-  read), the fetch sends an auth header, and the page is `noindex`. It is really the
-  collection's own management page: rename, search members, add, remove, bulk-remove.
-  Nothing in the UI may label it "public" or offer it as a share affordance until real
-  shared collections exist (oxjob #819; CNRS webinar Q4.3).
+  Route `/collections/:id`: a collection's one home.
+
+  The owner manages it here (rename, share, add, remove). Anyone else sees it only
+  when the owner has shared it by link (oxjob #646): read-only, logged in or not,
+  with Make a copy. A private collection, or one that doesn't exist, shows the same
+  "Collection not found or not shared" (the server answers both the same way). The
+  page is `noindex`; shared collections are never listed or indexed.
 -->
 <template>
   <div class="collection-view">
@@ -37,6 +38,29 @@
           :type-label="`Collection of ${entityCollectionPlural.toLowerCase()}`"
           class="mb-4"
         >
+          <template #header-actions>
+            <v-btn
+              v-if="isOwner"
+              color="primary"
+              variant="flat"
+              class="ml-2"
+              @click="shareDialogOpen = true"
+            >
+              <v-icon start aria-hidden="true">{{ isShared ? 'mdi-link-variant' : 'mdi-lock-outline' }}</v-icon>
+              Share
+            </v-btn>
+            <v-btn
+              v-else
+              variant="outlined"
+              class="ml-2"
+              :loading="copying"
+              @click="makeCopy"
+            >
+              <v-icon start aria-hidden="true">mdi-content-copy</v-icon>
+              Make a copy
+            </v-btn>
+          </template>
+
           <template v-if="isOwner" #after-title>
             <collection-name-editor
               :current-name="collection.display_name"
@@ -46,9 +70,20 @@
           </template>
 
           <template #after-header>
-            <div class="text-body-2 text-grey mt-1">
+            <div class="text-body-2 meta-line mt-1">
               {{ (collection.entity_count ?? 0).toLocaleString() }} {{ collection.entity_count === 1 ? "entity" : "entities" }} ·
-              Created {{ formattedDate }}
+              Created {{ formattedDate }} ·
+              <span v-if="isShared">
+                <v-icon size="x-small" aria-hidden="true">mdi-link-variant</v-icon>
+                Shared by link
+              </span>
+              <span v-else>
+                <v-icon size="x-small" aria-hidden="true">mdi-lock-outline</v-icon>
+                Private
+              </span>
+            </div>
+            <div v-if="!isOwner && isShared" class="text-body-2 meta-line mt-1">
+              Shared with you by link. Only its owner can change it; make a copy to edit your own.
             </div>
             <div
               v-if="collection.description"
@@ -128,6 +163,16 @@
           <div v-if="resultsLoading" class="d-flex justify-center my-12">
             <v-progress-circular indeterminate />
           </div>
+          <!-- A failed member fetch used to read "This collection is empty" while the
+               header said "4 entities". Say what happened instead. -->
+          <v-alert
+            v-else-if="resultsError"
+            type="error"
+            variant="tonal"
+            class="ma-4"
+          >
+            {{ resultsError }}
+          </v-alert>
           <div v-else-if="!results.length && searchTerm" class="text-center text-grey my-12 pa-6">
             No {{ entityCollectionPlural.toLowerCase() }} match “{{ searchTerm }}”.
           </div>
@@ -179,6 +224,31 @@
       </template>
     </v-container>
 
+    <collection-share-dialog
+      v-if="collection && isOwner"
+      v-model="shareDialogOpen"
+      :collection="collection"
+      @updated="onShareUpdated"
+    />
+
+    <!-- Make a copy while logged out: log in first, then come back and click again.
+         Never copy automatically after the login redirect (labels-v1 security
+         review H1: a link must not be able to write to someone's account). -->
+    <v-dialog v-model="loginToCopyOpen" max-width="440">
+      <v-card rounded class="pa-2">
+        <v-card-title class="text-h6">Log in to make a copy</v-card-title>
+        <v-card-text>
+          A copy is a new private collection in your account, with the same members.
+          Log in or sign up, then click Make a copy again.
+        </v-card-text>
+        <v-card-actions class="px-4 pb-3">
+          <v-spacer />
+          <v-btn variant="text" @click="goLogin">Log in</v-btn>
+          <v-btn variant="flat" color="primary" @click="goSignup">Sign up</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Add-members dialog (owner) -->
     <collection-add-entities-dialog
       v-if="collection && isOwner"
@@ -203,7 +273,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { useHead } from "@unhead/vue";
 import axios from "axios";
@@ -216,9 +286,11 @@ import EntityHeader from "@/components/Entity/EntityHeader.vue";
 import CollectionNameEditor from "@/components/Collection/CollectionNameEditor.vue";
 import CollectionDerivedWorksButton from "@/components/Collection/CollectionDerivedWorksButton.vue";
 import CollectionAddEntitiesDialog from "@/components/Collection/CollectionAddEntitiesDialog.vue";
+import CollectionShareDialog from "@/components/Collection/CollectionShareDialog.vue";
 import SelectionToolbar from "@/components/SelectionToolbar.vue";
 
 const route = useRoute();
+const router = useRouter();
 const store = useStore();
 
 const collection = ref(null);
@@ -228,6 +300,7 @@ const errorMessage = ref("");
 const results = ref([]);
 const totalCount = ref(0);
 const resultsLoading = ref(false);
+const resultsError = ref("");
 const page = ref(1);
 const perPage = 25;
 
@@ -237,6 +310,9 @@ const searchInput = ref("");
 const searchTerm = ref("");
 
 const addDialogOpen = ref(false);
+const shareDialogOpen = ref(false);
+const loginToCopyOpen = ref(false);
+const copying = ref(false);
 
 // Remove confirmation. target = { type: 'single', result } | { type: 'bulk' }.
 // removeTitle/removeBody are snapshotted at open-time (not computed off the
@@ -252,9 +328,9 @@ const suppressRefetch = ref(false);
 
 const collectionId = computed(() => route.params.collection_id);
 
-const isOwner = computed(() =>
-  !!(collection.value && store.getters["collections/byId"](collection.value.id))
-);
+// The server says whether this caller may edit (only the owner can; oxjob #646).
+const isOwner = computed(() => !!collection.value?.can_edit);
+const isShared = computed(() => collection.value?.access === "shared_by_link");
 
 // GUI type name for routes + entityConfigs lookups — identical to the
 // collection entity_type except `work-types` → `types` (oxjob #396).
@@ -304,6 +380,10 @@ async function loadCollection() {
   loading.value = true;
   errorMessage.value = "";
   try {
+    // Public routes don't wait for /users/me, but the member list goes through
+    // elastic-api with the user's API key: without it a private collection reads
+    // as "not found or not shared" to its own owner on a first load.
+    await store.dispatch("user/ensureUser");
     collection.value = await store.dispatch("collections/fetchPublic", collectionId.value);
     store.commit("setEntityType", openalexId.fromCollectionEntityType(collection.value.entity_type));
     if (!store.state.collections.loaded && !store.state.collections.loading) {
@@ -311,17 +391,7 @@ async function loadCollection() {
     }
     await loadResults();
   } catch (e) {
-    const status = e.response?.status;
-    if (status === 404) {
-      errorMessage.value = "Collection not found. It may have been deleted.";
-    } else if (status === 401) {
-      errorMessage.value = "Please log in to view this collection.";
-    } else if (status === 403) {
-      errorMessage.value = "This collection is private. Only the owner can view it.";
-    } else {
-      errorMessage.value =
-        e.response?.data?.message || "Could not load this collection.";
-    }
+    errorMessage.value = collectionErrorMessage(e);
   } finally {
     loading.value = false;
   }
@@ -336,9 +406,18 @@ function membersUrl(p, per) {
   return u;
 }
 
+// One wording for "can't read it", whatever the cause (oxjob #646).
+function collectionErrorMessage(e) {
+  const status = e.response?.status;
+  if (status === 404) return "Collection not found or not shared.";
+  if (status === 429) return "Too many requests. Try again in a minute.";
+  return e.response?.data?.message || "Could not load this collection. Try again.";
+}
+
 async function loadResults() {
   if (!collection.value) return;
   resultsLoading.value = true;
+  resultsError.value = "";
   try {
     const resp = await axios.get(membersUrl(page.value, perPage), axiosConfig());
     results.value = resp.data?.results || [];
@@ -353,7 +432,9 @@ async function loadResults() {
   } catch (e) {
     console.error("Failed to load collection results", e);
     results.value = [];
-    totalCount.value = 0;
+    resultsError.value = e.response?.status === 404
+      ? "Collection not found or not shared."
+      : "Couldn't load the members. Try again in a moment.";
   } finally {
     resultsLoading.value = false;
   }
@@ -373,6 +454,39 @@ function clearSearch() {
     page.value = 1;
     loadResults();
   }
+}
+
+function onShareUpdated(updated) {
+  collection.value = { ...collection.value, access: updated.access };
+}
+
+async function makeCopy() {
+  if (!store.state.user?.id) {
+    loginToCopyOpen.value = true;
+    return;
+  }
+  copying.value = true;
+  try {
+    const copy = await store.dispatch("collections/copy", collection.value.id);
+    store.commit("snackbar", `Copied to your collections as “${copy.display_name}”.`);
+    router.push(`/collections/${copy.id}`);
+  } catch (e) {
+    store.commit("snackbar", {
+      msg: e.response?.data?.message || "Couldn't make a copy. Try again.",
+      color: "error",
+    });
+  } finally {
+    copying.value = false;
+  }
+}
+
+function goLogin() {
+  loginToCopyOpen.value = false;
+  router.push({ name: "Login", query: { redirect: route.fullPath } });
+}
+function goSignup() {
+  loginToCopyOpen.value = false;
+  router.push({ name: "Signup", query: { redirect: route.fullPath } });
 }
 
 async function renameCollection(newName) {
@@ -491,6 +605,9 @@ onUnmounted(() => store.commit("selection/deselectAll"));
 </script>
 
 <style lang="scss" scoped>
+.meta-line {
+  color: rgba(0, 0, 0, 0.7);
+}
 .collection-description {
   white-space: pre-wrap;
   word-break: break-word;

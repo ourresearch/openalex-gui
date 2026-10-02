@@ -5,6 +5,7 @@
         v-if="selectable"
         class="master-checkbox"
         density="compact"
+        aria-label="Select all"
         :model-value="masterChecked"
         :indeterminate="masterIndeterminate"
         :disabled="disableMaster"

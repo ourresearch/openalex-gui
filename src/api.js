@@ -564,12 +564,24 @@ const api = (function () {
     // for "<subject> is in collection <name>" OQL rendering). Collections live in
     // users-api, not elastic-api, so read from the collections.store cache (one
     // /me/collections fetch, cap 100). Returns null if not found.
+    //
+    // Not one of yours (a collection someone shared by link, oxjob #646): ask
+    // users-api for it once per session. Unreadable ids cache as null, so a chip
+    // for a private or deleted collection doesn't refetch on every render.
+    const _sharedCollectionNames = new Map();
     const getCollectionDisplayName = async function (colId) {
         if (!store.state.collections?.loaded && !store.state.collections?.loading) {
             await store.dispatch('collections/fetchAll');
         }
         const all = store.state.collections?.collections || [];
-        return all.find(c => c.id === colId)?.display_name ?? null;
+        const mine = all.find(c => c.id === colId)?.display_name;
+        if (mine) return mine;
+        if (!_sharedCollectionNames.has(colId)) {
+            _sharedCollectionNames.set(colId, store.dispatch('collections/fetchPublic', colId)
+                .then(c => c?.display_name ?? null)
+                .catch(() => null));
+        }
+        return _sharedCollectionNames.get(colId);
     };
 
     const createExport = async function(query, email) {

@@ -44,6 +44,16 @@
                 <span class="font-weight-medium">
                   <v-icon color="grey" start size="small">{{ entityIcon(collection.entity_type) }}</v-icon>
                   {{ collection.display_name }}
+                  <v-chip
+                    v-if="collection.access === 'shared_by_link'"
+                    size="x-small"
+                    variant="tonal"
+                    label
+                    class="ml-2"
+                  >
+                    <v-icon start size="x-small" aria-hidden="true">mdi-link-variant</v-icon>
+                    Shared by link
+                  </v-chip>
                 </span>
                 <span v-if="collection.description" class="collection-description text-grey">
                   {{ collection.description }}
@@ -60,7 +70,7 @@
             <td class="text-right" @click.stop>
               <v-menu location="bottom end">
                 <template #activator="{ props: menuProps }">
-                  <v-btn icon variant="plain" v-bind="menuProps">
+                  <v-btn icon variant="plain" v-bind="menuProps" :aria-label="`Actions for ${collection.display_name}`">
                     <v-icon>mdi-dots-vertical</v-icon>
                   </v-btn>
                 </template>
@@ -102,10 +112,14 @@
 
                   <v-divider class="my-1" />
 
-                  <!-- The collection's own page: rename, search members, add/remove.
-                       Owner-only in practice. NOT public — collections are private to
-                       their owner, so this must never be labelled as a public page or a
-                       share affordance (oxjob #819; CNRS webinar Q4.3). -->
+                  <!-- Share: private, or shared by link (oxjob #646). -->
+                  <v-list-item @click.stop="$emit('share', collection)">
+                    <template #prepend>
+                      <v-icon size="small">mdi-share-variant-outline</v-icon>
+                    </template>
+                    <v-list-item-title>Share…</v-list-item-title>
+                  </v-list-item>
+                  <!-- The collection's own page: rename, share, search members, add/remove. -->
                   <v-list-item :to="`/collections/${collection.id}`" @click.stop>
                     <template #prepend>
                       <v-icon size="small">mdi-folder-open-outline</v-icon>
@@ -137,7 +151,8 @@
         <div class="text-grey mb-2">You don't have any collections yet.</div>
         <div class="text-grey text-body-2">
           Collections are named sets of entities (works, sources, authors, institutions…)
-          you can re-use as search filters, here and in the API. They're private to you.
+          you can re-use as search filters, here and in the API. They're private to you
+          unless you share one by link.
         </div>
       </div>
     </v-card>
@@ -154,7 +169,7 @@ import { fromCollectionEntityType } from "@/openalexId";
 const props = defineProps({
   collections: { type: Array, default: () => [] },
 });
-defineEmits(["edit", "delete"]);
+defineEmits(["edit", "delete", "share"]);
 
 const router = useRouter();
 const searchQuery = ref("");

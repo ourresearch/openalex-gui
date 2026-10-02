@@ -4,6 +4,7 @@
       v-if="selectable"
       class="result-checkbox"
       density="compact"
+      :aria-label="`Select ${result.display_name || 'this result'}`"
       :model-value="isSelected"
       :disabled="disableSelect"
       @click.stop

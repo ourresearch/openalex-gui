@@ -167,7 +167,7 @@ onMounted(async () => {
     };
   } else if (props.filterKey === 'collection' || isCollectionId(props.filterValue)) {
     // Collections live in users-api, not OpenAlex elastic-api. Resolve via
-    // /collections/<id> (requires auth — collections are private since v1.1) and
+    // /collections/<id> (owner, or anyone when shared by link, oxjob #646) and
     // render with a collection-shaped menu (no "Profile" link). Detect by VALUE
     // (col_ prefix) too, so a collection used as a regular entity-ID field's
     // value (cross-type filter, oxjob #273) also renders as a collection, not

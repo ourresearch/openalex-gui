@@ -71,6 +71,7 @@
             <th>Name</th>
             <th>Type</th>
             <th class="text-right">Entities</th>
+            <th>Access</th>
             <th>Owner</th>
             <th class="col-created">Created</th>
             <th />
@@ -92,6 +93,7 @@
             </td>
             <td class="text-grey">{{ collection.entity_type }}</td>
             <td class="text-right">{{ collection.entity_count ?? 0 }}</td>
+            <td class="text-grey">{{ collection.access === 'shared_by_link' ? 'Shared by link' : 'Private' }}</td>
             <td>
               <router-link
                 :to="`/admin/users/${collection.user_id}`"
@@ -107,8 +109,6 @@
                   </v-btn>
                 </template>
                 <v-list density="compact">
-                  <!-- Not a public page — collections are private to their owner (admins
-                       can read any of them). Keep the label honest (oxjob #819). -->
                   <v-list-item :to="`/collections/${collection.id}`" target="_blank">
                     <template #prepend>
                       <v-icon size="small">mdi-folder-open-outline</v-icon>
@@ -120,6 +120,12 @@
                       <v-icon size="small">mdi-pencil-outline</v-icon>
                     </template>
                     <v-list-item-title>Edit name / description</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item @click="openTransfer(collection)">
+                    <template #prepend>
+                      <v-icon size="small">mdi-account-arrow-right-outline</v-icon>
+                    </template>
+                    <v-list-item-title>Transfer ownership</v-list-item-title>
                   </v-list-item>
                   <v-list-item @click="openDelete(collection)" base-color="error">
                     <template #prepend>
@@ -183,6 +189,38 @@
           <v-spacer />
           <v-btn variant="text" @click="editOpen = false" :disabled="editSaving">Cancel</v-btn>
           <v-btn variant="flat" color="primary" :loading="editSaving" @click="saveEdit">Save</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Transfer ownership (oxjob #646): support moves a collection to a new owner,
+         e.g. a department roster when its builder leaves. Admin-only. -->
+    <v-dialog v-model="transferOpen" max-width="520">
+      <v-card flat rounded>
+        <v-card-title>Transfer ownership</v-card-title>
+        <div class="px-4 pb-2">
+          <p class="mb-3">
+            Move <strong>{{ transferring?.display_name }}</strong> from
+            <code>{{ transferring?.user_id }}</code> to another account. The new owner
+            gets full control; the old owner loses access unless it's shared by link.
+          </p>
+          <v-text-field
+            v-model="transferTo"
+            autofocus
+            variant="outlined"
+            density="compact"
+            label="New owner's email or user id"
+            placeholder="name@university.edu or user-XXX"
+            :error-messages="transferError"
+            @keydown.enter="confirmTransfer"
+          />
+        </div>
+        <v-card-actions class="px-4 pb-4">
+          <v-spacer />
+          <v-btn variant="text" @click="transferOpen = false" :disabled="transferSaving">Cancel</v-btn>
+          <v-btn variant="flat" color="primary" :loading="transferSaving" :disabled="!transferTo.trim()" @click="confirmTransfer">
+            Transfer
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -378,6 +416,58 @@ async function saveEdit() {
     editApiError.value = e.response?.data?.message || e.message || "Failed to save.";
   } finally {
     editSaving.value = false;
+  }
+}
+
+// Transfer dialog
+const transferOpen = ref(false);
+const transferring = ref(null);
+const transferTo = ref("");
+const transferError = ref("");
+const transferSaving = ref(false);
+
+function openTransfer(collection) {
+  transferring.value = collection;
+  transferTo.value = "";
+  transferError.value = "";
+  transferOpen.value = true;
+}
+
+// An email resolves through the admin user search (exact match only, so a typo
+// can't land the collection in the wrong account); anything else is a user id.
+async function resolveUserId(input) {
+  if (!input.includes("@")) return input;
+  const resp = await axios.get(
+    `${urlBase.userApi}/users?${new URLSearchParams({ q: input, per_page: "10" })}`,
+    axiosConfig({ userAuth: true })
+  );
+  const match = (resp.data.results || []).find(
+    u => (u.email || "").toLowerCase() === input.toLowerCase()
+  );
+  if (!match) throw new Error(`No account with the email ${input}.`);
+  return match.id;
+}
+
+async function confirmTransfer() {
+  const input = transferTo.value.trim();
+  if (!input || transferSaving.value) return;
+  transferError.value = "";
+  transferSaving.value = true;
+  try {
+    const userId = await resolveUserId(input);
+    const resp = await axios.patch(
+      `${urlBase.userApi}/admin/collections/${transferring.value.id}`,
+      { user_id: userId },
+      axiosConfig({ userAuth: true })
+    );
+    const idx = collections.value.findIndex(l => l.id === transferring.value.id);
+    if (idx >= 0) collections.value[idx] = { ...collections.value[idx], ...resp.data };
+    transferOpen.value = false;
+    store.commit("snackbar", `Transferred to ${userId}.`);
+  } catch (e) {
+    transferError.value = e.response?.data?.message || e.message || "Transfer failed.";
+  } finally {
+    transferSaving.value = false;
   }
 }
 

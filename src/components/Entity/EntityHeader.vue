@@ -135,7 +135,11 @@
 
     <!-- Row 1: title. -->
     <div class="d-flex align-start">
+      <!-- A collection's name is user text, and a collection shared by link shows it
+           to other people: render it as plain text, never HTML (oxjob #646). -->
+      <div v-if="isCollection" :class="titleClass">{{ displayTitle }}</div>
       <div
+        v-else
         :class="titleClass"
         v-html="filters.prettyTitle(displayTitle)"
       />

@@ -22,6 +22,12 @@
       :collections="collections"
       @edit="onEdit"
       @delete="onAskDelete"
+      @share="onShare"
+    />
+
+    <collection-share-dialog
+      v-model="showShare"
+      :collection="sharingCollection"
     />
 
     <collection-create-wizard
@@ -44,7 +50,7 @@
             <strong>{{ deletingCollection?.display_name }}</strong>
             and all
             {{ deletingCollection?.entity_count ?? 0 }} entit{{ (deletingCollection?.entity_count ?? 0) === 1 ? "y" : "ies" }}
-            in it. The collection page will return 404 and any saved searches that filter on it will return zero results.
+            in it. Its page and any search that uses it, yours or anyone's you shared it with, will say "Collection not found or not shared".
           </p>
           <p class="text-body-2 text-grey mt-2">This cannot be undone.</p>
         </v-card-text>
@@ -66,6 +72,7 @@ import { useHead } from "@unhead/vue";
 import CollectionList from "@/components/Collection/CollectionList.vue";
 import CollectionCreateWizard from "@/components/Collection/CollectionCreateWizard.vue";
 import CollectionEditDialog from "@/components/Collection/CollectionEditDialog.vue";
+import CollectionShareDialog from "@/components/Collection/CollectionShareDialog.vue";
 
 defineOptions({ name: "MeCollections" });
 useHead({ title: "Collections" });
@@ -77,6 +84,8 @@ const showEdit = ref(false);
 const showDeleteConfirm = ref(false);
 const editingCollection = ref(null);
 const deletingCollection = ref(null);
+const showShare = ref(false);
+const sharingCollection = ref(null);
 const deleting = ref(false);
 
 const collections = computed(() => store.state.collections.collections);
@@ -93,6 +102,11 @@ onMounted(async () => {
 function onEdit(collection) {
   editingCollection.value = collection;
   showEdit.value = true;
+}
+
+function onShare(collection) {
+  sharingCollection.value = collection;
+  showShare.value = true;
 }
 
 function onAskDelete(collection) {

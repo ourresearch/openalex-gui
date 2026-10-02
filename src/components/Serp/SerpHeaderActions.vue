@@ -48,6 +48,13 @@
       </template>
       <v-list min-width="270">
         <v-list-subheader>Copy query as…</v-list-subheader>
+        <v-list-item @click="copyPageLink">
+          <template #prepend>
+            <v-icon>mdi-link-variant</v-icon>
+          </template>
+          <v-list-item-title>Link</v-list-item-title>
+          <v-list-item-subtitle>this search on OpenAlex (for people)</v-list-item-subtitle>
+        </v-list-item>
         <v-list-item :disabled="!canonicalOql" @click="copyOql">
           <template #prepend>
             <v-icon>mdi-code-parentheses</v-icon>
@@ -71,6 +78,14 @@
         </v-list-item>
       </v-list>
     </v-menu>
+
+    <!-- Copying a search that uses your private collections: offer to share them
+         by link first, or the recipient gets "not found or not shared" (#646). -->
+    <private-collections-share-prompt
+      v-model="sharePrompt.open"
+      :collections="sharePrompt.collections"
+      @copy="finishPendingCopy"
+    />
 
     <!-- Unsave confirmation dialog -->
     <v-dialog v-model="isDialogOpen.unsaveConfirm" max-width="400">
@@ -125,6 +140,7 @@ import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 
 import { oqlForUrl } from '@/oqlSerialize';
+import PrivateCollectionsSharePrompt from '@/components/Collection/PrivateCollectionsSharePrompt.vue';
 
 defineOptions({ name: 'SerpHeaderActions' });
 
@@ -185,24 +201,55 @@ const legacyApiUrl = computed(() => {
 
 const snackbar = (val) => store.commit('snackbar', val);
 
-async function copyApiUrl() {
-  isShareMenuOpen.value = false;
-  await navigator.clipboard.writeText(apiUrl.value);
-  snackbar('API URL copied to clipboard.');
+// ---- copying, with the private-collection check (#646) -----------------------
+// Every copy target can carry col_ ids. If any is one of the user's own private
+// collections, ask first: the people they send it to would get "Collection not found
+// or not shared". Collections that aren't the user's are left alone (they can't share
+// them, and a viewer of a shared collection is fine).
+const sharePrompt = reactive({ open: false, collections: [], text: '', message: '' });
+
+async function privateCollectionsIn(text) {
+  const ids = new Set(String(text).match(/col_[A-Za-z0-9]{1,48}/g) || []);
+  if (!ids.size || !userId.value) return [];
+  if (!store.state.collections.loaded) {
+    try { await store.dispatch('collections/fetchAll'); } catch { return []; }
+  }
+  return store.getters['collections/all'].filter(c => ids.has(c.id) && c.access !== 'shared_by_link');
 }
 
-async function copyOql() {
+async function copyText(text, message) {
   isShareMenuOpen.value = false;
+  const privateOnes = await privateCollectionsIn(text);
+  if (privateOnes.length) {
+    Object.assign(sharePrompt, { open: true, collections: privateOnes, text, message });
+    return;
+  }
+  await navigator.clipboard.writeText(text);
+  snackbar(message);
+}
+
+async function finishPendingCopy() {
+  sharePrompt.open = false;
+  await navigator.clipboard.writeText(sharePrompt.text);
+  snackbar(sharePrompt.message);
+}
+
+function copyPageLink() {
+  return copyText(window.location.href, 'Link copied to clipboard.');
+}
+
+function copyApiUrl() {
+  return copyText(apiUrl.value, 'API URL copied to clipboard.');
+}
+
+function copyOql() {
   if (!canonicalOql.value) return;
-  await navigator.clipboard.writeText(canonicalOql.value);
-  snackbar('OQL copied to clipboard.');
+  return copyText(canonicalOql.value, 'OQL copied to clipboard.');
 }
 
-async function copyOqo() {
-  isShareMenuOpen.value = false;
+function copyOqo() {
   if (!canonicalOqo.value) return;
-  await navigator.clipboard.writeText(JSON.stringify(canonicalOqo.value, null, 2));
-  snackbar('OQO copied to clipboard.');
+  return copyText(JSON.stringify(canonicalOqo.value, null, 2), 'OQO copied to clipboard.');
 }
 
 // ---- save / alert (unchanged from the kebab) ---------------------------------

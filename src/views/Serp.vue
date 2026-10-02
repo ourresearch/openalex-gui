@@ -202,6 +202,12 @@ watch(
       // token-holder may still be "unknown" here. Settle that first.
       await store.dispatch('user/ensureUser');
     }
+    // A search that names a collection needs the user's API key on the request,
+    // or the owner's own private collection reads "not found or not shared" on a
+    // first load (oxjob #646). Same wait, only when it matters.
+    if (localStorage.getItem('token') && /col_/.test(JSON.stringify(route.query))) {
+      await store.dispatch('user/ensureUser');
+    }
     if (route.query.id && userId.value) {
       await store.dispatch('user/ensureSavedSearches');
     }
