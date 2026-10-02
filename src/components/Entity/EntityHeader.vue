@@ -16,40 +16,42 @@
       This work has been retracted.
     </v-alert>
 
+    <!-- Page-level actions, one hierarchy everywhere (#1507): the primary action
+         is a labeled "Add to collection" button; everything else (Export as CSV,
+         View in API, and in the fly-in, Close panel) lives in one "More actions"
+         menu right after it. Status about this entity (claimed, in your
+         collections) sits with the type indicator on the left, not among the
+         actions. -->
+
     <!-- Drawer layout only: a single control bar (Notion-style). The host
-         (EntityDrawer) injects its own close + expand icons on the left via the
-         `leading-controls` slot; the API link + collection kebab (the same
-         whole-entity affordances the full page carries) sit on the right. The
-         entity-type indicator and collection chips move OUT of here and down to
-         the eyebrow row below, so the fly-in no longer stacks two header rows. -->
+         (EntityDrawer) injects close + expand on the left via `leading-controls`;
+         the primary action + More menu sit on the right. #641 -->
     <div v-if="isDrawer" class="d-flex align-center drawer-controlbar mb-3">
       <slot name="leading-controls" />
       <v-spacer />
-      <v-tooltip v-if="!isCollection" location="bottom" aria-label="View in API" :z-index="10001">
-        <template v-slot:activator="{props}">
-          <v-btn v-bind="props" variant="plain" icon :href="apiUrl" target="_blank" aria-label="View in API">
-            <v-icon>mdi-api</v-icon>
-          </v-btn>
-        </template>
-        View in API
-      </v-tooltip>
-      <entity-header-collection-menu
-        v-if="!isCollection && entityData?.id && isNativeCollectionType"
-        :entity-type="myEntityType"
-        :entity-id="entityData.id"
-        show-close-item
-        :menu-z-index="10001"
-        @close="$emit('close')"
-      />
+      <template v-if="!isCollection">
+        <entity-collection-button
+          v-if="entityData?.id && isNativeCollectionType"
+          :entity-type="myEntityType"
+          :entity-id="entityData.id"
+          :z-index="10001"
+          class="mr-1"
+        />
+        <entity-more-menu
+          :api-url="apiUrl"
+          :show-export="canExport"
+          show-close-item
+          :z-index="10001"
+          @export="onExport"
+          @close="$emit('close')"
+        />
+      </template>
     </div>
 
-    <!-- Row 0: back button (if user came from SERP) + entity-type indicator
-         + the current user's collections chip strip on the left; page-level icon
-         actions (API link, claim badge/button) on the far right. The right
-         side is the home for small whole-page affordances — they sit out of
-         the way of the title and stay consistent across entity types.
-         In drawer layout this row is the "eyebrow": type indicator + chips only,
-         all left-aligned (the API link + kebab live in the control bar above). -->
+    <!-- Row 0: back button (if the user came from a SERP), entity-type indicator
+         and status (claimed badge, your-collection chips) on the left; on the
+         full page, the actions on the far right. In the drawer this row is the
+         eyebrow: type + status only (the actions live in the control bar). -->
     <div class="d-flex align-center flex-wrap header-meta-row mb-2">
       <v-btn
         v-if="!isDrawer && showBackButton && cameFromSerp"
@@ -68,8 +70,7 @@
       <!-- Collections reuse this header (isCollection) to match the entity-page
            look, but a collection isn't an OpenAlex entity: the type indicator
            becomes a folder + "Collection", and the entity-only affordances
-           below (claim, collection chips, API link, collection menu) are
-           suppressed. -->
+           (claim, collection chips, entity actions) are suppressed. -->
       <div v-if="isCollection" class="entity-type-indicator">
         <v-icon size="x-small" variant="plain">mdi-folder-outline</v-icon>
         {{ typeLabel }}
@@ -84,52 +85,38 @@
         {{ filters.capitalize(myEntityConfig.displayNameSingular) }}
       </div>
 
-      <!-- Drawer eyebrow: chips + claim stay inline with the type indicator,
-           left-aligned (no spacer). Full page: spacer pushes the action group
-           to the far right (API + kebab), as before. -->
-      <template v-if="isDrawer">
+      <template v-if="!isCollection && entityData?.id">
+        <entity-header-claim-profile-button
+          v-if="myEntityType === 'authors'"
+          :author-id="shortId"
+          class="ml-2"
+        />
         <entity-collections-row
-          v-if="!isCollection && entityData?.id"
           :entity-type="myEntityType"
           :entity-id="entityData.id"
           compact
           class="ml-3"
         />
-        <entity-header-claim-profile-button
-          v-if="!isCollection && myEntityType === 'authors' && entityData?.id"
-          :author-id="shortId"
-          class="ml-1"
-        />
       </template>
-      <template v-else>
-        <v-spacer />
 
-        <entity-header-claim-profile-button
-          v-if="!isCollection && myEntityType === 'authors' && entityData?.id"
-          :author-id="shortId"
-          class="mr-1"
-        />
-        <entity-collections-row
-          v-if="!isCollection && entityData?.id"
-          :entity-type="myEntityType"
-          :entity-id="entityData.id"
-          compact
-          class="mr-2"
-        />
-        <v-tooltip v-if="!isCollection" location="bottom" aria-label="View in API">
-          <template v-slot:activator="{props}">
-            <v-btn v-bind="props" variant="plain" icon :href="apiUrl" target="_blank" aria-label="View in API">
-              <v-icon>mdi-api</v-icon>
-            </v-btn>
+      <template v-if="!isDrawer">
+        <v-spacer />
+        <div class="header-actions d-flex align-center">
+          <template v-if="!isCollection">
+            <entity-collection-button
+              v-if="entityData?.id && isNativeCollectionType"
+              :entity-type="myEntityType"
+              :entity-id="entityData.id"
+              class="mr-1"
+            />
+            <entity-more-menu
+              :api-url="apiUrl"
+              :show-export="canExport"
+              @export="onExport"
+            />
           </template>
-          View in API
-        </v-tooltip>
-        <entity-header-collection-menu
-          v-if="!isCollection && entityData?.id && isNativeCollectionType"
-          :entity-type="myEntityType"
-          :entity-id="entityData.id"
-        />
-        <slot name="header-actions" />
+          <slot name="header-actions" />
+        </div>
       </template>
     </div>
 
@@ -169,7 +156,8 @@ import WorkLinkouts from '@/components/WorkLinkouts.vue';
 import LocationLinkouts from '@/components/LocationLinkouts.vue';
 import EntityHeaderClaimProfileButton from '@/components/Entity/EntityHeaderClaimProfileButton.vue';
 import EntityCollectionsRow from '@/components/Collection/EntityCollectionsRow.vue';
-import EntityHeaderCollectionMenu from '@/components/Collection/EntityHeaderCollectionMenu.vue';
+import EntityCollectionButton from '@/components/Entity/EntityCollectionButton.vue';
+import EntityMoreMenu from '@/components/Entity/EntityMoreMenu.vue';
 
 defineOptions({ name: 'EntityHeader' });
 
@@ -191,15 +179,19 @@ const props = defineProps({
   typeLabel: { type: String, default: "Collection" },
   // Layout variant. 'full' (default) = the standard entity-page header.
   // 'drawer' = the fly-in variant: a single Notion-style control bar (host
-  // injects close/expand via #leading-controls; API + kebab on the right) with
+  // injects close/expand via #leading-controls; Add to collection + More on the right) with
   // the type indicator + chips demoted to an eyebrow row. #641.
   layout: { type: String, default: "full" },
 });
 
-// Emitted only in drawer layout, from the kebab's "Close panel" item.
+// Emitted only in drawer layout, from the More menu's "Close panel" item.
 defineEmits(["close"]);
 
 const isDrawer = computed(() => props.layout === "drawer");
+
+// Export as CSV (#1507). Off until the export is built.
+const canExport = computed(() => false);
+function onExport() {}
 
 const store = useStore();
 const router = useRouter();
@@ -211,9 +203,9 @@ const isNative = computed(() => openalexId.isNativeEntityType(myEntityType.value
 const myEntityType = computed(() => props.entityType || openalexId.getEntityType(id.value));
 const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
 
-// Collections feature: kebab + chip row are gated on the flag, on having a
-// logged-in user (EntityCollectionsRow handles its own auth gate), and on the
-// entity being a collectible type. #394 widened collections to every
+// Collections feature: the Add to collection button is gated on the entity
+// being a collectible type (EntityCollectionsRow handles its own auth gate; the
+// button sends logged-out users to log in). #394 widened collections to every
 // users-api SUPPORTED_ENTITY_TYPES; #396 re-enabled work-types by mapping the
 // GUI page type through toCollectionEntityType (`types` → `work-types`) before
 // gating — so this set holds users-api collection entity_type names.
