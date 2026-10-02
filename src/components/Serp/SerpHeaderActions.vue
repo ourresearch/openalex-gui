@@ -227,14 +227,23 @@ async function copyText(text, message) {
     Object.assign(sharePrompt, { open: true, collections: privateOnes, text, message });
     return;
   }
-  await navigator.clipboard.writeText(text);
-  snackbar(message);
+  await writeToClipboard(text, message);
 }
 
 async function finishPendingCopy() {
   sharePrompt.open = false;
-  await navigator.clipboard.writeText(sharePrompt.text);
-  snackbar(sharePrompt.message);
+  await writeToClipboard(sharePrompt.text, sharePrompt.message);
+}
+
+// The browser can refuse a clipboard write (permissions, an unfocused page); say so
+// instead of failing silently (oxjob #646).
+async function writeToClipboard(text, message) {
+  try {
+    await navigator.clipboard.writeText(text);
+    snackbar(message);
+  } catch {
+    store.commit('snackbar', { msg: "Couldn't copy. Your browser blocked the clipboard; try again.", color: 'error' });
+  }
 }
 
 function copyPageLink() {
