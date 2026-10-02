@@ -13,7 +13,7 @@
     </v-tooltip>
 
     <!-- Sign in required dialog -->
-    <v-dialog v-model="showSignInDialog" max-width="400">
+    <v-dialog v-model="showSignInDialog" max-width="400" :z-index="zIndex ?? undefined">
       <v-card>
         <div class="d-flex align-center pa-4 pb-0">
           <span class="text-h6">Sign in required</span>
@@ -41,12 +41,12 @@
 
     <!-- Export dialog for logged-in users. Widens when a CSV format is picked so
          the inline column editor (job #304) fits; stays narrow otherwise. -->
-    <v-dialog v-model="showExportDialog" :max-width="dialogMaxWidth" :persistent="exportState === 'submitted'">
+    <v-dialog v-model="showExportDialog" :max-width="dialogMaxWidth" :persistent="exportState === 'submitted'" :z-index="zIndex ?? undefined">
       <v-card>
         <!-- Header -->
         <div class="d-flex align-center pa-4 pb-0">
           <span class="text-h6">
-            {{ exportState === 'submitted' ? 'Export submitted' : 'Export results' }}
+            {{ exportState === 'submitted' ? 'Export submitted' : (scope ? 'Export works' : 'Export results') }}
           </span>
           <v-spacer />
           <v-btn icon variant="text" size="small" @click="closeExportDialog">
@@ -70,7 +70,7 @@
                   try again in a moment.
                 </template>
                 <template v-else-if="rateLimitData && !hasInsufficientTokens">
-                  Exporting these {{ resultsCount.toLocaleString() }} {{ rowsNoun }} will cost approximately
+                  Exporting {{ resultsCount === 1 ? 'this row' : `these ${resultsCount.toLocaleString()} ${rowsNoun}` }} will cost approximately
                   {{ formatUsd(costUsd) }} of your remaining {{ formatUsd(totalAvailableUsd) }} budget.
                 </template>
                 <template v-else-if="rateLimitData && hasInsufficientTokens">
@@ -78,7 +78,7 @@
                   {{ formatUsd(totalAvailableUsd) }} remaining.
                 </template>
                 <template v-else>
-                  Exporting {{ resultsCount.toLocaleString() }} {{ rowsNoun }}.
+                  Exporting {{ resultsCount.toLocaleString() }} {{ resultsCount === 1 ? 'row' : rowsNoun }}.
                 </template>
               </div>
             </div>
@@ -216,6 +216,17 @@ import { getColumnExportSpecs } from '@/components/Results/Table/columnConfig';
 import { resolveExportSelection, idsOpenAlexFilter } from '@/utils/selectionExport';
 import ColumnEditorPanel from '@/components/Results/Table/ColumnEditorPanel.vue';
 
+const props = defineProps({
+  // Fixed works query from outside the search page (#1507: Export as CSV on an
+  // entity page): { filter, count }. When set, the dialog exports the works
+  // matching `filter` and ignores the route's query, OQL, corpus and the row
+  // selection, which belong to the search page.
+  scope: { type: Object, default: null },
+  // Only the entity fly-in sets this, to lift the dialogs above the drawer
+  // (it forces z-index 10000).
+  zIndex: { type: Number, default: null },
+});
+
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
@@ -255,7 +266,9 @@ const csvOnlyFormatOptions = [
 // (ZD #8373 / #388): resolve the selection here, and let resultsCount / the
 // cost line / the export request all key off it. Falls back to the full set in
 // select-all mode or when the selection is empty / too large to inline.
-const exportSelection = computed(() => resolveExportSelection(store.state.selection));
+const exportSelection = computed(() =>
+  props.scope ? { scoped: false } : resolveExportSelection(store.state.selection)
+);
 
 // OQL-mode export scoping: on /q the query lives only in `?oql=`, never in
 // `filter=`/`search=` route params, so the classic param-copying below would
@@ -265,7 +278,7 @@ const exportSelection = computed(() => resolveExportSelection(store.state.select
 // `/?oql=` query_url and the worker cursor-paginates it like any classic URL.
 // This covers every OQL shape, including ones with no classic-URL equivalent
 // (nested boolean trees, corpus selector).
-const isOqlMode = computed(() => !!route.query.oql);
+const isOqlMode = computed(() => !props.scope && !!route.query.oql);
 const canonicalOql = computed(() => store.state.resultsObject?.meta?.x_query?.oql ?? null);
 // Defensive: the dialog only opens once results (and their x_query echo) have
 // landed, so a missing canonical OQL should be unreachable — but if it ever
@@ -274,7 +287,8 @@ const isOqlExportBlocked = computed(
   () => isOqlMode.value && !exportSelection.value.scoped && !canonicalOql.value
 );
 const resultsCount = computed(() =>
-  exportSelection.value.scoped
+  props.scope ? (props.scope.count ?? 0)
+  : exportSelection.value.scoped
     ? exportSelection.value.count
     : (store.state?.resultsObject?.meta?.count ?? 0)
 );
@@ -282,7 +296,7 @@ const rowsNoun = computed(() => exportSelection.value.scoped ? 'selected rows' :
 const userId = computed(() => store.getters['user/userId']);
 const userApiKey = computed(() => store.getters['user/apiKey']);
 const isLoggedIn = computed(() => !!userId.value);
-const entityType = computed(() => store.getters.entityType);
+const entityType = computed(() => props.scope ? 'works' : store.getters.entityType);
 const formatOptions = computed(() => entityType.value === 'works' ? allFormatOptions : csvOnlyFormatOptions);
 const isCsvFormat = computed(() => exportFormat.value === 'csv' || exportFormat.value === 'csv-excel');
 
@@ -344,6 +358,7 @@ const isSearchQuery = computed(() => {
   // the 1-credit list rate regardless of search content — mirror that here
   // (the users-api credit pre-check applies the same rule).
   if (isOqlMode.value) return false;
+  if (props.scope) return SEARCH_FILTERS.some(f => props.scope.filter.includes(f));
   const effectiveQuery = route.query;
   // Check top-level search params
   const topLevelSearchKeys = [
@@ -398,7 +413,7 @@ function openExportDialog() {
   // deliberately does NOT use columnKeys — that would inherit a stale localStorage
   // table customization, so a fresh page load would show last time's selection
   // instead of the on-screen data.
-  exportColumnKeys.value = url.isTableView(route)
+  exportColumnKeys.value = !props.scope && url.isTableView(route)
     ? [...columnKeys.value]
     : [...defaultColumnKeys.value];
   showExportDialog.value = true;
@@ -443,7 +458,7 @@ async function fetchRateLimit() {
 }
 
 async function startExport() {
-  const filterStr = route.query.filter;
+  const filterStr = props.scope ? props.scope.filter : route.query.filter;
   // If specific rows are ticked, export ONLY those by re-querying with an
   // `ids.openalex:` filter; the selected ids fully determine the set, so we
   // drop the page's own filter/search params below (ZD #8373 / #388).
@@ -505,7 +520,7 @@ async function startExport() {
   // ANDing a `search=` clause would only risk dropping a selected row. Skipped
   // in OQL mode too: search params (if any) already arrived via the derived
   // x_query.url params above, and route.query has none on /q.
-  if (!selection.scoped && !isOqlMode.value) {
+  if (!selection.scoped && !isOqlMode.value && !props.scope) {
     const searchParamKeys = [
       'search', 'search.exact', 'search.semantic',
       'search.title', 'search.title.exact',
@@ -521,8 +536,8 @@ async function startExport() {
   // Corpus scope: the export service speaks the legacy controls, so translate
   // a `?corpus=` route (#763) faithfully — all -> include_xpac alone;
   // expansion -> include_xpac + is_xpac:true filter (the exact legacy recipe).
-  const exportCorpus = url.corpusFromRouteQuery(route.query);
-  if (exportCorpus === 'all' || route.query.include_xpac === 'true') {
+  const exportCorpus = props.scope ? null : url.corpusFromRouteQuery(route.query);
+  if (exportCorpus === 'all' || (!props.scope && route.query.include_xpac === 'true')) {
     body.include_xpac = 'true';
   } else if (exportCorpus === 'expansion') {
     body.include_xpac = 'true';
