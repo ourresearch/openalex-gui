@@ -195,7 +195,9 @@ export function orderKeywords(qs, entries, cands, raw) {
   const kws = [...cands.values()].filter((c) => c.t === "keyword");
   if (kws.length < 2) return;
   // front-page entry [type, id, label, display|0, works, pop*100, hint] -> keyword-tree entry [id, label, display|0, works, pop*100]
-  const conv = entries.filter((e) => e[0] === "k").map((e) => [e[1], e[2], e[3] || 0, e[4], e[5]]);
+  // (kept on the entry, so a node cached across requests keeps its normalised tokens instead of re-normalising every
+  // keyword label on every request)
+  const conv = entries.filter((e) => e[0] === "k").map((e) => e.kwConv || (e.kwConv = [e[1], e[2], e[3] || 0, e[4], e[5]]));
   const tree = new Map();
   rankTree({ t: "k", greek: true }, qs, conv, tree, raw);
   const slots = kws.map((c) => c.score).sort((a, b) => b - a);
