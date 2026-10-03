@@ -219,6 +219,7 @@ export function searchSurfaceToFilter(text, anyCol) {
 const SEARCH_SWAP_FIELDS = [
   { column_id: "display_name.search", label: "title" },
   { column_id: "title_and_abstract.search", label: "title/abstract" },
+  { column_id: "title_abstract_keywords.search", label: "title/abstract/keywords" },
   { column_id: "fulltext.search", label: "full text" },
 ];
 export function searchFieldSiblings(properties, currentColumn) {

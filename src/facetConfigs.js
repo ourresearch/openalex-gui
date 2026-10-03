@@ -486,6 +486,17 @@ const facetConfigs = function (entityType) {
             icon: "mdi-magnify",
         },
         {
+            // Title + abstract text OR the keywords a phrase in the query names
+            // (oxjob #1521); the search box's default scope.
+            key: "title_abstract_keywords.search",
+            entityToFilter: "works",
+            type: "search",
+            actions: ["filter",],
+            actionsPopular: ["filter"],
+            category: "search",
+            icon: "mdi-magnify",
+        },
+        {
             key: "display_name.search",
             entityToFilter: "works",
             actions: ["filter",],

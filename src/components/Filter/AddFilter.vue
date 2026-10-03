@@ -187,7 +187,8 @@ const potentialFilters = computed(() =>
       if (conf.type === 'search'
           && conf.key !== 'doi_starts_with'
           && conf.key !== 'issn'
-          && conf.key !== 'title_and_abstract.search') {
+          && conf.key !== 'title_and_abstract.search'
+          && conf.key !== 'title_abstract_keywords.search') {
         return false;
       }
       // Semantic search only supports a restricted set of filters

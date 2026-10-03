@@ -87,8 +87,14 @@
                 <v-icon v-if="searchField === 'title_and_abstract'" class="check-icon">mdi-check</v-icon>
               </template>
             </v-list-item>
+            <v-list-item @click="setField('title_abstract_keywords')">
+              <v-list-item-title>Title, abstract, &amp; keywords</v-list-item-title>
+              <template #append>
+                <v-icon v-if="searchField === 'title_abstract_keywords'" class="check-icon">mdi-check</v-icon>
+              </template>
+            </v-list-item>
             <v-list-item @click="setField('all')">
-              <v-list-item-title>Title, abstract, &amp; fulltext</v-list-item-title>
+              <v-list-item-title>Title, abstract, fulltext, &amp; keywords</v-list-item-title>
               <template #append>
                 <v-icon v-if="searchField === 'all'" class="check-icon">mdi-check</v-icon>
               </template>
@@ -279,8 +285,15 @@
               </template>
             </v-list-item>
 
+            <v-list-item @click="setField('title_abstract_keywords'); optionsMenuOpen = false">
+              <v-list-item-title>Title, abstract, & keywords</v-list-item-title>
+              <template #append>
+                <v-icon v-if="searchField === 'title_abstract_keywords'" class="check-icon">mdi-check</v-icon>
+              </template>
+            </v-list-item>
+
             <v-list-item @click="setField('all'); optionsMenuOpen = false">
-              <v-list-item-title>Title, abstract, & fulltext</v-list-item-title>
+              <v-list-item-title>Title, abstract, fulltext, & keywords</v-list-item-title>
               <template #append>
                 <v-icon v-if="searchField === 'all'" class="check-icon">mdi-check</v-icon>
               </template>
@@ -580,7 +593,8 @@ const inputRef = ref(null);
 const searchBoxRef = ref(null);
 const searchString = ref('');
 const searchMode = ref('term'); // 'term' or 'semantic'
-const searchField = ref('title_and_abstract'); // 'all' | 'title' | 'title_and_abstract'
+// Default scope since oxjob #1521: title + abstract text OR the keywords a query phrase names.
+const searchField = ref('title_abstract_keywords'); // 'all' | 'title' | 'title_and_abstract' | 'title_abstract_keywords'
 const stemmingDisabled = ref(false);
 const isFocused = ref(false);
 const strategyMenuOpen = ref(false);
@@ -655,6 +669,7 @@ const resolvedSearchType = computed(() => {
     all: useExact ? 'search.exact' : 'search',
     title: useExact ? 'search.title.exact' : 'search.title',
     title_and_abstract: useExact ? 'search.title_and_abstract.exact' : 'search.title_and_abstract',
+    title_abstract_keywords: useExact ? 'search.title_abstract_keywords.exact' : 'search.title_abstract_keywords',
   };
   return fieldMap[searchField.value] || 'search';
 });
@@ -688,7 +703,7 @@ const placeholder = computed(() => {
 // When switching to semantic, force field and stemming
 watch(searchMode, (val) => {
   if (val === 'semantic') {
-    searchField.value = 'title_and_abstract';
+    searchField.value = 'title_abstract_keywords';
     stemmingDisabled.value = false;
   }
 });
@@ -1057,7 +1072,7 @@ function syncFromRoute() {
 
     if (type === 'search.semantic') {
       searchMode.value = 'semantic';
-      searchField.value = 'title_and_abstract';
+      searchField.value = 'title_abstract_keywords';
       stemmingDisabled.value = false;
     } else if (type === 'search.title.exact') {
       searchMode.value = 'term';
@@ -1074,6 +1089,14 @@ function syncFromRoute() {
     } else if (type === 'search.title_and_abstract') {
       searchMode.value = 'term';
       searchField.value = 'title_and_abstract';
+      stemmingDisabled.value = false;
+    } else if (type === 'search.title_abstract_keywords.exact') {
+      searchMode.value = 'term';
+      searchField.value = 'title_abstract_keywords';
+      stemmingDisabled.value = true;
+    } else if (type === 'search.title_abstract_keywords') {
+      searchMode.value = 'term';
+      searchField.value = 'title_abstract_keywords';
       stemmingDisabled.value = false;
     } else if (type === 'search.exact') {
       searchMode.value = 'term';
@@ -1150,7 +1173,8 @@ async function submitSearch(forceEntityType) {
     const currentQuery = { ...route.query };
     // Remove all search params
     ['search', 'search.exact', 'search.semantic', 'search.title', 'search.title.exact',
-     'search.title_and_abstract', 'search.title_and_abstract.exact'].forEach(k => delete currentQuery[k]);
+     'search.title_and_abstract', 'search.title_and_abstract.exact',
+     'search.title_abstract_keywords', 'search.title_abstract_keywords.exact'].forEach(k => delete currentQuery[k]);
     // Under `/q?oql=` the chips live in the canonical query, not the URL, and a
     // stale `oql=` would make the router bounce this back to `/q` (oxjob #1245).
     if (currentQuery.oql) {

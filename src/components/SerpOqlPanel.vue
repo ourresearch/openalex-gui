@@ -117,6 +117,7 @@ const QUERY_KEYS = [
   'search', 'search.exact', 'search.semantic',
   'search.title', 'search.title.exact',
   'search.title_and_abstract', 'search.title_and_abstract.exact',
+  'search.title_abstract_keywords', 'search.title_abstract_keywords.exact',
 ];
 const queryParams = computed(() => {
   const q = {};

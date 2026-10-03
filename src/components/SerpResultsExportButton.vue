@@ -353,6 +353,7 @@ const SEARCH_FILTERS = [
   'raw_author_name.search',
   'title.search',
   'title_and_abstract.search',
+  'title_abstract_keywords.search',
 ];
 
 const isSearchQuery = computed(() => {
@@ -367,6 +368,7 @@ const isSearchQuery = computed(() => {
     'search', 'search.exact', 'search.semantic',
     'search.title', 'search.title.exact',
     'search.title_and_abstract', 'search.title_and_abstract.exact',
+    'search.title_abstract_keywords', 'search.title_abstract_keywords.exact',
   ];
   if (topLevelSearchKeys.some(k => effectiveQuery[k])) {
     return true;
@@ -527,6 +529,7 @@ async function startExport() {
       'search', 'search.exact', 'search.semantic',
       'search.title', 'search.title.exact',
       'search.title_and_abstract', 'search.title_and_abstract.exact',
+      'search.title_abstract_keywords', 'search.title_abstract_keywords.exact',
     ];
     for (const key of searchParamKeys) {
       if (route.query[key]) {

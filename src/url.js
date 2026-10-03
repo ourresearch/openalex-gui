@@ -770,11 +770,15 @@ const xpacIncludedInRoute = function (query) {
 }
 
 
+// rerank=true reorders the top RERANK_WINDOW results of a works search (oxjob #1521).
+const RERANK_WINDOW = 100
+
 // Search param helpers
 const searchParamKeys = [
     'search', 'search.exact', 'search.semantic',
     'search.title', 'search.title.exact',
     'search.title_and_abstract', 'search.title_and_abstract.exact',
+    'search.title_abstract_keywords', 'search.title_abstract_keywords.exact',
 ]
 
 // Map a `*.search[.exact]` FILTER key to the equivalent top-level search type, so a
@@ -794,6 +798,8 @@ const filterSearchKeyToType = {
     'title.search.exact': 'search.title.exact',
     'title_and_abstract.search': 'search.title_and_abstract',
     'title_and_abstract.search.exact': 'search.title_and_abstract.exact',
+    'title_abstract_keywords.search': 'search.title_abstract_keywords',
+    'title_abstract_keywords.search.exact': 'search.title_abstract_keywords.exact',
     'semantic.search': 'search.semantic',
 }
 
@@ -1318,6 +1324,16 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         if (currentRoute.query[k]) query[k] = currentRoute.query[k]
     })
 
+    // Rerank (oxjob #1521): Jev reorders the top 100 of a relevance-sorted works
+    // search. Sent only for pages that start inside those 100; past them the API
+    // returns the normal order anyway, and rerank costs extra credits.
+    if (entityType === "works" && !groupBy && !formatCsv
+        && query.sort === "relevance_score:desc"
+        && searchParamKeys.some(k => k !== "search.semantic" && currentRoute.query[k])
+        && ((Number(query.page) || 1) - 1) * (Number(query.per_page) || 25) < RERANK_WINDOW) {
+        query.rerank = "true"
+    }
+
     const apiUrl = new URL(urlBase.api)
     apiUrl.pathname = entityType
 
@@ -1332,6 +1348,7 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         "cited_by_count_sum",
         "include_xpac",
         "corpus",
+        "rerank",
         ...searchParamKeys,
     ]
     const searchParams = new URLSearchParams()

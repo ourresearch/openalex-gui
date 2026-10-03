@@ -340,6 +340,8 @@ const apiCallUrl = computed(() => {
   if (route.query['search.title.exact']) params.set('search.title.exact', route.query['search.title.exact']);
   if (route.query['search.title_and_abstract']) params.set('search.title_and_abstract', route.query['search.title_and_abstract']);
   if (route.query['search.title_and_abstract.exact']) params.set('search.title_and_abstract.exact', route.query['search.title_and_abstract.exact']);
+  if (route.query['search.title_abstract_keywords']) params.set('search.title_abstract_keywords', route.query['search.title_abstract_keywords']);
+  if (route.query['search.title_abstract_keywords.exact']) params.set('search.title_abstract_keywords.exact', route.query['search.title_abstract_keywords.exact']);
   if (route.query.sort) params.set('sort', route.query.sort);
   const qs = params.toString();
   return `https://api.openalex.org/${entityType.value}${qs ? '?' + qs : ''}`;
@@ -398,7 +400,9 @@ function generateAutoName() {
     || route.query['search.title']
     || route.query['search.title.exact']
     || route.query['search.title_and_abstract']
-    || route.query['search.title_and_abstract.exact'];
+    || route.query['search.title_and_abstract.exact']
+    || route.query['search.title_abstract_keywords']
+    || route.query['search.title_abstract_keywords.exact'];
   if (searchQuery) return searchQuery;
   const filterParam = route.query.filter;
   if (filterParam) {

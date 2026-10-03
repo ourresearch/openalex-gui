@@ -177,7 +177,7 @@ const cleanedSearchString = computed(() =>
   searchString.value ? searchString.value.replace(/[,:]/g, '') : searchString.value
 );
 const defaultSearchType = computed(() =>
-  entityType.value === 'works' ? 'title_and_abstract.search' : 'default.search'
+  entityType.value === 'works' ? 'title_abstract_keywords.search' : 'default.search'
 );
 
 const filterSuggestions = computed(() => {
