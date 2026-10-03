@@ -26,6 +26,8 @@ export const ENT = {
   publishers: { kind: "tree", t: "p", et: "publisher", fk: "primary_location.source.host_organization_lineage", letter: "P", r1000: 6.36, ext: "https://www.wikidata.org/entity/" },
   topics: { kind: "tree", t: "t", et: "topic", fk: "topics.id", letter: "T", greek: true, r1000: 8.44 },
   awards: { kind: "awards", t: "g", et: "award", fk: "awards.id", letter: "G" },
+  // the front page's mixed tree (mix.js); not an endpoint of its own
+  _front: { kind: "tree", t: "m", et: "mix", greek: true },
   subfields: { kind: "list", et: "subfield", fk: "primary_topic.subfield.id", path: "subfields" },
   fields: { kind: "list", et: "field", fk: "primary_topic.field.id", path: "fields" },
   domains: { kind: "list", et: "domain", fk: "primary_topic.domain.id", path: "domains" },
