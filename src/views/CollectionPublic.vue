@@ -107,6 +107,22 @@
             <div class="text-body-2 meta-line mt-1">
               {{ memberCountLabel }} · Created {{ formattedDate }}
             </div>
+            <!-- Over its type's live filter limit (oxjob #1527): it holds and exports
+                 its members, and lists them here, but searches by it won't run. -->
+            <div v-if="overLiveLimit" class="text-body-2 meta-line mt-1">
+              Too big to filter live: searches by this collection take at most
+              {{ liveLimit.toLocaleString() }} {{ entityCollectionPlural.toLowerCase() }}.
+              It still lists and exports all of them.
+            </div>
+            <!-- Results being added on the server (Save results, Select all, a big copy). -->
+            <collection-import-progress
+              v-if="runningImport"
+              :collection-id="collection.id"
+              :initial="runningImport"
+              :noun="entityCollectionPlural.toLowerCase()"
+              class="mt-3 import-progress"
+              @finished="onImportFinished"
+            />
             <div v-if="!isOwner && isShared" class="text-body-2 meta-line mt-1">
               Shared with you by link. Only its owner can change it; make a copy to edit your own.
             </div>
@@ -151,6 +167,7 @@
             <template #trailing>
               <div class="members-toolbar d-flex flex-wrap align-center ga-3 py-2" :class="{ 'ml-2': isOwner }">
                 <v-text-field
+                  v-if="!overLiveLimit"
                   v-model="searchInput"
                   variant="outlined"
                   density="compact"
@@ -344,6 +361,8 @@ import SelectionToolbar from "@/components/SelectionToolbar.vue";
 import EntityMoreMenu from "@/components/Entity/EntityMoreMenu.vue";
 import SerpResultsExportButton from "@/components/SerpResultsExportButton.vue";
 import { exportToCsv } from "@/utils/csvExport";
+import CollectionImportProgress from "@/components/Collection/CollectionImportProgress.vue";
+import { liveFilterLimit } from "@/collectionLimits";
 
 const route = useRoute();
 const router = useRouter();
@@ -387,6 +406,14 @@ const removing = ref(false);
 const suppressRefetch = ref(false);
 
 const collectionId = computed(() => route.params.collection_id);
+
+// Over its type's live filter limit, the members can't be listed through a filter
+// by the collection: page them from the collection itself (oxjob #1527).
+const liveLimit = computed(() => liveFilterLimit(collection.value?.entity_type));
+const overLiveLimit = computed(() => (collection.value?.member_count ?? 0) > liveLimit.value);
+// Types whose records can be fetched by `ids.openalex:` for a page of member IDs.
+const ID_FILTER_TYPES = new Set(["works", "authors", "sources", "institutions", "topics", "funders", "publishers"]);
+const runningImport = ref(null);
 
 // The server says whether this caller may edit (only the owner can; oxjob #646).
 const isOwner = computed(() => !!collection.value?.can_edit);
@@ -437,6 +464,16 @@ const exportScope = computed(() => ({
 }));
 
 async function onExport() {
+  if (overLiveLimit.value) {
+    // Too big for the filter the export dialog runs: the member IDs themselves.
+    store.commit("snackbar", "Preparing the members CSV…");
+    try {
+      await store.dispatch("collections/downloadMembersCsv", collection.value.id);
+    } catch (e) {
+      store.commit("snackbar", { msg: "Export failed. Try again.", color: "error" });
+    }
+    return;
+  }
   if (exportMode.value === "async") {
     exportButtonRef.value?.openExportDialog();
     return;
@@ -518,7 +555,7 @@ async function loadCollection() {
     if (!store.state.collections.loaded && !store.state.collections.loading) {
       store.dispatch("collections/fetchAll");
     }
-    await loadResults();
+    await Promise.all([loadResults(), loadImports()]);
   } catch (e) {
     errorMessage.value = collectionErrorMessage(e);
   } finally {
@@ -548,9 +585,13 @@ async function loadResults() {
   resultsLoading.value = true;
   resultsError.value = "";
   try {
-    const resp = await axios.get(membersUrl(page.value, perPage), axiosConfig());
-    results.value = resp.data?.results || [];
-    totalCount.value = resp.data?.meta?.count || 0;
+    if (overLiveLimit.value) {
+      await loadResultsFromMembers();
+    } else {
+      const resp = await axios.get(membersUrl(page.value, perPage), axiosConfig());
+      results.value = resp.data?.results || [];
+      totalCount.value = resp.data?.meta?.count || 0;
+    }
     // Publish into the selection store. contextKey includes the search term so
     // changing the search resets selection; paging keeps it (same key).
     store.commit("selection/setContext", {
@@ -567,6 +608,47 @@ async function loadResults() {
   } finally {
     resultsLoading.value = false;
   }
+}
+
+// A page of members from the collection itself, then their records by ID where the
+// type has an ID filter (else the rows show the IDs).
+async function loadResultsFromMembers() {
+  const resp = await store.dispatch("collections/fetchEntities", {
+    id: collection.value.id, page: page.value, per_page: perPage,
+  });
+  const ids = (resp?.results || []).map((m) => m.id);
+  totalCount.value = resp?.meta?.count || 0;
+  let records = [];
+  if (ids.length && ID_FILTER_TYPES.has(collection.value.entity_type)) {
+    const r = await axios.get(
+      `${urlBase.api}/${guiEntityType.value}?filter=ids.openalex:${ids.join("|")}&include_xpac=true&per_page=${perPage}`,
+      axiosConfig(),
+    );
+    records = r.data?.results || [];
+  }
+  const byId = new Map(records.map((rec) => [openalexId.toCollectionEntityId(rec.id) || rec.id, rec]));
+  results.value = ids.map((id) => byId.get(id) || { id: `https://openalex.org/${id}`, display_name: id });
+}
+
+async function loadImports() {
+  if (!isOwner.value) return;
+  try {
+    const imports = await store.dispatch("collections/fetchImports", collection.value.id);
+    const active = imports.find((i) => i.status === "queued" || i.status === "running");
+    runningImport.value = active || null;
+  } catch {
+    runningImport.value = null;
+  }
+}
+
+async function onImportFinished(imp) {
+  await store.dispatch("collections/importFinished", collection.value.id);
+  collection.value = await store.dispatch("collections/fetchPublic", collection.value.id);
+  await loadResults();
+  if (imp.status === "failed") {
+    store.commit("snackbar", { msg: imp.error?.message || "The results couldn't be added.", color: "error" });
+  }
+  runningImport.value = null;
 }
 
 function submitSearch() {

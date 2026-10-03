@@ -23,8 +23,8 @@
             v-model="editedName"
             density="compact"
             variant="outlined"
-            counter="30"
-            maxlength="30"
+            :counter="MAX_DISPLAY_NAME_LENGTH"
+            :maxlength="MAX_DISPLAY_NAME_LENGTH"
             autofocus
             :error-messages="errorMessage"
             @keyup.enter="save"
@@ -54,6 +54,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue';
+import { MAX_DISPLAY_NAME_LENGTH } from "@/collectionLimits";
 
 defineOptions({ name: 'CollectionNameEditor' });
 

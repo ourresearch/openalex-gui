@@ -252,22 +252,9 @@ const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
 // button sends logged-out users to log in). #394 widened collections to every
 // users-api SUPPORTED_ENTITY_TYPES; #396 re-enabled work-types by mapping the
 // GUI page type through toCollectionEntityType (`types` → `work-types`) before
-// gating — so this set holds users-api collection entity_type names.
-const COLLECTION_ENTITY_TYPES = new Set([
-  // original 10 (collections-v1)
-  'works', 'authors', 'sources', 'institutions', 'topics',
-  'sdgs', 'funders', 'publishers', 'keywords', 'concepts',
-  // #394 widen; work-types re-enabled by #396
-  'domains', 'fields', 'subfields', 'countries', 'continents',
-  'languages', 'licenses', 'oa-statuses', 'source-types',
-  'institution-types', 'awards', 'work-types',
-  // #672 indexes registry entity
-  'indexes',
-  // #1524 locations, by their namespaced ids (doi:10.7717/peerj.4375), stored verbatim
-  'locations',
-]);
+// gating (openalexId.isCollectibleEntityType).
 const isNativeCollectionType = computed(() =>
-  COLLECTION_ENTITY_TYPES.has(openalexId.toCollectionEntityType(myEntityType.value))
+  openalexId.isCollectibleEntityType(myEntityType.value)
 );
 
 // Read once on mount — history.state.back reflects the previous in-app

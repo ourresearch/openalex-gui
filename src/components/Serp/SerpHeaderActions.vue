@@ -34,6 +34,28 @@
         </v-list-item>
       </v-list>
     </v-menu>
+    <!-- Save results as a collection (oxjob #1527): every collectible type, every
+         mode, Basic included. The results are added on the server. -->
+    <v-btn
+      v-if="canSaveAsCollection"
+      icon
+      variant="text"
+      size="small"
+      aria-label="Save results as a collection"
+      @click="openSaveAsCollection"
+    >
+      <v-icon color="grey-darken-1">mdi-folder-plus-outline</v-icon>
+      <v-tooltip activator="parent" location="bottom" content-class="linear-tooltip">
+        Save results as a collection
+      </v-tooltip>
+    </v-btn>
+    <collection-quick-create-dialog
+      v-if="canSaveAsCollection"
+      v-model="isDialogOpen.saveAsCollection"
+      :entity-type="collectionEntityType"
+      :import-source="saveAsCollectionSource"
+      :result-count="resultCount"
+    />
     <!-- r2 (Jason): arrow-style share icon; menu is a "Copy query as…" picker — bare
          format names (no "Copy" verb) ordered OQL → API URL → OQO, each with a
          plain-words subtitle saying what the format is for. -->
@@ -122,7 +144,7 @@
       <v-card rounded>
         <v-card-title>Login required</v-card-title>
         <v-card-text>
-          To save searches and create alerts, please log in or sign up.
+          {{ loginReason }}
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -139,6 +161,9 @@ import { ref, computed, reactive } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import { canAlertOnFilter } from '@/collectionFilter';
+import { legacyApiUrl as buildLegacyApiUrl, importSource } from '@/collectionImportSource';
+import CollectionQuickCreateDialog from '@/components/Collection/CollectionQuickCreateDialog.vue';
+import * as openalexId from '@/openalexId';
 
 import { oqlForUrl } from '@/oqlSerialize';
 import PrivateCollectionsSharePrompt from '@/components/Collection/PrivateCollectionsSharePrompt.vue';
@@ -157,6 +182,7 @@ const isDialogOpen = reactive({
   unsaveConfirm: false,
   removeAlertConfirm: false,
   loginRequired: false,
+  saveAsCollection: false,
 });
 
 const entityType = computed(() => store.getters.entityType);
@@ -187,22 +213,27 @@ const apiUrl = computed(() => {
   }
   return legacyApiUrl.value;
 });
-const legacyApiUrl = computed(() => {
-  const params = new URLSearchParams();
-  if (route.query.filter) params.set('filter', route.query.filter);
-  if (route.query.search) params.set('search', route.query.search);
-  if (route.query['search.exact']) params.set('search.exact', route.query['search.exact']);
-  if (route.query['search.semantic']) params.set('search.semantic', route.query['search.semantic']);
-  if (route.query['search.title']) params.set('search.title', route.query['search.title']);
-  if (route.query['search.title.exact']) params.set('search.title.exact', route.query['search.title.exact']);
-  if (route.query['search.title_and_abstract']) params.set('search.title_and_abstract', route.query['search.title_and_abstract']);
-  if (route.query['search.title_and_abstract.exact']) params.set('search.title_and_abstract.exact', route.query['search.title_and_abstract.exact']);
-  if (route.query['search.title_abstract_keywords']) params.set('search.title_abstract_keywords', route.query['search.title_abstract_keywords']);
-  if (route.query['search.title_abstract_keywords.exact']) params.set('search.title_abstract_keywords.exact', route.query['search.title_abstract_keywords.exact']);
-  if (route.query.sort) params.set('sort', route.query.sort);
-  const qs = params.toString();
-  return `https://api.openalex.org/${entityType.value}${qs ? '?' + qs : ''}`;
-});
+const legacyApiUrl = computed(() => buildLegacyApiUrl(route.query, entityType.value));
+
+// ---- Save results as a collection (oxjob #1527) ------------------------------
+const canSaveAsCollection = computed(() => openalexId.isCollectibleEntityType(entityType.value));
+const collectionEntityType = computed(() => openalexId.toCollectionEntityType(entityType.value));
+const resultCount = computed(() => store.state.resultsObject?.meta?.count ?? null);
+// Fixed when the dialog opens, so a search that changes behind it can't change
+// what gets added.
+const saveAsCollectionSource = ref(null);
+const SAVE_SEARCH_LOGIN_REASON = 'To save searches and create alerts, please log in or sign up.';
+const loginReason = ref(SAVE_SEARCH_LOGIN_REASON);
+
+function openSaveAsCollection() {
+  if (!userId.value) {
+    loginReason.value = 'To save results as a collection, please log in or sign up.';
+    isDialogOpen.loginRequired = true;
+    return;
+  }
+  saveAsCollectionSource.value = importSource(store.state.resultsObject, route.query, entityType.value);
+  isDialogOpen.saveAsCollection = true;
+}
 
 const snackbar = (val) => store.commit('snackbar', val);
 
@@ -292,6 +323,7 @@ function generateAutoName() {
 async function handleSaveToggle() {
   isStarMenuOpen.value = false;
   if (!userId.value) {
+    loginReason.value = SAVE_SEARCH_LOGIN_REASON;
     isDialogOpen.loginRequired = true;
     return;
   }
@@ -308,6 +340,7 @@ async function handleSaveToggle() {
 async function handleAlertToggle() {
   isStarMenuOpen.value = false;
   if (!userId.value) {
+    loginReason.value = SAVE_SEARCH_LOGIN_REASON;
     isDialogOpen.loginRequired = true;
     return;
   }
