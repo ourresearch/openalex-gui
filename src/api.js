@@ -267,7 +267,28 @@ const api = (function () {
         return groupDisplayFilters
     }
 
+    // Query-time join filters (oxjob #1526, `noGroupBy` facets: a work's source country
+    // is looked up from the sources index, not stored) can't be grouped, so every value
+    // picker that would group_by lists their values locally instead, without counts.
+    const staticGroupsFor = function (entityType, filterKey) {
+        const facetConfig = getFacetConfig(entityType, filterKey)
+        if (!facetConfig?.noGroupBy) return null
+        if (facetConfig.isCountry) {
+            return openAlexCountries
+                .filter(c => c.id !== "unknown")
+                .map(c => createDisplayFilter(entityType, filterKey,
+                    `https://openalex.org/countries/${c.id}`, false, c.display_name))
+        }
+        if (facetConfig.type === "boolean") {
+            return [true, false].map(v => createDisplayFilter(entityType, filterKey, String(v), false,
+                facetConfig.booleanValues?.[v ? 1 : 0] ?? String(v)))
+        }
+        return []
+    }
+
     const getGroups = async function (entityType, filterKey, options) {
+        const staticGroups = staticGroupsFor(entityType, filterKey)
+        if (staticGroups) return staticGroups
         const myUrl = url.makeGroupByUrl(
             entityType,
             filterKey,
@@ -316,6 +337,8 @@ const api = (function () {
 
     const getGroupsForOqo = async function (entityType, filterKey, oqo, options = {}) {
         if (!oqo || !filterKey) return []
+        const staticGroups = staticGroupsFor(entityType, filterKey)
+        if (staticGroups) return staticGroups
         const respData = await executeOqo(buildGroupByOqo(oqo, filterKey), GROUP_BY_PARAMS)
         return buildGroupDisplayFilters(entityType, filterKey, respData.group_by, options.hideUnknown)
     }
