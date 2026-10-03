@@ -56,7 +56,8 @@ let prevFullPath = null;
 // lands), then 'works'. This is the single source feeding `store.state.entityType`,
 // which every SERP/OQL component reads via the `entityType` getter. (oxjob #373 Phase 2)
 const entityFromOql = (oql) => {
-  const first = String(oql || '').trim().split(/[\s(]/)[0];
+  // Pipeline form (#1536): `get works where ...` names the entity second.
+  const first = String(oql || '').trim().replace(/^get\s+/i, '').split(/[\s(;]/)[0];
   return entityConfigs[first] ? first : null;
 };
 const effectiveEntityType = computed(() => {

@@ -742,9 +742,10 @@ async function probeGrid(oql) {
   try {
     const data = await api.getQuery({ oql: q });
     // A pipeline query (#1536) has no builder render (oql_render_v2 is null), and
-    // treeRepresentable reads null as an empty grid: rule it out first.
+    // treeRepresentable reads null as an empty grid: rule out a missing render first
+    // (today it's null only for pipeline queries; corpus check, 2026-10-03).
     const pipeline = isPipelineOqo(data?.oqo);
-    const ok = !pipeline && treeRepresentable(data?.oql_render_v2).ok;
+    const ok = !pipeline && data?.oql_render_v2 != null && treeRepresentable(data.oql_render_v2).ok;
     _gridCache.set(q, { ok, pipeline });
     gridProbe.value = { oql: q, ok, pipeline };
   } catch (e) {

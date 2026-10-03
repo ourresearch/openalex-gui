@@ -200,7 +200,9 @@ const footNote = computed(() => {
   const by = serverSorted.value && sort.value
     ? (measures.value.find((x) => x.key === sort.value.key)?.oql || sort.value.key)
     : 'count';
-  const head = `Showing the top ${shown} groups by ${by}. Sort by a column to see the top groups by it.`;
+  const head = serverSorted.value
+    ? `Showing the top ${shown} groups by ${by}.`
+    : `Showing the top ${shown} groups by ${by}. Sort by a column to see the top groups by it.`;
   // A mean (or median, min, max) over many groups puts one-work groups first; the
   // language's answer is a count filter on the split.
   const m2 = serverSorted.value && measures.value.find((x) => x.key === sort.value?.key);
