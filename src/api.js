@@ -471,15 +471,12 @@ const api = (function () {
                 String(g.displayValue ?? g.value).toLowerCase().includes(term))
         }
         // Collections live in users-api, not in any elastic-api group_by / autocomplete.
-        // Pull from the collections.store (one /me/collections fetch covers it — cap 100)
+        // Pull from the collections.store (the user's own and the public ones)
         // and filter to the current entity_type so a `works` SERP only sees
         // works collections.
         if (filterKey === 'collection') {
-            if (!store.state.collections?.loaded && !store.state.collections?.loading) {
-                await store.dispatch('collections/fetchAll');
-            }
             const term = (searchString || '').trim().toLowerCase();
-            const all = store.state.collections?.collections || [];
+            const all = await collectionsForPickers();
             return all
                 .filter(l => l.entity_type === entityType)
                 .filter(l => {
@@ -581,7 +578,7 @@ const api = (function () {
     // Cross-type collection filter (oxjob #273): the user's collections that can
     // be used as a VALUE of `filterKey` on this SERP — i.e. collections whose
     // entity_type matches the field's selected entity type. Pulled from the
-    // collections.store (one /me/collections fetch, cap 100); type-match + search
+    // collections.store (the user's own, cap 100, and the public ones); type-match + search
     // + sort are pure (see collectionFilter.js). Returns [] for fields with no
     // matching collections, which lets callers self-scope ("no collections → no
     // Collections tab"). The dedicated `collection` field keeps its own picker
@@ -589,11 +586,21 @@ const api = (function () {
     const getCollectionSuggestionsForField = async function (entityType, filterKey, searchString) {
         const selectType = collectionMatchType(entityType, filterKey);
         if (!selectType) return [];
+        return filterCollectionsForField(await collectionsForPickers(), selectType, searchString);
+    };
+
+    // The user's own collections, then the public ones they don't own (oxjob #1532).
+    // Each keeps its `access`, so pickers can tag it Public, Private or Shared by link.
+    const collectionsForPickers = async function () {
+        const loads = [store.dispatch('collections/fetchAllPublic')];
         if (!store.state.collections?.loaded && !store.state.collections?.loading) {
-            await store.dispatch('collections/fetchAll');
+            loads.push(store.dispatch('collections/fetchAll'));
         }
-        const all = store.state.collections?.collections || [];
-        return filterCollectionsForField(all, selectType, searchString);
+        await Promise.all(loads.map(p => p.catch(() => [])));
+        const mine = store.state.collections?.collections || [];
+        const mineIds = new Set(mine.map(c => c.id));
+        const publicOnes = (store.state.collections?.publicCollections || []).filter(c => !mineIds.has(c.id));
+        return [...mine, ...publicOnes];
     };
 
     // Resolve a collection id (`col_<base58>`) to its display name (oxjob #367,
@@ -601,10 +608,7 @@ const api = (function () {
     // users-api, not elastic-api, so read from the collections.store cache (one
     // /me/collections fetch, cap 100). Returns null if not found.
     const getCollectionDisplayName = async function (colId) {
-        if (!store.state.collections?.loaded && !store.state.collections?.loading) {
-            await store.dispatch('collections/fetchAll');
-        }
-        const all = store.state.collections?.collections || [];
+        const all = await collectionsForPickers();
         return all.find(c => c.id === colId)?.display_name ?? null;
     };
 

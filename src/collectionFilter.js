@@ -66,7 +66,7 @@ export function collectionMatchType(entityType, filterKey) {
  * @param {Array<Object>} collections - raw collection objects from the store
  * @param {string|null} selectType - the field's match type (see collectionMatchType)
  * @param {string} [searchString]
- * @returns {Array<{value:string, displayValue:string, entityCount:number, isCollection:true}>}
+ * @returns {Array<{value:string, displayValue:string, entityCount:number, isCollection:true, access:string}>}
  */
 export function filterCollectionsForField(collections, selectType, searchString) {
     if (!selectType) return [];
@@ -87,6 +87,7 @@ export function filterCollectionsForField(collections, selectType, searchString)
             displayValue: c.display_name,
             entityCount: c.member_count,
             isCollection: true,
+            access: c.access || "private",
         }));
 }
 

@@ -253,7 +253,7 @@ async function privateCollectionsIn(text) {
   if (!store.state.collections.loaded) {
     try { await store.dispatch('collections/fetchAll'); } catch { return []; }
   }
-  return store.getters['collections/all'].filter(c => ids.has(c.id) && c.access !== 'shared_by_link');
+  return store.getters['collections/all'].filter(c => ids.has(c.id) && (c.access || 'private') === 'private');
 }
 
 async function copyText(text, message) {

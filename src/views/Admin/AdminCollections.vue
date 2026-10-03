@@ -93,7 +93,7 @@
             </td>
             <td class="text-grey">{{ collection.entity_type }}</td>
             <td class="text-right">{{ collection.entity_count ?? 0 }}</td>
-            <td class="text-grey">{{ collection.access === 'shared_by_link' ? 'Shared by link' : 'Private' }}</td>
+            <td><collection-access-tag :access="collection.access" /></td>
             <td>
               <router-link
                 :to="`/admin/users/${collection.user_id}`"
@@ -247,6 +247,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
+import CollectionAccessTag from "@/components/Collection/CollectionAccessTag.vue";
 import { useStore } from "vuex";
 import axios from "axios";
 import { urlBase, axiosConfig } from "@/apiConfig";
