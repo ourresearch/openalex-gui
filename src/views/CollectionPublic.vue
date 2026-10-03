@@ -834,12 +834,6 @@ onUnmounted(() => store.commit("selection/deselectAll"));
 .meta-line {
   color: rgba(0, 0, 0, 0.7);
 }
-.access-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  white-space: nowrap;
-}
 .members-toolbar {
   flex: 1 1 auto;
   min-width: 0;

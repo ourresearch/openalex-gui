@@ -153,8 +153,8 @@
 <script setup>
 import { ref, computed } from "vue";
 import CollectionAccessTag from "@/components/Collection/CollectionAccessTag.vue";
+import { collectionTypeIcon, collectionTypePlural, capitalizeFirst } from "@/collectionTypeLabels";
 import { useRouter } from "vue-router";
-import { entityConfigs } from "@/entityConfigs";
 import { worksFieldsForCollectionType } from "@/collectionFilter";
 import { fromCollectionEntityType } from "@/openalexId";
 
@@ -178,17 +178,9 @@ const filteredCollections = computed(() => {
   );
 });
 
-// entityConfigs (and GUI routes) are keyed by GUI type names — identical to
-// the collection entity_type except `work-types` → `types` (oxjob #396).
-function entityIcon(type) {
-  return entityConfigs?.[fromCollectionEntityType(type)]?.icon || "mdi-folder-outline";
-}
-function entityPlural(type) {
-  return entityConfigs?.[fromCollectionEntityType(type)]?.displayName || type;
-}
-function cap(s) {
-  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
-}
+const entityIcon = collectionTypeIcon;
+const entityPlural = collectionTypePlural;
+const cap = capitalizeFirst;
 function worksFields(type) {
   return worksFieldsForCollectionType(type);
 }
