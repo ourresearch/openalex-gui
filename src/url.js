@@ -19,6 +19,7 @@ import {getFacetConfig} from "@/facetConfigUtils";
 import {urlBase} from "@/apiConfig";
 import {oqlForUrl} from "@/oqlSerialize";
 import {SEMANTIC_MAX_PER_PAGE} from "@/semanticLimits";
+import { searchParamKeys } from '@/searchParamKeys';
 
 
 const urlObjectFromSearchUrl = function (searchUrl) {
@@ -774,12 +775,6 @@ const xpacIncludedInRoute = function (query) {
 const RERANK_WINDOW = 100
 
 // Search param helpers
-const searchParamKeys = [
-    'search', 'search.exact', 'search.semantic',
-    'search.title', 'search.title.exact',
-    'search.title_and_abstract', 'search.title_and_abstract.exact',
-    'search.title_abstract_keywords', 'search.title_abstract_keywords.exact',
-]
 
 // Map a `*.search[.exact]` FILTER key to the equivalent top-level search type, so a
 // shared/legacy URL like `?filter=title_and_abstract.search:foo` (or `default.search:foo`)

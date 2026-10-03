@@ -145,7 +145,13 @@ function escapeCell(value) {
  * Trigger browser download of CSV content
  */
 function downloadCsv(csvContent, filename) {
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  downloadBlob(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }), filename);
+}
+
+/**
+ * Trigger browser download of a Blob (a CSV fetched whole, for one)
+ */
+export function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   
   const link = document.createElement('a');

@@ -176,7 +176,7 @@
     <v-card>
       <v-card-title>Too many rows selected</v-card-title>
       <v-card-text>
-        Collections hold up to {{ MAX_ENTITIES_PER_COLLECTION.toLocaleString() }} items.
+        Collections hold up to {{ MAX_MEMBERS_PER_COLLECTION.toLocaleString() }} items.
         You selected {{ selectedShortIds.length.toLocaleString() }} — reduce your
         selection and try again.
       </v-card-text>
@@ -194,7 +194,7 @@
         <strong>{{ overflowCollection?.display_name }}</strong> already has
         {{ overflowCollection?.member_count?.toLocaleString() }} members. Adding
         {{ overflowAddCount.toLocaleString() }} more would push it past the
-        {{ MAX_ENTITIES_PER_COLLECTION.toLocaleString() }} cap.
+        {{ MAX_MEMBERS_PER_COLLECTION.toLocaleString() }} cap.
       </v-card-text>
       <v-card-actions>
         <v-spacer />
@@ -242,7 +242,7 @@ import { useRouter } from "vue-router";
 import CollectionQuickCreateDialog from "@/components/Collection/CollectionQuickCreateDialog.vue";
 import CollectionImportProgress from "@/components/Collection/CollectionImportProgress.vue";
 import * as openalexId from "@/openalexId";
-import { MAX_MEMBERS_PER_COLLECTION as MAX_ENTITIES_PER_COLLECTION, MAX_EXCLUDE_IDS } from "@/collectionLimits";
+import { MAX_MEMBERS_PER_COLLECTION, MAX_EXCLUDE_IDS } from "@/collectionLimits";
 
 defineOptions({ name: "CollectionActionMenu" });
 
@@ -292,8 +292,8 @@ const overflowCollection = ref(null);
 const overflowAddCount = ref(0);
 const importDialog = reactive({ open: false, collection: null, import: null });
 
-// Select-all mode with a search to add: Add runs on the server.
-const isSelectAll = computed(() => props.enumerationBlocked && !!props.importSource);
+// Select-all mode: Add runs on the server, with the search as the source.
+const isSelectAll = computed(() => props.enumerationBlocked);
 const excludeShortIds = computed(() =>
   props.excludedIds.map((id) => openalexId.toCollectionEntityId(id) || id)
 );
@@ -372,11 +372,11 @@ function onActivatorClick() {
     noSelectionDialog.value = true;
     return;
   }
-  if (props.enumerationBlocked && (!props.importSource || props.excludedIds.length > MAX_EXCLUDE_IDS)) {
+  if (isSelectAll.value && props.excludedIds.length > MAX_EXCLUDE_IDS) {
     enumerationBlockedDialog.value = true;
     return;
   }
-  if (!isSelectAll.value && selectedShortIds.value.length > MAX_ENTITIES_PER_COLLECTION) {
+  if (!isSelectAll.value && selectedShortIds.value.length > MAX_MEMBERS_PER_COLLECTION) {
     overCapDialog.value = true;
     return;
   }
@@ -419,7 +419,7 @@ async function onApply(collection, op) {
       return !list.some((c) => c.id === collection.id);
     });
     const projected = (collection.member_count || 0) + toAdd.length;
-    if (projected > MAX_ENTITIES_PER_COLLECTION) {
+    if (projected > MAX_MEMBERS_PER_COLLECTION) {
       overflowCollection.value = collection;
       overflowAddCount.value = toAdd.length;
       overflowDialog.value = true;
@@ -483,7 +483,6 @@ watch(() => importDialog.open, (open) => {
 });
 
 function onImportFinished(imp) {
-  if (importDialog.collection) store.dispatch("collections/importFinished", importDialog.collection.id);
   if (!importDialog.open && imp.status === "done") {
     store.commit("snackbar", `Added ${(imp.added || 0).toLocaleString()} to "${importDialog.collection?.display_name}".`);
   }
