@@ -269,7 +269,8 @@ const createSimpleFilter = function (entityType, key, value, isNegated) {
             isNullValue: (passValue === null),
         }
     }
-    const myValue = createFilterValue(value, facetConfig.type)
+    // quoteValue filters hold plain values: strip the API quotes like any non-search value.
+    const myValue = createFilterValue(value, facetConfig.quoteValue ? "value" : facetConfig.type)
     if (!myValue) isNegated = true
 
     const nullValues = ["unknown", "null"]
@@ -283,7 +284,9 @@ const createSimpleFilter = function (entityType, key, value, isNegated) {
     // their value is a raw API query string that may already contain quotes,
     // proximity (`~N`), or Boolean groups (`|`/`+`). Wrapping those would
     // double-quote the query and corrupt it (regression c8e689f7 → #191.5).
-    const isSearchFilter = facetConfig.type === "search"
+    // `quoteValue` (oxjob #1526): a typed exact-value filter (institution region/city)
+    // whose values can contain spaces ("New York") but never query syntax.
+    const isSearchFilter = facetConfig.type === "search" && !facetConfig.quoteValue
     const quotedValue = (typeof apiValue === "string" && apiValue.includes(" ") && !isSearchFilter) ? `"${apiValue}"` : apiValue
     const asStr = facetConfig.key + ":" + negationSymbol + quotedValue
 

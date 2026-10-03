@@ -43,3 +43,21 @@ describe('filterConfigs — search-filter quoting (#191.5)', () => {
         expect(f.asStr).toBe('type:"ebook platform"');
     });
 });
+
+// oxjob #1526: institution region/city are typed exact values; multi-word ones must be quoted.
+describe("quoteValue search filters (#1526)", () => {
+  it("quotes a multi-word region", () => {
+    expect(createSimpleFilter("institutions", "geo.region", "New York").asStr).toBe('geo.region:"New York"');
+  });
+  it("still leaves a works raw affiliation search unquoted", () => {
+    expect(createSimpleFilter("works", "raw_affiliation_strings", "new york").asStr).toBe("raw_affiliation_strings:new york");
+  });
+});
+
+describe("quoteValue round trip (#1526)", () => {
+  it("parses a quoted region back to its plain value and re-serializes it", () => {
+    const [f] = filtersFromUrlStr("institutions", 'geo.region:"New York"');
+    expect(f.value).toBe("New York");
+    expect(filtersAsUrlStr([f], "institutions")).toBe('geo.region:"New York"');
+  });
+});
