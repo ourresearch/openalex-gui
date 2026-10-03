@@ -86,6 +86,7 @@
             :display-value="row.displayValue"
             :count="row.entityCount ?? null"
             is-collection
+            :access="row.access"
             :entity-label="collectionRowEntityName"
             :selected="selectedCollectionId === row.value"
             :disabled="collectionsDisabled"

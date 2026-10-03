@@ -48,10 +48,7 @@
                Searching and adding members belong to the member list below;
                opening searches over the members sits under the title. -->
           <template #meta-status>
-            <span class="access-status ml-3">
-              <v-icon size="x-small" aria-hidden="true">{{ isShared ? 'mdi-link-variant' : 'mdi-lock-outline' }}</v-icon>
-              {{ isShared ? 'Shared by link' : 'Private' }}
-            </span>
+            <collection-access-tag :access="collection.access" prominent class="ml-3" />
           </template>
 
           <template #header-actions>
@@ -60,7 +57,7 @@
               color="primary"
               variant="flat"
               rounded
-              :prepend-icon="isShared ? 'mdi-link-variant' : 'mdi-lock-outline'"
+              :prepend-icon="accessInfo(collection.access).icon"
               @click="shareDialogOpen = true"
             >
               Share
@@ -125,6 +122,10 @@
             />
             <div v-if="!isOwner && isShared" class="text-body-2 meta-line mt-1">
               Shared with you by link. Only its owner can change it; make a copy to edit your own.
+            </div>
+            <div v-else-if="!isOwner && isPublic" class="text-body-2 meta-line mt-1">
+              A public collection made by OpenAlex. Use it in any filter, or make a copy to edit your own.
+              <router-link to="/collections">Browse public collections</router-link>
             </div>
             <div
               v-if="collection.description"
@@ -341,6 +342,8 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from "vue";
+import CollectionAccessTag from "@/components/Collection/CollectionAccessTag.vue";
+import { accessInfo } from "@/collectionAccess";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { useHead } from "@unhead/vue";
@@ -419,6 +422,9 @@ const runningImport = ref(null);
 // The server says whether this caller may edit (only the owner can; oxjob #646).
 const isOwner = computed(() => !!collection.value?.can_edit);
 const isShared = computed(() => collection.value?.access === "shared_by_link");
+const isPublic = computed(() => collection.value?.access === "public");
+// Anyone can open a shared-by-link or public collection without the owner's key.
+const isReadableByAnyone = computed(() => isShared.value || isPublic.value);
 
 // GUI type name for routes + entityConfigs lookups — identical to the
 // collection entity_type except `work-types` → `types` (oxjob #396).
@@ -446,8 +452,8 @@ const memberCountLabel = computed(() => {
 });
 
 // The members as an API query. Only offered once the collection is shared by
-// link: a private one reads as "not found" in a new tab without the owner's key.
-const apiUrl = computed(() => (isShared.value && collection.value)
+// link or public: a private one reads as "not found" in a new tab without the owner's key.
+const apiUrl = computed(() => (isReadableByAnyone.value && collection.value)
   ? `https://api.openalex.org/${guiEntityType.value}?filter=collection:${collection.value.id}`
   : "");
 

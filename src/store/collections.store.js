@@ -38,7 +38,9 @@ async function _flushEntityCollectionsBatch() {
         const chunk = ids.slice(i, i + MAX_IDS_PER_QUERY);
         try {
             const resp = await axios.get(
-                `${collectionsUrl}?member_ids=${chunk.map(enc).join(",")}&per_page=100`,
+                // `can_edit:true`: the caller's own collections. GET /collections also
+                // lists public ones (oxjob #1532), which aren't "your collections".
+                `${collectionsUrl}?filter=can_edit:true&member_ids=${chunk.map(enc).join(",")}&per_page=100`,
                 axiosConfig({ userAuth: true })
             );
             // The server echoes each requested id in matching_member_ids, so ids
@@ -70,9 +72,14 @@ function clearEntityCollectionsCache() {
 export default {
     namespaced: true,
     state: {
+        // The caller's own collections.
         collections: [],
         loaded: false,
         loading: false,
+        // Public collections (made by OpenAlex, oxjob #1532), for filter pickers and
+        // chip names. Loaded once per session, logged in or not.
+        publicCollections: [],
+        publicLoaded: false,
         // Bumped whenever a collection's membership changes (add/remove
         // members, delete collection, create with members). Watched by
         // EntityCollectionsRow so per-row chips refresh after a SERP-level apply.
@@ -96,6 +103,10 @@ export default {
         },
         removeCollection(state, id) {
             state.collections = state.collections.filter(l => l.id !== id);
+        },
+        setPublicCollections(state, collections) {
+            state.publicCollections = collections || [];
+            state.publicLoaded = true;
         },
         setLoading(state, b) {
             state.loading = b;
@@ -147,8 +158,9 @@ export default {
             commit("setLoading", true);
             try {
                 // GET /collections pages at 100 at most; the cap is 100 per user so one page is enough.
+                // `can_edit:true` keeps it to the user's own (the list also holds public ones).
                 const resp = await axios.get(
-                    `${collectionsUrl}?per_page=100`,
+                    `${collectionsUrl}?filter=can_edit:true&per_page=100`,
                     axiosConfig({ userAuth: true })
                 );
                 const collections = (resp.data.results || []).map(normalizeCollection);
@@ -156,6 +168,25 @@ export default {
                 return collections;
             } finally {
                 commit("setLoading", false);
+            }
+        },
+
+        // Public collections for pickers (oxjob #1532). OpenAlex makes them, so one page
+        // of 100 holds them all for now; past that, page with `cursor`.
+        async fetchAllPublic({ commit, state }) {
+            if (state.publicLoaded) return state.publicCollections;
+            try {
+                const resp = await axios.get(
+                    `${collectionsUrl}?filter=access:public&per_page=100`,
+                    axiosConfig({ userAuth: true })
+                );
+                const collections = (resp.data.results || []).map(normalizeCollection);
+                commit("setPublicCollections", collections);
+                return collections;
+            } catch (e) {
+                // Pickers still work without them; don't retry on every open.
+                commit("setPublicCollections", []);
+                return [];
             }
         },
 
