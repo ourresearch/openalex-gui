@@ -812,7 +812,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title/abstract has (\"machine learning\")",
+        "oql": "works where title-abstract has (\"machine learning\")",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1138,7 +1138,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title/abstract has (change and climate)",
+        "oql": "works where title-abstract has (change and climate)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1650,7 +1650,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where citation count > (100)\n  and title/abstract has (stemmed \"coral bleaching\")\ngroup by source",
+        "oql": "works where citation count > (100)\n  and title-abstract has (stemmed \"coral bleaching\")\ngroup by source",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1856,7 +1856,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title/abstract has (\n    agile\n    and (stemmed \"cycle time\" or stemmed \"lead time\")\n    and (\n      stemmed \"demand chain\"\n      or stemmed \"supply chain\"\n      or stemmed \"value chain\"\n    )\n  )",
+        "oql": "works where title-abstract has (\n    agile\n    and (stemmed \"cycle time\" or stemmed \"lead time\")\n    and (\n      stemmed \"demand chain\"\n      or stemmed \"supply chain\"\n      or stemmed \"value chain\"\n    )\n  )",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1936,7 +1936,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title/abstract has (within 3 (smart, phone))",
+        "oql": "works where title-abstract has (within 3 (smart, phone))",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -1981,7 +1981,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title/abstract has (\"phone*\")",
+        "oql": "works where title-abstract has (\"phone*\")",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2026,7 +2026,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title/abstract has (\"oyster toadfish\")",
+        "oql": "works where title-abstract has (\"oyster toadfish\")",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2071,7 +2071,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where language is (en [English])\n  and year >= (2015)\n  and year <= (2024)\n  and title/abstract has (\n    (ASD or stemmed \"autism spectrum disorder\" or autism)\n    and (intervention or therapy or treatment)\n  )\n  and type is (article or review)",
+        "oql": "works where language is (en [English])\n  and year >= (2015)\n  and year <= (2024)\n  and title-abstract has (\n    (ASD or stemmed \"autism spectrum disorder\" or autism)\n    and (intervention or therapy or treatment)\n  )\n  and type is (article or review)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2226,7 +2226,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where year >= (2018)\n  and year <= (2023)\n  and title/abstract has (CRISPR and stemmed \"genome editing\")\nsample 500",
+        "oql": "works where year >= (2018)\n  and year <= (2023)\n  and title-abstract has (CRISPR and stemmed \"genome editing\")\nsample 500",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2562,7 +2562,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title/abstract has (not pediatric and covid)",
+        "oql": "works where title-abstract has (not pediatric and covid)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2613,7 +2613,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title/abstract has (computing and quantum) group by country",
+        "oql": "works where title-abstract has (computing and quantum) group by country",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2668,7 +2668,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title/abstract has (CRISPR and Cas9) group by author",
+        "oql": "works where title-abstract has (CRISPR and Cas9) group by author",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -2723,7 +2723,7 @@ export const nlEvalSource = {
       "id": null,
       "display": {
         "category": "",
-        "oql": "works where title/abstract has (CRISPR) group by funder",
+        "oql": "works where title-abstract has (CRISPR) group by funder",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3097,7 +3097,7 @@ export const nlEvalSource = {
       "id": "NL-LG-001",
       "display": {
         "category": "standalone",
-        "oql": "works where title/abstract has (CRISPR) and citation count >= (1000)",
+        "oql": "works where title-abstract has (CRISPR) and citation count >= (1000)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3141,7 +3141,7 @@ export const nlEvalSource = {
       "id": "NL-LG-002",
       "display": {
         "category": "standalone",
-        "oql": "works where title/abstract has (stemmed \"machine learning\") and year >= (2020)",
+        "oql": "works where title-abstract has (stemmed \"machine learning\") and year >= (2020)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3229,7 +3229,7 @@ export const nlEvalSource = {
       "id": "NL-LG-004",
       "display": {
         "category": "standalone",
-        "oql": "works where title/abstract has (stemmed \"quantum computing\") group by country",
+        "oql": "works where title-abstract has (stemmed \"quantum computing\") group by country",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [
@@ -3311,7 +3311,7 @@ export const nlEvalSource = {
       "id": "NL-LG-006",
       "display": {
         "category": "standalone",
-        "oql": "works where title/abstract has (stemmed \"deep learning\" and not survey)",
+        "oql": "works where title-abstract has (stemmed \"deep learning\" and not survey)",
         "oqo": {
           "get_rows": "works",
           "filter_rows": [

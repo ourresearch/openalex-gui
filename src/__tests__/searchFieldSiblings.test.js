@@ -3,7 +3,7 @@ import { searchFieldSiblings } from '../components/OqlPlayground/oqoTree.js';
 
 // oxjob #467 — the field chip's "change search field" menu (search filters only).
 // searchFieldSiblings is CURATED to exactly three primary search surfaces, in breadth order.
-// Jason re-curated the middle surface from abstract-only to the broader title/abstract scope
+// Jason re-curated the middle surface from abstract-only to the broader title-abstract scope
 // (2026-06-19, the #475 menus-on-chips operator-change ask): title / title-abstract / full text.
 // Offered only if they exist in the entity catalog, each flagged `current:true` when the filter
 // is already on it.
@@ -18,7 +18,7 @@ const worksProps = {
   'raw_author_name.search': { name: 'raw_author_name.search', type: 'search', display_name: 'byline' },
   'semantic.search': { name: 'semantic.search', type: 'search', display_name: 'semantic' },
   'default.search': { name: 'default.search', type: 'search', display_name: 'default' },
-  'title_and_abstract.search': { name: 'title_and_abstract.search', type: 'search', display_name: 'title/abstract' },
+  'title_and_abstract.search': { name: 'title_and_abstract.search', type: 'search', display_name: 'title-abstract' },
   'title_and_abstract.search.exact': { name: 'title_and_abstract.search.exact', type: 'search', display_name: 'title and abstract' },
   'publication_year': { name: 'publication_year', type: 'number', display_name: 'year' },
   'authorships.author.id': { name: 'authorships.author.id', type: 'openalex_id', display_name: 'author' },
@@ -29,7 +29,7 @@ describe('searchFieldSiblings', () => {
     const out = searchFieldSiblings(worksProps, 'title_and_abstract.search');
     expect(out).toEqual([
       { column_id: 'display_name.search', label: 'title', current: false },
-      { column_id: 'title_and_abstract.search', label: 'title/abstract', current: true },
+      { column_id: 'title_and_abstract.search', label: 'title-abstract', current: true },
       { column_id: 'fulltext.search', label: 'full text', current: false },
     ]);
   });

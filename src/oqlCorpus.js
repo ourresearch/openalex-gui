@@ -967,7 +967,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (\"machine learning\")",
+    "oql": "works where title-abstract has (\"machine learning\")",
     "note": "Exact phrase, no stemming (.search.exact).",
     "diagnostic": "",
     "oqo": {
@@ -1296,7 +1296,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (change and climate)",
+    "oql": "works where title-abstract has (change and climate)",
     "note": "Bare = stemmed AND — exactly what the #284 OXURL did (space = AND on .search). Use `stemmed \"climate change\"` for an adjacent phrase.",
     "diagnostic": "",
     "oqo": {
@@ -1659,7 +1659,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where citation count > (100)\n  and title/abstract has (stemmed \"coral bleaching\")\ngroup by source",
+    "oql": "works where citation count > (100)\n  and title-abstract has (stemmed \"coral bleaching\")\ngroup by source",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -1795,7 +1795,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    agile\n    and (stemmed \"cycle time\" or stemmed \"lead time\")\n    and (\n      stemmed \"demand chain\"\n      or stemmed \"supply chain\"\n      or stemmed \"value chain\"\n    )\n  )",
+    "oql": "works where title-abstract has (\n    agile\n    and (stemmed \"cycle time\" or stemmed \"lead time\")\n    and (\n      stemmed \"demand chain\"\n      or stemmed \"supply chain\"\n      or stemmed \"value chain\"\n    )\n  )",
     "note": "AND of OR-groups; the synonym phrases use `near` (stemmed adjacent) for recall. Top level is pure-and so no parens.",
     "diagnostic": "",
     "oqo": {
@@ -1858,7 +1858,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (within 3 (smart, phone))",
+    "oql": "works where title-abstract has (within 3 (smart, phone))",
     "note": "STEMMED list proximity (oxjob #514): all-bare operands → `.search` (stemmed), matching the #284 column. Quote operands for exact proximity. Replaces the old `stemmed \"smart phone\" within 3 words` stemmed single-phrase form.",
     "diagnostic": "",
     "oqo": {
@@ -1887,7 +1887,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (\"phone*\")",
+    "oql": "works where title-abstract has (\"phone*\")",
     "note": "Trailing wildcard, quoted so it runs on the no-stem `title_and_abstract.search.exact` column (oxjob #364). Bare `phone*` is now an error (OQL_WILDCARD_NEEDS_EXACT) — stemming would drop the literal prefix.",
     "diagnostic": "",
     "oqo": {
@@ -1917,7 +1917,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (within 3 (\"smart\", \"phone*\"))",
+    "oql": "works where title-abstract has (within 3 (\"smart\", \"phone*\"))",
     "note": "Wildcard inside a QUOTED (exact) list-proximity operand, SUPPORTED (oxjob #355/#514): compiles to an ES `intervals` query that keeps the wildcard (query_string used to drop it). WoS/Scopus parity. ordered=false + max_gaps=N == slop N. Leading / sub-3-char-prefix wildcards still rejected (#337); a BARE wildcard operand is rejected (row 29).",
     "diagnostic": "",
     "oqo": {
@@ -1945,7 +1945,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (\"oyster toadfish\")",
+    "oql": "works where title-abstract has (\"oyster toadfish\")",
     "note": "NL says \"exact phrase only, no lemmatization\" → plain quotes (exact, .search.exact). The textbook quotes-mean-exact case.",
     "diagnostic": "",
     "oqo": {
@@ -1974,7 +1974,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (\"behavio*r\")",
+    "oql": "works where title-abstract has (\"behavio*r\")",
     "note": "Mid-word wildcard (UK/US spellings in one query), quoted so it runs on the no-stem `title_and_abstract.search.exact` column (oxjob",
     "diagnostic": "",
     "oqo": {
@@ -2003,7 +2003,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where language is (en [English])\n  and year >= (2015)\n  and year <= (2024)\n  and title/abstract has (\n    (ASD or stemmed \"autism spectrum disorder\" or autism)\n    and (intervention or therapy or treatment)\n  )\n  and type is (article or review)",
+    "oql": "works where language is (en [English])\n  and year >= (2015)\n  and year <= (2024)\n  and title-abstract has (\n    (ASD or stemmed \"autism spectrum disorder\" or autism)\n    and (intervention or therapy or treatment)\n  )\n  and type is (article or review)",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -2124,7 +2124,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where year >= (2018)\n  and year <= (2023)\n  and title/abstract has (CRISPR and stemmed \"genome editing\")\nsample 500",
+    "oql": "works where year >= (2018)\n  and year <= (2023)\n  and title-abstract has (CRISPR and stemmed \"genome editing\")\nsample 500",
     "note": "Mixes a bare token (CRISPR, stemmed) with a `near` phrase (genome editing) — the explicit version of #284's loose multi-word search.",
     "diagnostic": "",
     "oqo": {
@@ -2355,7 +2355,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (not pediatric and covid)",
+    "oql": "works where title-abstract has (not pediatric and covid)",
     "note": "One negation mechanism: `does not have` renders is_negated:true on a has leaf.",
     "diagnostic": "",
     "oqo": {
@@ -2389,7 +2389,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (computing and quantum) group by country",
+    "oql": "works where title-abstract has (computing and quantum) group by country",
     "note": "Bare = stemmed AND (faithful to the",
     "diagnostic": "",
     "oqo": {
@@ -2427,7 +2427,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (CRISPR and Cas9) group by author",
+    "oql": "works where title-abstract has (CRISPR and Cas9) group by author",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -2465,7 +2465,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (CRISPR) group by funder",
+    "oql": "works where title-abstract has (CRISPR) group by funder",
     "note": "Only the group-by-COUNT form is in scope. Ranking groups by mean citation impact is sort-by-aggregate -> #297.",
     "diagnostic": "",
     "oqo": {
@@ -2572,7 +2572,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title has (\n    (\n      Boy or Girl or Minors or Prepubescent or adolescent or boys or child's\n      or children or girls or juvenile or preadolescent or preteen or pubertal\n      or pubescent or schoolboy or schoolchild or schoolgirl or teen or tweenage\n      or tweens or youth or youths or \"Pre pubescent\" or \"early adolescent\"\n      or \"pre adolescent\" or \"pre pubertal\" or \"school aged\" or \"young people\"\n      or \"young person\"\n    )\n    and (\n      Height or bodyweight or fat or fatness or obese or obesity or overweight\n      or thin or thinness or weight or \"anti fat\" or \"being fat\" or \"being thin\"\n      or \"body esteem\" or \"body hatred\" or \"body ideal\" or \"body image\"\n      or \"body positive\" or \"body shame\" or \"body shape\" or \"body size\"\n      or \"body sizes\" or \"fat ideal\" or \"ideal body\" or \"thin ideal\"\n      or \"weight bias\"\n    )\n  )\n  and full text has (\n    Britain or England or GB or Scotland or Scottish or UK or Wales or Welsh\n    or \"English adolescent\" or \"English children\" or \"English girls\"\n    or \"English schoolchild\" or \"English teen\" or \"English young people\"\n    or \"North Ireland\" or \"North Irish\" or \"Northern Ireland\"\n    or \"Northern Irish\" or \"United Kingdom\" or \"english boys\"\n    or \"english school\"\n  )\n  and title/abstract has (\n    (\n      attitude or attitudes or beliefs or diaries or diary or experiences\n      or in-depth or indepth or informal or open or perceptions or perspective\n      or perspectives or qualitative or semistructured or unstructured\n      or \"focus group\" or \"focus groups\" or \"lived experience\" or \"open ended\"\n      or \"semi structured\"\n    )\n    and (\n      attitude or attitudes or beliefs or diaries or diary or experiences\n      or interview or interviews or perceptions or perspective or perspectives\n      or qualitative or questionnaire or questionnaires or \"focus group\"\n      or \"focus groups\" or \"lived experience\"\n    )\n  )",
+    "oql": "works where title has (\n    (\n      Boy or Girl or Minors or Prepubescent or adolescent or boys or child's\n      or children or girls or juvenile or preadolescent or preteen or pubertal\n      or pubescent or schoolboy or schoolchild or schoolgirl or teen or tweenage\n      or tweens or youth or youths or \"Pre pubescent\" or \"early adolescent\"\n      or \"pre adolescent\" or \"pre pubertal\" or \"school aged\" or \"young people\"\n      or \"young person\"\n    )\n    and (\n      Height or bodyweight or fat or fatness or obese or obesity or overweight\n      or thin or thinness or weight or \"anti fat\" or \"being fat\" or \"being thin\"\n      or \"body esteem\" or \"body hatred\" or \"body ideal\" or \"body image\"\n      or \"body positive\" or \"body shame\" or \"body shape\" or \"body size\"\n      or \"body sizes\" or \"fat ideal\" or \"ideal body\" or \"thin ideal\"\n      or \"weight bias\"\n    )\n  )\n  and full text has (\n    Britain or England or GB or Scotland or Scottish or UK or Wales or Welsh\n    or \"English adolescent\" or \"English children\" or \"English girls\"\n    or \"English schoolchild\" or \"English teen\" or \"English young people\"\n    or \"North Ireland\" or \"North Irish\" or \"Northern Ireland\"\n    or \"Northern Irish\" or \"United Kingdom\" or \"english boys\"\n    or \"english school\"\n  )\n  and title-abstract has (\n    (\n      attitude or attitudes or beliefs or diaries or diary or experiences\n      or in-depth or indepth or informal or open or perceptions or perspective\n      or perspectives or qualitative or semistructured or unstructured\n      or \"focus group\" or \"focus groups\" or \"lived experience\" or \"open ended\"\n      or \"semi structured\"\n    )\n    and (\n      attitude or attitudes or beliefs or diaries or diary or experiences\n      or interview or interviews or perceptions or perspective or perspectives\n      or qualitative or questionnaire or questionnaires or \"focus group\"\n      or \"focus groups\" or \"lived experience\"\n    )\n  )",
     "note": "The real zd#8101 systematic-review tree (Claire): a 5-block AND of large OR-synonym groups, each block scoped to a different search field (title / title & abstract x2 / anywhere). 114 leaves. No explicit oqo oracle — the harness asserts OQO->OQL->OQO identity through the whole tree.",
     "diagnostic": "",
     "oqo": {
@@ -4337,7 +4337,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (stemmed \"3xTg-AD\" or stemmed \"in vivo\")",
+    "oql": "works where title-abstract has (stemmed \"3xTg-AD\" or stemmed \"in vivo\")",
     "note": "Walkthrough batch 3 (W3.3): on the STEMMED .search column a quoted token the analyzer splits into >1 subtoken (hyphen/slash, e.g. '3xTg-AD', 'APP/PS1') is adjacent-subtokens (phrase), NOT the bare AND form — measured live `\"3xTg-AD\"` 2027 vs `3xTg-AD` 2354. So the encoder keeps quotes for multi-subtoken stemmed tokens; atomic tokens (5xFAD) and exact-column wildcards ('foo*bar') stay bare. Rendered as `near \"…\"` (stemmed adjacent phrase).",
     "diagnostic": "",
     "oqo": {
@@ -4452,7 +4452,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (mental health)",
+    "oql": "works where title-abstract has (mental health)",
     "note": "D2 reversal (#363 discovery run #3): a maximal run of bare words = ONE stemmed value node. The engine adjacency-boosts the whole run (match_phrase x2 title / x0.15 abstract OR'd on the plain AND), so splitting `mental health` into `mental AND health` would silently drop that ranking boost. Recall is identical (cross_fields AND, #399/#191.7); ranking is not. Explicit and/or/not still build the tree between nodes.",
     "diagnostic": "",
     "oqo": {
@@ -4479,7 +4479,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (road traffic safety \"and\" Ghana)",
+    "oql": "works where title-abstract has (road traffic safety \"and\" Ghana)",
     "note": "#2 (#363 discovery run #3): a literal reserved word (and/or/not) inside a stemmed value is quoted on render so it folds back as an escaped literal rather than re-parsing as a connective. A quoted token EMBEDDED in a bare run stays stemmed (escape); a STANDALONE quoted phrase is still exact. The whole run remains ONE node.",
     "diagnostic": "",
     "oqo": {
@@ -4634,7 +4634,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (teacher and not \"academic teacher\")",
+    "oql": "works where title-abstract has (teacher and not \"academic teacher\")",
     "note": "zd#8101 (Claire Stansfield): the compact OpenAlex within-`.search` NOT operator\n`term!\"phrase\"` = term AND NOT the EXACT phrase. Classic URL\n`title_and_abstract.search:teacher!\"academic teacher\"` is live-verified: `teacher`\n2,315,754 − exact \"academic teacher\" 2,378 = 2,313,376. The OXURL→OQO parser used\nto keep the whole string as one opaque has value, dropping the `!` so the NOT\nsilently became an AND (252,100). Quoted operand → exact (`.search.exact`); bare →\nstemmed (`.search`). oxjob #431 (parser-only fix); the OQL renderer/grammar already\nexpressed within-field NOT via `does not have`, and OQO→ES execution is verified\nto honor the negation (count identity A == teacher − exact-phrase, works-v33).\nKNOWN url_renderer GAP (follow-up): the stored `oxurl` is the expanded\n`…search.exact:!\"academic teacher\"` form, which the classic API REJECTS (no\nstandalone `!` on a `.search` filter). The classic-executable form is the compact\n`…search:teacher!\"academic teacher\"`. Same pre-existing class as row 71's\n`…search:!pediatric`; left has-oxurl by that precedent until the renderer renders\nthe compact form.",
     "diagnostic": "",
     "oqo": {
@@ -4668,7 +4668,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (England and not \"New England\")",
+    "oql": "works where title-abstract has (England and not \"New England\")",
     "note": "zd#8101 geographic-name idiom: `England!\"New England\"` (also `Wales!\"New South\nWales\"`, `British!\"British Columbia\"`) — exclude a place whose exact name contains\nthe search term, translating WoS/PsycInfo NOT clauses. Within-field NOT with\nexact-phrase exclusion. oxjob #431.",
     "diagnostic": "",
     "oqo": {
@@ -4701,8 +4701,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (acetaminophen and \"autism spectrum disorders\")",
-    "note": "depth-0 AND of two concepts; the untagged free-text default -> title/abstract. (source DB: PubMed).",
+    "oql": "works where title-abstract has (acetaminophen and \"autism spectrum disorders\")",
+    "note": "depth-0 AND of two concepts; the untagged free-text default -> title-abstract. (source DB: PubMed).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -4734,7 +4734,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (\"firm-specific factors\" and \"share price\")",
+    "oql": "works where title-abstract has (\"firm-specific factors\" and \"share price\")",
     "note": "Two quoted multi-word phrases AND-ed (exact-adjacent, no stemming).",
     "diagnostic": "",
     "oqo": {
@@ -4767,7 +4767,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    concrete\n    and (corrosion or deterioration)\n    and (durability or resistance)\n    and (\"sulfuric acid\" or \"sulphuric acid\")\n  )",
+    "oql": "works where title-abstract has (\n    concrete\n    and (corrosion or deterioration)\n    and (durability or resistance)\n    and (\"sulfuric acid\" or \"sulphuric acid\")\n  )",
     "note": "Canonical SR shape: a flat AND of OR-synonym groups (here 4 blocks). (source DB: Engineering Village).",
     "diagnostic": "",
     "oqo": {
@@ -4841,7 +4841,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    \"body composition\"\n    and (elderly or older)\n    and (\n      \"vibrating platform\"\n      or \"vibratory intervention\"\n      or \"vibratory therapy\"\n      or \"whole body vibration\"\n    )\n  )",
+    "oql": "works where title-abstract has (\n    \"body composition\"\n    and (elderly or older)\n    and (\n      \"vibrating platform\"\n      or \"vibratory intervention\"\n      or \"vibratory therapy\"\n      or \"whole body vibration\"\n    )\n  )",
     "note": "AND of OR-groups; mixes quoted phrases with bare single words.",
     "diagnostic": "",
     "oqo": {
@@ -4909,7 +4909,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    (game or gamification or gamified)\n    and (literacy or read or reading)\n  )",
+    "oql": "works where title-abstract has (\n    (game or gamification or gamified)\n    and (literacy or read or reading)\n  )",
     "note": "Two synonym groups AND-ed; all single-word stems. (source DB: Web of Science).",
     "diagnostic": "",
     "oqo": {
@@ -4972,7 +4972,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    (LMWH or antithrombotic or heparin)\n    and (idiopathic or unexplained)\n    and (\n      \"habitual abortion\"\n      or \"recurrent abortion\"\n      or \"recurrent miscarriage\"\n      or \"recurrent pregnancy loss\"\n    )\n  )",
+    "oql": "works where title-abstract has (\n    (LMWH or antithrombotic or heparin)\n    and (idiopathic or unexplained)\n    and (\n      \"habitual abortion\"\n      or \"recurrent abortion\"\n      or \"recurrent miscarriage\"\n      or \"recurrent pregnancy loss\"\n    )\n  )",
     "note": "Three-block PICO-style AND of OR-groups. (source DB: PubMed).",
     "diagnostic": "",
     "oqo": {
@@ -5056,7 +5056,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    Iran\n    and (colimycin or colistimethate or colistin or \"Polymyxin E\")\n    and (\"K.pneumoniae\" or \"Klebsiella pneumoniae\")\n    and (\"Resistan*\" or \"suscep*\")\n  )",
+    "oql": "works where title-abstract has (\n    Iran\n    and (colimycin or colistimethate or colistin or \"Polymyxin E\")\n    and (\"K.pneumoniae\" or \"Klebsiella pneumoniae\")\n    and (\"Resistan*\" or \"suscep*\")\n  )",
     "note": "Truncation: wildcards quoted so they run on the no-stem .search.exact column (#364).",
     "diagnostic": "",
     "oqo": {
@@ -5139,7 +5139,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (not children and depression and obesity)",
+    "oql": "works where title-abstract has (not children and depression and obesity)",
     "note": "Negation (NOT) — only ~4% of real SR strings use it. (source DB: PubMed).",
     "diagnostic": "",
     "oqo": {
@@ -5179,7 +5179,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    not paediatric\n    and not \"myocardial infarction\"\n    and (COVID-19 or coronavirus)\n    and (anticoagulant or enoxaparin or fondaparinux or heparin)\n    and (\"critical illness\" or \"intensive care units\")\n  )",
+    "oql": "works where title-abstract has (\n    not paediatric\n    and not \"myocardial infarction\"\n    and (COVID-19 or coronavirus)\n    and (anticoagulant or enoxaparin or fondaparinux or heparin)\n    and (\"critical illness\" or \"intensive care units\")\n  )",
     "note": "Multiple trailing NOT exclusions after an AND-of-ORs core. (source DB: Science Direct).",
     "diagnostic": "",
     "oqo": {
@@ -5269,7 +5269,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    (AI or \"artificial intelligence\" or \"machine learning\")\n    and (\n      \"artificial pancreas\"\n      or \"automated insulin delivery\"\n      or \"closed loop\"\n      or \"continuous glucose monitor\"\n      or \"wearable devices\"\n    )\n    and (\"diabetes mellitus\" or \"type 1 diabetes\" or \"type 2 diabetes\")\n  )",
+    "oql": "works where title-abstract has (\n    (AI or \"artificial intelligence\" or \"machine learning\")\n    and (\n      \"artificial pancreas\"\n      or \"automated insulin delivery\"\n      or \"closed loop\"\n      or \"continuous glucose monitor\"\n      or \"wearable devices\"\n    )\n    and (\"diabetes mellitus\" or \"type 1 diabetes\" or \"type 2 diabetes\")\n  )",
     "note": "Three concept blocks; many quoted device phrases. (source DB: PubMed, Cochrane Library, ClinicalTrials.gov).",
     "diagnostic": "",
     "oqo": {
@@ -5362,7 +5362,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    (atrophic or atrophy or dryness or lubrication or vaginitis)\n    and (carbetocin or oxytocin or pitocin or syntocinon)\n    and (\n      dyspareunia\n      or intravaginal\n      or urogenital\n      or vaginal\n      or vulvar\n      or vulvovaginal\n    )\n  )",
+    "oql": "works where title-abstract has (\n    (atrophic or atrophy or dryness or lubrication or vaginitis)\n    and (carbetocin or oxytocin or pitocin or syntocinon)\n    and (\n      dyspareunia\n      or intravaginal\n      or urogenital\n      or vaginal\n      or vulvar\n      or vulvovaginal\n    )\n  )",
     "note": "A nested AND-of-ORs inside one block (drug AND (site AND condition)).",
     "diagnostic": "",
     "oqo": {
@@ -5476,7 +5476,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    (\n      facebook or instagram or linkedin or reddit or tiktok or twitter\n      or youtube or \"sina weibo\" or \"social media\"\n    )\n    and (\"immuni*\" or \"vaccin*\")\n  )",
+    "oql": "works where title-abstract has (\n    (\n      facebook or instagram or linkedin or reddit or tiktok or twitter\n      or youtube or \"sina weibo\" or \"social media\"\n    )\n    and (\"immuni*\" or \"vaccin*\")\n  )",
     "note": "Long brand-name OR list AND a truncated-stem group. (source DB: Scopus).",
     "diagnostic": "",
     "oqo": {
@@ -5564,7 +5564,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    (NAION or \"nonarteritic anterior ischemic optic neuropathy\")\n    and (semaglutide or \"glucagon-like peptide-1 agonist\")\n  )",
+    "oql": "works where title-abstract has (\n    (NAION or \"nonarteritic anterior ischemic optic neuropathy\")\n    and (semaglutide or \"glucagon-like peptide-1 agonist\")\n  )",
     "note": "Spelled-out term OR its acronym — a very common SR idiom.",
     "diagnostic": "",
     "oqo": {
@@ -5616,7 +5616,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    variation\n    and \"branching pattern\"\n    and \"facial nerve\"\n  )",
+    "oql": "works where title-abstract has (\n    variation\n    and \"branching pattern\"\n    and \"facial nerve\"\n  )",
     "note": "Plain three-phrase AND, no synonyms.",
     "diagnostic": "",
     "oqo": {
@@ -5655,7 +5655,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    (\n      \"clean energy\"\n      or \"energy education\"\n      or \"energy literacy\"\n      or \"energy source*\"\n      or \"renewable energy\"\n    )\n    and (\"college*\" or \"school*\" or \"universit*\")\n  )",
+    "oql": "works where title-abstract has (\n    (\n      \"clean energy\"\n      or \"energy education\"\n      or \"energy literacy\"\n      or \"energy source*\"\n      or \"renewable energy\"\n    )\n    and (\"college*\" or \"school*\" or \"universit*\")\n  )",
     "note": "Truncation across both blocks; education-research SR (non-biomed field). (source DB: Scopus).",
     "diagnostic": "",
     "oqo": {
@@ -5728,7 +5728,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    (biology or chemistry or physics or \"ensino de ciências\")\n    and (\"blended learning\" or \"ensino híbrido\" or \"b-learning\")\n  )",
+    "oql": "works where title-abstract has (\n    (biology or chemistry or physics or \"ensino de ciências\")\n    and (\"blended learning\" or \"ensino híbrido\" or \"b-learning\")\n  )",
     "note": "Multilingual phrases (Portuguese/English) — corpus is not English-only.",
     "diagnostic": "",
     "oqo": {
@@ -5796,7 +5796,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    intake\n    and (season or (spring and summer and winter and (autumn or fall)))\n  )",
+    "oql": "works where title-abstract has (\n    intake\n    and (season or (spring and summer and winter and (autumn or fall)))\n  )",
     "note": "Genuinely nested: an AND-group sits inside an OR — classic URL syntax cannot express this (it has no parens), so it is oql-only. ~3-deep. (source DB: PubMed).",
     "diagnostic": "",
     "oqo": {
@@ -5869,7 +5869,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    (\n      balance\n      or coordination\n      or flexibility\n      or \"muscle strength\"\n      or \"physical fitness\"\n      or \"reaction time\"\n    )\n    and (dance or dancing or salsa or \"dance therapy\" or \"salsa dancing\")\n    and (\"older women\" or (elderly and women))\n  )",
+    "oql": "works where title-abstract has (\n    (\n      balance\n      or coordination\n      or flexibility\n      or \"muscle strength\"\n      or \"physical fitness\"\n      or \"reaction time\"\n    )\n    and (dance or dancing or salsa or \"dance therapy\" or \"salsa dancing\")\n    and (\"older women\" or (elderly and women))\n  )",
     "note": "The middle block \"(elderly and women) or (older women)\" is an AND inside an OR — not distributable, hence oql-only. (source DB: PubMed).",
     "diagnostic": "",
     "oqo": {
@@ -5982,7 +5982,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    (\"dental stem cell\" and (periodontitis or \"periodontal regeneration\"))\n    or (\n      \"mesenchymal stem cell\"\n      and (periodontitis or \"periodontal regeneration\")\n    )\n    or (\"stem cell\" and (periodontitis or \"periodontal regeneration\"))\n  )",
+    "oql": "works where title-abstract has (\n    (\"dental stem cell\" and (periodontitis or \"periodontal regeneration\"))\n    or (\n      \"mesenchymal stem cell\"\n      and (periodontitis or \"periodontal regeneration\")\n    )\n    or (\"stem cell\" and (periodontitis or \"periodontal regeneration\"))\n  )",
     "note": "Author hand-distributed an OR of AND-groups (depth 3). Would factor to one block AND (a or b or c), but the as-written OR-of-ANDs is faithfully representable and oql-only. (source DB: PubMed).",
     "diagnostic": "",
     "oqo": {
@@ -6085,8 +6085,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    (aged or elderly or \"older adults\")\n    and (burden or outbreak or prevalence)\n    and (\"loneliness\" or \"lonely\")\n  )",
-    "note": "Web of Science TS= (Topic) blocks -> each a separate title/abstract clause. Filter-tree and value-tree share one OQL syntax. (source DB: Web of Science).",
+    "oql": "works where title-abstract has (\n    (aged or elderly or \"older adults\")\n    and (burden or outbreak or prevalence)\n    and (\"loneliness\" or \"lonely\")\n  )",
+    "note": "Web of Science TS= (Topic) blocks -> each a separate title-abstract clause. Filter-tree and value-tree share one OQL syntax. (source DB: Web of Science).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -6164,8 +6164,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract has (\"neuropsychological test\")\n  and title has (normative or norms or \"normative data\")",
-    "note": "PubMed [Title] block scoped to title; the untagged block defaults to title/abstract — two different fields in one query. (source DB: PubMed).",
+    "oql": "works where title-abstract has (\"neuropsychological test\")\n  and title has (normative or norms or \"normative data\")",
+    "note": "PubMed [Title] block scoped to title; the untagged block defaults to title-abstract — two different fields in one query. (source DB: PubMed).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -6213,8 +6213,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title has (\n    (engineering or industry or \"application*\")\n    and (genai or \"generative ai\" or \"generative artificial intelligence\")\n  )\n  and title/abstract has (\n    (generation and text)\n    or ((generation or \"model*\") and (multimodal or nlp or \"natural language\"))\n  )",
-    "note": "Scopus TITLE(...) AND TITLE-ABS-KEY(...): each field block carries its OWN nested boolean (AND-of-ORs in the title block, OR-of-ANDs in the t/a block). TITLE-ABS-KEY≈title/abstract (OpenAlex has no separate author- keyword text field). (source DB: Scopus).",
+    "oql": "works where title has (\n    (engineering or industry or \"application*\")\n    and (genai or \"generative ai\" or \"generative artificial intelligence\")\n  )\n  and title-abstract has (\n    (generation and text)\n    or ((generation or \"model*\") and (multimodal or nlp or \"natural language\"))\n  )",
+    "note": "Scopus TITLE(...) AND TITLE-ABS-KEY(...): each field block carries its OWN nested boolean (AND-of-ORs in the title block, OR-of-ANDs in the t/a block). TITLE-ABS-KEY≈title-abstract (OpenAlex has no separate author- keyword text field). (source DB: Scopus).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -6335,8 +6335,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where title/abstract has (music and suzuki)",
-    "note": "Scopus TITLE-ABS-KEY wrapping one small boolean -> one title/abstract clause. The common single-field Scopus idiom. (source DB: Scopus).",
+    "oql": "works where title-abstract has (music and suzuki)",
+    "note": "Scopus TITLE-ABS-KEY wrapping one small boolean -> one title-abstract clause. The common single-field Scopus idiom. (source DB: Scopus).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -6428,8 +6428,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where (\n    keyword is (keywords/anticoagulant [Anticoagulant])\n    or title/abstract has (\n      INR\n      or aPTT\n      or coagulopathy\n      or thrombocytopenia\n      or \"blood coagulation disorders\"\n      or \"coagulation disorder\"\n    )\n  )\n  and (\n    keyword is (keywords/central-venous-catheter [Central venous catheter])\n    or title/abstract has (CVC or \"central line\" or \"central venous catheter\")\n  )",
-    "note": "PubMed [Mesh]+[tiab] block. Per the 'represent the concept, not the words' rule, MeSH controlled-vocabulary terms map to OpenAlex keyword-ENTITY membership where one resolves cleanly (\"Central Venous Catheters\"[Mesh] -> keyword is keywords/central-venous-catheter; \"Anticoagulants\"[Mesh] -> keywords/anticoagulant), OR'd with the [tiab] free-text terms in the same block (concept OR text -- the real PubMed pattern). MeSH terms with no clean OpenAlex keyword (Thrombocytopenia, Blood Coagulation Disorders) fall back to free-text. oql-only: ORs an entity-membership filter with a title/abstract search.",
+    "oql": "works where (\n    keyword is (keywords/anticoagulant [Anticoagulant])\n    or title-abstract has (\n      INR\n      or aPTT\n      or coagulopathy\n      or thrombocytopenia\n      or \"blood coagulation disorders\"\n      or \"coagulation disorder\"\n    )\n  )\n  and (\n    keyword is (keywords/central-venous-catheter [Central venous catheter])\n    or title-abstract has (CVC or \"central line\" or \"central venous catheter\")\n  )",
+    "note": "PubMed [Mesh]+[tiab] block. Per the 'represent the concept, not the words' rule, MeSH controlled-vocabulary terms map to OpenAlex keyword-ENTITY membership where one resolves cleanly (\"Central Venous Catheters\"[Mesh] -> keyword is keywords/central-venous-catheter; \"Anticoagulants\"[Mesh] -> keywords/anticoagulant), OR'd with the [tiab] free-text terms in the same block (concept OR text -- the real PubMed pattern). MeSH terms with no clean OpenAlex keyword (Thrombocytopenia, Blood Coagulation Disorders) fall back to free-text. oql-only: ORs an entity-membership filter with a title-abstract search.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -6516,7 +6516,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where keyword is (not keywords/animal-model [Animal model])\n  and language is (en [English])\n  and year >= (2003)\n  and year <= (2025)\n  and type is (types/article)\n  and title/abstract has (\n    vapes or \"e vape\" or \"e vapes\" or \"e vaping\" or \"e vaping\" or \"e vapor\"\n    or \"e vapors\" or \"e vapour\" or \"e vapours\" or \"liquid nicotine\"\n    or \"nicotine aerosol\" or \"nicotine bag\" or \"nicotine bags\" or \"nicotine gum\"\n    or \"nicotine gummies\" or \"nicotine inhaler\" or \"nicotine lozenge\"\n    or \"nicotine microtab\" or \"nicotine microtablet\" or \"nicotine microtablets\"\n    or \"nicotine microtabs\" or \"nicotine pouch\" or \"nicotine pouches\"\n    or \"nicotine spray\" or \"nicotine tablet\" or \"nicotine tablets\"\n    or within 8 (\"nicotine\", \"snus\") or \"oral nicotine product\" or \"vape device\"\n    or \"vape free\" or \"vape product\" or \"vape use\"\n    or within 1 (\"vape\", \"flavor\") or within 1 (\"vape\", \"flavor\")\n    or within 1 (\"vape\", \"flavored\") or within 1 (\"vape\", \"flavoring\")\n    or within 1 (\"vape\", \"flavour\") or within 1 (\"vape\", \"flavoured\")\n    or within 1 (\"vape\", \"flavouring\") or \"vaping device\" or \"vaping free\"\n    or \"vaping product\" or within 1 (\"vaping\", \"flavor\")\n    or within 1 (\"vaping\", \"flavor\") or within 1 (\"vaping\", \"flavored\")\n    or within 1 (\"vaping\", \"flavoring\") or within 1 (\"vaping\", \"flavour\")\n    or within 1 (\"vaping\", \"flavoured\") or within 1 (\"vaping\", \"flavouring\")\n    or \"evape\" or \"evapes\" or \"evaping\" or (cigarette and evaping)\n    or (cigarette and vape) or (cigarette and vaper) or (cigarette and vapers)\n    or (cigarette and vaping) or (cigarette and vapor)\n    or (cigarette and vaporiser) or (cigarette and vaporizer)\n    or (cigarette and vapour) or (cigarette and vapouriser)\n    or (cigarette and vapourizer) or (cigarette and \"e-vaping\")\n    or (evaping and nicotine) or (nicotine and vape) or (nicotine and vaper)\n    or (nicotine and vapers) or (nicotine and vaping) or (nicotine and vapor)\n    or (nicotine and vaporiser) or (nicotine and vaporizer)\n    or (nicotine and vapour) or (nicotine and vapouriser)\n    or (nicotine and vapourizer) or (nicotine and \"e-vaping\")\n  )",
+    "oql": "works where keyword is (not keywords/animal-model [Animal model])\n  and language is (en [English])\n  and year >= (2003)\n  and year <= (2025)\n  and type is (types/article)\n  and title-abstract has (\n    vapes or \"e vape\" or \"e vapes\" or \"e vaping\" or \"e vaping\" or \"e vapor\"\n    or \"e vapors\" or \"e vapour\" or \"e vapours\" or \"liquid nicotine\"\n    or \"nicotine aerosol\" or \"nicotine bag\" or \"nicotine bags\" or \"nicotine gum\"\n    or \"nicotine gummies\" or \"nicotine inhaler\" or \"nicotine lozenge\"\n    or \"nicotine microtab\" or \"nicotine microtablet\" or \"nicotine microtablets\"\n    or \"nicotine microtabs\" or \"nicotine pouch\" or \"nicotine pouches\"\n    or \"nicotine spray\" or \"nicotine tablet\" or \"nicotine tablets\"\n    or within 8 (\"nicotine\", \"snus\") or \"oral nicotine product\" or \"vape device\"\n    or \"vape free\" or \"vape product\" or \"vape use\"\n    or within 1 (\"vape\", \"flavor\") or within 1 (\"vape\", \"flavor\")\n    or within 1 (\"vape\", \"flavored\") or within 1 (\"vape\", \"flavoring\")\n    or within 1 (\"vape\", \"flavour\") or within 1 (\"vape\", \"flavoured\")\n    or within 1 (\"vape\", \"flavouring\") or \"vaping device\" or \"vaping free\"\n    or \"vaping product\" or within 1 (\"vaping\", \"flavor\")\n    or within 1 (\"vaping\", \"flavor\") or within 1 (\"vaping\", \"flavored\")\n    or within 1 (\"vaping\", \"flavoring\") or within 1 (\"vaping\", \"flavour\")\n    or within 1 (\"vaping\", \"flavoured\") or within 1 (\"vaping\", \"flavouring\")\n    or \"evape\" or \"evapes\" or \"evaping\" or (cigarette and evaping)\n    or (cigarette and vape) or (cigarette and vaper) or (cigarette and vapers)\n    or (cigarette and vaping) or (cigarette and vapor)\n    or (cigarette and vaporiser) or (cigarette and vaporizer)\n    or (cigarette and vapour) or (cigarette and vapouriser)\n    or (cigarette and vapourizer) or (cigarette and \"e-vaping\")\n    or (evaping and nicotine) or (nicotine and vape) or (nicotine and vaper)\n    or (nicotine and vapers) or (nicotine and vaping) or (nicotine and vapor)\n    or (nicotine and vaporiser) or (nicotine and vaporizer)\n    or (nicotine and vapour) or (nicotine and vapouriser)\n    or (nicotine and vapourizer) or (nicotine and \"e-vaping\")\n  )",
     "note": "Claire's real run query (line 10, 3,474 hits): the vape/nicotine concept block. Her `+` pairs were hand-rolled PROXIMITY attempts ported from PubMed `[Title/Abstract:~N]` / EMBASE `adjN` — now expressed faithfully as `within N words` (nicotine+snus -> \"nicotine snus\" within 8 words; vape+flavor -> \"vape flavor\" within 1 word). Her EMBASE line-20 group, `(vape... and (nicotine|cigarette...))`, was genuine AND, kept as (a and b). Plus year/type/language scalars and a negated keyword filter. oql-only (mixes proximity/exact and stemmed match modes).",
     "diagnostic": "",
     "oqo": {
@@ -7187,7 +7187,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": null,
     "status": "error",
-    "oql": "works where title/abstract has (\"e cigarette\" or \"Vype|VUSE|\"e Voke\" or Juul or \"e liquid\")",
+    "oql": "works where title-abstract has (\"e cigarette\" or \"Vype|VUSE|\"e Voke\" or Juul or \"e liquid\")",
     "note": "Claire's KNOWN-BAD line 8 (she flagged it and sent the corrected line 11 = row 163): an unbalanced quote `\"Vype|VUSE|\"e Voke\"` swallows the rest of the OR-list into one unterminated string. A real librarian hit this; OQL surfaces it loudly as OQL_UNTERMINATED_STRING (vs the classic URL silently mis-scoping the phrase). Origin DBs: as line 11.",
     "diagnostic": "OQL_UNTERMINATED_STRING",
     "oqo": null,
@@ -7208,7 +7208,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where keyword is (not keywords/animal-model [Animal model])\n  and language is (en [English])\n  and year >= (2003)\n  and year <= (2025)\n  and type is (types/article)\n  and title/abstract has (\n    Juul or \"VUSE\" or \"Vype\" or \"Geek Bar\"\n    or within 4 (\"cigarette\", \"ultra sonic\") or \"e Voke\" or \"e cigar\"\n    or \"e cigarette\" or \"e cigarettes\" or \"e liquid\" or \"e liquids\"\n    or within 4 (\"electric\", \"cigarette\") or within 4 (\"electric\", \"nicotine\")\n    or within 4 (\"electrical\", \"cigarette\")\n    or within 4 (\"electrical\", \"nicotine\")\n    or within 4 (\"electronic\", \"cigarette\")\n    or within 4 (\"electronic\", \"nicotine\")\n    or within 4 (\"nicotine\", \"delivering system\")\n    or within 4 (\"nicotine\", \"delivery device\")\n    or within 4 (\"nicotine\", \"delivery product\")\n    or within 4 (\"nicotine\", \"delivery system\")\n    or within 4 (\"nicotine\", \"delivery system\")\n    or within 4 (\"nicotine\", \"ultra sonic\") or \"u cigar\" or \"u cigarette\"\n    or \"u cigarettes\" or \"u cigars\" or within 4 (\"ultrasonic\", \"cigarette\")\n    or within 4 (\"ultrasonic\", \"nicotine\")\n  )",
+    "oql": "works where keyword is (not keywords/animal-model [Animal model])\n  and language is (en [English])\n  and year >= (2003)\n  and year <= (2025)\n  and type is (types/article)\n  and title-abstract has (\n    Juul or \"VUSE\" or \"Vype\" or \"Geek Bar\"\n    or within 4 (\"cigarette\", \"ultra sonic\") or \"e Voke\" or \"e cigar\"\n    or \"e cigarette\" or \"e cigarettes\" or \"e liquid\" or \"e liquids\"\n    or within 4 (\"electric\", \"cigarette\") or within 4 (\"electric\", \"nicotine\")\n    or within 4 (\"electrical\", \"cigarette\")\n    or within 4 (\"electrical\", \"nicotine\")\n    or within 4 (\"electronic\", \"cigarette\")\n    or within 4 (\"electronic\", \"nicotine\")\n    or within 4 (\"nicotine\", \"delivering system\")\n    or within 4 (\"nicotine\", \"delivery device\")\n    or within 4 (\"nicotine\", \"delivery product\")\n    or within 4 (\"nicotine\", \"delivery system\")\n    or within 4 (\"nicotine\", \"delivery system\")\n    or within 4 (\"nicotine\", \"ultra sonic\") or \"u cigar\" or \"u cigarette\"\n    or \"u cigarettes\" or \"u cigars\" or within 4 (\"ultrasonic\", \"cigarette\")\n    or within 4 (\"ultrasonic\", \"nicotine\")\n  )",
     "note": "Claire's corrected line 11 (20 hits): nicotine-delivery + brand block. nicotine+\"delivery system\" etc were EMBASE `adj4` / PubMed `[~4]` proximity -> \"nicotine\" within 4 words of \"delivery system\"; electronic+cigarette / electronic+nicotine etc were `adj4` -> within 4 words. Brand-name phrases (Vype, VUSE, Juul, Geek Bar) stay plain. Same scalar + negated-keyword tail as row 161. (Fixes the mis-quoted line 8 = row 162.)",
     "diagnostic": "",
     "oqo": {
@@ -7406,8 +7406,8 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where title/abstract has (\n    review\n    and (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or secondary vocational education or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      Policies or context or electoral or policy or political or reform\n      or reforming or \"national standards\" or \"school improvement\"\n      or \"influence*\"\n    )\n    and (evidence or literature)\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
-    "note": "Claire's real run query (block 1, 152 hits): FIVE title/abstract search groups AND-ed (accountability x school-type x policy/reform x review x evidence), plus a grey-literature `type is (book-chapter or book or dissertation or report or ...)` OR and a per-year `year is (2014 or ... or 2025)` list. Her stray leading quote on the first group is fixed here to the intended phrases. Origin DBs: APA PsycInfo / Web of Science.",
+    "oql": "works where title-abstract has (\n    review\n    and (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or secondary vocational education or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      Policies or context or electoral or policy or political or reform\n      or reforming or \"national standards\" or \"school improvement\"\n      or \"influence*\"\n    )\n    and (evidence or literature)\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
+    "note": "Claire's real run query (block 1, 152 hits): FIVE title-abstract search groups AND-ed (accountability x school-type x policy/reform x review x evidence), plus a grey-literature `type is (book-chapter or book or dissertation or report or ...)` OR and a per-year `year is (2014 or ... or 2025)` list. Her stray leading quote on the first group is fixed here to the intended phrases. Origin DBs: APA PsycInfo / Web of Science.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -8028,7 +8028,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title/abstract has (\n    DEPP or EQAO or HGIOS or OFSTED or Onderwijsinspectie\n    or \"Conseil de l'Evaluation de l'Ecole\"\n    or \"Direction de l'Evaluation de la Prospective et de l'Evaluation\"\n    or \"Education Scotland\" or \"Educational Quality and Accountability Office\"\n    or \"FINEEC Evaluation*\" or \"General Inspectorate\"\n    or \"How Good is Our School\" or \"Institute for Development of Education\"\n    or \"Instytut Rozwoju Edukacji\" or \"Kurator Oświaty\"\n    or \"Ocena jakości pracy szkoły\" or \"Odpowiedzialność szkoły\"\n    or \"Plany Rozwoju Szkoły\" or \"Samodzielna ocena szkoły\"\n    or (Estyn and accountability) or (Estyn and inspection)\n    or (Estyn and inspectors) or (Finland and \"Education Evaluation Centre\")\n    or (Ireland and \"Department of Education\")\n    or (Ireland and \"Education and Training Inspectorate\")\n    or (Irish and \"Department of Education\")\n    or (Irish and \"Education and Training Inspectorate\")\n    or (Japan and \"Ministry of Education\")\n    or (Japanese and \"Ministry of Education\")\n    or (Netherlands and \"Inspectorate of Education\")\n    or (Ontario and \"standard of instruction\")\n    or (Poland and \"Ministry of Education\")\n    or (Poland and \"regional education authority\")\n    or (Polish and \"Ministry of Education\")\n    or (Polish and \"regional education authority\") or (SEAB and Singapore)\n    or (Singapore and \"MOE\")\n    or (Singapore and \"Examinations and Assessment Board\")\n    or (Singapore and \"Ministry of Education\")\n    or (\"Dutch\" and \"Inspectorate of Education\")\n    or (\"Finnish\" and \"Education Evaluation Centre\")\n    or (\"Education Review Office\" and \"New Zealand\")\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
+    "oql": "works where year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title-abstract has (\n    DEPP or EQAO or HGIOS or OFSTED or Onderwijsinspectie\n    or \"Conseil de l'Evaluation de l'Ecole\"\n    or \"Direction de l'Evaluation de la Prospective et de l'Evaluation\"\n    or \"Education Scotland\" or \"Educational Quality and Accountability Office\"\n    or \"FINEEC Evaluation*\" or \"General Inspectorate\"\n    or \"How Good is Our School\" or \"Institute for Development of Education\"\n    or \"Instytut Rozwoju Edukacji\" or \"Kurator Oświaty\"\n    or \"Ocena jakości pracy szkoły\" or \"Odpowiedzialność szkoły\"\n    or \"Plany Rozwoju Szkoły\" or \"Samodzielna ocena szkoły\"\n    or (Estyn and accountability) or (Estyn and inspection)\n    or (Estyn and inspectors) or (Finland and \"Education Evaluation Centre\")\n    or (Ireland and \"Department of Education\")\n    or (Ireland and \"Education and Training Inspectorate\")\n    or (Irish and \"Department of Education\")\n    or (Irish and \"Education and Training Inspectorate\")\n    or (Japan and \"Ministry of Education\")\n    or (Japanese and \"Ministry of Education\")\n    or (Netherlands and \"Inspectorate of Education\")\n    or (Ontario and \"standard of instruction\")\n    or (Poland and \"Ministry of Education\")\n    or (Poland and \"regional education authority\")\n    or (Polish and \"Ministry of Education\")\n    or (Polish and \"regional education authority\") or (SEAB and Singapore)\n    or (Singapore and \"MOE\")\n    or (Singapore and \"Examinations and Assessment Board\")\n    or (Singapore and \"Ministry of Education\")\n    or (\"Dutch\" and \"Inspectorate of Education\")\n    or (\"Finnish\" and \"Education Evaluation Centre\")\n    or (\"Education Review Office\" and \"New Zealand\")\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
     "note": "Claire's block 3 (622 hits): a large OR of national school-inspection agency names, several as `+` co-occurrence (Ontario+\"standard of instruction\", \"Education Review Office\"+\"New Zealand\", Estyn+accountability) -> parenthesized AND pairs. Grey-lit type + year tail.",
     "diagnostic": "",
     "oqo": {
@@ -8583,7 +8583,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title/abstract has (\n    (\n      Britain or Dutch or Estonia or Finland or Finnish or Flemish or France\n      or French or Ireland or Irish or Japan or Japanese or Netherlands\n      or Ontarian or Ontario or Poland or Polish or Scotland or Scottish\n      or Singapore or Singaporean or Welsh or \"U.K.\" or \"UK\" or \"New Zealand\"\n      or \"United Kingdom\" or (British and not \"British Columbia\")\n      or (England and not \"New England\") or (Wales and not \"New South Wales\")\n    )\n    and (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or secondary vocational education or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
+    "oql": "works where year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title-abstract has (\n    (\n      Britain or Dutch or Estonia or Finland or Finnish or Flemish or France\n      or French or Ireland or Irish or Japan or Japanese or Netherlands\n      or Ontarian or Ontario or Poland or Polish or Scotland or Scottish\n      or Singapore or Singaporean or Welsh or \"U.K.\" or \"UK\" or \"New Zealand\"\n      or \"United Kingdom\" or (British and not \"British Columbia\")\n      or (England and not \"New England\") or (Wales and not \"New South Wales\")\n    )\n    and (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or secondary vocational education or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
     "note": "Claire's block 2 (429 hits) — the showcase idiom: country/region names where a homonym is EXCLUDED inside the search value via WoS-style `!` (England!\"New England\", Wales!\"New South Wales\", British!\"British Columbia\"). OQL spells each as (term and not \"phrase\"). Origin: WoS `school NOT \"primary school\"`, PsycInfo `(teacher not \"academic teacher\")`. (See #431 for the OXURL->OQO `!` parser gap; OQL itself expresses it fine.)",
     "diagnostic": "",
     "oqo": {
@@ -9313,7 +9313,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "works where country is (\n    CA [Canada] or COUNTRIES/GB [United Kingdom] or EE [Estonia] or FI [Finland]\n    or FR [France] or IE [Ireland] or JP [Japan] or NL [Netherlands]\n    or NZ [New Zealand] or PL [Poland] or SG [Singapore]\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title/abstract has (\n    (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or secondary vocational education or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
+    "oql": "works where country is (\n    CA [Canada] or COUNTRIES/GB [United Kingdom] or EE [Estonia] or FI [Finland]\n    or FR [France] or IE [Ireland] or JP [Japan] or NL [Netherlands]\n    or NZ [New Zealand] or PL [Poland] or SG [Singapore]\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title-abstract has (\n    (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or secondary vocational education or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and type is (\n    types/book\n    or types/book-chapter\n    or types/dissertation\n    or types/erratum\n    or types/other\n    or types/report\n    or types/retraction\n  )",
     "note": "Claire's block 4 (129 hits): the SAME strategy as row 166 but expressing country via the AUTHOR-AFFILIATION address field — `country is (countries/gb or countries/fr or ...)` — instead of name-matching in the text. A clean example of one librarian intent realized two ways (text block vs entity filter) in one corpus.",
     "diagnostic": "",
     "oqo": {

@@ -139,7 +139,7 @@ describe('looksLikeOql', () => {
     expect(looksLikeOql('works where year is (2020)')).toBe(true);
     expect(looksLikeOql('works where title has (cancer) and year >= (2020)')).toBe(true);
     expect(looksLikeOql('works where institution is (I136199984) or funder is (F4320332161)')).toBe(true);
-    expect(looksLikeOql('works where title/abstract has ((vape or vaping) and (health or harm))')).toBe(true);
+    expect(looksLikeOql('works where title-abstract has ((vape or vaping) and (health or harm))')).toBe(true);
     expect(looksLikeOql('works where country is (not FR)')).toBe(true);
     expect(looksLikeOql("works where it's cited by (W2741809807)")).toBe(true);
     expect(looksLikeOql('authors where works count >= (100)')).toBe(true);

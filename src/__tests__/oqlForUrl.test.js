@@ -7,7 +7,7 @@ describe('oqlForUrl', () => {
   it('collapses a pretty-printed multi-line OQL to a single line (T7)', () => {
     const pretty = [
       'works where',
-      '  title/abstract has (',
+      '  title-abstract has (',
       '    review and (',
       '      HAVO or VWO',
       '    )',
@@ -17,7 +17,7 @@ describe('oqlForUrl', () => {
     expect(out).not.toMatch(/[\r\n]/);            // no newlines survive
     expect(out).not.toMatch(/ {2,}/);             // no indentation runs survive
     expect(out).toBe(
-      'works where title/abstract has ( review and ( HAVO or VWO ) )'
+      'works where title-abstract has ( review and ( HAVO or VWO ) )'
     );
   });
 

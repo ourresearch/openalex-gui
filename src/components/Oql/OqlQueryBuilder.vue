@@ -833,7 +833,10 @@ const placeholderLabelFor = (p) =>
 
 // ---- enrich a raw token with edit metadata ---------------------------------
 // Short display aliases for field-chip labels (#575 round 5) — see enrichToken.
-const FIELD_LABEL_ALIASES = { "title/abstract": "title/abs", "text": "name" };
+// Since 2026-10-03 (#1521/#1512) title-abstract chips show the canonical hyphen words.
+const FIELD_LABEL_ALIASES = { "title/abstract": "title-abstract", "title and abstract": "title-abstract",
+  "title/abstract/keywords": "title-abstract-keywords", "title abstract keywords": "title-abstract-keywords",
+  "text": "name" };
 
 function enrichToken(tok) {
   const t = { ...tok };
@@ -846,8 +849,8 @@ function enrichToken(tok) {
     t._label = p ? (p.display_name || p.name) : (tok.text ? tok.text.trim() : "select field");
     // #575 round 5 (Jason): short DISPLAY aliases for the field chips. All field chips share
     // one width (the longest sets --field-w), so a frequent long name taxes every row —
-    // "title/abstract" → "title/abs" (a real server input alias: `title/abs has x` parses;
-    // the canonical OQL string still says title/abstract). Display-only — column_id, the
+    // (was "title/abstract" → "title/abs"; now every title-abstract spelling shows the
+    // canonical "title-abstract", see FIELD_LABEL_ALIASES). Display-only — column_id, the
     // picker menu, and the OQL text pane are untouched.
     t._label = FIELD_LABEL_ALIASES[t._label] || t._label;
   }

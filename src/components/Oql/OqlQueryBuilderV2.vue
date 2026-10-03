@@ -918,16 +918,19 @@ const placeholderLabelFor = (p) =>
 // ---- enrich a raw token with edit metadata ---------------------------------
 // Short display aliases for field-chip labels (#575 round 5) — see enrichToken.
 // "title and abstract" (round 12, Jason): the SAME logical field has two catalog
-// spellings — `title_and_abstract.search` says "title/abstract" but the `.exact`
+// spellings — `title_and_abstract.search` says "title-abstract" but the `.exact`
 // surface (which a clause silently re-routes to when a quoted/wildcard value joins
 // it, e.g. after a drag-reorder) says "title and abstract". The builder must ALWAYS
-// show "title/abs", so both spellings alias.
+// show one word, so both spellings alias. Since 2026-10-03 (#1521/#1512) that word is the
+// canonical "title-abstract" (no slashes: they belong to ids), and likewise
+// "title-abstract-keywords"; the old "title/abs" short chip is retired.
 // "text" → "name" (#603 r30, Jason): the non-works entities' default search column
 // `text.search` (what the curated "Name" facet resolves to) has catalog display
 // "text" — as a chip label that reads like a mystery handle. It searches the
 // entity's name fields (display_name + alternatives/acronyms), so show "name".
 // Works is unaffected (its broad search is `fulltext.search`, display "full text").
-const FIELD_LABEL_ALIASES = { "title/abstract": "title/abs", "title and abstract": "title/abs",
+const FIELD_LABEL_ALIASES = { "title/abstract": "title-abstract", "title and abstract": "title-abstract",
+  "title/abstract/keywords": "title-abstract-keywords", "title abstract keywords": "title-abstract-keywords",
   "text": "name" };
 
 function enrichToken(tok) {
@@ -941,8 +944,8 @@ function enrichToken(tok) {
     t._label = p ? (p.display_name || p.name) : (tok.text ? tok.text.trim() : "select field");
     // #575 round 5 (Jason): short DISPLAY aliases for the field chips. All field chips share
     // one width (the longest sets --field-w), so a frequent long name taxes every row —
-    // "title/abstract" → "title/abs" (a real server input alias: `title/abs has x` parses;
-    // the canonical OQL string still says title/abstract). Display-only — column_id, the
+    // (was "title/abstract" → "title/abs"; now every title-abstract spelling shows the
+    // canonical "title-abstract", see FIELD_LABEL_ALIASES). Display-only — column_id, the
     // picker menu, and the OQL text pane are untouched.
     t._label = FIELD_LABEL_ALIASES[t._label] || t._label;
   }

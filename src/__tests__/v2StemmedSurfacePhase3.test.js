@@ -13,11 +13,11 @@ import * as edit from '../components/OqlPlayground/v2Edit.js';
 // or-group rendered `stemmed "bar baz"` — and the same confusion silently flipped
 // exactness on OQO rebuilds in both directions.
 
-// A server-reseeded factored clause: `title/abstract has (foo or <phrase>)`.
+// A server-reseeded factored clause: `title-abstract has (foo or <phrase>)`.
 const factored = (phraseLeaf) => ({
   where: {
     node: 'clause', id: 'c1', clause_kind: 'text',
-    column_id: 'title_and_abstract.search', column: 'title/abstract', operator: 'has',
+    column_id: 'title_and_abstract.search', column: 'title-abstract', operator: 'has',
     value: {
       node: 'vgroup', id: 'vg', join: 'or', children: [
         { node: 'vleaf', id: 'a', value: 'foo', display: 'foo', negated: false },
@@ -48,7 +48,7 @@ describe('#560 Phase 3 — OQO rebuild routes off the baked display surface', ()
     const rows = v2FilterRows({
       where: {
         node: 'clause', id: 'c1', clause_kind: 'text',
-        column_id: 'title_and_abstract.search.exact', column: 'title/abstract', operator: 'has',
+        column_id: 'title_and_abstract.search.exact', column: 'title-abstract', operator: 'has',
         value: {
           node: 'vgroup', id: 'vg', join: 'or', children: [
             { node: 'vleaf', id: 'a', value: 'zzz', display: '"zzz"', negated: false },
@@ -65,7 +65,7 @@ describe('#560 Phase 3 — OQO rebuild routes off the baked display surface', ()
 
   it('draftToFilter routes a popped-in committed value off its display too', () => {
     const d = edit.makeDraft();
-    edit.draftSetField(d, { column_id: 'title_and_abstract.search', column: 'title/abstract', kind: 'search', op: 'has' });
+    edit.draftSetField(d, { column_id: 'title_and_abstract.search', column: 'title-abstract', kind: 'search', op: 'has' });
     d.value.children = [
       { node: 'vleaf', id: 'a', value: '"bar baz"', display: 'stemmed "bar baz"', negated: false },
       { node: 'vleaf', id: 'b', value: '"bar baz"', display: '"bar baz"', negated: false },

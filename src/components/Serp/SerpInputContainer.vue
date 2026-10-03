@@ -464,7 +464,7 @@ const oqlSeedBaseline = ref('');
 const OQL_TAB_PLACEHOLDER = [
   'Type or paste OQL. Examples:',
   '',
-  '•  works where title/abstract has (open and science)',
+  '•  works where title-abstract has (open and science)',
   '•  works where year > (2020) and type is (article)',
   '•  authors where name has (einstein)',
 ].join('\n');

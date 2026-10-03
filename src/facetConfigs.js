@@ -476,9 +476,10 @@ const facetConfigs = function (entityType) {
         {
             key: "title_and_abstract.search",
             entityToFilter: "works",
-            // "title/abstract" (slash, PubMed [tiab] convention) keeps the two
-            // words cohering as one scope and avoids the false-conjunction read
-            // of "title and abstract". oxjob #374.
+            // "title-abstract" keeps the two words cohering as one scope and
+            // avoids the false-conjunction read of "title and abstract" (oxjob
+            // #374 chose the PubMed [tiab] slash; hyphen since 2026-10-03, #1521/#1512,
+            // because slashes belong to ids; "title/abstract" is still accepted).
             type: "search",
             actions: ["filter",],
             actionsPopular: ["filter"],
