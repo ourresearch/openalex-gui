@@ -603,15 +603,6 @@ const api = (function () {
         return [...mine, ...publicOnes];
     };
 
-    // Resolve a collection id (`col_<base58>`) to its display name (oxjob #367,
-    // for "<subject> is in collection <name>" OQL rendering). Collections live in
-    // users-api, not elastic-api, so read from the collections.store cache (one
-    // /me/collections fetch, cap 100). Returns null if not found.
-    const getCollectionDisplayName = async function (colId) {
-        const all = await collectionsForPickers();
-        return all.find(c => c.id === colId)?.display_name ?? null;
-    };
-
     const createExport = async function(query, email) {
         // Initiates a data export to CSV via the user API
         // The query object should contain filter params
@@ -768,7 +759,6 @@ const api = (function () {
         makeOqoGroupByUrl,
         getSuggestions,
         getCollectionSuggestionsForField,
-        getCollectionDisplayName,
         post,
         getAutocomplete,
         getFrontpageAutocomplete,

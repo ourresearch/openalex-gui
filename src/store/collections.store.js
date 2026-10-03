@@ -65,6 +65,9 @@ async function _flushEntityCollectionsBatch() {
     }
 }
 
+// The one in-flight load of the public collections (fetchAllPublic).
+let _publicLoad = null;
+
 function clearEntityCollectionsCache() {
     _entityCollectionsCache.clear();
 }
@@ -107,6 +110,9 @@ export default {
         setPublicCollections(state, collections) {
             state.publicCollections = collections || [];
             state.publicLoaded = true;
+        },
+        invalidatePublicCollections(state) {
+            state.publicLoaded = false;
         },
         setLoading(state, b) {
             state.loading = b;
@@ -173,21 +179,21 @@ export default {
 
         // Public collections for pickers (oxjob #1532). OpenAlex makes them, so one page
         // of 100 holds them all for now; past that, page with `cursor`.
-        async fetchAllPublic({ commit, state }) {
-            if (state.publicLoaded) return state.publicCollections;
-            try {
-                const resp = await axios.get(
+        fetchAllPublic({ commit, state }) {
+            if (state.publicLoaded) return Promise.resolve(state.publicCollections);
+            // Pickers opening at once share one request; a failure isn't remembered,
+            // so the next picker retries (pickers still work without public ones).
+            if (!_publicLoad) {
+                _publicLoad = axios.get(
                     `${collectionsUrl}?filter=access:public&per_page=100`,
                     axiosConfig({ userAuth: true })
-                );
-                const collections = (resp.data.results || []).map(normalizeCollection);
-                commit("setPublicCollections", collections);
-                return collections;
-            } catch (e) {
-                // Pickers still work without them; don't retry on every open.
-                commit("setPublicCollections", []);
-                return [];
+                ).then((resp) => {
+                    const collections = (resp.data.results || []).map(normalizeCollection);
+                    commit("setPublicCollections", collections);
+                    return collections;
+                }).catch(() => []).finally(() => { _publicLoad = null; });
             }
+            return _publicLoad;
         },
 
         // Which of the user's collections contain `entityId` (a short id, e.g.
@@ -251,6 +257,8 @@ export default {
             );
             const collection = normalizeCollection(resp.data);
             commit("updateCollection", collection);
+            // Into or out of public: the pickers' public list is stale (oxjob #1532).
+            commit("invalidatePublicCollections");
             return collection;
         },
 
