@@ -43,6 +43,7 @@ import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { debounce } from 'lodash-es';
 
+import { edgeOn } from '@/edgeAutocomplete';
 import { api } from '@/api';
 import { getFacetConfig } from '@/facetConfigUtils';
 import { getEntityConfig } from '@/entityConfigs';
@@ -130,7 +131,7 @@ const getSuggestions = debounce(async () => {
   } finally {
     if (ticket === suggestionTicket) isLoading.value = false;
   }
-}, 200, { leading: true });
+}, edgeOn() ? 0 : 200, { leading: true });   // flag edge_autocomplete: no pause before the edge (oxjob #1529)
 
 // Watchers
 watch(() => props.searchString, () => {

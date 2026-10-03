@@ -131,6 +131,7 @@ import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 import { debounce } from 'lodash-es';
 
+import { edgeOn } from '@/edgeAutocomplete';
 import { api } from '@/api';
 import { url } from '@/url';
 import filters from '@/filters';
@@ -452,7 +453,7 @@ const loadEntitiesDebounced = debounce(async () => {
   } finally {
     if (ticket === loadTicket) entitiesLoading.value = false;
   }
-}, 200, { leading: true });
+}, edgeOn() ? 0 : 200, { leading: true });   // flag edge_autocomplete: no pause before the edge (oxjob #1529)
 
 watch(searchString, () => { loadEntitiesDebounced(); });
 

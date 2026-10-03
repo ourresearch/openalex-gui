@@ -4,14 +4,15 @@
 // from index nodes it already holds. The other files in this folder are copied from
 // github.com/ourresearch/openalex-autocomplete-edge src/ (norm, rank, core, entcore, mix, ac-client): change them there.
 //
-// Never worse than today: edgeRows() returns null on an edge error, a reply slower than 800 ms, or zero rows (e.g. an
-// author with one work, who is not in the edge index), and the caller then uses today's endpoint.
+// Never worse than today: edgeRows() returns null on an edge error, a reply slower than 800 ms, or zero rows still zero
+// after a 300 ms pause (e.g. an author with one work, who is not in the edge index), and the caller then uses today's
+// endpoint.
 import store from "@/store";
 import { EdgeAutocomplete } from "./ac-client.js";
 import { entityOf } from "./entcore.js";
 
 const BASE = "https://api.openalex.org/edge";
-const TIMEOUT_MS = 800;
+const TIMEOUT_MS = 800, ZERO_PAUSE_MS = 300;
 
 let client = null;
 const latest = new Map();   // entity -> the newest complete() promise
@@ -42,7 +43,13 @@ export async function edgeRows(entityType, q) {
   clearTimeout(timer);
   // superseded by a newer keystroke: answer with the newest one's rows instead of an empty list
   while (r && r.stale && latest.get(entityType) && latest.get(entityType) !== p) r = await latest.get(entityType);
-  if (!r || r.timeout || r.mode === "error" || !r.rows || !r.rows.length) return null;
+  if (!r || r.timeout || r.mode === "error" || !r.rows) return null;
+  if (!r.rows.length) {
+    // zero rows: ask today's endpoint only after a 300 ms pause, so a misspelling typed fast doesn't send one request
+    // per keystroke there (anonymous clients are capped at 10 req/s); a newer keystroke in the meantime wins
+    await new Promise((res) => setTimeout(res, ZERO_PAUSE_MS));
+    return latest.get(entityType) === p ? null : [];
+  }
   return r.rows;
 }
 

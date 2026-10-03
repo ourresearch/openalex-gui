@@ -130,6 +130,7 @@
 
 <script setup>
 import { debounce } from 'lodash-es';
+import { edgeOn } from '@/edgeAutocomplete';
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
@@ -377,7 +378,7 @@ const getSuggestions = debounce(async () => {
     suggestions.value = [fulltext];
     isLoading.value = false;
   }
-}, 100);
+}, edgeOn() ? 0 : 100);   // flag edge_autocomplete: no pause before the edge (oxjob #1529)
 
 watch(searchString, val => {
   if (val === null || val === undefined) return;
