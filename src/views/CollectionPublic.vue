@@ -478,10 +478,12 @@ async function confirmDelete() {
 }
 
 const formattedDate = computed(() => {
-  if (!collection.value?.created_at) return "";
+  if (!collection.value?.created_date) return "";
   try {
-    return new Date(collection.value.created_at).toLocaleDateString(undefined, {
-      year: "numeric", month: "short", day: "numeric",
+    // created_date is a bare date (2026-10-03): format it in UTC so it isn't
+    // shifted a day by the viewer's zone.
+    return new Date(collection.value.created_date).toLocaleDateString(undefined, {
+      year: "numeric", month: "short", day: "numeric", timeZone: "UTC",
     });
   } catch {
     return "";

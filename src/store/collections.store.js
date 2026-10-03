@@ -1,5 +1,7 @@
 import axios from "axios";
 import { urlBase, axiosConfig } from "@/apiConfig.js";
+// Every collection the API returns goes through normalizeCollection (oxjob #1524).
+import { normalizeCollection } from "@/collectionShape.js";
 
 // The collections API on api.openalex.org (oxjob #1515): one resource per collection,
 // its members under /members. Components go through this store, never raw URLs.
@@ -42,7 +44,7 @@ async function _flushEntityCollectionsBatch() {
             // not present in ANY collection resolve to [] — cache those too, or
             // every empty row would refetch.
             const byEntity = new Map(chunk.map((id) => [id, []]));
-            for (const collection of resp.data?.results || []) {
+            for (const collection of (resp.data?.results || []).map(normalizeCollection)) {
                 for (const eid of collection.matching_member_ids || []) {
                     if (byEntity.has(eid)) byEntity.get(eid).push(collection);
                 }
@@ -148,7 +150,7 @@ export default {
                     `${collectionsUrl}?per_page=100`,
                     axiosConfig({ userAuth: true })
                 );
-                const collections = resp.data.results || [];
+                const collections = (resp.data.results || []).map(normalizeCollection);
                 commit("setCollections", collections);
                 return collections;
             } finally {
@@ -185,10 +187,11 @@ export default {
                 body,
                 axiosConfig({ userAuth: true })
             );
-            commit("addCollection", resp.data);
+            const collection = normalizeCollection(resp.data);
+            commit("addCollection", collection);
             // creating with members changes per-entity memberships
-            if ((resp.data?.member_count ?? 0) > 0) commit("bumpEntityMutations");
-            return resp.data;
+            if ((collection?.member_count ?? 0) > 0) commit("bumpEntityMutations");
+            return collection;
         },
 
         // Make a copy (oxjob #646): snapshot a collection the user can read (their
@@ -201,9 +204,10 @@ export default {
                 { copy_of: sourceId },
                 axiosConfig({ userAuth: true })
             );
-            commit("addCollection", resp.data);
-            if ((resp.data?.member_count ?? 0) > 0) commit("bumpEntityMutations");
-            return resp.data;
+            const collection = normalizeCollection(resp.data);
+            commit("addCollection", collection);
+            if ((collection?.member_count ?? 0) > 0) commit("bumpEntityMutations");
+            return collection;
         },
 
         // Private, or shared by link (oxjob #646). Owner only.
@@ -213,8 +217,9 @@ export default {
                 { access },
                 axiosConfig({ userAuth: true })
             );
-            commit("updateCollection", resp.data);
-            return resp.data;
+            const collection = normalizeCollection(resp.data);
+            commit("updateCollection", collection);
+            return collection;
         },
 
         async fetchPublic(_ctx, id) {
@@ -226,7 +231,7 @@ export default {
                 `${collectionsUrl}/${enc(id)}`,
                 axiosConfig({ userAuth: true })
             );
-            return resp.data;
+            return normalizeCollection(resp.data);
         },
 
         async update({ commit }, { id, display_name, description }) {
@@ -238,8 +243,9 @@ export default {
                 body,
                 axiosConfig({ userAuth: true })
             );
-            commit("updateCollection", resp.data);
-            return resp.data;
+            const collection = normalizeCollection(resp.data);
+            commit("updateCollection", collection);
+            return collection;
         },
 
         async remove({ commit }, id) {
