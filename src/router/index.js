@@ -413,6 +413,8 @@ const routes = [
     // is `col_<10-char-base58>` (oxjob #228 QA-042 / migration 047). Constrain
     // the route param so URL-encoded path-traversal (e.g. `foo%2F..%2Fadmin`)
     // doesn't even hit the component (security review M8).
+    // The collections search page (oxjob #1532): public collections, plus your own.
+    {path: '/collections', name: 'CollectionsSerp', component: () => import('@/views/CollectionsSerp.vue')},
     {path: '/collections/:collection_id([A-Za-z0-9_-]+)', name: 'CollectionPublic', component: () => import('@/views/CollectionPublic.vue')},
 
     // Repository Dashboard

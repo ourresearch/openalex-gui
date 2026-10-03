@@ -102,7 +102,17 @@ describe('filterCollectionsForField — sort + shape', () => {
             displayValue: 'Elsevier journals',
             entityCount: 42,
             isCollection: true,
+            access: 'private',
         });
+    });
+
+    it('carries each collection\'s access, for the picker tag (oxjob #1532)', () => {
+        const rows = [
+            { id: 'col_Pub1', display_name: 'European Union (EU27)', entity_type: 'countries', member_count: 27, access: 'public' },
+            { id: 'col_Lnk1', display_name: 'Euro partners', entity_type: 'countries', member_count: 3, access: 'shared_by_link' },
+        ];
+        const out = filterCollectionsForField(rows, 'countries', 'eu');
+        expect(out.map(r => [r.value, r.access])).toEqual([['col_Lnk1', 'shared_by_link'], ['col_Pub1', 'public']]);
     });
 });
 

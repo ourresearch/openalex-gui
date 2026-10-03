@@ -1,5 +1,5 @@
 <!--
-  Share a collection (oxjob #646): one control, two levels. Private (only you), or
+  Share a collection (oxjob #646): one control, two levels (three for OpenAlex: Public, #1532). Private (only you), or
   Shared by link (anyone with the link or col_ ID can view it and filter by it,
   logged in or not; never listed or indexed; only the owner edits). The choice
   applies as soon as it's picked, like Google Docs' "General access" box.
@@ -50,6 +50,21 @@
               </div>
             </template>
           </v-radio>
+          <!-- Public (oxjob #1532): only OpenAlex makes a collection public, so the
+               option shows only to admins, or on a collection that already is. -->
+          <v-radio v-if="showPublicOption" value="public" class="access-option">
+            <template #label>
+              <div class="d-flex flex-column py-1">
+                <span class="text-body-1">
+                  <v-icon size="small" start aria-hidden="true">mdi-earth</v-icon>Public
+                </span>
+                <span class="text-body-2 option-help">
+                  Listed in public collections: anyone can find it, view it and filter by it.
+                  Only OpenAlex can make a collection public.
+                </span>
+              </div>
+            </template>
+          </v-radio>
         </v-radio-group>
 
         <v-alert
@@ -62,7 +77,7 @@
           {{ PEOPLE_COLLECTION_WARNING }}
         </v-alert>
 
-        <div v-if="access === 'shared_by_link'" class="mt-5">
+        <div v-if="access === 'shared_by_link' || access === 'public'" class="mt-5">
           <div class="d-flex align-center ga-2">
             <v-text-field
               :model-value="link"
@@ -128,6 +143,10 @@ watch(
   { immediate: true },
 );
 
+const showPublicOption = computed(() =>
+  props.collection?.access === "public" || store.getters["user/isAdmin"]
+);
+
 const link = computed(() =>
   props.collection ? `${window.location.origin}/collections/${props.collection.id}` : ""
 );
@@ -141,9 +160,10 @@ async function setAccess(next) {
   try {
     const updated = await store.dispatch("collections/setAccess", { id: props.collection.id, access: next });
     emit("updated", updated);
-    status.value = next === "shared_by_link"
-      ? "Shared by link. Anyone with the link can view it."
-      : "Private. Only you can see it.";
+    status.value = {
+      public: "Public. Anyone can find it in public collections.",
+      shared_by_link: "Shared by link. Anyone with the link can view it.",
+    }[next] || "Private. Only you can see it.";
   } catch (e) {
     access.value = previous;
     error.value = e.response?.data?.message || "Couldn't change who can see it. Try again.";

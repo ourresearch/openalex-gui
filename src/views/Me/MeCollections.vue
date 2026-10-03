@@ -3,6 +3,9 @@
     <div class="d-flex align-center mb-4">
       <h1 class="text-h5 font-weight-bold">Collections</h1>
       <v-spacer />
+      <v-btn variant="text" to="/collections" prepend-icon="mdi-earth" class="mr-2">
+        Browse public collections
+      </v-btn>
       <v-btn
         color="primary"
         variant="flat"

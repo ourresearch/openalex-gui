@@ -20,8 +20,9 @@
       {{ displayValue }}
     </v-list-item-title>
 
-    <v-list-item-subtitle v-if="isCollection" class="text-medium-emphasis">
+    <v-list-item-subtitle v-if="isCollection" class="text-medium-emphasis collection-subtitle">
       {{ entityLabel }} collection
+      <collection-access-tag :access="access" class="ml-1" />
     </v-list-item-subtitle>
     <v-list-item-subtitle v-else-if="hint" style="white-space: normal;">
       {{ filters.truncate(hint, 100) }}
@@ -37,6 +38,7 @@
 
 <script setup>
 import filters from '@/filters';
+import CollectionAccessTag from '@/components/Collection/CollectionAccessTag.vue';
 
 defineOptions({ name: 'EntityValueRow' });
 
@@ -48,6 +50,9 @@ const props = defineProps({
   // Singular entity name (e.g. "institution", "work"), shown as the
   // "<entity> collection" subtitle on collection rows (oxjob #367).
   entityLabel: { type: String, default: '' },
+  // A collection row's access, shown as a small tag: Public, Private or Shared by
+  // link (oxjob #1532), so a public collection reads differently from your own.
+  access: { type: String, default: 'private' },
   selected: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
   // Keyboard-nav highlight (#353 B5).

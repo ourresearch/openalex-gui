@@ -44,16 +44,7 @@
                 <span class="font-weight-medium">
                   <v-icon color="grey" start size="small">{{ entityIcon(collection.entity_type) }}</v-icon>
                   {{ collection.display_name }}
-                  <v-chip
-                    v-if="collection.access === 'shared_by_link'"
-                    size="x-small"
-                    variant="tonal"
-                    label
-                    class="ml-2"
-                  >
-                    <v-icon start size="x-small" aria-hidden="true">mdi-link-variant</v-icon>
-                    Shared by link
-                  </v-chip>
+                  <collection-access-tag :access="collection.access" class="ml-2" />
                 </span>
                 <span v-if="collection.description" class="collection-description text-grey">
                   {{ collection.description }}
@@ -161,6 +152,7 @@
 
 <script setup>
 import { ref, computed } from "vue";
+import CollectionAccessTag from "@/components/Collection/CollectionAccessTag.vue";
 import { useRouter } from "vue-router";
 import { entityConfigs } from "@/entityConfigs";
 import { worksFieldsForCollectionType } from "@/collectionFilter";
