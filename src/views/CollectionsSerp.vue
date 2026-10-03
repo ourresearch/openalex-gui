@@ -138,8 +138,7 @@ import axios from "axios";
 import { urlBase, axiosConfig } from "@/apiConfig";
 import { normalizeCollection } from "@/collectionShape";
 import { accessInfo } from "@/collectionAccess";
-import { entityConfigs } from "@/entityConfigs";
-import { fromCollectionEntityType } from "@/openalexId";
+import { collectionTypeIcon as entityIcon, collectionTypePlural as entityPlural, capitalizeFirst } from "@/collectionTypeLabels";
 import CollectionAccessTag from "@/components/Collection/CollectionAccessTag.vue";
 
 defineOptions({ name: "CollectionsSerp" });
@@ -165,16 +164,8 @@ const facets = computed(() => [
   ...(isLoggedIn.value ? [{ key: "access", label: "Access" }] : []),
 ]);
 
-function entityIcon(type) {
-  return entityConfigs?.[fromCollectionEntityType(type)]?.icon || "mdi-folder-outline";
-}
-function entityPlural(type) {
-  return entityConfigs?.[fromCollectionEntityType(type)]?.displayName || type || "";
-}
 function facetValueLabel(facet, key) {
-  if (facet.key === "access") return accessInfo(key).label;
-  const plural = entityPlural(key);
-  return plural.charAt(0).toUpperCase() + plural.slice(1);
+  return facet.key === "access" ? accessInfo(key).label : capitalizeFirst(entityPlural(key));
 }
 function formatDate(iso) {
   const d = new Date(iso);
@@ -182,15 +173,17 @@ function formatDate(iso) {
 }
 
 // ---- URL state ----------------------------------------------------------------
-function parseFilters(raw) {
+// Only the facets on screen apply, so every filter in force has a chip to clear it
+// (logged out there is no Access facet).
+function parseFilters(raw, keys) {
   const out = {};
   for (const part of String(raw || "").split(",")) {
     const [k, v] = part.split(":");
-    if (k && v && ["entity_type", "access"].includes(k)) out[k] = v;
+    if (k && v && keys.includes(k)) out[k] = v;
   }
   return out;
 }
-const urlFilters = computed(() => parseFilters(route.query.filter));
+const urlFilters = computed(() => parseFilters(route.query.filter, facets.value.map(f => f.key)));
 const search = computed(() => String(route.query.search || ""));
 const sort = computed(() => SORTS.some(s => s.value === route.query.sort) ? route.query.sort : "display_name");
 const page = computed(() => Math.max(1, parseInt(route.query.page, 10) || 1));
@@ -251,6 +244,7 @@ function listUrl(params) {
 
 async function load() {
   const mine = ++seq;
+  const fs = facets.value;
   loading.value = true;
   error.value = "";
   const base = { search: search.value || null };
@@ -264,7 +258,7 @@ async function load() {
     }), axiosConfig({ userAuth: true }));
     // Each facet counts under the OTHER filters, so its own choice doesn't hide its
     // alternatives.
-    const groupReqs = facets.value.map(f => {
+    const groupReqs = fs.map(f => {
       const others = { ...urlFilters.value };
       delete others[f.key];
       return axios.get(listUrl({ ...base, filter: filterString(others) || null, group_by: f.key }),
@@ -275,7 +269,7 @@ async function load() {
     results.value = (listResp.data.results || []).map(normalizeCollection);
     count.value = listResp.data.meta?.count ?? 0;
     const next = { entity_type: [], access: [] };
-    facets.value.forEach((f, i) => { next[f.key] = groupResps[i].data.group_by || []; });
+    fs.forEach((f, i) => { next[f.key] = groupResps[i].data.group_by || []; });
     groups.value = next;
   } catch (e) {
     if (mine !== seq) return;
@@ -287,9 +281,9 @@ async function load() {
   }
 }
 
-watch(() => [route.query, isLoggedIn.value], () => {
+watch(() => [route.fullPath, isLoggedIn.value], () => {
   if (route.path === "/collections") load();
-}, { immediate: true, deep: true });
+}, { immediate: true });
 </script>
 
 <style scoped>
