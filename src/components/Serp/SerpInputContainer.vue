@@ -1001,8 +1001,10 @@ watch(
 
 /* Basic-mode search card: white body (the search box) + a clearly-separated white
    footer (the filter chips), full-width top border so it reads as a real footer. */
+/* overflow stays visible: `hidden` clipped the search box's autocomplete dropdown to ~1.5 rows (oxjob #1529); the
+   footer keeps the card's rounded bottom corners itself */
 .search-card {
-  overflow: hidden;
+  overflow: visible;
 }
 .search-card-body {
   padding: 6px 10px;
@@ -1019,6 +1021,8 @@ watch(
   padding: 12px 16px;
   border-top: 1px solid #e0e0e0;
   background: white;
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
 }
 </style>
 
