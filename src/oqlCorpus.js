@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 197.
+// corpus version: 2; rows: 220.
 
 export const oqlCorpus = [
   {
@@ -10691,6 +10691,913 @@ export const oqlCorpus = [
     "oql": "works where title has (\"covid-19*\")",
     "note": "The token looks 8 chars long, but the analyzer splits it at the hyphen and the `*` applies only to `19`, a 2-char prefix. The fix-it names the split (`\"covid\", \"19*\"`) instead of telling the user to \"add characters\" to a word that already has plenty.",
     "diagnostic": "OQL_SHORT_WILDCARD_PREFIX",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 207,
+    "tags": [
+      "pipeline",
+      "calculate"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "#1512 example 1: open access share by year for Kenyan papers",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "get works where country is (KE [Kenya]) and year >= (2015);\nthen group those works by year;\nthen calculate percent open access",
+    "note": "",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "authorships.countries",
+          "value": "KE"
+        },
+        {
+          "column_id": "publication_year",
+          "value": 2015,
+          "operator": ">="
+        }
+      ],
+      "group_by": [
+        {
+          "column_id": "publication_year"
+        }
+      ],
+      "calculate": [
+        {
+          "measure": "percent",
+          "column_id": "open_access.is_oa"
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 208,
+    "tags": [
+      "pipeline",
+      "calculate"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "#1512 example 2: MIT by open access status, count and mean FWCI",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "get works where institution is (I63966007 [no entity found]);\nthen group those works by open access status;\nthen calculate count, mean FWCI",
+    "note": "",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "authorships.institutions.lineage",
+          "value": "I63966007"
+        }
+      ],
+      "group_by": [
+        {
+          "column_id": "open_access.oa_status"
+        }
+      ],
+      "calculate": [
+        {
+          "measure": "count"
+        },
+        {
+          "measure": "mean",
+          "column_id": "fwci"
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 209,
+    "tags": [
+      "pipeline",
+      "calculate",
+      "group-by"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "#1512 example 3: each MIT author's mean FWCI on their MIT papers",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "get works where institution is (I63966007 [no entity found]);\nthen group those works by author;\nthen calculate mean FWCI",
+    "note": "",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "authorships.institutions.lineage",
+          "value": "I63966007"
+        }
+      ],
+      "group_by": [
+        {
+          "column_id": "authorships.author.id"
+        }
+      ],
+      "calculate": [
+        {
+          "measure": "mean",
+          "column_id": "fwci"
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 210,
+    "tags": [
+      "pipeline",
+      "group-filter"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "#1512 example 6: kelp authors with over 10 kelp works who never co-authored with A5023888391",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "get works where title-abstract has (kelp);\nthen group those works by author\n  where count of those works > (10)\n  and co-author is not (A5023888391)",
+    "note": "",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "kelp",
+          "operator": "has"
+        }
+      ],
+      "group_by": [
+        {
+          "column_id": "authorships.author.id",
+          "where": {
+            "join": "and",
+            "filters": [
+              {
+                "measure": "count",
+                "operator": ">",
+                "value": 10
+              },
+              {
+                "column_id": "co_author",
+                "value": "A5023888391",
+                "is_negated": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 211,
+    "tags": [
+      "pipeline",
+      "listed-values",
+      "search-semantics"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "#1512 example 9: growth of three phrasings by year",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "get works where year >= (2010);\nthen group those works by title-abstract search in ((\"inference latency\"), (\"neuromorphic computing\"), (\"edge AI\"));\nthen group those works again by year;\nthen calculate count",
+    "note": "",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "publication_year",
+          "value": 2010,
+          "operator": ">="
+        }
+      ],
+      "group_by": [
+        {
+          "column_id": "title_and_abstract.search",
+          "values": [
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"inference latency\"",
+              "operator": "has"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"neuromorphic computing\"",
+              "operator": "has"
+            },
+            {
+              "column_id": "title_and_abstract.search.exact",
+              "value": "\"edge AI\"",
+              "operator": "has"
+            }
+          ]
+        },
+        {
+          "column_id": "publication_year"
+        }
+      ],
+      "calculate": [
+        {
+          "measure": "count"
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 212,
+    "tags": [
+      "pipeline",
+      "listed-values",
+      "calculate"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "#1512 example 10: MIT, Stanford and Harvard compared on CRISPR",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "get works where topic is (T10878 [no entity found]);\nthen group those works by institution in (I63966007 [no entity found], I97018004 [Stanford], I136199984 [Harvard]);\nthen calculate count, mean FWCI, percent open access",
+    "note": "",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "primary_topic.id",
+          "value": "T10878"
+        }
+      ],
+      "group_by": [
+        {
+          "column_id": "authorships.institutions.lineage",
+          "values": [
+            "I63966007",
+            "I97018004",
+            "I136199984"
+          ]
+        }
+      ],
+      "calculate": [
+        {
+          "measure": "count"
+        },
+        {
+          "measure": "mean",
+          "column_id": "fwci"
+        },
+        {
+          "measure": "percent",
+          "column_id": "open_access.is_oa"
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 213,
+    "tags": [
+      "pipeline",
+      "calculate"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "#1512 example 13: funders of Kenyan papers since 2015",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "get works where country is (KE [Kenya]) and year >= (2015);\nthen group those works by funder;\nthen calculate count, mean citation count",
+    "note": "",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "authorships.countries",
+          "value": "KE"
+        },
+        {
+          "column_id": "publication_year",
+          "value": 2015,
+          "operator": ">="
+        }
+      ],
+      "group_by": [
+        {
+          "column_id": "funders.id"
+        }
+      ],
+      "calculate": [
+        {
+          "measure": "count"
+        },
+        {
+          "measure": "mean",
+          "column_id": "cited_by_count"
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 214,
+    "tags": [
+      "pipeline",
+      "group-filter",
+      "collection"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "#1512 example 14: institutions in a set of topics that never co-authored with MIT",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "get works where topic is in (col_abc123);\nthen group those works by institution where collaborator is not (I63966007);\nthen calculate count",
+    "note": "",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "primary_topic.id",
+          "value": "col_abc123",
+          "operator": "in collection"
+        }
+      ],
+      "group_by": [
+        {
+          "column_id": "authorships.institutions.lineage",
+          "where": {
+            "column_id": "collaborator",
+            "value": "I63966007",
+            "is_negated": true
+          }
+        }
+      ],
+      "calculate": [
+        {
+          "measure": "count"
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 215,
+    "tags": [
+      "pipeline",
+      "condition-groups",
+      "calculate"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "#1512 example 16: KU Leuven and Belgium against the world by SDG",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "get works where year >= (2016);\nthen group those works into ((institution is (I99464096 [no entity found])), (country is (BE [Belgium])));\nthen group those works again by SDG;\nthen calculate count, percent of those works",
+    "note": "",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "publication_year",
+          "value": 2016,
+          "operator": ">="
+        }
+      ],
+      "group_by": [
+        {
+          "conditions": [
+            {
+              "column_id": "authorships.institutions.lineage",
+              "value": "I99464096"
+            },
+            {
+              "column_id": "authorships.countries",
+              "value": "BE"
+            }
+          ]
+        },
+        {
+          "column_id": "sustainable_development_goals.id"
+        }
+      ],
+      "calculate": [
+        {
+          "measure": "count"
+        },
+        {
+          "measure": "percent_of_those"
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 216,
+    "tags": [
+      "pipeline",
+      "condition-groups"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "#1512 example 17: topics in two periods",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "get works where institution is in (col_abc123);\nthen group those works into ((year >= (2016) and year <= (2019)), (year >= (2021)));\nthen group those works again by topic;\nthen calculate count",
+    "note": "",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "authorships.institutions.lineage",
+          "value": "col_abc123",
+          "operator": "in collection"
+        }
+      ],
+      "group_by": [
+        {
+          "conditions": [
+            {
+              "join": "and",
+              "filters": [
+                {
+                  "column_id": "publication_year",
+                  "value": 2016,
+                  "operator": ">="
+                },
+                {
+                  "column_id": "publication_year",
+                  "value": 2019,
+                  "operator": "<="
+                }
+              ]
+            },
+            {
+              "column_id": "publication_year",
+              "value": 2021,
+              "operator": ">="
+            }
+          ]
+        },
+        {
+          "column_id": "primary_topic.id"
+        }
+      ],
+      "calculate": [
+        {
+          "measure": "count"
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 217,
+    "tags": [
+      "pipeline",
+      "bins"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Bins by edges on an integer",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "get works where institution is (I63966007 [no entity found]) and year >= (2015);\nthen group those works into citation count bins at (1, 10, 100);\nthen calculate count, mean FWCI",
+    "note": "",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "authorships.institutions.lineage",
+          "value": "I63966007"
+        },
+        {
+          "column_id": "publication_year",
+          "value": 2015,
+          "operator": ">="
+        }
+      ],
+      "group_by": [
+        {
+          "column_id": "cited_by_count",
+          "bins": {
+            "at": [
+              1,
+              10,
+              100
+            ]
+          }
+        }
+      ],
+      "calculate": [
+        {
+          "measure": "count"
+        },
+        {
+          "measure": "mean",
+          "column_id": "fwci"
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 218,
+    "tags": [
+      "pipeline",
+      "bins"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Bins by width on a decimal, nested under years",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "get works where institution is (I63966007 [no entity found]) and year >= (2020);\nthen group those works by year;\nthen group those works again into FWCI bins of (0.5);\nthen calculate count",
+    "note": "",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "authorships.institutions.lineage",
+          "value": "I63966007"
+        },
+        {
+          "column_id": "publication_year",
+          "value": 2020,
+          "operator": ">="
+        }
+      ],
+      "group_by": [
+        {
+          "column_id": "publication_year"
+        },
+        {
+          "column_id": "fwci",
+          "bins": {
+            "of": 0.5
+          }
+        }
+      ],
+      "calculate": [
+        {
+          "measure": "count"
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 219,
+    "tags": [
+      "pipeline",
+      "group-filter"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "A group filter on the group's own field after a count filter",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "get works where title-abstract has (kelp);\nthen group those works by author\n  where count of those works > (10)\n  and h-index > (20);\nthen calculate count, mean FWCI",
+    "note": "",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "title_and_abstract.search",
+          "value": "kelp",
+          "operator": "has"
+        }
+      ],
+      "group_by": [
+        {
+          "column_id": "authorships.author.id",
+          "where": {
+            "join": "and",
+            "filters": [
+              {
+                "measure": "count",
+                "operator": ">",
+                "value": 10
+              },
+              {
+                "column_id": "summary_stats.h_index",
+                "value": 20,
+                "operator": ">"
+              }
+            ]
+          }
+        }
+      ],
+      "calculate": [
+        {
+          "measure": "count"
+        },
+        {
+          "measure": "mean",
+          "column_id": "fwci"
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 220,
+    "tags": [
+      "pipeline",
+      "group-filter",
+      "collection"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "`that <noun>` tests the group itself",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "get works where institution is (I146416000 [no entity found]);\nthen group those works by author\n  where count of those works >= (5)\n  and that author is not in (col_abc123);\nthen calculate count",
+    "note": "",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "authorships.institutions.lineage",
+          "value": "I146416000"
+        }
+      ],
+      "group_by": [
+        {
+          "column_id": "authorships.author.id",
+          "where": {
+            "join": "and",
+            "filters": [
+              {
+                "measure": "count",
+                "operator": ">=",
+                "value": 5
+              },
+              {
+                "column_id": "collection",
+                "value": "col_abc123",
+                "operator": "in collection",
+                "is_negated": true
+              }
+            ]
+          }
+        }
+      ],
+      "calculate": [
+        {
+          "measure": "count"
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 221,
+    "tags": [
+      "pipeline",
+      "calculate"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "A calculation with no split: one row",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "get works where topic is (T10878 [no entity found]);\nthen calculate count, mean FWCI, percent open access, median citation count",
+    "note": "",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "primary_topic.id",
+          "value": "T10878"
+        }
+      ],
+      "calculate": [
+        {
+          "measure": "count"
+        },
+        {
+          "measure": "mean",
+          "column_id": "fwci"
+        },
+        {
+          "measure": "percent",
+          "column_id": "open_access.is_oa"
+        },
+        {
+          "measure": "median",
+          "column_id": "cited_by_count"
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 222,
+    "tags": [
+      "pipeline",
+      "group-by"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Classic group by plus a calculation: canonical is the pipeline form",
+      "url": null
+    },
+    "oxurl_status": "oql-only",
+    "status": "ok",
+    "oql": "get works where year > (2020);\nthen group those works by year;\nthen calculate count",
+    "note": "",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "publication_year",
+          "value": 2020,
+          "operator": ">"
+        }
+      ],
+      "group_by": [
+        {
+          "column_id": "publication_year"
+        }
+      ],
+      "calculate": [
+        {
+          "measure": "count"
+        }
+      ]
+    },
+    "oxurl": null
+  },
+  {
+    "id": 223,
+    "tags": [
+      "pipeline"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "A fourth split",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "get works where year > (2020); then group those works by year; then group those works again by type; then group those works again by language; then group those works again by country",
+    "note": "",
+    "diagnostic": "OQL_TOO_MANY_SPLITS",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 224,
+    "tags": [
+      "pipeline"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "A decimal needs bins",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "get works where year > (2020); then group those works by FWCI",
+    "note": "",
+    "diagnostic": "OQL_DECIMAL_NEEDS_BINS",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 225,
+    "tags": [
+      "pipeline"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Walks wait for Rung 2",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "get works where year > (2020); then get each author of those works",
+    "note": "",
+    "diagnostic": "OQL_WALK_NOT_YET",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 226,
+    "tags": [
+      "pipeline"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "`those <noun>` must name what the query holds",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "get works where year > (2020); then group those authors by year",
+    "note": "",
+    "diagnostic": "OQL_WRONG_SET",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 227,
+    "tags": [
+      "pipeline"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "A calculation is the last step",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "get works where year > (2020); then calculate count; then group those works by year",
+    "note": "",
+    "diagnostic": "OQL_STEP_AFTER_CALCULATE",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 228,
+    "tags": [
+      "pipeline"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Up to 5 AND/OR/NOT in each listed search",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "get works where year > (2020); then group those works by title-abstract search in ((a OR b OR c OR d OR e OR f OR g))",
+    "note": "",
+    "diagnostic": "OQL_SEARCH_TOO_COMPLEX",
+    "oqo": null,
+    "oxurl": null
+  },
+  {
+    "id": 229,
+    "tags": [
+      "pipeline"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Years have no fields of their own",
+      "url": null
+    },
+    "oxurl_status": null,
+    "status": "error",
+    "oql": "get works where year > (2020); then group those works by year where h-index > (20)",
+    "note": "",
+    "diagnostic": "OQL_BAD_GROUP_FILTER",
     "oqo": null,
     "oxurl": null
   }

@@ -45,6 +45,10 @@ describe("corpus facets (explicit fields from corpus.yaml)", () => {
     "proximity", "wildcard", "search-semantics", "entity-references",
     "group-by", "sample", "filter", "sr-transcription",
     "corpus",  // corpus selector — core / expansion / all (oxjob #481)
+    // the pipeline language (oxjob #1530): steps, calculations, group filters,
+    // splits by listed values / conditions / bins, sets in `in (...)`
+    "pipeline", "calculate", "group-filter", "listed-values", "condition-groups",
+    "bins", "collection",
   ]);
   const PROVENANCE_TYPES = new Set([
     "spec design", "analytics question", "librarian guide",
