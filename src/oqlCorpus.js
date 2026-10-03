@@ -10750,7 +10750,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where institution is (I63966007 [no entity found]);\nthen group those works by open access status;\nthen calculate count, mean FWCI",
+    "oql": "get works where institution is (I63966007 [MIT]);\nthen group those works by open access status;\nthen calculate count, mean FWCI",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -10792,7 +10792,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where institution is (I63966007 [no entity found]);\nthen group those works by author;\nthen calculate mean FWCI",
+    "oql": "get works where institution is (I63966007 [MIT]);\nthen group those works by author;\nthen calculate mean FWCI",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -10938,7 +10938,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where topic is (T10878 [no entity found]);\nthen group those works by institution in (I63966007 [no entity found], I97018004 [Stanford], I136199984 [Harvard]);\nthen calculate count, mean FWCI, percent open access",
+    "oql": "get works where topic is (T10878 [CRISPR and Genetic Engineering]);\nthen group those works by institution in (I63966007 [MIT], I97018004 [Stanford], I136199984 [Harvard]);\nthen calculate count, mean FWCI, percent open access",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11079,7 +11079,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where year >= (2016);\nthen group those works into ((institution is (I99464096 [no entity found])), (country is (BE [Belgium])));\nthen group those works again by SDG;\nthen calculate count, percent of those works",
+    "oql": "get works where year >= (2016);\nthen group those works into ((institution is (I99464096 [KU Leuven])), (country is (BE [Belgium])));\nthen group those works again by SDG;\nthen calculate count, percent of those works",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11194,7 +11194,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where institution is (I63966007 [no entity found]) and year >= (2015);\nthen group those works into citation count bins at (1, 10, 100);\nthen calculate count, mean FWCI",
+    "oql": "get works where institution is (I63966007 [MIT]) and year >= (2015);\nthen group those works into citation count bins at (1, 10, 100);\nthen calculate count, mean FWCI",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11247,7 +11247,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where institution is (I63966007 [no entity found]) and year >= (2020);\nthen group those works by year;\nthen group those works again into FWCI bins of (0.5);\nthen calculate count",
+    "oql": "get works where institution is (I63966007 [MIT]) and year >= (2020);\nthen group those works by year;\nthen group those works again into FWCI bins of (0.5);\nthen calculate count",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11353,7 +11353,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where institution is (I146416000 [no entity found]);\nthen group those works by author\n  where count of those works >= (5)\n  and that author is not in (col_abc123);\nthen calculate count",
+    "oql": "get works where institution is (I146416000 [University of Kansas]);\nthen group those works by author\n  where count of those works >= (5)\n  and that author is not in (col_abc123);\nthen calculate count",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11406,7 +11406,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where topic is (T10878 [no entity found]);\nthen calculate count, mean FWCI, percent open access, median citation count",
+    "oql": "get works where topic is (T10878 [CRISPR and Genetic Engineering]);\nthen calculate count, mean FWCI, percent open access, median citation count",
     "note": "",
     "diagnostic": "",
     "oqo": {
