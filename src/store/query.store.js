@@ -52,7 +52,9 @@ import {
 // #661: sort_by/select are GONE from the OQO entirely (public spec v1.4) — sort is
 // transient client state (state.sort), columns are the sticky per-entity
 // localStorage preference (useColumnsState); neither ever enters the query.
-const QUERY_KEYS = ["get_rows", "filter_rows", "corpus"];
+// `calculate` (#1536) is a pipeline query's calculations: part of the query too,
+// so a facet refinement on a pipeline query keeps them (its splits ride in group_by).
+const QUERY_KEYS = ["get_rows", "filter_rows", "corpus", "calculate"];
 // …vs. the OQO's recipient-local chrome that still rides IN the OQO (part of an
 // execution, not the query identity). `seed`/`sample` back the random-query dice.
 // #661: page/per_page/cursor left the OQO too — they travel as sibling request

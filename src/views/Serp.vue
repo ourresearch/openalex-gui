@@ -18,6 +18,7 @@ import { createFetchSequencer } from '@/serpFetchSeq';
 import { shouldDropSavedSearchId } from '@/store/userBoot';
 import { entityConfigs } from '@/entityConfigs';
 import { filtersFromUrlStr } from '@/filterConfigs';
+import { refusalMessage } from '@/oqlPipeline';
 
 import ExpertSerp from '@/components/ExpertSerp.vue';
 import OqlSerp from '@/components/OqlSerp.vue';
@@ -295,6 +296,7 @@ watch(
         const validation = e?.response?.data?.validation || null;
         store.commit('setOqlSubmitError', validation);
         searchError.value =
+          refusalMessage(e?.response?.data) ||
           validation?.errors?.[0]?.message || e?.message || 'OQL query failed.';
       }
       resultsFilters.value = [];
@@ -394,6 +396,7 @@ watch(
       const validation = e?.response?.data?.validation || null;
       store.commit('setOqlSubmitError', validation);
       searchError.value =
+        refusalMessage(e?.response?.data) ||
         validation?.errors?.[0]?.message ||
         e?.response?.data?.message ||
         e?.message ||

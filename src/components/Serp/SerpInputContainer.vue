@@ -76,7 +76,9 @@
           <div
             v-if="gridOverflowNote"
             class="grid-overflow-note text-body-2 mb-2"
-          >Moved to OQL — too complex for the grid.</div>
+          >{{ isPipeline || gridProbe.pipeline
+            ? 'The builder can\'t show splits and calculations yet; edit them here.'
+            : 'Moved to OQL — too complex for the grid.' }}</div>
           <!-- ⌘/Ctrl+Enter arrives as @submit: the editor must own that binding
                (CodeMirror's defaultKeymap binds Mod-Enter to insert-blank-line, so a
                host keydown listener never gets a clean shot at it). -->
@@ -109,6 +111,20 @@
               @click="submitOqlTab"
             >Search</v-btn>
           </div>
+          <!-- A pipeline query's /query check (#1536): its price, or the limits it
+               hits and how to fix each. Only for edited text: once it runs, the
+               results card shows the price and the error box any refusal. -->
+          <div v-if="oqlTabCheck && oqlTabDirty" class="pipeline-check text-body-2 mt-2">
+            <div v-if="oqlTabCheck.valid" class="text-medium-emphasis">{{ oqlTabCheckLine }}</div>
+            <div
+              v-for="(lim, i) in oqlTabCheck.limits || []"
+              :key="i"
+              class="pipeline-limit text-error"
+            >
+              <v-icon size="16" color="error" class="mr-1">mdi-alert-circle-outline</v-icon>
+              <span>{{ lim.message }}<template v-if="lim.fix">{{ ' ' }}<strong>Fix:</strong> {{ lim.fix }}</template></span>
+            </div>
+          </div>
         </div>
       </v-card>
       <search-error-alert v-if="searchError" :message="searchError" class="mb-4" />
@@ -118,7 +134,11 @@
 
     <!-- Results region. Width follows the mode (#440 r5): Basic = narrow,
          readable column (like the search card above it); Advanced = full width. -->
-    <div v-if="!searchError" class="serp-results-region">
+    <!-- A pipeline query (#1536) answers with groups and calculated columns, not rows. -->
+    <div v-if="!searchError && isPipeline" class="serp-results-region">
+      <oql-pipeline-results :results-object="resultsObject" />
+    </div>
+    <div v-else-if="!searchError" class="serp-results-region">
       <selection-banner v-if="mode !== 'basic'" class="mb-2" />
 
       <v-card variant="outlined" class="bg-white">
@@ -268,6 +288,8 @@ import SerpModeTabs from '@/components/Serp/SerpModeTabs.vue';
 import SerpResultsKebab from '@/components/Serp/SerpResultsKebab.vue';
 import SerpHeaderActions from '@/components/Serp/SerpHeaderActions.vue';
 import SerpDownloadButton from '@/components/Serp/SerpDownloadButton.vue';
+import OqlPipelineResults from '@/components/Serp/OqlPipelineResults.vue';
+import { isPipelineResponse, isPipelineOqo, formatCost } from '@/oqlPipeline';
 // (#603 round 10: the V1 grid builder import is gone — Advanced mounts the V2
 // outline builder. OqlQueryBuilder.vue stays on disk for reference/playground.)
 import OqlQueryBuilderV2 from '@/components/Oql/OqlQueryBuilderV2.vue';
@@ -299,6 +321,7 @@ const inOqlMode = computed(
   () => !!store.getters.featureFlags['oql'] && !!route.query.oql
 );
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
+const isPipeline = computed(() => isPipelineResponse(props.resultsObject));
 // View is COUPLED to the mode (#440 r5): Basic = list, Advanced = table — and
 // OQL = table too (#611 r5, Jason: the power modes share the table). The old
 // view-as-table/list toggle is gone. List/table is recipient-local chrome
@@ -493,6 +516,30 @@ function onOqlTabValidation(v) {
     seedOqlTab(v.oql);
   }
 }
+// A valid pipeline query (#1536) gets the free /query check: what it costs and how
+// long it should take, or each limit it hits with the fix. The check answers 400
+// when it refuses the query; its body still carries the check.
+const oqlTabCheck = ref(null);
+let _checkSeq = 0;
+watch(oqlTabValidation, async (v) => {
+  const seq = ++_checkSeq;
+  if (!v?.valid || !v.oql || !isPipelineOqo(v.oqo)) { oqlTabCheck.value = null; return; }
+  let check = null;
+  try {
+    check = (await api.getQuery({ oql: v.oql }))?.check || null;
+  } catch (e) {
+    check = e?.response?.data?.check || null;
+  }
+  if (seq === _checkSeq) oqlTabCheck.value = check;
+});
+const oqlTabCheckLine = computed(() => {
+  const c = oqlTabCheck.value;
+  if (!c) return '';
+  const price = formatCost(c.cost);
+  const secs = c.estimate?.seconds;
+  const time = secs != null ? `about ${secs < 1 ? 'a second' : `${Math.round(secs)} s`}` : null;
+  return [price && `Price: ${price}`, time].filter(Boolean).join(' · ');
+});
 // Every edit invalidates the last /validate result until the editor re-validates the
 // NEW text (the @validation round-trip is debounced). Without this, the keystroke→
 // validation window leaves a stale-but-valid payload in place and Search would run
@@ -685,20 +732,25 @@ const basicRepresentable = computed(() => {
 // OQL-tab edit that the user SUBMITS (→ seedOql updates → Advanced re-enables, a client
 // route change with no reload, Test 4); a builder edit that overflows (→ mints a new
 // ?oql= → seedOql updates → relocates to OQL, Test 10).
-const gridProbe = ref({ oql: null, ok: true });
-const _gridCache = new Map(); // canonical OQL -> bool (representable?)
+// `pipeline` (#1536): the probed query splits or calculates, which the builder can't show.
+const gridProbe = ref({ oql: null, ok: true, pipeline: false });
+const _gridCache = new Map(); // canonical OQL -> {ok (representable?), pipeline}
 async function probeGrid(oql) {
   const q = (oql || '').trim();
-  if (!q) { gridProbe.value = { oql: '', ok: true }; return; } // empty query = empty grid
-  if (_gridCache.has(q)) { gridProbe.value = { oql: q, ok: _gridCache.get(q) }; return; }
+  if (!q) { gridProbe.value = { oql: '', ok: true, pipeline: false }; return; } // empty query = empty grid
+  if (_gridCache.has(q)) { gridProbe.value = { oql: q, ..._gridCache.get(q) }; return; }
   try {
     const data = await api.getQuery({ oql: q });
-    const ok = treeRepresentable(data?.oql_render_v2).ok;
-    _gridCache.set(q, ok);
-    gridProbe.value = { oql: q, ok };
+    // A pipeline query (#1536) has no builder render (oql_render_v2 is null), and
+    // treeRepresentable reads null as an empty grid: rule it out first.
+    const pipeline = isPipelineOqo(data?.oqo);
+    const ok = !pipeline && treeRepresentable(data?.oql_render_v2).ok;
+    _gridCache.set(q, { ok, pipeline });
+    gridProbe.value = { oql: q, ok, pipeline };
   } catch (e) {
-    // A parse/transport failure → can't safely show in the grid; fall to OQL.
-    gridProbe.value = { oql: q, ok: false };
+    // A parse/transport failure → can't safely show in the grid; fall to OQL. (A
+    // pipeline query the /query check refuses still echoes its OQO.)
+    gridProbe.value = { oql: q, ok: false, pipeline: isPipelineOqo(e?.response?.data?.oqo) };
   }
 }
 // Probe the COMMITTED seed (load, OQL-tab submit, and the builder's post-edit ?oql=
@@ -709,7 +761,9 @@ watch(seedOql, (s) => probeGrid(s), { immediate: true });
 // optimistic while a probe is in flight (the common query IS representable — don't
 // pre-disable Advanced and flash); the probe flips it false only for genuinely
 // too-complex trees. Reads only `gridProbe` (a ref) → no cycle with `mode`.
-const builderRepresentable = computed(() => gridProbe.value.ok !== false);
+const builderRepresentable = computed(() =>
+  gridProbe.value.ok !== false && !isPipelineOqo(props.resultsObject?.meta?.x_query?.oqo)
+);
 
 // One quiet, non-blocking note when a builder edit overflowed the grid and got
 // relocated to the OQL tab (Test 10). Shown until the user leaves OQL or simplifies.
@@ -951,6 +1005,14 @@ watch(
 }
 .search-card-body {
   padding: 6px 10px;
+}
+.pipeline-limit {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 4px;
+}
+.pipeline-limit .v-icon {
+  margin-top: 2px;
 }
 .search-card-foot {
   padding: 12px 16px;

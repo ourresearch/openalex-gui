@@ -322,7 +322,11 @@ const api = (function () {
         // just point group_by at this facet's column. The bucket-set size
         // (per_page=200, matching the legacy makeGroupByUrl) rides as a sibling
         // request param, like all view params.
-        return { ...oqo, group_by: [{ column_id: filterKey }] }
+        // A pipeline query's calculations (#1536) stay out: the widget counts the
+        // starting set's works, the same as for any other query.
+        // eslint-disable-next-line no-unused-vars
+        const { calculate, ...rows } = oqo
+        return { ...rows, group_by: [{ column_id: filterKey }] }
     }
     const GROUP_BY_PARAMS = { per_page: 200 }
 
@@ -698,15 +702,16 @@ const api = (function () {
         return fetchTranslate;
     }
 
-    const executeOql = async function(oql) {
+    const executeOql = async function(oql, params = {}) {
         // Submit an OQL string to be parsed → executed → results (oxjob #373).
         // POSTs to the API root (the execute surface shipped in #372), which has
         // no request-line cap — so even long/expressive OQL runs. The response is
         // the normal {meta, results, group_by} envelope PLUS the private
         // meta.x_query = {oql, oqo, url} triple the client rehydrates from.
         // Throws on a 4xx with a structured {validation: {errors: [...]}} body.
+        // `params` are sibling view params (e.g. a pipeline query's `sort`, #1536).
         const url = `${urlBase.api}/?mailto=ui@openalex.org`;
-        const resp = await axios.post(url, { oql }, axiosConfig());
+        const resp = await axios.post(url, { oql, ...params }, axiosConfig());
         // Same boundary normalization as getResultsList/executeOqo (oxjob
         // #852) — the /q?oql= route fetches through here, and locations rows
         // otherwise render a blank identity column + unlinkable rows.
