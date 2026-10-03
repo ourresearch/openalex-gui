@@ -6,7 +6,26 @@
     <div class="results-card-head d-flex align-center">
       <span class="text-body-2 text-medium-emphasis">{{ headLabel }}</span>
       <v-spacer />
+      <span v-if="downloadError" class="text-body-2 text-error mr-2">{{ downloadError }}</span>
       <span v-if="costLabel" class="text-body-2 text-medium-emphasis">{{ costLabel }}</span>
+      <!-- CSV zip (groups, totals, the query), once the API offers it (meta.splits
+           ships with format=csv). -->
+      <v-tooltip v-if="canDownload" location="bottom" text="Download CSV" content-class="linear-tooltip">
+        <template #activator="{ props: tip }">
+          <v-btn
+            v-bind="tip"
+            icon
+            variant="text"
+            size="small"
+            class="ml-1"
+            aria-label="Download CSV"
+            :loading="downloading"
+            @click="onDownload"
+          >
+            <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
+          </v-btn>
+        </template>
+      </v-tooltip>
     </div>
     <v-divider />
 
@@ -73,7 +92,7 @@ import { useRoute } from 'vue-router';
 
 import { api } from '@/api';
 import {
-  flattenGroups, formatMeasure, formatCost, groupLink, splitDepth,
+  flattenGroups, formatMeasure, formatCost, groupLink, splitDepth, splitsLabel, csvFilename,
 } from '@/oqlPipeline';
 
 defineOptions({ name: 'OqlPipelineResults' });
@@ -100,7 +119,7 @@ const total = computed(() => response.value?.total || null);
 const hasNesting = computed(() => splitDepth(groups.value) > 1 || !!total.value?.groups?.length);
 
 const columns = computed(() => [
-  { key: 'group', label: 'Group', numeric: false },
+  { key: 'group', label: splitsLabel(meta.value.splits), numeric: false },
   ...measures.value.map((m) => ({ key: m.key, label: m.oql, numeric: true, measure: m })),
 ]);
 
@@ -176,6 +195,32 @@ async function onSort(col) {
     if (sort.value === asked) serverSorted.value = null;
   } finally {
     if (sort.value === asked) sorting.value = false;
+  }
+}
+
+// ---- CSV download ----------------------------------------------------------
+const canDownload = computed(() => Array.isArray(props.resultsObject?.meta?.splits));
+const downloading = ref(false);
+const downloadError = ref(null);
+async function onDownload() {
+  const oql = props.resultsObject?.meta?.x_query?.oql || route.query.oql;
+  if (!oql || downloading.value) return;
+  downloading.value = true;
+  downloadError.value = null;
+  try {
+    const { blob, disposition } = await api.downloadPipelineCsv(oql);
+    const href = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = href;
+    a.download = csvFilename(disposition);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(href), 1000);
+  } catch (e) {
+    downloadError.value = 'Download failed.';
+  } finally {
+    downloading.value = false;
   }
 }
 

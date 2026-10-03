@@ -13,6 +13,8 @@ import {
   splitDepth,
   refusalMessage,
   formatCost,
+  splitsLabel,
+  csvFilename,
 } from "@/oqlPipeline";
 
 const MEAN_FWCI = { key: "mean_fwci", measure: "mean", column_id: "fwci", oql: "mean FWCI" };
@@ -178,5 +180,28 @@ describe("formatCost", () => {
     expect(formatCost({ credits: 31, usd: 0.0031 })).toBe("31 credits ($0.0031)");
     expect(formatCost({ credits: 2500, usd: 0.25 })).toBe("2,500 credits ($0.25)");
     expect(formatCost(null)).toBe(null);
+  });
+});
+
+describe("splitsLabel", () => {
+  it("joins each split's OQL words, outer first", () => {
+    expect(splitsLabel([{ oql: "institution or country" }, { oql: "SDG" }])).toBe("institution or country › SDG");
+    expect(splitsLabel([{ oql: "institution" }])).toBe("institution");
+  });
+
+  it("falls back to Group without splits", () => {
+    expect(splitsLabel(undefined)).toBe("Group");
+    expect(splitsLabel([])).toBe("Group");
+  });
+});
+
+describe("csvFilename", () => {
+  it("reads the server's file name", () => {
+    expect(csvFilename('attachment; filename="openalex-crispr.zip"')).toBe("openalex-crispr.zip");
+    expect(csvFilename("attachment; filename*=UTF-8''openalex%20groups.zip")).toBe("openalex groups.zip");
+  });
+
+  it("falls back to a dated name", () => {
+    expect(csvFilename(null, new Date("2026-10-04T12:00:00Z"))).toBe("openalex-groups-2026-10-04.zip");
   });
 });

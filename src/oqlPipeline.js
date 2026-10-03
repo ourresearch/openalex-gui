@@ -111,6 +111,20 @@ export function refusalMessage(data) {
   return null;
 }
 
+// The group column's header: each split's OQL words (`meta.splits`), outer first,
+// e.g. "institution › SDG". Older responses carry no splits: "Group".
+export function splitsLabel(splits) {
+  const words = (Array.isArray(splits) ? splits : []).map((s) => s?.oql).filter(Boolean);
+  return words.length ? words.join(" › ") : "Group";
+}
+
+// The zip's file name from Content-Disposition, else one from the date.
+export function csvFilename(disposition, now = new Date()) {
+  const m = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition || "");
+  if (m) return decodeURIComponent(m[1].trim());
+  return `openalex-groups-${now.toISOString().slice(0, 10)}.zip`;
+}
+
 // Price line for a /query check or an executed pipeline response's meta.cost.
 export function formatCost(cost) {
   if (!cost || cost.credits == null) return null;
