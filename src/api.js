@@ -392,8 +392,14 @@ const api = (function () {
 
         const filterValueEntityId = facetConfig?.entityToSelect
 
-        const myUrl = url.makeAutocompleteUrl(filterValueEntityId, searchString)
-        const resp = await getUrl(myUrl, config)
+        // flag edge_autocomplete (oxjob #1529): filter-value lookups from the edge too, same row shape; null falls
+        // through to today's endpoint
+        const edgeResults = edgeOn() && filterValueEntityId && edgeSupports(filterValueEntityId)
+            ? await edgeRows(filterValueEntityId, searchString || "")
+            : null
+        const resp = edgeResults
+            ? { results: edgeResults }
+            : await getUrl(url.makeAutocompleteUrl(filterValueEntityId, searchString), config)
         const suggestionFilters = resp.results
             .filter(r => !!r.id)
             .filter(r => r.entity_type !== "filter")
