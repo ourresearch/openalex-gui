@@ -193,7 +193,7 @@ const run = debounce(async (rawQ) => {
     }
   } catch (e) { if (e?.code === "ERR_CANCELED" || ticket !== runTicket) return; results.value = []; }
   finally { if (ticket === runTicket) loading.value = false; }
-}, edgeOn() ? 0 : 150);   // flag edge_autocomplete: no pause before the edge (oxjob #1529)
+}, edgeOn() ? 0 : 150);   // edge autocomplete: no pause before the edge (oxjob #1529)
 
 // Suppression must be INSTANT (not on the debounce): stale results sitting under an armed
 // Enter while the user types "n…" would pick something they never searched for. (#603 r28)

@@ -131,7 +131,7 @@ const getSuggestions = debounce(async () => {
   } finally {
     if (ticket === suggestionTicket) isLoading.value = false;
   }
-}, edgeOn() ? 0 : 200, { leading: true });   // flag edge_autocomplete: no pause before the edge (oxjob #1529)
+}, edgeOn() ? 0 : 200, { leading: true });   // edge autocomplete: no pause before the edge (oxjob #1529)
 
 // Watchers
 watch(() => props.searchString, () => {

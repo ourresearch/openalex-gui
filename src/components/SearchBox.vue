@@ -802,7 +802,7 @@ function topByWorksCount(items, n) {
   return [...items].sort((a, b) => (b.works_count || 0) - (a.works_count || 0)).slice(0, n);
 }
 
-// Edge autocomplete (oxjob #1529, flag edge_autocomplete): entity rows on EVERY keystroke, no debounce, answered from
+// Edge autocomplete (oxjob #1529, edge autocomplete): entity rows on EVERY keystroke, no debounce, answered from
 // index nodes the browser already holds or by the Cloudflare edge (~15 ms in Paris instead of ~310). The debounced
 // fetchSuggestions below then adds work titles on the front page, or runs today's path when the edge had nothing.
 // Rows keep the edge's ranking (judged better than today's sort by works count, #1504).
@@ -1104,7 +1104,7 @@ function resizeTextarea() {
 function onFocus() {
   isFocused.value = true;
   ensureIntentModel();   // lazy, idempotent: fetch the classifier weights on first focus (#1347)
-  edgeWarm(edgeEntity()); // flag edge_autocomplete: open the connection to the edge before the first keystroke
+  edgeWarm(edgeEntity()); // edge autocomplete: open the connection to the edge before the first keystroke
   if (suggestions.value.length > 0 && searchString.value) {
     dropdownOpen.value = true;
   }

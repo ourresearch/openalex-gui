@@ -454,7 +454,7 @@ const loadEntitiesDebounced = debounce(async () => {
   } finally {
     if (ticket === loadTicket) entitiesLoading.value = false;
   }
-}, edgeOn() ? 0 : 200, { leading: true });   // flag edge_autocomplete: no pause before the edge (oxjob #1529)
+}, edgeOn() ? 0 : 200, { leading: true });   // edge autocomplete: no pause before the edge (oxjob #1529)
 
 watch(searchString, () => { loadEntitiesDebounced(); });
 
