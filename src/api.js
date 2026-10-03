@@ -396,7 +396,7 @@ const api = (function () {
 
         const filterValueEntityId = facetConfig?.entityToSelect
 
-        // flag edge_autocomplete (oxjob #1529): filter-value lookups from the edge too, same row shape; null falls
+        // edge autocomplete (oxjob #1529): filter-value lookups from the edge too, same row shape; null falls
         // through to today's endpoint
         const edgeResults = edgeOn() && filterValueEntityId && edgeSupports(filterValueEntityId)
             ? await edgeRows(filterValueEntityId, searchString || "")
@@ -528,7 +528,7 @@ const api = (function () {
     };
 
     const getAutocomplete = async function(entityType, params, config) {
-        // Edge autocomplete (oxjob #1529, flag edge_autocomplete): every entity type but works, from the Cloudflare
+        // Edge autocomplete (oxjob #1529, edge autocomplete): every entity type but works, from the Cloudflare
         // edge in this same row shape; null (error, slow, no rows) falls through to today's endpoints below.
         if (edgeOn() && edgeSupports(entityType)) {
             const rows = await edgeRows(entityType, params?.q || "");

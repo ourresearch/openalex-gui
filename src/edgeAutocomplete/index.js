@@ -1,5 +1,5 @@
-// Edge autocomplete (oxjob #1529), behind the feature flag `edge_autocomplete` (off by default; Admin -> Experimental
-// or localStorage localFeatureFlags). Suggestions come from the Cloudflare edge (api.openalex.org/edge, Worker
+// Edge autocomplete (oxjob #1529), on for everyone since 2026-10-04; the feature flag `edge_autocomplete_off` (Admin ->
+// Experimental or localStorage localFeatureFlags) turns it off for one account or browser. Suggestions come from the Cloudflare edge (api.openalex.org/edge, Worker
 // openalex-autocomplete-edge) in today's /autocomplete/<entity> row shape; most keystrokes are answered in the browser
 // from index nodes it already holds. The other files in this folder are copied from
 // github.com/ourresearch/openalex-autocomplete-edge src/ (norm, rank, core, entcore, mix, ac-client): change them there.
@@ -18,7 +18,7 @@ let client = null;
 const latest = new Map();   // entity -> the newest complete() promise
 
 export function edgeOn() {
-  return !!store.getters.featureFlags?.edge_autocomplete;
+  return !store.getters.featureFlags?.edge_autocomplete_off;
 }
 export function edge() {
   if (!client) client = new EdgeAutocomplete({ base: BASE });

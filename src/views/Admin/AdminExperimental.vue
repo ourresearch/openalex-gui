@@ -52,7 +52,7 @@ const store = useStore();
 
 // UI-defined feature flags that may not yet exist in the backend
 const UI_DEFINED_FLAGS = [
-  { name: 'edge_autocomplete', description: 'Autocomplete from the Cloudflare edge for every entity type but works, no debounce (oxjob #1529). Falls back to today\'s endpoints on an error or no rows.' },
+  { name: 'edge_autocomplete_off', description: 'Turn OFF edge autocomplete (on for everyone since 2026-10-04, oxjob #1529): suggestions from today\'s /autocomplete endpoints, debounced, instead of the Cloudflare edge.' },
 ];
 
 const allFlags = ref([]);

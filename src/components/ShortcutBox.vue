@@ -378,7 +378,7 @@ const getSuggestions = debounce(async () => {
     suggestions.value = [fulltext];
     isLoading.value = false;
   }
-}, edgeOn() ? 0 : 100);   // flag edge_autocomplete: no pause before the edge (oxjob #1529)
+}, edgeOn() ? 0 : 100);   // edge autocomplete: no pause before the edge (oxjob #1529)
 
 watch(searchString, val => {
   if (val === null || val === undefined) return;

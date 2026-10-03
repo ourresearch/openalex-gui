@@ -92,7 +92,7 @@ const searchEntities = async (query) => {
   }
 };
 
-const debouncedSearchEntities = debounce(searchEntities, edgeOn() ? 0 : 150);   // flag edge_autocomplete: no pause before the edge (oxjob #1529)
+const debouncedSearchEntities = debounce(searchEntities, edgeOn() ? 0 : 150);   // edge autocomplete: no pause before the edge (oxjob #1529)
 
 const onSearchInputUpdate = (val) => {
   search.value = val;
