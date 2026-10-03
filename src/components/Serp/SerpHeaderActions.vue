@@ -224,11 +224,14 @@ const resultCount = computed(() => store.state.resultsObject?.meta?.count ?? nul
 const saveAsCollectionSource = ref(null);
 const SAVE_SEARCH_LOGIN_REASON = 'To save searches and create alerts, please log in or sign up.';
 const loginReason = ref(SAVE_SEARCH_LOGIN_REASON);
+function openLogin(reason) {
+  loginReason.value = reason;
+  isDialogOpen.loginRequired = true;
+}
 
 function openSaveAsCollection() {
   if (!userId.value) {
-    loginReason.value = 'To save results as a collection, please log in or sign up.';
-    isDialogOpen.loginRequired = true;
+    openLogin('To save results as a collection, please log in or sign up.');
     return;
   }
   saveAsCollectionSource.value = importSource(store.state.resultsObject, route.query, entityType.value);
@@ -323,8 +326,7 @@ function generateAutoName() {
 async function handleSaveToggle() {
   isStarMenuOpen.value = false;
   if (!userId.value) {
-    loginReason.value = SAVE_SEARCH_LOGIN_REASON;
-    isDialogOpen.loginRequired = true;
+    openLogin(SAVE_SEARCH_LOGIN_REASON);
     return;
   }
   if (activeSearchObj.value) {
@@ -340,8 +342,7 @@ async function handleSaveToggle() {
 async function handleAlertToggle() {
   isStarMenuOpen.value = false;
   if (!userId.value) {
-    loginReason.value = SAVE_SEARCH_LOGIN_REASON;
-    isDialogOpen.loginRequired = true;
+    openLogin(SAVE_SEARCH_LOGIN_REASON);
     return;
   }
   if (activeSearchObj.value?.has_alert) {

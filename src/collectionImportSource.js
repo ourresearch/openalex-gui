@@ -6,18 +6,13 @@
 // `url` (the flat /works?filter=... form) when the query has one, else its OQL.
 // Responses from the legacy GET path carry neither, so the route builds the URL.
 
-const SEARCH_PARAMS = [
-  'search', 'search.exact', 'search.semantic',
-  'search.title', 'search.title.exact',
-  'search.title_and_abstract', 'search.title_and_abstract.exact',
-  'search.title_abstract_keywords', 'search.title_abstract_keywords.exact',
-];
+import { searchParamKeys } from '@/searchParamKeys';
 
 // The API URL for the route's filter, searches and sort (the legacy path).
 export function legacyApiUrl(routeQuery, entityType) {
   const params = new URLSearchParams();
   if (routeQuery.filter) params.set('filter', routeQuery.filter);
-  for (const key of SEARCH_PARAMS) {
+  for (const key of searchParamKeys) {
     if (routeQuery[key]) params.set(key, routeQuery[key]);
   }
   if (routeQuery.sort) params.set('sort', routeQuery.sort);

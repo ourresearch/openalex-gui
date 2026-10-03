@@ -18,7 +18,6 @@
           :collection-id="createdCollection.id"
           :initial="runningImport"
           :noun="entityType"
-          @finished="onImportFinished"
         />
       </div>
       <div v-else class="px-4 pb-2">
@@ -186,10 +185,6 @@ async function onCreate() {
 
 function onCancel() {
   emit("update:modelValue", false);
-}
-
-function onImportFinished() {
-  if (createdCollection.value) store.dispatch("collections/importFinished", createdCollection.value.id);
 }
 
 function openCollection() {

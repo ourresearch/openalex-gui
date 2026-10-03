@@ -63,6 +63,12 @@ const statusText = computed(() => {
   return `Adding results: ${fmt((c.added || 0) + (c.already_present || 0))}${total}…`;
 });
 
+// The collection's members changed: refresh its count everywhere, then tell the host.
+async function finish(imp) {
+  await store.dispatch("collections/importFinished", props.collectionId);
+  emit("finished", imp);
+}
+
 async function poll() {
   if (stopped) return;
   try {
@@ -74,7 +80,7 @@ async function poll() {
   }
   if (stopped) return;
   if (current.value.status === "done" || current.value.status === "failed") {
-    emit("finished", current.value);
+    finish(current.value);
     return;
   }
   timer = setTimeout(poll, POLL_MS);
@@ -85,7 +91,7 @@ watch(
   (imp) => {
     clearTimeout(timer);
     current.value = imp;
-    if (imp.status === "done" || imp.status === "failed") emit("finished", imp);
+    if (imp.status === "done" || imp.status === "failed") finish(imp);
     else timer = setTimeout(poll, POLL_MS);
   },
   { immediate: true },

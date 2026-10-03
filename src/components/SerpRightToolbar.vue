@@ -234,6 +234,7 @@ import { ref, computed, reactive } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import { canAlertOnFilter } from '@/collectionFilter';
+import { legacyApiUrl } from '@/collectionImportSource';
 import { useDisplay } from 'vuetify';
 import QrcodeVue from 'qrcode.vue';
 
@@ -330,22 +331,7 @@ const isUrlTooBigForQR = computed(() => urlToShare.value.length > 3000);
 const qrCodeSize = computed(() => mdAndUp.value ? 400 : 300);
 
 // API URL for copy
-const apiCallUrl = computed(() => {
-  const params = new URLSearchParams();
-  if (route.query.filter) params.set('filter', route.query.filter);
-  if (route.query.search) params.set('search', route.query.search);
-  if (route.query['search.exact']) params.set('search.exact', route.query['search.exact']);
-  if (route.query['search.semantic']) params.set('search.semantic', route.query['search.semantic']);
-  if (route.query['search.title']) params.set('search.title', route.query['search.title']);
-  if (route.query['search.title.exact']) params.set('search.title.exact', route.query['search.title.exact']);
-  if (route.query['search.title_and_abstract']) params.set('search.title_and_abstract', route.query['search.title_and_abstract']);
-  if (route.query['search.title_and_abstract.exact']) params.set('search.title_and_abstract.exact', route.query['search.title_and_abstract.exact']);
-  if (route.query['search.title_abstract_keywords']) params.set('search.title_abstract_keywords', route.query['search.title_abstract_keywords']);
-  if (route.query['search.title_abstract_keywords.exact']) params.set('search.title_abstract_keywords.exact', route.query['search.title_abstract_keywords.exact']);
-  if (route.query.sort) params.set('sort', route.query.sort);
-  const qs = params.toString();
-  return `https://api.openalex.org/${entityType.value}${qs ? '?' + qs : ''}`;
-});
+const apiCallUrl = computed(() => legacyApiUrl(route.query, entityType.value));
 
 const exportMode = computed(() => entityConfigs[entityType.value]?.exportMode || 'async');
 

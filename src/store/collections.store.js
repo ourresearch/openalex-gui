@@ -2,6 +2,7 @@ import axios from "axios";
 import { urlBase, axiosConfig } from "@/apiConfig.js";
 // Every collection the API returns goes through normalizeCollection (oxjob #1524).
 import { normalizeCollection } from "@/collectionShape.js";
+import { downloadBlob } from "@/utils/csvExport";
 
 // The collections API on api.openalex.org (oxjob #1515): one resource per collection,
 // its members under /members. Components go through this store, never raw URLs.
@@ -341,13 +342,9 @@ export default {
         },
 
         // An import finished: its members changed, so re-read the collection's count.
-        async importFinished({ commit }, id) {
+        async importFinished({ commit, dispatch }, id) {
             try {
-                const resp = await axios.get(
-                    `${collectionsUrl}/${enc(id)}`,
-                    axiosConfig({ userAuth: true })
-                );
-                commit("updateCollection", normalizeCollection(resp.data));
+                commit("updateCollection", await dispatch("fetchPublic", id));
             } catch {
                 // The count refreshes on the next full load.
             }
@@ -361,14 +358,7 @@ export default {
                 `${collectionsUrl}/${enc(id)}/members?format=csv`,
                 { ...axiosConfig({ userAuth: true }), responseType: "blob" }
             );
-            const href = URL.createObjectURL(resp.data);
-            const a = document.createElement("a");
-            a.href = href;
-            a.download = `openalex_${id}_members.csv`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(href);
+            downloadBlob(resp.data, `openalex_${id}_members.csv`);
         },
 
         // A page of members: {meta: {count, page, per_page}, results: [{id, added_at}]}.

@@ -363,6 +363,7 @@ import SerpResultsExportButton from "@/components/SerpResultsExportButton.vue";
 import { exportToCsv } from "@/utils/csvExport";
 import CollectionImportProgress from "@/components/Collection/CollectionImportProgress.vue";
 import { liveFilterLimit } from "@/collectionLimits";
+import { idsOpenAlexFilter } from "@/utils/selectionExport";
 
 const route = useRoute();
 const router = useRouter();
@@ -621,7 +622,7 @@ async function loadResultsFromMembers() {
   let records = [];
   if (ids.length && ID_FILTER_TYPES.has(collection.value.entity_type)) {
     const r = await axios.get(
-      `${urlBase.api}/${guiEntityType.value}?filter=ids.openalex:${ids.join("|")}&include_xpac=true&per_page=${perPage}`,
+      `${urlBase.api}/${guiEntityType.value}?filter=${idsOpenAlexFilter(ids)}&include_xpac=true&per_page=${perPage}`,
       axiosConfig(),
     );
     records = r.data?.results || [];
@@ -642,7 +643,6 @@ async function loadImports() {
 }
 
 async function onImportFinished(imp) {
-  await store.dispatch("collections/importFinished", collection.value.id);
   collection.value = await store.dispatch("collections/fetchPublic", collection.value.id);
   await loadResults();
   if (imp.status === "failed") {
