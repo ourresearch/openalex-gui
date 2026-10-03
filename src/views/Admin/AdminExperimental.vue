@@ -51,7 +51,9 @@ import { urlBase, axiosConfig } from '@/apiConfig';
 const store = useStore();
 
 // UI-defined feature flags that may not yet exist in the backend
-const UI_DEFINED_FLAGS = [];
+const UI_DEFINED_FLAGS = [
+  { name: 'edge_autocomplete', description: 'Autocomplete from the Cloudflare edge for every entity type but works, no debounce (oxjob #1529). Falls back to today\'s endpoints on an error or no rows.' },
+];
 
 const allFlags = ref([]);
 const loading = ref(true);

@@ -392,6 +392,7 @@ import { api } from '@/api';
 import { createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr } from '@/filterConfigs';
 import { url } from '@/url';
 import { facetConfigs } from '@/facetConfigs';
+import { edgeOn, edgeSupports, edgeRows, edgeWarm } from '@/edgeAutocomplete';
 import { extractIssn, extractLocationId, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, requestSearchBoxFocus, consumeSearchBoxFocus, authorNameMatchesQuery, dedupeByName, footerSearchEntityType } from '@/components/searchBox.helpers';
 import { ensureIntentModel, classifyQuery } from '@/intent/useIntent';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
@@ -801,6 +802,34 @@ function topByWorksCount(items, n) {
   return [...items].sort((a, b) => (b.works_count || 0) - (a.works_count || 0)).slice(0, n);
 }
 
+// Edge autocomplete (oxjob #1529, flag edge_autocomplete): entity rows on EVERY keystroke, no debounce, answered from
+// index nodes the browser already holds or by the Cloudflare edge (~15 ms in Paris instead of ~310). The debounced
+// fetchSuggestions below then adds work titles on the front page, or runs today's path when the edge had nothing.
+// Rows keep the edge's ranking (judged better than today's sort by works count, #1504).
+let edgeId = 0;
+let edgeLast = { q: null, p: null };
+const edgeEntity = () => (entityType.value === 'works' ? 'mix' : entityType.value);
+function edgeItems(rows) {
+  return dedupeByName(rows).map(r => {
+    const type = r.short_id ? r.short_id.split('/')[0] : entityType.value;
+    return { ...r, _acType: type, _icon: entityIcon(type) };
+  });
+}
+async function fetchEdge(query) {
+  const ent = edgeEntity();
+  if (!edgeOn() || !edgeSupports(ent)) return;
+  const id = ++edgeId;
+  const p = edgeRows(ent, query);
+  edgeLast = { q: query, p };
+  const rows = await p;
+  if (id !== edgeId || !rows) return;
+  // keep work-title rows the debounced path already added for this same text
+  const works = suggestions.value.filter(s => s._acType === 'works' && s._q === query);
+  suggestions.value = [...edgeItems(rows).slice(0, works.length ? 3 : 5), ...works].slice(0, 5);
+  highlightedIndex.value = -1;
+  dropdownOpen.value = suggestions.value.length > 0;
+}
+
 async function searchEntities(entityType, query, signal) {
   // Use the search endpoint for full-text matching (not just prefix).
   // Fetch extra results so we can filter/re-rank client-side by works_count.
@@ -853,7 +882,33 @@ async function fetchSuggestions(query) {
       _icon: entityIcon(type),
     }));
 
-  if (currentEntity === 'works') {
+  let edgeDone = false;
+  if (edgeOn() && edgeSupports(edgeEntity())) {
+    const rows = edgeLast.q === query ? await edgeLast.p : await edgeRows(edgeEntity(), query);
+    if (id !== fetchId) return;
+    if (rows) {
+      edgeDone = true;
+      let items = edgeItems(rows);
+      const includeWorks = currentEntity === 'works' && (countCompleteWords(query) >= 3 ||
+        (intent.value?.label === 'title' && intent.value.confidence >= 0.6));
+      if (includeWorks) {
+        let works = [];
+        try {
+          works = await api.getAutocomplete('works', { q: query }, { signal });
+        } catch (e) {
+          if (e?.code === 'ERR_CANCELED') return;
+        }
+        if (id !== fetchId) return;
+        const w = tag(works, 'works').map(x => ({ ...x, _q: query }));
+        items = [...items.slice(0, Math.max(3, 5 - w.length)), ...w].slice(0, 5);
+      }
+      suggestions.value = items.slice(0, 5);
+    }
+  }
+
+  if (edgeDone) {
+    // the edge answered; today's lookups are not needed
+  } else if (currentEntity === 'works') {
     // Works SERP: suggest authors, institutions, keywords (as filters) + work
     // titles. All four come back in ONE request via the GUI-only combo endpoint
     // (see api.getFrontpageAutocomplete) — firing four parallel calls per
@@ -932,6 +987,7 @@ watch(searchString, (val) => {
   if (!isUserTyping.value) return;
   intent.value = val ? classifyQuery(val) : null;
   if (val) {
+    fetchEdge(val);
     debouncedFetch(val);
   } else {
     debouncedFetch.cancel();
@@ -1048,6 +1104,7 @@ function resizeTextarea() {
 function onFocus() {
   isFocused.value = true;
   ensureIntentModel();   // lazy, idempotent: fetch the classifier weights on first focus (#1347)
+  edgeWarm(edgeEntity()); // flag edge_autocomplete: open the connection to the edge before the first keystroke
   if (suggestions.value.length > 0 && searchString.value) {
     dropdownOpen.value = true;
   }

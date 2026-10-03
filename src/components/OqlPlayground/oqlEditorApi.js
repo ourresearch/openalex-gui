@@ -11,6 +11,7 @@
 
 import axios from "axios";
 import { urlBase, axiosConfig } from "@/apiConfig";
+import { edgeOn, edgeSupports, edgeRows } from "@/edgeAutocomplete";
 
 const MAILTO = "mailto=ui@openalex.org";
 
@@ -88,6 +89,11 @@ export async function getProperties(entity) {
 // Entity-value lookup for id-kind value slots. Returns the raw results array
 // ({ id, short_id, display_name, hint, ... }).
 export async function autocompleteEntity(entity, q) {
+  // flag edge_autocomplete (oxjob #1529): from the edge, falling back to today's endpoint on an error or no rows
+  if (edgeOn() && edgeSupports(entity)) {
+    const rows = await edgeRows(entity, q || "");
+    if (rows) return rows;
+  }
   return _timed("autocomplete", async () => {
     const url = `${urlBase.api}/autocomplete/${entity}?${MAILTO}` +
       `&q=${encodeURIComponent(q || "")}`;

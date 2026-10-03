@@ -14,6 +14,7 @@ import {isListedInKey, listedInLabel} from "@/listedIn";
 import {getEntityConfig} from "@/entityConfigs";
 import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
 import store from "@/store";
+import {edgeOn, edgeSupports, edgeRows} from "@/edgeAutocomplete";
 
 const cache = {};
 
@@ -520,6 +521,12 @@ const api = (function () {
     };
 
     const getAutocomplete = async function(entityType, params, config) {
+        // Edge autocomplete (oxjob #1529, flag edge_autocomplete): every entity type but works, from the Cloudflare
+        // edge in this same row shape; null (error, slow, no rows) falls through to today's endpoints below.
+        if (edgeOn() && edgeSupports(entityType)) {
+            const rows = await edgeRows(entityType, params?.q || "");
+            if (rows) return rows;
+        }
         // /autocomplete/<type> only exists for native types + keywords. Small
         // closed vocabs (countries, work-types, sdgs, …) are searched locally
         // over the fetched-once full list (oxjob #396; generalizes zd#7567).
