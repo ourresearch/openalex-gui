@@ -123,6 +123,7 @@ export function worksFieldsForCollectionType(entityType) {
     return facetConfigs("works")
         .filter(c =>
             c.type === "selectEntity" &&
+            !c.hideFromPicker &&
             c.entityToSelect === entityType &&
             Array.isArray(c.actions) && c.actions.includes("filter") &&
             (c.isManyOptions === true || (typeof c.key === "string" && c.key.endsWith(".id")))

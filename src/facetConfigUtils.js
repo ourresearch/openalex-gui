@@ -1,5 +1,16 @@
 import {sortByKey} from "./util";
 import {facetConfigs, facetCategories, facetCategoriesIcons} from "./facetConfigs";
+import {canonicalPropertyKey} from "./metaCatalog";
+
+
+const findExactFacetConfig = (entityType, key) =>
+    facetConfigs().find(f => f.key === key && f.entityToFilter === entityType)
+
+// The canonical key the server folds an alias to (#655). Search keys are left as
+// typed: the search box owns their spelling (`default.search` stays the works
+// search key, not `fulltext.search`; see url.stripSearchClauses).
+const canonicalFacetKey = (entityType, key) =>
+    /\.search(\.exact)?$/.test(key) ? key : canonicalPropertyKey(entityType, key)
 
 
 /**
@@ -45,23 +56,37 @@ const getFacetConfig = function (entityType, key) {
         }
     }
 
-    // Facets are keyed on the CANONICAL server key (#455); fold the legacy alias
-    // spellings (still valid on input — old URLs, saved searches) to the canonical.
-    // Exact-match, not substring: "institutions.is_global_south" is a substring of
-    // authors' distinct "last_known_institutions.is_global_south" key.
-    if (key === "primary_location.source.publisher_lineage") {
-        key = "primary_location.source.host_organization_lineage"
-    } else if (key === "institutions.is_global_south") {
-        key = "authorships.institutions.is_global_south"
-    }
-
-    const myFacetConfig = facetConfigs().find(f => f.key === key && f.entityToFilter === entityType)
+    // Facets are keyed on the CANONICAL server key (#455). A key with no config of
+    // its own may be an alias spelling (still valid on input: old URLs, saved
+    // searches), so fall back to its canonical key via the server's alias map (#655).
+    // Exact match goes first because a few configs are keyed on an alias on
+    // purpose (the works `cites` and `is_oa` columns); filters fold those to
+    // canonical separately, in canonicalFilterKey().
+    const myFacetConfig = findExactFacetConfig(entityType, key)
+        ?? findExactFacetConfig(entityType, canonicalFacetKey(entityType, key))
     if (!myFacetConfig) {
         const msg = `openAlex error: getFacetConfig(): no facet found for '${entityType}' filter "${key}"`
         console.log(msg)
         return null
     }
     return myFacetConfig
+}
+
+
+/**
+ * The key a filter should carry: the canonical server key when the key is an
+ * alias the server folds to it AND the GUI has a facet for the canonical key
+ * (`openalex` -> `ids.openalex`, `is_oa` -> `open_access.is_oa` on works),
+ * otherwise the key unchanged. Chips, re-serialized URLs and OQL all speak
+ * canonical; aliases are only ever folded on input (#655).
+ *
+ * @param {string} entityType
+ * @param {string} key
+ * @returns {string}
+ */
+const canonicalFilterKey = function (entityType, key) {
+    const canonical = canonicalFacetKey(entityType, key)
+    return (canonical !== key && findExactFacetConfig(entityType, canonical)) ? canonical : key
 }
 
 
@@ -141,6 +166,7 @@ const facetsByCategory = function (
 
 export {
     getFacetConfig,
+    canonicalFilterKey,
     findFacetConfigs,
     facetsByCategory,
 }

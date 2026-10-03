@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash-es';
-import {getFacetConfig} from "./facetConfigUtils";
+import {getFacetConfig, canonicalFilterKey} from "./facetConfigUtils";
 import * as openalexId from "@/openalexId";
 
 
@@ -234,6 +234,7 @@ const createSimpleFilter = function (entityType, key, value, isNegated) {
             `OpenAlex: createSimpleFilter(): no key provided.`
         )
     }
+    key = canonicalFilterKey(entityType, key)
     const facetConfig = getFacetConfig(entityType, key)
     if (!facetConfig) {
         // Unknown filter key for this entity type (e.g. `is_oa` on /works —

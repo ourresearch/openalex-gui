@@ -1,7 +1,7 @@
 {
- "version": "14.1.0",
- "fingerprint": "4f595f9081b3516d13ffa97d5869807f1ed6009f32820a5bad03c53bb9e5c623",
- "generatedAt": "2026-09-25T14:33:03.844Z",
+ "version": "14.9.0",
+ "fingerprint": "3ead2503208471f506e8e5fcaf2aae909042c00c1a1324d471be065e1f60440c",
+ "generatedAt": "2026-10-03T20:19:04.299Z",
  "entities": {
   "authors": {
    "displayName": "authors",
@@ -134,6 +134,8 @@
    "last_known_institutions": "last known institutions",
    "last_known_institutions.continent": "last institution continent",
    "last_known_institutions.country_code": "institution country",
+   "last_known_institutions.geo.city": "institution city",
+   "last_known_institutions.geo.region": "institution region",
    "last_known_institutions.id": "institution",
    "last_known_institutions.is_global_south": "last institution is in Global South",
    "last_known_institutions.lineage": "last institution lineage",
@@ -158,7 +160,10 @@
    "topic_share": "topic share",
    "topic_share.id": "topic share",
    "topics": "topics",
+   "topics.domain.id": "domain",
+   "topics.field.id": "field",
    "topics.id": "topic",
+   "topics.subfield.id": "subfield",
    "updated_date": "updated date",
    "works_api_url": "works api url",
    "works_count": "works count",
@@ -181,6 +186,7 @@
    "funded_outputs": "funded outputs",
    "funded_outputs_count": "funded outputs count",
    "funder": "funder",
+   "funder.country_code": "funder country",
    "funder.doi": "funder DOI",
    "funder.id": "funder",
    "funder.ror": "funder ROR",
@@ -188,6 +194,7 @@
    "funder_name": "funder name",
    "funder_scheme": "funder scheme",
    "funding_type": "funding type",
+   "has_parent_award": "has parent award",
    "id": "OpenAlex ID",
    "institution_awarded": "institution awarded",
    "institution_awarded.continent": "institution awarded continent",
@@ -204,6 +211,10 @@
    "lead_investigator.family_name": "lead investigator family name",
    "lead_investigator.given_name": "lead investigator given name",
    "lead_investigator.orcid": "lead investigator orcid",
+   "parent_awards": "parent awards",
+   "parent_awards.funder.id": "parent awards funder id",
+   "parent_awards.id": "parent awards id",
+   "parent_awards.relationship": "parent awards relationship",
    "primary_topic": "primary topic",
    "primary_topic.domain.id": "domain",
    "primary_topic.field.id": "field",
@@ -213,6 +224,11 @@
    "relevance_score": "relevance score",
    "start_date": "start date",
    "start_year": "start year",
+   "sub_awards": "sub awards",
+   "sub_awards.funder.id": "sub awards funder id",
+   "sub_awards.id": "sub awards id",
+   "sub_awards.relationship": "sub awards relationship",
+   "sub_awards_count": "sub awards count",
    "text.search": "text",
    "topics": "topics",
    "topics.domain.id": "topics domain id",
@@ -425,6 +441,8 @@
    "from_created_date": "from created date",
    "from_updated_date": "from updated date",
    "geo": "geo",
+   "geo.city": "city",
+   "geo.region": "region",
    "has_ror": "has ror",
    "homepage_url": "homepage",
    "id": "id",
@@ -453,7 +471,10 @@
    "topic_share": "topic share",
    "topic_share.id": "topic share",
    "topics": "topics",
+   "topics.domain.id": "domain",
+   "topics.field.id": "field",
    "topics.id": "topic",
+   "topics.subfield.id": "subfield",
    "type": "institution type",
    "type_id": "type id",
    "updated_date": "updated date",
@@ -466,11 +487,14 @@
    "cited_by_count": "citation count",
    "collection": "collection",
    "created_date": "created date",
+   "description": "description",
    "display_name": "name",
    "display_name.search": "display name",
+   "display_name_alternatives": "alternate names",
    "from_created_date": "from created date",
    "from_updated_date": "from updated date",
    "id": "id",
+   "ids": "ids",
    "relevance_score": "relevance score",
    "text.search": "text",
    "updated_date": "updated date",
@@ -511,6 +535,7 @@
    "works_count": "works count"
   },
   "locations": {
+   "collection": "collection",
    "endpoint_id": "endpoint id",
    "id": "location ID",
    "ids": "ids",
@@ -668,6 +693,7 @@
    "has_issn": "has issn",
    "homepage_url": "homepage",
    "host_organization": "publisher",
+   "host_organization.country_code": "publisher country",
    "host_organization.id": "host organization",
    "host_organization_lineage": "host organization lineage",
    "host_organization_name": "host organization name",
@@ -709,6 +735,7 @@
    "topics.domain.id": "domain",
    "topics.field.id": "field",
    "topics.id": "topic",
+   "topics.subfield.id": "subfield",
    "type": "source type",
    "updated_date": "updated date",
    "works_api_url": "works api url",
@@ -825,6 +852,8 @@
    "authorships.countries": "country",
    "authorships.institutions.continent": "continent",
    "authorships.institutions.country_code": "institution country",
+   "authorships.institutions.geo.city": "institution city",
+   "authorships.institutions.geo.region": "institution region",
    "authorships.institutions.id": "exact institution",
    "authorships.institutions.is_global_south": "global south",
    "authorships.institutions.lineage": "institution",
@@ -894,6 +923,7 @@
    "fulltext.search.exact": "fulltext",
    "fulltext_origin": "fulltext origin",
    "funders": "funders",
+   "funders.country_code": "funder country",
    "funders.id": "funder",
    "fwci": "FWCI",
    "has_abstract": "has abstract",
@@ -966,15 +996,23 @@
    "primary_location.landing_page_url": "landing page URL",
    "primary_location.license": "license",
    "primary_location.raw_type": "location type (raw)",
+   "primary_location.source.country_code": "source country",
    "primary_location.source.has_issn": "has ISSN",
    "primary_location.source.host_organization": "host organization",
+   "primary_location.source.host_organization.country_code": "publisher country",
    "primary_location.source.host_organization_lineage": "publisher",
    "primary_location.source.id": "source",
    "primary_location.source.is_core": "CWTS core",
+   "primary_location.source.is_global_south": "source global south",
+   "primary_location.source.is_high_oa_rate": "source high OA rate",
    "primary_location.source.is_in_doaj": "DOAJ",
    "primary_location.source.is_oa": "OA source",
+   "primary_location.source.is_ojs": "source OJS",
+   "primary_location.source.is_preprint_repository": "source preprint repository",
    "primary_location.source.issn": "ISSN",
    "primary_location.source.listed_in": "source listed in",
+   "primary_location.source.summary_stats.2yr_mean_citedness": "source 2-year mean citedness",
+   "primary_location.source.summary_stats.h_index": "source h-index",
    "primary_location.source.type": "source type",
    "primary_location.version": "primary version",
    "primary_topic": "primary topic",
@@ -1022,6 +1060,140 @@
    "versions": "versions",
    "x_sdgs": "x sdgs",
    "x_sdgs.id": "experimental SDGs"
+  }
+ },
+ "aliases": {
+  "authors": {
+   "openalex": "ids.openalex",
+   "openalex_id": "ids.openalex",
+   "default.search": "text.search",
+   "concept.id": "x_concepts.id",
+   "concepts.id": "x_concepts.id"
+  },
+  "awards": {
+   "default.search": "text.search"
+  },
+  "concepts": {
+   "openalex": "ids.openalex",
+   "openalex_id": "ids.openalex",
+   "default.search": "text.search"
+  },
+  "continents": {
+   "default.search": "text.search"
+  },
+  "countries": {
+   "default.search": "text.search"
+  },
+  "domains": {
+   "default.search": "text.search"
+  },
+  "fields": {
+   "default.search": "text.search"
+  },
+  "funders": {
+   "openalex": "ids.openalex",
+   "openalex_id": "ids.openalex",
+   "ror": "ids.ror",
+   "wikidata": "ids.wikidata",
+   "default.search": "text.search"
+  },
+  "indexes": {
+   "default.search": "text.search"
+  },
+  "institution-types": {
+   "default.search": "text.search"
+  },
+  "institutions": {
+   "openalex": "ids.openalex",
+   "openalex_id": "ids.openalex",
+   "default.search": "text.search",
+   "concept.id": "x_concepts.id",
+   "concepts.id": "x_concepts.id"
+  },
+  "keywords": {
+   "default.search": "text.search"
+  },
+  "languages": {
+   "default.search": "text.search"
+  },
+  "licenses": {
+   "default.search": "text.search"
+  },
+  "locations": {
+   "default.search": "text.search"
+  },
+  "oa-statuses": {
+   "default.search": "text.search"
+  },
+  "publishers": {
+   "openalex": "ids.openalex",
+   "openalex_id": "ids.openalex",
+   "ror": "ids.ror",
+   "wikidata": "ids.wikidata",
+   "default.search": "text.search"
+  },
+  "sdgs": {
+   "default.search": "text.search"
+  },
+  "source-lists": {
+   "default.search": "text.search"
+  },
+  "source-types": {
+   "default.search": "text.search"
+  },
+  "sources": {
+   "openalex": "ids.openalex",
+   "openalex_id": "ids.openalex",
+   "default.search": "text.search",
+   "concept.id": "x_concepts.id",
+   "concepts.id": "x_concepts.id"
+  },
+  "study-designs": {
+   "default.search": "text.search"
+  },
+  "subfields": {
+   "default.search": "text.search"
+  },
+  "topics": {
+   "openalex": "ids.openalex",
+   "default.search": "text.search"
+  },
+  "work-types": {
+   "default.search": "text.search"
+  },
+  "works": {
+   "author.id": "authorships.author.id",
+   "author.orcid": "authorships.author.orcid",
+   "institutions.continent": "authorships.institutions.continent",
+   "institutions.country_code": "authorships.institutions.country_code",
+   "institution.id": "authorships.institutions.id",
+   "institutions.id": "authorships.institutions.id",
+   "institutions.is_global_south": "authorships.institutions.is_global_south",
+   "institutions.ror": "authorships.institutions.ror",
+   "institutions.type": "authorships.institutions.type",
+   "is_corresponding": "authorships.is_corresponding",
+   "best_oa_location.license_id": "best_oa_location.license",
+   "concept.id": "concepts.id",
+   "title.search": "display_name.search",
+   "title.search.exact": "display_name.search.exact",
+   "default.search": "fulltext.search",
+   "default.search.exact": "fulltext.search.exact",
+   "mag": "ids.mag",
+   "openalex": "ids.openalex",
+   "openalex_id": "ids.openalex",
+   "pmcid": "ids.pmcid",
+   "pmid": "ids.pmid",
+   "locations.license_id": "locations.license",
+   "locations.source.host_institution_lineage": "locations.source.host_organization_lineage",
+   "locations.source.publisher_lineage": "locations.source.host_organization_lineage",
+   "version": "locations.version",
+   "is_oa": "open_access.is_oa",
+   "oa_status": "open_access.oa_status",
+   "primary_location.license_id": "primary_location.license",
+   "primary_location.source.host_institution_lineage": "primary_location.source.host_organization_lineage",
+   "primary_location.source.publisher_lineage": "primary_location.source.host_organization_lineage",
+   "journal": "primary_location.source.id",
+   "cites": "referenced_works"
   }
  }
 }

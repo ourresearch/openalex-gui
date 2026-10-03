@@ -7,6 +7,7 @@
 //
 // Usage: node scripts/generate-meta-snapshot.mjs [apiBase]
 //   apiBase defaults to https://api.openalex.org
+//   Sends OPENALEX_API_KEY from the environment when set (keyless calls can 429).
 
 import fs from "node:fs";
 import path from "node:path";
@@ -25,10 +26,17 @@ const OUT = path.join(
 // both reduce the server payloads to exactly the keys the GUI derives.
 const trim = (propsPayload, entitiesPayload) => {
   const properties = {};
+  const aliases = {};
   for (const [entity, props] of Object.entries(propsPayload.properties)) {
     properties[entity] = {};
+    aliases[entity] = {};
     for (const [key, p] of Object.entries(props)) {
       if (p.display_name) properties[entity][key] = p.display_name;
+      // alias -> canonical (#655). Skip an alias that is also a canonical key of
+      // this entity (`id` on authors/institutions/topics): ambiguous, keep exact.
+      for (const alias of p.alternate_keys ?? []) {
+        if (!(alias in props)) aliases[entity][alias] = key;
+      }
     }
   }
   const entities = {};
@@ -44,11 +52,13 @@ const trim = (propsPayload, entitiesPayload) => {
     generatedAt: new Date().toISOString(),
     entities,
     properties,
+    aliases,
   };
 };
 
+const API_KEY = process.env.OPENALEX_API_KEY;
 const getJson = async (url) => {
-  const resp = await fetch(url);
+  const resp = await fetch(API_KEY ? `${url}&api_key=${API_KEY}` : url);
   if (!resp.ok) throw new Error(`${url} -> HTTP ${resp.status}`);
   return resp.json();
 };
@@ -67,5 +77,6 @@ const nProps = Object.values(snapshot.properties).reduce(
 );
 console.log(
   `wrote ${path.relative(process.cwd(), OUT)}: properties_version ${snapshot.version}, ` +
-    `${Object.keys(snapshot.entities).length} entities, ${nProps} property labels`
+    `${Object.keys(snapshot.entities).length} entities, ${nProps} property labels, ` +
+    `${Object.values(snapshot.aliases).reduce((n, m) => n + Object.keys(m).length, 0)} key aliases`
 );

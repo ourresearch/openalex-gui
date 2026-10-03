@@ -385,6 +385,25 @@ const facetConfigs = function (entityType) {
             },
         },
         {
+            // The server's "exact institution" filter: works with an author at this
+            // institution itself, NOT its child institutions (that's `.lineage`
+            // above, the curated "institution" facet). Keep them distinct; the
+            // counts differ. This config exists so `institutions.id:` /
+            // `authorships.institutions.id:` URLs render a chip and stay in Basic
+            // mode; hidden from the pickers so they keep offering one
+            // "institution" (#655).
+            key: "authorships.institutions.id",
+            entityToFilter: "works",
+            entityToSelect: "institutions",
+            type: "selectEntity",
+            isManyOptions: true,
+            category: "institution",
+            actions: ["filter",],
+            actionsPopular: [],
+            hideFromPicker: true,
+            icon: "mdi-town-hall",
+        },
+        {
             key: "authorships.institutions.ror",
             entityToFilter: "works",
             entityToSelect: "institutions",

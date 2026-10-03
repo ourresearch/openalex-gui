@@ -10,10 +10,11 @@
 // blocks or breaks on catalog availability.
 //
 // What is derived from the catalog today: facet displayNames (see
-// facetConfigs.js — authored values win where they exist) and entity
-// displayName/displayNameSingular (see entityConfigs.js). The other config
-// keys are client vocabularies (type/actions/category) or client-only concerns;
-// widening what the server carries is oxjob #795.
+// facetConfigs.js — authored values win where they exist), entity
+// displayName/displayNameSingular (see entityConfigs.js), and the filter-key
+// alias map (`alternate_keys`, folded to canonical by facetConfigUtils, #655).
+// The other config keys are client vocabularies (type/actions/category) or
+// client-only concerns; widening what the server carries is oxjob #795.
 //
 // This module must stay importable with no `window` (vitest runs environment:
 // 'node'), so apiConfig — which reads window.location at module scope — is
@@ -37,12 +38,23 @@ const catalog = reactive({
   properties: Object.fromEntries(
     Object.entries(snapshot.properties).map(([e, m]) => [e, { ...m }])
   ),
+  // entity -> { aliasKey -> canonicalKey }
+  aliases: Object.fromEntries(
+    Object.entries(snapshot.aliases ?? {}).map(([e, m]) => [e, { ...m }])
+  ),
 });
 
 // The server's display_name for a property, or undefined if the server doesn't
 // know the (entityType, key) pair. entityType is the GUI name (e.g. "types").
 const getPropertyDisplayName = (entityType, key) =>
   catalog.properties[serverEntityId(entityType)]?.[key];
+
+// The canonical key for a filter key the server accepts as an alias of it
+// (`openalex` -> `ids.openalex`, `author.id` -> `authorships.author.id`), else
+// the key unchanged. The server publishes the map as each property's
+// `alternate_keys`; never hand-maintain it here.
+const canonicalPropertyKey = (entityType, key) =>
+  catalog.aliases[serverEntityId(entityType)]?.[key] ?? key;
 
 // The server's identity block for an entity ({displayName,
 // displayNameSingular}), or undefined (e.g. "locations", which /meta/entities
@@ -63,8 +75,12 @@ const onCatalogUpdated = (cb) => {
 const mergePayloads = (propsPayload, entitiesPayload) => {
   for (const [entity, props] of Object.entries(propsPayload.properties)) {
     const m = catalog.properties[entity] ?? (catalog.properties[entity] = {});
+    const a = catalog.aliases[entity] ?? (catalog.aliases[entity] = {});
     for (const [key, p] of Object.entries(props)) {
       if (p.display_name) m[key] = p.display_name;
+      for (const alias of p.alternate_keys ?? []) {
+        if (!(alias in props)) a[alias] = key;
+      }
     }
   }
   for (const e of entitiesPayload.results) {
@@ -108,6 +124,7 @@ const fetchMetaCatalog = () => {
 export {
   catalog,
   getPropertyDisplayName,
+  canonicalPropertyKey,
   getEntityIdentity,
   onCatalogUpdated,
   fetchMetaCatalog,
