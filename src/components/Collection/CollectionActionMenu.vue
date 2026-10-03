@@ -156,12 +156,14 @@
     </v-card>
   </v-dialog>
 
+  <!-- "Select all" can only add, and only with the search to add (ZD#22369,
+       oxjob #1527): removing every result of a search isn't offered. -->
   <v-dialog v-model="enumerationBlockedDialog" max-width="440">
     <v-card>
       <v-card-title>Select rows individually</v-card-title>
       <v-card-text>
-        Collections work one row at a time. Uncheck <strong>Select all</strong> and
-        pick rows individually before adding them to a collection.
+        To remove results from a collection, uncheck <strong>Select all</strong> and
+        pick the rows to remove.
       </v-card-text>
       <v-card-actions>
         <v-spacer />
@@ -201,32 +203,61 @@
     </v-card>
   </v-dialog>
 
+  <!-- "Select all" adds the search's results on the server (ZD#22369, oxjob #1527). -->
+  <v-dialog v-model="importDialog.open" max-width="480">
+    <v-card>
+      <v-card-title>Adding to "{{ importDialog.collection?.display_name }}"</v-card-title>
+      <v-card-text>
+        <collection-import-progress
+          v-if="importDialog.import"
+          :collection-id="importDialog.collection.id"
+          :initial="importDialog.import"
+          :noun="entityType"
+          @finished="onImportFinished"
+        />
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="importDialog.open = false">Close</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
   <collection-quick-create-dialog
     v-model="showQuickCreate"
     :z-index="zIndex == null ? undefined : zIndex + 2"
     :entity-type="collectionEntityType"
-    :entity-ids="selectedShortIds"
+    :entity-ids="isSelectAll ? [] : selectedShortIds"
+    :import-source="isSelectAll ? importSource : null"
+    :result-count="selectedCount"
+    :exclude-ids="isSelectAll ? excludeShortIds : []"
     @created="onQuickCreated"
   />
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, reactive } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import CollectionQuickCreateDialog from "@/components/Collection/CollectionQuickCreateDialog.vue";
+import CollectionImportProgress from "@/components/Collection/CollectionImportProgress.vue";
 import * as openalexId from "@/openalexId";
+import { MAX_MEMBERS_PER_COLLECTION as MAX_ENTITIES_PER_COLLECTION, MAX_EXCLUDE_IDS } from "@/collectionLimits";
 
 defineOptions({ name: "CollectionActionMenu" });
-
-// Mirrors openalex-users-api collection_validators.MAX_ENTITIES_PER_COLLECTION.
-const MAX_ENTITIES_PER_COLLECTION = 1000;
 
 const props = defineProps({
   entityType: { type: String, required: true },
   // Full ES URLs from the SERP. Canonicalized to short form below.
   selectedIds: { type: Array, default: () => [] },
   enumerationBlocked: { type: Boolean, default: false },
+  // "Select all" over more rows than the page holds (oxjob #1527): the search to add,
+  // as {query} or {oql} (collectionImportSource.js), how many rows that is, and the
+  // rows unticked since. With a source, the menu adds them on the server instead of
+  // refusing (ZD#22369).
+  importSource: { type: Object, default: null },
+  selectedCount: { type: Number, default: 0 },
+  excludedIds: { type: Array, default: () => [] },
   // Optional tooltip content-class (#440 r12): flag-on SERP passes
   // 'linear-tooltip'; default keeps the app-standard tooltip style.
   tooltipClass: { type: String, default: '' },
@@ -259,6 +290,13 @@ const overCapDialog = ref(false);
 const overflowDialog = ref(false);
 const overflowCollection = ref(null);
 const overflowAddCount = ref(0);
+const importDialog = reactive({ open: false, collection: null, import: null });
+
+// Select-all mode with a search to add: Add runs on the server.
+const isSelectAll = computed(() => props.enumerationBlocked && !!props.importSource);
+const excludeShortIds = computed(() =>
+  props.excludedIds.map((id) => openalexId.toCollectionEntityId(id) || id)
+);
 
 const collections = computed(() => store.state.collections?.collections || []);
 const collectionsLoaded = computed(() => !!store.state.collections?.loaded);
@@ -307,8 +345,9 @@ const entityTypeSingular = computed(() => {
 // are in the collection), 'remove' (all are in), or 'mixed' (some are).
 // Sourced from pageCollectionsByEntity, populated by per-row EntityCollectionsRow
 // instances on the SERP. Only authoritative for currently-rendered rows; in
-// select-all mode `enumerationBlocked` gates the menu from opening at all.
+// select-all mode the menu only adds, on the server (startSelectAllImport).
 function rowState(collection) {
+  if (isSelectAll.value) return "add";
   if (props.memberCollectionIds) {
     return props.memberCollectionIds.includes(collection.id) ? "remove" : "add";
   }
@@ -333,11 +372,11 @@ function onActivatorClick() {
     noSelectionDialog.value = true;
     return;
   }
-  if (props.enumerationBlocked) {
+  if (props.enumerationBlocked && (!props.importSource || props.excludedIds.length > MAX_EXCLUDE_IDS)) {
     enumerationBlockedDialog.value = true;
     return;
   }
-  if (selectedShortIds.value.length > MAX_ENTITIES_PER_COLLECTION) {
+  if (!isSelectAll.value && selectedShortIds.value.length > MAX_ENTITIES_PER_COLLECTION) {
     overCapDialog.value = true;
     return;
   }
@@ -362,6 +401,11 @@ function onSubmenuToggle(id, isOpen) {
 
 async function onApply(collection, op) {
   if (pendingCollectionId.value) return;
+  if (isSelectAll.value) {
+    if (op === "add") await startSelectAllImport(collection);
+    else enumerationBlockedDialog.value = true;
+    return;
+  }
   const ids = selectedShortIds.value;
   if (!ids.length || (op !== "add" && op !== "remove")) return;
 
@@ -412,6 +456,39 @@ async function onApply(collection, op) {
   }
 }
 
+// Every result of the search, minus unticked rows, added on the server; the
+// collection fills to its limit (ZD#22369, oxjob #1527).
+async function startSelectAllImport(collection) {
+  pendingCollectionId.value = collection.id;
+  try {
+    const imp = await store.dispatch("collections/startImport", {
+      id: collection.id, source: props.importSource, exclude_ids: excludeShortIds.value,
+    });
+    Object.assign(importDialog, { open: true, collection, import: imp });
+    menuOpen.value = false;
+    // "applied" waits until the progress dialog closes: the SERP clears the selection
+    // on it, which unmounts this menu, dialog and all.
+  } catch (e) {
+    store.commit("snackbar", {
+      msg: e.response?.data?.message || "Could not add the results.",
+      color: "error",
+    });
+  } finally {
+    pendingCollectionId.value = null;
+  }
+}
+
+watch(() => importDialog.open, (open) => {
+  if (!open) emit("applied");
+});
+
+function onImportFinished(imp) {
+  if (importDialog.collection) store.dispatch("collections/importFinished", importDialog.collection.id);
+  if (!importDialog.open && imp.status === "done") {
+    store.commit("snackbar", `Added ${(imp.added || 0).toLocaleString()} to "${importDialog.collection?.display_name}".`);
+  }
+}
+
 function onNewCollection() {
   menuOpen.value = false;
   showQuickCreate.value = true;
@@ -422,9 +499,18 @@ function onManage() {
   router.push("/settings/collections");
 }
 
+// "applied" waits until the create dialog closes, for the same reason as the
+// import dialog: a create from "Select all" shows its import's progress there.
+let createdSinceOpen = false;
 function onQuickCreated() {
-  emit("applied");
+  createdSinceOpen = true;
 }
+watch(showQuickCreate, (open) => {
+  if (!open && createdSinceOpen) {
+    createdSinceOpen = false;
+    emit("applied");
+  }
+});
 </script>
 
 <style scoped>

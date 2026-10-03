@@ -146,8 +146,8 @@
                   variant="outlined"
                   density="compact"
                   label="Name"
-                  maxlength="30"
-                  counter="30"
+                  :maxlength="MAX_DISPLAY_NAME_LENGTH"
+                  :counter="MAX_DISPLAY_NAME_LENGTH"
                   :error-messages="apiError"
                 />
                 <v-textarea
@@ -198,6 +198,7 @@
 
 <script setup>
 import { ref, computed, watch } from "vue";
+import { MAX_DISPLAY_NAME_LENGTH, MAX_MEMBER_IDS_PER_REQUEST } from "@/collectionLimits";
 import { useStore } from "vuex";
 import { resolveIds, enrichDisplayNames } from "@/collectionResolve";
 import PeopleCollectionWarningDialog from "@/components/Collection/PeopleCollectionWarningDialog.vue";
@@ -242,7 +243,9 @@ const EXTERNAL_HINTS = {
   sources: "ISSNs",
 };
 
-const MAX_INPUT_LINES = 1000;
+// One create request takes up to 10,000 IDs (oxjob #1527); bigger lists go through
+// the API in batches, or "Save results as a collection" on a search.
+const MAX_INPUT_LINES = MAX_MEMBER_IDS_PER_REQUEST;
 
 const props = defineProps({
   modelValue: Boolean,

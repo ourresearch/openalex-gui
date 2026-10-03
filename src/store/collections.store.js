@@ -308,6 +308,69 @@ export default {
             commit("bumpEntityMutations");
         },
 
+        // Imports (oxjob #1527): a search's results added on the server. `source` is
+        // {query} or {oql} (collectionImportSource.js); `exclude_ids` leaves out rows
+        // unticked under "Select all". Returns the import: {id, status, progress,
+        // result_count, added, already_present, stopped_at_limit, error}.
+        async startImport(_ctx, { id, source, exclude_ids }) {
+            const body = { ...source };
+            if (exclude_ids?.length) body.exclude_ids = exclude_ids;
+            const resp = await axios.post(
+                `${collectionsUrl}/${enc(id)}/imports`,
+                body,
+                axiosConfig({ userAuth: true })
+            );
+            return resp.data;
+        },
+
+        async fetchImport(_ctx, { id, importId }) {
+            const resp = await axios.get(
+                `${collectionsUrl}/${enc(id)}/imports/${enc(importId)}`,
+                axiosConfig({ userAuth: true })
+            );
+            return resp.data;
+        },
+
+        // The collection's latest imports, newest first (owner only).
+        async fetchImports(_ctx, id) {
+            const resp = await axios.get(
+                `${collectionsUrl}/${enc(id)}/imports`,
+                axiosConfig({ userAuth: true })
+            );
+            return resp.data?.results || [];
+        },
+
+        // An import finished: its members changed, so re-read the collection's count.
+        async importFinished({ commit }, id) {
+            try {
+                const resp = await axios.get(
+                    `${collectionsUrl}/${enc(id)}`,
+                    axiosConfig({ userAuth: true })
+                );
+                commit("updateCollection", normalizeCollection(resp.data));
+            } catch {
+                // The count refreshes on the next full load.
+            }
+            commit("bumpEntityMutations");
+        },
+
+        // Every member as CSV (id, added_at), saved as a file (oxjob #1527): how a
+        // collection too big to filter live still exports.
+        async downloadMembersCsv(_ctx, id) {
+            const resp = await axios.get(
+                `${collectionsUrl}/${enc(id)}/members?format=csv`,
+                { ...axiosConfig({ userAuth: true }), responseType: "blob" }
+            );
+            const href = URL.createObjectURL(resp.data);
+            const a = document.createElement("a");
+            a.href = href;
+            a.download = `openalex_${id}_members.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(href);
+        },
+
         // A page of members: {meta: {count, page, per_page}, results: [{id, added_at}]}.
         async fetchEntities(_ctx, { id, page = 1, per_page = 200 }) {
             const resp = await axios.get(

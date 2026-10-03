@@ -417,6 +417,26 @@ function toCollectionEntityType(guiEntityType) {
     return guiEntityType === 'types' ? 'work-types' : guiEntityType;
 }
 
+// Every users-api SUPPORTED_ENTITY_TYPES name: what a collection can hold.
+const COLLECTION_ENTITY_TYPES = new Set([
+  // original 10 (collections-v1)
+  'works', 'authors', 'sources', 'institutions', 'topics',
+  'sdgs', 'funders', 'publishers', 'keywords', 'concepts',
+  // #394 widen; work-types re-enabled by #396
+  'domains', 'fields', 'subfields', 'countries', 'continents',
+  'languages', 'licenses', 'oa-statuses', 'source-types',
+  'institution-types', 'awards', 'work-types',
+  // #672 indexes registry entity
+  'indexes',
+  // #1524 locations, by their namespaced ids (doi:10.7717/peerj.4375), stored verbatim
+  'locations',
+]);
+
+// True when a GUI page type (`types`, `works`...) can go in a collection.
+function isCollectibleEntityType(guiEntityType) {
+    return COLLECTION_ENTITY_TYPES.has(toCollectionEntityType(guiEntityType));
+}
+
 function fromCollectionEntityType(collectionEntityType) {
     return collectionEntityType === 'work-types' ? 'types' : collectionEntityType;
 }
@@ -488,6 +508,8 @@ export {
 
     // Collections (oxjob #396)
     toCollectionEntityType,
+    isCollectibleEntityType,
+    COLLECTION_ENTITY_TYPES,
     fromCollectionEntityType,
     toCollectionEntityId,
 

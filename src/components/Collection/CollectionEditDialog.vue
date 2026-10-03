@@ -9,8 +9,8 @@
           variant="outlined"
           density="compact"
           label="Name"
-          maxlength="30"
-          counter="30"
+          :maxlength="MAX_DISPLAY_NAME_LENGTH"
+          :counter="MAX_DISPLAY_NAME_LENGTH"
           :error-messages="apiError"
         />
         <v-textarea
@@ -35,6 +35,7 @@
 
 <script setup>
 import { ref, watch } from "vue";
+import { MAX_DISPLAY_NAME_LENGTH } from "@/collectionLimits";
 import { useStore } from "vuex";
 
 const props = defineProps({

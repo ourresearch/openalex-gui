@@ -59,6 +59,9 @@
               :entity-type="entityType"
               :selected-ids="effectiveSelectedIds"
               :enumeration-blocked="enumerationBlocked"
+            :import-source="collectionImportSource"
+            :selected-count="selectedCount"
+            :excluded-ids="selection.excludedIds"
               class="ml-1"
               @applied="onCollectionsApplied"
             />
@@ -194,6 +197,9 @@
             :entity-type="entityType"
             :selected-ids="effectiveSelectedIds"
             :enumeration-blocked="enumerationBlocked"
+            :import-source="collectionImportSource"
+            :selected-count="selectedCount"
+            :excluded-ids="selection.excludedIds"
             class="ml-1"
             @applied="onCollectionsApplied"
           />
@@ -263,6 +269,7 @@ import SerpApiEditor from '@/components/SerpApiEditor.vue';
 import SearchBox from '@/components/SearchBox.vue';
 import SearchErrorAlert from '@/components/SearchErrorAlert.vue';
 import FilterStyleMenu from '@/components/FilterStyleMenu.vue';
+import { importSource } from '@/collectionImportSource';
 
 defineOptions({ name: 'ExpertSerp' });
 
@@ -390,6 +397,10 @@ const enumerationBlocked = computed(() => {
   const s = selection.value;
   return s.selectAllMode && s.totalCount > s.loadedIds.length;
 });
+// "Select all" adds the search's results on the server (ZD#22369, oxjob #1527).
+const collectionImportSource = computed(() =>
+  importSource(props.resultsObject, route.query, entityType.value)
+);
 
 // After any CollectionActionMenu add/remove (or Create-and-assign via the dialog
 // inside the menu), clear the SERP selection. The per-row collection chips
