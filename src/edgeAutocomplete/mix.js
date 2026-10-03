@@ -17,9 +17,9 @@ export function planMix(q, builds) {
 
 // tree entry [id, label, display|0, works, pop*100, hint|0, cited, ext|0] -> front-page entry [t, id, label, display|0, works, pop*100, hint|0]
 function asFront(t, e) {
-  const f = [t, e[0], e[1], e[2], e[3], e[4], e[5]];
-  f.tree = e;
-  return f;
+  // kept on the entry, so a node cached across requests also keeps its front-page entries' normalised tokens
+  if (!e.front) { e.front = [t, e[0], e[1], e[2], e[3], e[4], e[5]]; e.front.tree = e; }
+  return e.front;
 }
 
 // labels contained whole in a long string, from the complete-word nodes along each type's chains ("ENSO Colombia

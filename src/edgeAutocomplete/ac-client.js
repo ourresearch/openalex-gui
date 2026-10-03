@@ -67,9 +67,11 @@ export class EdgeAutocomplete {
   }
 
   plan(entity, q) { return entity === "mix" ? planMix(q, this.builds) : planEntity(entity, q, this.builds); }
-  // null when the browser cannot answer by itself (including a type whose build it has not learned yet)
+  // null when the browser cannot answer by itself (including a type whose build it has not learned yet). The front-page
+  // mix is always asked of the edge, rows only: its nodes span ~6 types (~120 KB gzipped per keystroke, 2026-10-03),
+  // too much to ship for local answers; one small request is faster.
   local(entity, p) {
-    if (entity === "mix") return p.parts.length ? answerMix(p, this.look, this.nodeOf, { local: true }) : null;
+    if (entity === "mix") return null;
     if (p.notReady) return null;
     return answerEntity(p, this.look, this.nodeOf, { local: true, k: 10 });
   }
@@ -117,7 +119,7 @@ export class EdgeAutocomplete {
   }
 
   url(entity, q) {
-    return entity === "mix" ? `${this.base}/ac?q=${encodeURIComponent(q)}` : `${this.base}/autocomplete/${entity}?q=${encodeURIComponent(q)}`;
+    return entity === "mix" ? `${this.base}/ac?lite=1&q=${encodeURIComponent(q)}` : `${this.base}/autocomplete/${entity}?q=${encodeURIComponent(q)}`;
   }
 
   edge(entity, q, cur, finish) {
@@ -154,7 +156,7 @@ export class EdgeAutocomplete {
 
   // one keystroke ahead: children of the heavy nodes the next character would extend
   prefetchNext(entity, q) {
-    if (!q.trim()) return;
+    if (!q.trim() || entity === "mix") return;
     const p = this.plan(entity, q);
     const ps = (entity === "mix" ? nextParentsMix(p, this.look) : nextParentsEntity(p, this.look)).filter((k) => !this.asked.has(k));
     if (!ps.length) return;
