@@ -1002,9 +1002,11 @@ watch(
 /* Basic-mode search card: white body (the search box) + a clearly-separated white
    footer (the filter chips), full-width top border so it reads as a real footer. */
 /* overflow stays visible: `hidden` clipped the search box's autocomplete dropdown to ~1.5 rows (oxjob #1529); the
-   footer keeps the card's rounded bottom corners itself */
+   footer keeps the card's rounded bottom corners itself. z-index 2: Vuetify's .v-card z-index 0 made the card its own
+   stacking context, so the results card below painted over the dropdown */
 .search-card {
   overflow: visible;
+  z-index: 2;
 }
 .search-card-body {
   padding: 6px 10px;
