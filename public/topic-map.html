@@ -277,7 +277,7 @@ function resize() {
   const bottom = mobile && card.classList.contains("open") ? Math.min(card.offsetHeight + 8, H * 0.5) : 0;
   const avail = H - top - bottom;
   cx = W / 2; cy = top + avail / 2;
-  const labelRoom = mobile ? 40 : 44;
+  const labelRoom = mobile ? 40 : 190; // desktop: room beside the circle for search notes
   const fit = Math.max(110, Math.min(W / 2 - labelRoom, avail / 2 - (mobile ? 30 : 34)));
   OR = fit / (R.topic + R.spoke + 0.035);
   draw();
