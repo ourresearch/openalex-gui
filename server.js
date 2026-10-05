@@ -69,6 +69,11 @@ const MISSING_FILE = /^\/((js|css|fonts|img)\/|(brand-assets\/)?[^/]+\.\w+$)/i;
 const shell = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
 let companyPageHtml = new Map();
 
+// The topic map (oxjob #1558): one standalone page in public/, at a clean URL.
+app.get('/topic-map', function (req, res) {
+    res.set('Cache-Control', 'no-cache').sendFile(path.join(dist, 'topic-map.html'));
+});
+
 app.get('*', function (req, res) {
     if (MISSING_FILE.test(req.path)) {
         res.status(404).type('text/plain').send('Not found');
