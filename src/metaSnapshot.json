@@ -1,7 +1,7 @@
 {
- "version": "15.0.0",
+ "version": "15.1.0",
  "fingerprint": "7880ee5f602333054eaa087959b9f7de0e228c610f19b6eee7d28ad87b65d864",
- "generatedAt": "2026-10-05T18:15:41.793Z",
+ "generatedAt": "2026-10-05T20:47:54.515Z",
  "entities": {
   "authors": {
    "displayName": "authors",
