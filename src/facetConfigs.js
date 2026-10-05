@@ -2488,9 +2488,10 @@ const facetConfigs = function (entityType) {
             actions: ["column"],
             actionsPopular: [],
             icon: "mdi-tag-outline",
+            // oxjob #1307: keyword objects {id, display_name, score}, the topic's top 25 by works.
             extractFn: (entity) => entity.keywords,
             noIdsSibling: true,
-            column: { render: { kind: "stringList" } },
+            column: { render: { kind: "entityList", itemLabelField: "display_name", itemLinkField: "id" } },
         },
         {
             key: "siblings",
@@ -3758,6 +3759,33 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-web",
             extractFn: (e) => e.ids?.wikidata,
+        },
+        // oxjob #1307: keywords by their topics (score = share of the keyword's works in the topic).
+        {
+            key: "primary_topic.id",
+            entityToFilter: "keywords",
+            displayName: "topic",
+            entityToSelect: "topics",
+            type: "selectEntity",
+            isManyOptions: true,
+            category: "other",
+            actions: ["filter", "group_by"],
+            actionsPopular: ["filter", "group_by"],
+            icon: "mdi-tag-outline",
+            extractFn: (entity) => entity.primary_topic,
+        },
+        {
+            key: "topics.id",
+            entityToFilter: "keywords",
+            displayName: "topics",
+            entityToSelect: "topics",
+            type: "selectEntity",
+            isManyOptions: true,
+            category: "other",
+            actions: ["filter"],
+            actionsPopular: [],
+            icon: "mdi-tag-outline",
+            extractFn: (entity) => entity.topics,
         },
         // ------------------------------------------------------------------
         // Strict GUI==OQL parity additions (oxjob #573, generated): every

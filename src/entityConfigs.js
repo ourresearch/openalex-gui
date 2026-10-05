@@ -372,6 +372,8 @@ const entityConfigs = reactive({
         rowsToShowOnEntityPage: [
             "description",
             null,
+            "primary_topic.id",
+            "topics.id",
             "ids.wikidata",
         ],
     },
@@ -392,6 +394,7 @@ const entityConfigs = reactive({
         rowsToShowOnEntityPage: [
             "description",
             null,
+            "keywords",
             "siblings",
             "subfield.id",
             "field.id",
