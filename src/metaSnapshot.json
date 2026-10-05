@@ -1,7 +1,7 @@
 {
  "version": "15.0.0",
- "fingerprint": "a6abb9461a0d6438b8c5ae369490b37b6aada2d3a5bf46bd531110e671544939",
- "generatedAt": "2026-10-04T11:46:01.707Z",
+ "fingerprint": "7880ee5f602333054eaa087959b9f7de0e228c610f19b6eee7d28ad87b65d864",
+ "generatedAt": "2026-10-05T18:15:41.793Z",
  "entities": {
   "authors": {
    "displayName": "authors",
@@ -495,8 +495,12 @@
    "from_updated_date": "from updated date",
    "id": "id",
    "ids": "ids",
+   "primary_topic": "primary topic",
+   "primary_topic.id": "primary topic",
    "relevance_score": "relevance score",
    "text.search": "text",
+   "topics": "related topics",
+   "topics.id": "related topics",
    "updated_date": "updated date",
    "works_api_url": "works api url",
    "works_count": "works count"
@@ -802,8 +806,9 @@
    "id": "id",
    "ids": "ids",
    "ids.openalex": "OpenAlex ID",
-   "keywords": "keywords",
+   "keywords": "characteristic keywords",
    "keywords.search": "keywords",
+   "legacy_keywords": "legacy keywords",
    "relevance_score": "relevance score",
    "siblings": "sibling topics",
    "subfield": "subfield",

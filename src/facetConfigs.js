@@ -2488,7 +2488,9 @@ const facetConfigs = function (entityType) {
             actions: ["column"],
             actionsPopular: [],
             icon: "mdi-tag-outline",
-            // oxjob #1307: keyword objects {id, display_name, score}, the topic's top 25 by works.
+            // oxjob #1307: the topic's characteristic keywords {id, display_name, score}: >= 20% of each keyword's
+            // works fall in this topic; the 25 on the most of the topic's works.
+            displayName: "characteristic keywords",
             extractFn: (entity) => entity.keywords,
             noIdsSibling: true,
             column: { render: { kind: "entityList", itemLabelField: "display_name", itemLinkField: "id" } },
@@ -3760,11 +3762,13 @@ const facetConfigs = function (entityType) {
             icon: "mdi-web",
             extractFn: (e) => e.ids?.wikidata,
         },
-        // oxjob #1307: keywords by their topics (score = share of the keyword's works in the topic).
+        // oxjob #1307: a keyword's related topics, weighted and many-to-many (never "parent"); score = share of the
+        // keyword's works in the topic, shown as a % on the entity page.
         {
             key: "primary_topic.id",
             entityToFilter: "keywords",
-            displayName: "topic",
+            displayName: "primary topic",
+            showScorePercent: true,
             entityToSelect: "topics",
             type: "selectEntity",
             isManyOptions: true,
@@ -3777,7 +3781,8 @@ const facetConfigs = function (entityType) {
         {
             key: "topics.id",
             entityToFilter: "keywords",
-            displayName: "topics",
+            displayName: "related topics",
+            showScorePercent: true,
             entityToSelect: "topics",
             type: "selectEntity",
             isManyOptions: true,

@@ -23,7 +23,7 @@
           :to="filters.entityZoomLink(entityObj.id)"
           class="mr-1 pr-0"
         >
-          {{ entityObj?.raw_author_name || entityObj?.display_name || 'Unknown' }}{{ i + 1 < valueEntityLinks.length ? ", " : "" }}
+          {{ entityObj?.raw_author_name || entityObj?.display_name || 'Unknown' }}{{ scorePercent(entityObj) }}{{ i + 1 < valueEntityLinks.length ? ", " : "" }}
         </router-link>
         <span v-else class="mr-1 pr-0">
           {{ entityObj?.raw_author_name || entityObj?.display_name || 'Unknown' }}{{ i + 1 < valueEntityLinks.length ? ", " : "" }}
@@ -208,6 +208,9 @@ const rawValue = computed(() => {
 });
 const myValueType = computed(() => Array.isArray(rawValue.value) ? 'array' : typeof rawValue.value);
 const isValueAnArray = computed(() => Array.isArray(rawValue.value));
+// oxjob #1307: facets with showScorePercent (a keyword's related topics) show each link's score as a share, " (70%)"
+const scorePercent = (entityObj) => (filterConfig.value?.showScorePercent && typeof entityObj?.score === "number")
+  ? ` (${Math.round(entityObj.score * 100)}%)` : "";
 const valueLength = computed(() => rawValue.value?.length);
 
 const isRawValueValid = computed(() => {
