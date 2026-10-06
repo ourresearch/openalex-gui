@@ -151,7 +151,12 @@ watch(
   // route, and the newly-forked SERP must fetch through its own path (e.g. a
   // dead `/q?oql=` under legacy mode comes alive the moment the account
   // switches back to the new interface).
+  // Also key on list vs table (oxjob #1576): SerpInputContainer flips the view from
+  // the stored mode AFTER this immediate fetch has run, so an Advanced-mode first load
+  // fetched the list size (10) but showed the table size (100) — /licenses rendered
+  // 10 of 14 with no pager. Classic path only; an ?oql= run doesn't send per_page.
   [() => route.fullPath, () => store.state.serpPageSize, () => store.state.serpTablePageSize,
+   () => !route.query.oql && url.isTableView(route),
    () => url.groupByMoneySignature(route), () => oqlFlag.value],
   async () => {
     // Phase 2a self-projection skip-guard (#464): a store-driven OQL edit executes
