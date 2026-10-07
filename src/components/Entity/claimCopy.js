@@ -61,6 +61,11 @@ export const copy = {
   stillChecking: 'We are still checking. We will email you the answer, usually within a few minutes.',
   approved: 'Your claim is approved. This profile is now yours. '
     + 'You can now add your missing works, remove works that are not yours, and fix your name.',
+  // Tooltip on the claimed badge in the profile header.
+  badge: {
+    owner: 'You claimed this profile. You can add or remove works below.',
+    claimed: 'A user has claimed this profile',
+  },
   notYet: 'We could not approve your claim yet.',
   fastestFix: 'The fastest fix: add your university email to your OpenAlex account. '
     + 'You can keep your current email. When your account has a university email, '
@@ -129,6 +134,27 @@ export function reasonText(code, { email, link } = {}) {
 
 // A123 from any OpenAlex author id shape, lowercased for comparing.
 export const shortId = (x) => (x || '').split('/').pop().toLowerCase();
+
+// The signed-in user's approved claim is this profile. Stored ids come as
+// https://openalex.org/A123 or https://openalex.org/authors/a123, so compare
+// the A-number the way EntityPage's isAuthorOwner does.
+export function ownsProfile(userAuthorId, authorId) {
+  const key = (id) => (String(id || '').match(/A\d+/i) || [''])[0].toUpperCase();
+  return !!key(userAuthorId) && key(userAuthorId) === key(authorId);
+}
+
+// What the profile header shows in the claim slot (Zendesk #25773: the owner
+// saw "A user has claimed this profile" and thought it was someone else).
+//   owner | claimed | pending | claim | null
+// `claimed`/`pending` come from the public claim-status; `ownPending` is the
+// viewer's own pending claim on this profile.
+export function claimBadge({ known, owns, claimed, pending, ownPending, hasAnyClaim }) {
+  if (owns) return 'owner';
+  if (!known) return null;
+  if (claimed) return 'claimed';
+  if (pending || ownPending) return 'pending';
+  return hasAnyClaim ? null : 'claim';
+}
 
 // Which screen the claim window shows for this user and this profile.
 //   instant | orcid | form | checking | approved | needs_evidence

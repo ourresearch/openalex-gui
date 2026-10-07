@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   copy, reasonText, claimView, orcidAuthorizeUrl, orcidCallbackFlow, orcidAutoClaim, bareOrcid, sameOrcid,
-  ORCID_STATE_SETTINGS,
+  claimBadge, ownsProfile, ORCID_STATE_SETTINGS,
 } from '@/components/Entity/claimCopy.js';
 
 describe('claim copy (oxjob #1466)', () => {
@@ -77,5 +77,51 @@ describe('claim copy (oxjob #1466)', () => {
     // A claim sent back, or pending on another profile, gives way to the iD's profile.
     expect(orcidAutoClaim({ authorId: null, claim: { decision: 'needs_evidence', author_id: 'A1' }, profileIds: ids })).toBe('A1');
     expect(orcidAutoClaim({ authorId: null, claim: { decision: 'pending', author_id: 'A7' }, profileIds: ids })).toBe('A1');
+  });
+});
+
+// Zendesk #25773: the owner of a claimed profile saw the same "A user has
+// claimed this profile" badge as strangers and thought someone else had it.
+describe('claimed badge: owner vs other user vs logged out', () => {
+  const profile = 'https://openalex.org/A5023888391';
+  const status = { known: true, claimed: true, pending: false, ownPending: false };
+
+  it('matches the claimed author id in any stored shape', () => {
+    expect(ownsProfile('https://openalex.org/authors/a5023888391', profile)).toBe(true);
+    expect(ownsProfile('https://openalex.org/A5023888391', 'a5023888391')).toBe(true);
+    expect(ownsProfile('https://openalex.org/A5000000001', profile)).toBe(false);
+    expect(ownsProfile('', profile)).toBe(false);
+    expect(ownsProfile(null, profile)).toBe(false);
+  });
+
+  it('shows the owner their own claim, not "a user has claimed"', () => {
+    const owns = ownsProfile('https://openalex.org/authors/a5023888391', profile);
+    expect(claimBadge({ ...status, owns, hasAnyClaim: true })).toBe('owner');
+    // The store knows the viewer's claim even before (or without) claim-status.
+    expect(claimBadge({ ...status, known: false, claimed: false, owns, hasAnyClaim: true })).toBe('owner');
+    expect(copy.badge.owner).toMatch(/^You claimed this profile/);
+    expect(copy.badge.owner).not.toBe(copy.badge.claimed);
+  });
+
+  it('shows another signed-in user that someone else claimed it', () => {
+    const owns = ownsProfile('https://openalex.org/A5000000001', profile);
+    expect(claimBadge({ ...status, owns, hasAnyClaim: true })).toBe('claimed');
+    expect(claimBadge({ ...status, owns: ownsProfile('', profile), hasAnyClaim: false })).toBe('claimed');
+    expect(copy.badge.claimed).toBe('A user has claimed this profile');
+  });
+
+  it('shows a logged-out visitor the claimed, pending or claim state', () => {
+    const owns = ownsProfile(null, profile);
+    expect(claimBadge({ ...status, owns, hasAnyClaim: false })).toBe('claimed');
+    expect(claimBadge({ ...status, owns, claimed: false, pending: true, hasAnyClaim: false })).toBe('pending');
+    expect(claimBadge({ ...status, owns, claimed: false, hasAnyClaim: false })).toBe('claim');
+    expect(claimBadge({ ...status, owns, known: false, hasAnyClaim: false })).toBe(null);
+  });
+
+  it('keeps the pending badge and the claim button rules', () => {
+    const base = { known: true, owns: false, claimed: false, pending: false };
+    expect(claimBadge({ ...base, ownPending: true, hasAnyClaim: true })).toBe('pending');
+    // Already holds a claim elsewhere: no button on an unclaimed profile.
+    expect(claimBadge({ ...base, ownPending: false, hasAnyClaim: true })).toBe(null);
   });
 });
