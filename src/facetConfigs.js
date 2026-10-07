@@ -731,6 +731,22 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.primary_location.source,
         },
 
+        // works: the work this work is part of, e.g. a chapter's book (oxjob #1554).
+        // A work id; the filter lists a book's chapters. displayName must equal the
+        // registry display_name (label-consistency gate).
+        {
+            key: "volume.id",
+            entityToFilter: "works",
+            entityToSelect: "works",
+            displayName: "volume",
+            type: "selectEntity",
+            isManyOptions: true,
+            category: "source",
+            actions: ["filter", "group_by",],
+            icon: "mdi-book-open-page-variant-outline",
+            extractFn: (entity) => entity.volume,
+        },
+
         // works: source across all locations (primary + alternate)
         {
             key: "locations.source.id",
@@ -3842,6 +3858,8 @@ const facetConfigs = function (entityType) {
         {
             key: "biblio.volume",
             entityToFilter: "works",
+            // oxjob #1554: "volume" is the volume itself (volume.id); this is its number.
+            displayName: "volume number",
             type: "search",
             category: "other",
             actions: ["filter",],
