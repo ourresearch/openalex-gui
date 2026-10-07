@@ -36,12 +36,12 @@
             <div class="grid-3">
                 <div class="f26-card">
                     <h4>Monday 19 October, evening</h4>
-                    <p class="card-text">Informal drinks for anyone already in town. No programme, just a chance to meet each other and the OpenAlex team before things start. Venue to be announced to registrants.</p>
+                    <p class="card-text">Informal drinks near Jussieu for anyone already in town. No programme, just a chance to meet each other and the OpenAlex team before things start. Everyone orders and pays for their own drinks and food. Venue to be announced to registrants.</p>
                     <span class="f26-tag tag-break">social</span>
                 </div>
                 <div class="f26-card">
                     <h4>Tuesday 20 October, CNRS</h4>
-                    <p class="card-text">Community talks. Nineteen presentations from people building with OpenAlex, in four themed sessions with discussion, plus a round of lightning demos. Coffee and lunch provided. Informal reception nearby in the evening.</p>
+                    <p class="card-text">Community talks. Nineteen presentations from people building with OpenAlex, in four themed sessions with discussion, plus a round of lightning demos. Coffee and lunch provided. Informal drinks nearby afterwards.</p>
                     <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-break">social</span>
                 </div>
                 <div class="f26-card">
@@ -180,8 +180,8 @@
                 <div class="sched-block">
                     <div class="sched-time">17:30 onwards</div>
                     <div class="sched-content">
-                        <h4>Reception</h4>
-                        <p>Informal drinks at a bar near CNRS, hosted by OpenAlex. Venue to be announced to registrants.</p>
+                        <h4>Drinks</h4>
+                        <p>Informal drinks at a bar a few minutes&rsquo; walk from CNRS. Everyone orders and pays for their own drinks and food. Venue to be announced to registrants.</p>
                         <span class="f26-tag tag-break">social</span>
                     </div>
                 </div>
@@ -380,7 +380,7 @@
         <!-- REGISTER -->
         <div class="section" id="register">
             <h2 class="section-header">Registration</h2>
-            <p class="section-subtitle">Attendance is free. OpenAlex covers coffee, lunch and the evening receptions. You cover your own travel and accommodation.</p>
+            <p class="section-subtitle">Attendance is free, and OpenAlex covers coffee and lunch on both days. The evening drinks are informal: everyone pays for their own drinks and food. You cover your own travel and accommodation.</p>
             <div class="grid-2">
                 <div class="f26-card">
                     <h4>How it works</h4>
