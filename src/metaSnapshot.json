@@ -1,7 +1,7 @@
 {
- "version": "15.1.0",
- "fingerprint": "7880ee5f602333054eaa087959b9f7de0e228c610f19b6eee7d28ad87b65d864",
- "generatedAt": "2026-10-05T20:47:54.515Z",
+ "version": "15.2.0",
+ "fingerprint": "f1ebd36db7fdf434f52f027ac74a9bca8c50f92c857875ef383835976d79bbe4",
+ "generatedAt": "2026-10-07T07:24:16.000Z",
  "entities": {
   "authors": {
    "displayName": "authors",
@@ -893,7 +893,7 @@
    "biblio.first_page": "first page",
    "biblio.issue": "issue",
    "biblio.last_page": "last page",
-   "biblio.volume": "volume",
+   "biblio.volume": "volume number",
    "citation_normalized_percentile": "citation normalized percentile",
    "citation_normalized_percentile.is_in_top_10_percent": "top 10% cited",
    "citation_normalized_percentile.is_in_top_1_percent": "top 1% cited",
@@ -1063,7 +1063,9 @@
    "type": "type",
    "type_crossref": "Crossref type",
    "updated_date": "updated date",
-   "versions": "versions"
+   "versions": "versions",
+   "volume": "volume",
+   "volume.id": "volume"
   }
  },
  "aliases": {

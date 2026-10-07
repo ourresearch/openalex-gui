@@ -731,6 +731,22 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.primary_location.source,
         },
 
+        // works: the work this work is part of, e.g. a chapter's book (oxjob #1554).
+        // A work id; the filter lists a book's chapters. displayName must equal the
+        // registry display_name (label-consistency gate).
+        {
+            key: "volume.id",
+            entityToFilter: "works",
+            entityToSelect: "works",
+            displayName: "volume",
+            type: "selectEntity",
+            isManyOptions: true,
+            category: "source",
+            actions: ["filter", "group_by",],
+            icon: "mdi-book-open-page-variant-outline",
+            extractFn: (entity) => entity.volume,
+        },
+
         // works: source across all locations (primary + alternate)
         {
             key: "locations.source.id",
@@ -3839,15 +3855,9 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-dots-horizontal",
         },
-        {
-            key: "biblio.volume",
-            entityToFilter: "works",
-            type: "search",
-            category: "other",
-            actions: ["filter",],
-            actionsPopular: [],
-            icon: "mdi-dots-horizontal",
-        },
+        // oxjob #1554 (Jason, 2026-10-10): no "biblio.volume" facet. "volume" is the volume
+        // itself (volume.id above, a chapter's book); filtering on the citation's volume
+        // number is no longer supported (the API keeps the value in the work record only).
         {
             key: "biblio.issue",
             entityToFilter: "works",
