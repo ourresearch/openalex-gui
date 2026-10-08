@@ -13,9 +13,10 @@
 // The JSON nests (splits under `groups`); the website's table is flat (#1550,
 // Jason: "Flat is what users are used to ... It's what a table should always be"):
 // one row per innermost group, a column per split, every row sortable on its own.
-// The summary is its own table: the whole set, then each split's groups on their
-// own, computed by the API from the works. This module is plain JS so it can be
-// unit-tested (no component mounts here).
+// The summary (the whole set, then each split's groups on their own, computed by the
+// API from the works) is not shown on the page yet, only downloaded (Jason,
+// 2026-10-08). This module is plain JS so it can be unit-tested (no component mounts
+// here).
 
 import * as openalexId from "@/openalexId";
 import { entityConfigs } from "@/entityConfigs";
@@ -72,23 +73,15 @@ export function flatRows(groups, depth, path = []) {
   return rows;
 }
 
-// The summary table: the whole set, then each split's groups on their own (only
-// with 2+ splits; a single split's groups are the groups table itself). `of` is
-// the split the row breaks down (null for the whole set); the other split cells
-// are null, shown as "all".
-export function summaryRows(summary, depth) {
-  if (!summary?.all) return [];
-  const blank = () => Array(depth).fill(null);
-  const rows = [{ id: "all", of: null, path: blank(), group: summary.all }];
-  (summary.splits || []).forEach((part, i) => {
-    for (const g of part?.groups || []) {
-      const path = blank();
-      path[i] = g;
-      rows.push({ id: `${i}/${g.key}`, of: i, path, group: g });
-    }
-  });
-  return rows;
+// The whole set has no share of a parent and no group's own field (an author's
+// h-index): those columns don't apply to its row.
+const NO_WHOLE_SET = new Set(["percent_of_those", "value"]);
+export function wholeSetMeasures(measures) {
+  return (measures || []).filter((m) => !NO_WHOLE_SET.has(m?.measure));
 }
+
+// A single split's groups download stops here (the API's MAX_PAGE_DEPTH).
+export const MAX_DOWNLOAD_GROUPS = 10000;
 
 // A row's value for a sort key: `split:<i>` sorts by that split's group name, any
 // other key is one of the row's calculated columns.
@@ -130,11 +123,27 @@ export function refusalMessage(data) {
   return null;
 }
 
-// The CSV's file name from Content-Disposition, else one from the date and table.
-export function csvFilename(disposition, now = new Date(), table = "groups") {
+// The download's file name from Content-Disposition, else one from the date and
+// table, with the extension its type calls for (a summary with several tables is a
+// zip).
+export function csvFilename(disposition, now = new Date(), table = "groups", type = "") {
   const m = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition || "");
   if (m) return decodeURIComponent(m[1].trim());
-  return `openalex-${table}-${now.toISOString().slice(0, 10)}.csv`;
+  const ext = /zip/i.test(type || "") ? "zip" : "csv";
+  return `openalex-${table}-${now.toISOString().slice(0, 10)}.${ext}`;
+}
+
+// What to say when a download fails: the API's own message (a refusal comes back as
+// JSON inside the blob: {message, fix} or {validation: {errors}}), else a plain line.
+export function downloadErrorMessage(bodyText) {
+  try {
+    const data = JSON.parse(bodyText);
+    const refusal = refusalMessage(data);
+    if (refusal) return `Download failed: ${refusal}`;
+    const msg = data?.message || data?.validation?.errors?.[0]?.message || data?.error;
+    if (typeof msg === "string" && msg) return `Download failed: ${msg}`;
+  } catch (_) { /* not JSON */ }
+  return "Download failed. Try again, or narrow the query.";
 }
 
 // Price line for a /query check or an executed pipeline response's meta.cost.

@@ -10,8 +10,9 @@ import {
   formatMeasure,
   groupLink,
   flatRows,
-  summaryRows,
   sortRows,
+  wholeSetMeasures,
+  downloadErrorMessage,
   refusalMessage,
   formatCost,
   csvFilename,
@@ -142,22 +143,12 @@ describe("sortRows", () => {
   });
 });
 
-describe("summaryRows", () => {
-  it("the whole set, then each split's groups on their own", () => {
-    const rows = summaryRows(summary, 2);
-    expect(rows.map((r) => [r.of, r.path.map((g) => g?.key ?? null), r.group.count])).toEqual([
-      [null, [null, null], 13643],
-      [0, ["2024", null], 7264],
-      [0, ["2023", null], 6379],
-      [1, [null, "closed"], 6729],
-      [1, [null, "gold"], 2698],
-    ]);
-  });
-
-  it("one split or none: the whole set only", () => {
-    expect(summaryRows({ all: summary.all }, 1).map((r) => r.path)).toEqual([[null]]);
-    expect(summaryRows({ all: summary.all }, 0).map((r) => r.path)).toEqual([[]]);
-    expect(summaryRows(undefined, 2)).toEqual([]);
+describe("wholeSetMeasures", () => {
+  it("the whole set has no share and no group's own field", () => {
+    const ms = [{ key: "count", measure: "count" }, MEAN_FWCI, { key: "percent_of_those", measure: "percent_of_those" },
+      { key: "value_h", measure: "value" }];
+    expect(wholeSetMeasures(ms).map((m) => m.key)).toEqual(["count", "mean_fwci"]);
+    expect(wholeSetMeasures(undefined)).toEqual([]);
   });
 });
 
@@ -193,8 +184,25 @@ describe("csvFilename", () => {
     expect(csvFilename("attachment; filename*=UTF-8''openalex%20groups.csv")).toBe("openalex groups.csv");
   });
 
-  it("falls back to a dated name per table", () => {
-    expect(csvFilename(null, new Date("2026-10-04T12:00:00Z"))).toBe("openalex-groups-2026-10-04.csv");
-    expect(csvFilename(null, new Date("2026-10-04T12:00:00Z"), "summary")).toBe("openalex-summary-2026-10-04.csv");
+  it("falls back to a dated name per table, a zip when the download is one", () => {
+    const d = new Date("2026-10-04T12:00:00Z");
+    expect(csvFilename(null, d)).toBe("openalex-groups-2026-10-04.csv");
+    expect(csvFilename(null, d, "summary", "text/csv")).toBe("openalex-summary-2026-10-04.csv");
+    expect(csvFilename(null, d, "summary", "application/zip")).toBe("openalex-summary-2026-10-04.zip");
+    expect(csvFilename('attachment; filename="openalex-q-summary.zip"', d, "summary", "text/csv")).toBe("openalex-q-summary.zip");
+  });
+});
+
+describe("downloadErrorMessage", () => {
+  it("shows the API's refusal with its fix", () => {
+    const body = JSON.stringify({ error: "not_enough_credits", message: "This query costs 31 credits ($0.0031); you have 4 left today.", fix: "Run it tomorrow, add credits, or narrow it." });
+    expect(downloadErrorMessage(body)).toBe("Download failed: This query costs 31 credits ($0.0031); you have 4 left today. Fix: Run it tomorrow, add credits, or narrow it.");
+  });
+
+  it("a message without a fix, a validation error, or anything else", () => {
+    expect(downloadErrorMessage(JSON.stringify({ message: "Too slow" }))).toBe("Download failed: Too slow");
+    expect(downloadErrorMessage(JSON.stringify({ validation: { errors: [{ message: "bad OQL" }] } }))).toBe("Download failed: bad OQL");
+    expect(downloadErrorMessage("<html>502</html>")).toBe("Download failed. Try again, or narrow the query.");
+    expect(downloadErrorMessage(null)).toBe("Download failed. Try again, or narrow the query.");
   });
 });
