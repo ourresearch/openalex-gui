@@ -1,15 +1,21 @@
-// OQL pipeline-language results (oxjob #1536, API side #1530).
+// OQL pipeline-language results (oxjob #1536 and #1550, API side #1530).
 //
 // A pipeline query (`get works where ...; then group those works by ...; then
-// calculate ...`) answers with groups that carry calculated columns and a total
-// row instead of a page of rows:
+// calculate ...`) answers with groups that carry calculated columns and a summary
+// instead of a page of rows:
 //
 //   meta.measures = [{key, measure, column_id, oql}]   one per calculated column
-//   total         = {key: "total", key_display_name, count, <measure keys>, groups?}
+//   meta.splits   = [{oql, column_id, kind, has_ids}]  one per split, outer first
 //   group_by      = [{key, key_display_name, count, <measure keys>, groups?}]
+//   summary       = {all: {key: "all", key_display_name, count, <measure keys>},
+//                    splits?: [{groups: [...], more_groups}]}   (2+ splits)
 //
-// Nested splits nest under `groups`. This module turns that into table rows and
-// sorts them; it is plain JS so it can be unit-tested (no component mounts here).
+// The JSON nests (splits under `groups`); the website's table is flat (#1550,
+// Jason: "Flat is what users are used to ... It's what a table should always be"):
+// one row per innermost group, a column per split, every row sortable on its own.
+// The summary is its own table: the whole set, then each split's groups on their
+// own, computed by the API from the works. This module is plain JS so it can be
+// unit-tested (no component mounts here).
 
 import * as openalexId from "@/openalexId";
 import { entityConfigs } from "@/entityConfigs";
@@ -52,12 +58,50 @@ export function groupLink(key) {
   return `/${entityType}/${shortId}`;
 }
 
-// Compare two groups on a sort key. Missing values (a mean over no values) always
-// sort last, whichever the direction, so they never crowd the top.
-function compareGroups(a, b, sort) {
-  const field = sort.key === "group" ? "key_display_name" : sort.key;
-  const va = a?.[field];
-  const vb = b?.[field];
+// The flat groups table: one row per innermost group. `path` holds the group at
+// each split, outer first (the cells of the split columns); `group` is the
+// innermost one (its calculated columns). The id is the path of keys, so it
+// survives a re-sort.
+export function flatRows(groups, depth, path = []) {
+  const rows = [];
+  for (const g of Array.isArray(groups) ? groups : []) {
+    const p = [...path, g];
+    if (p.length < depth) rows.push(...flatRows(g.groups, depth, p));
+    else rows.push({ id: p.map((x) => x.key).join("/"), path: p, group: g });
+  }
+  return rows;
+}
+
+// The summary table: the whole set, then each split's groups on their own (only
+// with 2+ splits; a single split's groups are the groups table itself). `of` is
+// the split the row breaks down (null for the whole set); the other split cells
+// are null, shown as "all".
+export function summaryRows(summary, depth) {
+  if (!summary?.all) return [];
+  const blank = () => Array(depth).fill(null);
+  const rows = [{ id: "all", of: null, path: blank(), group: summary.all }];
+  (summary.splits || []).forEach((part, i) => {
+    for (const g of part?.groups || []) {
+      const path = blank();
+      path[i] = g;
+      rows.push({ id: `${i}/${g.key}`, of: i, path, group: g });
+    }
+  });
+  return rows;
+}
+
+// A row's value for a sort key: `split:<i>` sorts by that split's group name, any
+// other key is one of the row's calculated columns.
+function rowValue(row, key) {
+  if (key.startsWith("split:")) return row.path?.[Number(key.slice(6))]?.key_display_name;
+  return row.group?.[key];
+}
+
+// Missing values (a mean over no values) always sort last, whichever the
+// direction, so they never crowd the top.
+function compareRows(a, b, sort) {
+  const va = rowValue(a, sort.key);
+  const vb = rowValue(b, sort.key);
   const aMissing = va == null || Number.isNaN(va);
   const bMissing = vb == null || Number.isNaN(vb);
   if (aMissing || bMissing) return aMissing === bMissing ? 0 : aMissing ? 1 : -1;
@@ -68,39 +112,14 @@ function compareGroups(a, b, sort) {
   return sign * (va - vb);
 }
 
-// Sort one level of groups (stable); null sort keeps the API's order.
-export function sortGroups(groups, sort) {
-  if (!Array.isArray(groups)) return [];
-  if (!sort?.key) return groups;
-  return groups
-    .map((g, i) => [g, i])
-    .sort(([a, ia], [b, ib]) => compareGroups(a, b, sort) || ia - ib)
-    .map(([g]) => g);
-}
-
-// Flatten the group tree into display rows, depth-first, sorting every level the
-// same way. `collapsed` is a Set of row ids whose children are hidden. A row id is
-// its path of keys, so it survives a re-sort.
-export function flattenGroups(groups, { sort = null, collapsed = new Set(), level = 0, parentId = "" } = {}) {
-  const rows = [];
-  for (const g of sortGroups(groups, sort)) {
-    const id = `${parentId}/${g.key}`;
-    const children = Array.isArray(g.groups) ? g.groups : [];
-    rows.push({ id, level, group: g, hasChildren: children.length > 0 });
-    if (children.length && !collapsed.has(id)) {
-      rows.push(...flattenGroups(children, { sort, collapsed, level: level + 1, parentId: id }));
-    }
-  }
-  return rows;
-}
-
-// How many split levels a response has (1 for one split, up to 3).
-export function splitDepth(groups) {
-  let depth = 0;
-  for (const g of groups || []) {
-    depth = Math.max(depth, 1 + splitDepth(g.groups));
-  }
-  return depth;
+// Sort flat rows on any column (stable); null sort keeps the API's order.
+export function sortRows(rows, sort) {
+  if (!Array.isArray(rows)) return [];
+  if (!sort?.key) return rows;
+  return rows
+    .map((r, i) => [r, i])
+    .sort(([a, ia], [b, ib]) => compareRows(a, b, sort) || ia - ib)
+    .map(([r]) => r);
 }
 
 // The message for an API refusal: today's validation errors, or a pipeline limit
@@ -111,18 +130,11 @@ export function refusalMessage(data) {
   return null;
 }
 
-// The group column's header: each split's OQL words (`meta.splits`), outer first,
-// e.g. "institution › SDG". Older responses carry no splits: "Group".
-export function splitsLabel(splits) {
-  const words = (Array.isArray(splits) ? splits : []).map((s) => s?.oql).filter(Boolean);
-  return words.length ? words.join(" › ") : "Group";
-}
-
-// The zip's file name from Content-Disposition, else one from the date.
-export function csvFilename(disposition, now = new Date()) {
+// The CSV's file name from Content-Disposition, else one from the date and table.
+export function csvFilename(disposition, now = new Date(), table = "groups") {
   const m = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition || "");
   if (m) return decodeURIComponent(m[1].trim());
-  return `openalex-groups-${now.toISOString().slice(0, 10)}.zip`;
+  return `openalex-${table}-${now.toISOString().slice(0, 10)}.csv`;
 }
 
 // Price line for a /query check or an executed pipeline response's meta.cost.
