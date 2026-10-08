@@ -26,7 +26,7 @@
                 <span class="meta-tag">Hosted by CNRS and Sorbonne Universit&eacute;</span>
                 <span class="meta-tag">Free, registration required</span>
             </div>
-            <p class="intro-note">Programme updated 6 October. Most talks are confirmed and listed below; we will fill the last few slots as speakers confirm. Times and breakout topics may still move a little.</p>
+            <p class="intro-note">Programme updated 8 October. Most talks are confirmed and listed below; we will fill the last few slots as speakers confirm. Times and breakout topics may still move a little.</p>
         </header>
 
         <!-- THE WEEK -->
@@ -121,6 +121,7 @@
                         <ul class="speaker-list">
                             <li><strong>Michel de Moura</strong> (Universit&eacute; de Versailles Saint-Quentin-en-Yvelines) &mdash; How the UVSQ libraries use the OpenAlex API to support research</li>
                             <li><strong>Paloma Garc&iacute;a Bl&aacute;zquez</strong> (University of Salamanca) &mdash; Mapping research excellence with OpenAlex: from scholarly data to strategic research intelligence</li>
+                            <li><strong>Patricia Ranoarisoa</strong> (Inist-CNRS) &mdash; LODEX template for OpenAlex: turnkey interactive bibliometrics</li>
                             <li class="placeholder">One or two more lightning talks to be confirmed</li>
                         </ul>
                         <span class="f26-tag tag-presentation">lightning</span>
@@ -220,7 +221,7 @@
                         <ul class="speaker-list">
                             <li><strong>Abdesslam Chai-allah and colleagues</strong> (INRAE) &mdash; OpenAlex at INRAE: what works, what doesn&rsquo;t, and what&rsquo;s next</li>
                             <li><strong>Elke Hausner</strong> (IQWiG) &mdash; A practical assessment of OpenAlex and Lens for systematic literature searches</li>
-                            <li><strong>H&eacute;lo&iuml;se Gazeau</strong> (Universit&eacute; de Strasbourg) &mdash; Building institutional indicators without being a data analyst, or knowing how to code <span class="lang-note">(en fran&ccedil;ais)</span></li>
+                            <li><strong>H&eacute;lo&iuml;se Gazeau</strong> (Universit&eacute; de Strasbourg) &mdash; Building institutional indicators without being a data analyst, or knowing how to code</li>
                             <li class="placeholder">Two more talks to be confirmed</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span>
