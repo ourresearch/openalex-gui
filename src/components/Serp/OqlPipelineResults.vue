@@ -1,137 +1,111 @@
 <template>
-  <!-- Results of an OQL pipeline query (oxjob #1536, flat since #1550): the groups
-       table, one row per group with a column per split and per calculation (headed by
-       their OQL words), every row sortable on its own; then the summary table, the
-       whole set and each split's groups on their own. Each table downloads as a CSV. -->
-  <div class="oql-pipeline-results">
-    <v-card v-if="depth > 0" variant="outlined" class="bg-white">
-      <div class="results-card-head d-flex align-center">
-        <span class="text-body-2 text-medium-emphasis">{{ headLabel }}</span>
-        <v-spacer />
-        <span v-if="downloadError.groups" class="text-body-2 text-error mr-2">{{ downloadError.groups }}</span>
-        <span v-if="costLabel" class="text-body-2 text-medium-emphasis">{{ costLabel }}</span>
-        <v-tooltip location="bottom" text="Download CSV" content-class="linear-tooltip">
-          <template #activator="{ props: tip }">
-            <v-btn
-              v-bind="tip"
-              icon
-              variant="text"
-              size="small"
-              class="ml-1"
-              aria-label="Download the groups as CSV"
-              :loading="downloading.groups"
-              @click="onDownload('groups')"
-            >
-              <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
-            </v-btn>
-          </template>
-        </v-tooltip>
-      </div>
-      <v-divider />
-
-      <div class="pipeline-table-wrap">
-        <table class="pipeline-table">
-          <thead>
-            <tr>
-              <th
-                v-for="col in columns"
-                :key="col.key"
-                :class="['pipeline-th', col.numeric ? 'numeric' : 'group-col', { sorted: sort?.key === col.key }]"
-                :aria-sort="sort?.key === col.key ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'"
-                @click="onSort(col)"
+  <!-- Results of an OQL pipeline query (oxjob #1536, flat since #1550): one row per
+       group with a column per split and per calculation (headed by their OQL words),
+       every row sortable on its own. The summary (the whole set, each split on its own)
+       is not shown here yet (Jason, 2026-10-08: how to display it is unsolved); it
+       downloads: one CSV, or a zip of one CSV per table when there are several. -->
+  <v-card variant="outlined" class="bg-white oql-pipeline-results">
+    <div class="results-card-head d-flex align-center">
+      <span class="text-body-2 text-medium-emphasis">{{ headLabel }}</span>
+      <v-spacer />
+      <span v-if="downloadError" class="text-body-2 text-error mr-2">{{ downloadError }}</span>
+      <span v-if="costLabel" class="text-body-2 text-medium-emphasis">{{ costLabel }}</span>
+      <!-- No split: the one row is the whole set, so there is only one file. -->
+      <v-btn
+        v-if="depth === 0"
+        icon
+        variant="text"
+        size="small"
+        class="ml-1"
+        aria-label="Download CSV"
+        :loading="downloading"
+        @click="onDownload('groups')"
+      >
+        <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
+        <v-tooltip activator="parent" location="bottom" content-class="linear-tooltip">Download CSV</v-tooltip>
+      </v-btn>
+      <!-- Menu and tooltip share one activator (Vuetify's mergeProps pattern): a tooltip
+           nested inside the menu's button made the menu close as it opened. -->
+      <v-menu v-else location="bottom end">
+        <template #activator="{ props: menu }">
+          <v-tooltip location="bottom" text="Download" content-class="linear-tooltip">
+            <template #activator="{ props: tip }">
+              <v-btn
+                v-bind="mergeProps(menu, tip)"
+                icon
+                variant="text"
+                size="small"
+                class="ml-1"
+                aria-label="Download"
+                :loading="downloading"
               >
-                <span class="th-inner">
-                  {{ col.label }}
-                  <v-icon v-if="sort?.key === col.key" size="14" class="sort-icon">
-                    {{ sort.dir === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
-                  </v-icon>
-                </span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in rows" :key="row.id">
-              <td v-for="(g, i) in row.path" :key="i" class="group-col">
-                <router-link v-if="groupLink(g.key)" :to="groupLink(g.key)" class="group-link">{{ label(g) }}</router-link>
-                <span v-else>{{ label(g) }}</span>
-              </td>
-              <td v-for="m in measures" :key="m.key" class="numeric">
-                {{ formatMeasure(m, row.group[m.key]) }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+                <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
+              </v-btn>
+            </template>
+          </v-tooltip>
+        </template>
+        <v-list min-width="280">
+          <v-list-item @click="onDownload('groups')">
+            <template #prepend><v-icon>mdi-table</v-icon></template>
+            <v-list-item-title>Groups (CSV)</v-list-item-title>
+            <v-list-item-subtitle>{{ groupsDownloadNote }}</v-list-item-subtitle>
+          </v-list-item>
+          <v-list-item @click="onDownload('summary')">
+            <template #prepend><v-icon>{{ depth > 1 ? 'mdi-folder-zip-outline' : 'mdi-sigma' }}</v-icon></template>
+            <v-list-item-title>Summary ({{ depth > 1 ? 'zip' : 'CSV' }})</v-list-item-title>
+            <v-list-item-subtitle>{{ summaryDownloadNote }}</v-list-item-subtitle>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </div>
+    <v-divider />
 
-      <div v-if="footNote" class="pipeline-foot text-body-2 text-medium-emphasis">{{ footNote }}</div>
-    </v-card>
-
-    <v-card variant="outlined" :class="['bg-white', { 'mt-4': depth > 0 }]">
-      <div class="results-card-head d-flex align-center">
-        <span class="text-body-2 text-medium-emphasis">{{ summaryLabel }}</span>
-        <v-spacer />
-        <span v-if="downloadError.summary" class="text-body-2 text-error mr-2">{{ downloadError.summary }}</span>
-        <span v-if="depth === 0 && costLabel" class="text-body-2 text-medium-emphasis">{{ costLabel }}</span>
-        <v-tooltip location="bottom" text="Download CSV" content-class="linear-tooltip">
-          <template #activator="{ props: tip }">
-            <v-btn
-              v-bind="tip"
-              icon
-              variant="text"
-              size="small"
-              class="ml-1"
-              aria-label="Download the summary as CSV"
-              :loading="downloading.summary"
-              @click="onDownload('summary')"
+    <div class="pipeline-table-wrap">
+      <table class="pipeline-table">
+        <thead>
+          <tr>
+            <th
+              v-for="col in columns"
+              :key="col.key"
+              :class="['pipeline-th', col.numeric ? 'numeric' : 'group-col', { sorted: sort?.key === col.key }]"
+              :aria-sort="sort?.key === col.key ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'"
+              @click="onSort(col)"
             >
-              <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
-            </v-btn>
-          </template>
-        </v-tooltip>
-      </div>
-      <v-divider />
+              <span class="th-inner">
+                {{ col.label }}
+                <v-icon v-if="sort?.key === col.key" size="14" class="sort-icon">
+                  {{ sort.dir === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                </v-icon>
+              </span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in rows" :key="row.id">
+            <td v-for="(g, i) in row.path" :key="i" class="group-col">
+              <router-link v-if="groupLink(g.key)" :to="groupLink(g.key)" class="group-link">{{ label(g) }}</router-link>
+              <span v-else>{{ label(g) }}</span>
+            </td>
+            <td v-for="m in rowMeasures" :key="m.key" class="numeric">
+              {{ formatMeasure(m, row.group[m.key]) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-      <div class="pipeline-table-wrap">
-        <table class="pipeline-table">
-          <thead>
-            <tr>
-              <th class="pipeline-th group-col static">Summary of</th>
-              <th v-for="col in splitColumns" :key="col.key" class="pipeline-th group-col static">{{ col.label }}</th>
-              <th v-for="m in measures" :key="m.key" class="pipeline-th numeric static">{{ m.oql }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(row, n) in summary"
-              :key="row.id"
-              :class="{ 'all-row': row.of === null, 'section-start': n > 0 && row.of !== summary[n - 1].of }"
-            >
-              <td class="group-col">{{ row.of === null ? allLabel : splits[row.of]?.oql }}</td>
-              <td v-for="(g, i) in row.path" :key="i" class="group-col">
-                <template v-if="g">
-                  <router-link v-if="groupLink(g.key)" :to="groupLink(g.key)" class="group-link">{{ label(g) }}</router-link>
-                  <span v-else>{{ label(g) }}</span>
-                </template>
-              </td>
-              <td v-for="m in measures" :key="m.key" class="numeric">
-                {{ formatMeasure(m, row.group[m.key]) }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div v-if="summaryNote" class="pipeline-foot text-body-2 text-medium-emphasis">{{ summaryNote }}</div>
-    </v-card>
-  </div>
+    <div v-if="footNote" class="pipeline-foot text-body-2 text-medium-emphasis">{{ footNote }}</div>
+  </v-card>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, mergeProps } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { api } from '@/api';
 import {
-  flatRows, summaryRows, sortRows, formatMeasure, formatCost, groupLink, csvFilename,
+  flatRows, sortRows, formatMeasure, formatCost, groupLink, csvFilename, downloadErrorMessage,
+  wholeSetMeasures, MAX_DOWNLOAD_GROUPS,
 } from '@/oqlPipeline';
 
 defineOptions({ name: 'OqlPipelineResults' });
@@ -154,12 +128,12 @@ const meta = computed(() => response.value?.meta || {});
 const measures = computed(() => meta.value.measures || []);
 const splits = computed(() => meta.value.splits || []);
 const depth = computed(() => splits.value.length);
+// With no split the one row is the whole set, which has no share or own-field value.
+const rowMeasures = computed(() => (depth.value ? measures.value : wholeSetMeasures(measures.value)));
 
-const splitColumns = computed(() => splits.value.map((s, i) => (
-  { key: `split:${i}`, label: s.oql, numeric: false })));
 const columns = computed(() => [
-  ...splitColumns.value,
-  ...measures.value.map((m) => ({ key: m.key, label: m.oql, numeric: true, measure: m })),
+  ...splits.value.map((s, i) => ({ key: `split:${i}`, label: s.oql, numeric: false })),
+  ...rowMeasures.value.map((m) => ({ key: m.key, label: m.oql, numeric: true, measure: m })),
 ]);
 
 watch(() => props.resultsObject, () => {
@@ -167,20 +141,16 @@ watch(() => props.resultsObject, () => {
   serverSorted.value = null;
 }, { immediate: true });
 
-const allRows = computed(() => flatRows(response.value?.group_by, depth.value));
+const allRows = computed(() => {
+  if (depth.value) return flatRows(response.value?.group_by, depth.value);
+  const all = props.resultsObject?.summary?.all;
+  return all ? [{ id: 'all', path: [], group: all }] : [];
+});
 // Local sort; an API-sorted page is already in order.
 const rows = computed(() => (serverSorted.value ? allRows.value : sortRows(allRows.value, sort.value)));
 
-// The summary comes from the first response: an API-side sort doesn't change it.
-const summary = computed(() => summaryRows(props.resultsObject?.summary, depth.value));
-const allLabel = computed(() => capitalize(props.resultsObject?.summary?.all?.key_display_name || 'all works'));
-
 function label(g) {
   return g.key_display_name ?? String(g.key);
-}
-
-function capitalize(s) {
-  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
 
 async function onSort(col) {
@@ -208,49 +178,59 @@ async function onSort(col) {
   }
 }
 
-// ---- CSV downloads: the groups table and the summary table -------------------
-const downloading = ref({ groups: false, summary: false });
-const downloadError = ref({ groups: null, summary: null });
+// ---- Downloads: the groups (one CSV) and the summary (one CSV, or a zip) ----------
+// Each runs the query again on the API (and costs what the query costs).
+const downloading = ref(false);
+const downloadError = ref(null);
 async function onDownload(table) {
   const oql = props.resultsObject?.meta?.x_query?.oql || route.query.oql;
-  if (!oql || downloading.value[table]) return;
-  downloading.value = { ...downloading.value, [table]: true };
-  downloadError.value = { ...downloadError.value, [table]: null };
+  if (!oql || downloading.value) return;
+  downloading.value = true;
+  downloadError.value = null;
   try {
     const { blob, disposition } = await api.downloadPipelineCsv(oql, table);
     const href = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = href;
-    a.download = csvFilename(disposition, new Date(), table);
+    a.download = csvFilename(disposition, new Date(), table, blob?.type);
     document.body.appendChild(a);
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(href), 1000);
   } catch (e) {
-    downloadError.value = { ...downloadError.value, [table]: 'Download failed.' };
+    // A refusal (not enough credits, too slow) comes back as a blob holding JSON.
+    let text = null;
+    try { text = await e?.response?.data?.text?.(); } catch (_) { /* no body */ }
+    downloadError.value = downloadErrorMessage(text);
   } finally {
-    downloading.value = { ...downloading.value, [table]: false };
+    downloading.value = false;
   }
 }
+
+// What each download holds, said before it's clicked: the groups file stops at
+// MAX_DOWNLOAD_GROUPS for a single split; the summary is one file or a zip of several.
+const groupsDownloadNote = computed(() => {
+  const n = props.resultsObject?.meta?.groups_count;
+  if (depth.value === 1 && n > MAX_DOWNLOAD_GROUPS) {
+    return `The first ${MAX_DOWNLOAD_GROUPS.toLocaleString()} of about ${n.toLocaleString()} groups`;
+  }
+  return 'One row per group, a column per split';
+});
+const summaryDownloadNote = computed(() => {
+  const s = props.resultsObject?.meta?.splits || [];
+  if (s.length < 2) return 'All works, one row';
+  return `All works, ${s.map((x) => `by ${x.oql}`).join(', ')}: one CSV each`;
+});
 
 const headLabel = computed(() => {
   const m = meta.value;
   if (sorting.value) return 'Sorting…';
+  const works = m.count != null ? `${m.count.toLocaleString()} works` : '';
+  if (!depth.value) return works;
   // nested splits: every combination is here, one row each; one split: the API's
   // count of its groups (it may hold only the top page)
   const nGroups = depth.value > 1 ? allRows.value.length : (m.groups_count ?? allRows.value.length);
-  const groupWord = nGroups === 1 ? 'group' : 'groups';
-  const works = m.count != null ? ` of ${m.count.toLocaleString()} works` : '';
-  return `${nGroups.toLocaleString()} ${groupWord}${works}`;
-});
-
-const summaryLabel = computed(() => 'Summary');
-
-const summaryNote = computed(() => {
-  const capped = (props.resultsObject?.summary?.splits || [])
-    .map((p, i) => (p?.more_groups ? splits.value[i]?.oql : null)).filter(Boolean);
-  if (!capped.length) return null;
-  return `Showing the biggest groups only for ${capped.join(' and ')}.`;
+  return `${nGroups.toLocaleString()} ${nGroups === 1 ? 'group' : 'groups'}${works ? ` of ${works}` : ''}`;
 });
 
 const costLabel = computed(() => {
@@ -301,10 +281,7 @@ const footNote = computed(() => {
   white-space: nowrap;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
-.pipeline-th.static {
-  cursor: default;
-}
-.pipeline-th:not(.static):hover {
+.pipeline-th:hover {
   background: rgba(0, 0, 0, 0.05);
 }
 .pipeline-th.sorted {
@@ -332,12 +309,6 @@ const footNote = computed(() => {
 }
 .pipeline-table tbody tr:hover {
   background: rgba(0, 0, 0, 0.03);
-}
-.all-row td {
-  font-weight: 600;
-}
-.section-start td {
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 .pipeline-foot {
   padding: 10px 14px;
