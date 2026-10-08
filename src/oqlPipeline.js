@@ -80,8 +80,50 @@ export function wholeSetMeasures(measures) {
   return (measures || []).filter((m) => !NO_WHOLE_SET.has(m?.measure));
 }
 
-// A single split's groups download stops here (the API's MAX_PAGE_DEPTH).
-export const MAX_DOWNLOAD_GROUPS = 10000;
+// ---- Exports (the shared Export dialog, users-api's exporter; oxjob #1550) --------
+// Jason, 2026-10-08: OQL has no limits, so an export writes every group, priced like
+// works exports: the query's price for every 100 rows. These mirror users-api's
+// export_calculation.py (export_rows / export_credits), so the dialog's price is the
+// one the server checks.
+export const ROWS_PER_PRICE = 100;
+
+function countLeaves(groups, depth, n) {
+  let total = 0;
+  for (const g of groups || []) total += depth + 1 < n ? countLeaves(g.groups, depth + 1, n) : 1;
+  return total;
+}
+
+// Rows an export writes: format "groups-csv" (no split 1; one split the API's group
+// count, an estimate past 3,000; nested splits all their combinations) or "summary"
+// (all works plus each split's groups on their own). null when unknown.
+export function exportRows(resultsObject, format) {
+  const meta = resultsObject?.meta || {};
+  const n = (meta.splits || []).length;
+  if (format === "summary") {
+    const parts = resultsObject?.summary?.splits || [];
+    return 1 + parts.reduce((s, p) => s + ((p && p.groups) || []).length, 0);
+  }
+  if (n === 0) return 1;
+  if (n === 1) return meta.groups_count ?? null;
+  return countLeaves(resultsObject?.group_by, 0, n);
+}
+
+// The query's price (meta.cost.credits) for every 100 rows, at least once.
+export function exportCredits(resultsObject, rows) {
+  if (rows == null) return null;
+  const price = resultsObject?.meta?.cost?.credits || 1;
+  return price * Math.max(1, Math.ceil(rows / ROWS_PER_PRICE));
+}
+
+// The dialog's format choices for a calculation: every group, or the summary (one CSV,
+// or a zip of one CSV per table with 2+ splits).
+export function calculationFormatOptions(resultsObject) {
+  const n = (resultsObject?.meta?.splits || []).length;
+  return [
+    { label: "Groups (CSV)", value: "groups-csv" },
+    { label: n >= 2 ? "Summary (zip)" : "Summary (CSV)", value: "summary" },
+  ];
+}
 
 // A row's value for a sort key: `split:<i>` sorts by that split's group name, any
 // other key is one of the row's calculated columns.
@@ -121,29 +163,6 @@ export function refusalMessage(data) {
   if (!data || typeof data !== "object") return null;
   if (data.fix && data.message) return `${data.message} Fix: ${data.fix}`;
   return null;
-}
-
-// The download's file name from Content-Disposition, else one from the date and
-// table, with the extension its type calls for (a summary with several tables is a
-// zip).
-export function csvFilename(disposition, now = new Date(), table = "groups", type = "") {
-  const m = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition || "");
-  if (m) return decodeURIComponent(m[1].trim());
-  const ext = /zip/i.test(type || "") ? "zip" : "csv";
-  return `openalex-${table}-${now.toISOString().slice(0, 10)}.${ext}`;
-}
-
-// What to say when a download fails: the API's own message (a refusal comes back as
-// JSON inside the blob: {message, fix} or {validation: {errors}}), else a plain line.
-export function downloadErrorMessage(bodyText) {
-  try {
-    const data = JSON.parse(bodyText);
-    const refusal = refusalMessage(data);
-    if (refusal) return `Download failed: ${refusal}`;
-    const msg = data?.message || data?.validation?.errors?.[0]?.message || data?.error;
-    if (typeof msg === "string" && msg) return `Download failed: ${msg}`;
-  } catch (_) { /* not JSON */ }
-  return "Download failed. Try again, or narrow the query.";
 }
 
 // Price line for a /query check or an executed pipeline response's meta.cost.

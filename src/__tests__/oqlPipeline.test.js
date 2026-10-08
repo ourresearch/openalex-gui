@@ -12,10 +12,11 @@ import {
   flatRows,
   sortRows,
   wholeSetMeasures,
-  downloadErrorMessage,
+  exportRows,
+  exportCredits,
+  calculationFormatOptions,
   refusalMessage,
   formatCost,
-  csvFilename,
 } from "@/oqlPipeline";
 
 const MEAN_FWCI = { key: "mean_fwci", measure: "mean", column_id: "fwci", oql: "mean FWCI" };
@@ -178,31 +179,34 @@ describe("formatCost", () => {
   });
 });
 
-describe("csvFilename", () => {
-  it("reads the server's file name", () => {
-    expect(csvFilename('attachment; filename="openalex-crispr.csv"')).toBe("openalex-crispr.csv");
-    expect(csvFilename("attachment; filename*=UTF-8''openalex%20groups.csv")).toBe("openalex groups.csv");
+describe("exports (mirror users-api export_calculation.py)", () => {
+  const withMeta = (meta, extra = {}) => ({ meta: { cost: { credits: 1 }, ...meta }, ...extra });
+
+  it("rows: no split is one row; one split the group count; nested every combination", () => {
+    expect(exportRows(withMeta({ splits: [] }), "groups-csv")).toBe(1);
+    expect(exportRows(withMeta({ splits: [{}], groups_count: 128284 }), "groups-csv")).toBe(128284);
+    expect(exportRows(withMeta({ splits: [{}], groups_count: null }), "groups-csv")).toBe(null);
+    expect(exportRows(withMeta({ splits: [{}, {}] }, { group_by: nested }), "groups-csv")).toBe(6);
   });
 
-  it("falls back to a dated name per table, a zip when the download is one", () => {
-    const d = new Date("2026-10-04T12:00:00Z");
-    expect(csvFilename(null, d)).toBe("openalex-groups-2026-10-04.csv");
-    expect(csvFilename(null, d, "summary", "text/csv")).toBe("openalex-summary-2026-10-04.csv");
-    expect(csvFilename(null, d, "summary", "application/zip")).toBe("openalex-summary-2026-10-04.zip");
-    expect(csvFilename('attachment; filename="openalex-q-summary.zip"', d, "summary", "text/csv")).toBe("openalex-q-summary.zip");
-  });
-});
-
-describe("downloadErrorMessage", () => {
-  it("shows the API's refusal with its fix", () => {
-    const body = JSON.stringify({ error: "not_enough_credits", message: "This query costs 31 credits ($0.0031); you have 4 left today.", fix: "Run it tomorrow, add credits, or narrow it." });
-    expect(downloadErrorMessage(body)).toBe("Download failed: This query costs 31 credits ($0.0031); you have 4 left today. Fix: Run it tomorrow, add credits, or narrow it.");
+  it("summary rows: all works plus each split's groups", () => {
+    expect(exportRows(withMeta({ splits: [{}, {}] }, { summary }), "summary")).toBe(1 + 2 + 2);
+    expect(exportRows(withMeta({ splits: [{}] }, { summary: { all: {} } }), "summary")).toBe(1);
   });
 
-  it("a message without a fix, a validation error, or anything else", () => {
-    expect(downloadErrorMessage(JSON.stringify({ message: "Too slow" }))).toBe("Download failed: Too slow");
-    expect(downloadErrorMessage(JSON.stringify({ validation: { errors: [{ message: "bad OQL" }] } }))).toBe("Download failed: bad OQL");
-    expect(downloadErrorMessage("<html>502</html>")).toBe("Download failed. Try again, or narrow the query.");
-    expect(downloadErrorMessage(null)).toBe("Download failed. Try again, or narrow the query.");
+  it("the query's price for every 100 rows, at least once", () => {
+    expect(exportCredits(withMeta({}), 1)).toBe(1);
+    expect(exportCredits(withMeta({}), 100)).toBe(1);
+    expect(exportCredits(withMeta({}), 101)).toBe(2);
+    expect(exportCredits(withMeta({}), 128284)).toBe(1283);
+    expect(exportCredits(withMeta({ cost: { credits: 10 } }), 23235)).toBe(2330);
+    expect(exportCredits(withMeta({}), 0)).toBe(1);
+    expect(exportCredits(withMeta({}), null)).toBe(null);
+  });
+
+  it("formats: the summary is a zip with 2+ splits", () => {
+    expect(calculationFormatOptions(withMeta({ splits: [{}] })).map((o) => o.label)).toEqual(["Groups (CSV)", "Summary (CSV)"]);
+    expect(calculationFormatOptions(withMeta({ splits: [{}, {}] })).map((o) => [o.label, o.value]))
+      .toEqual([["Groups (CSV)", "groups-csv"], ["Summary (zip)", "summary"]]);
   });
 });

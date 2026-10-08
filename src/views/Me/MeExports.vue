@@ -47,7 +47,7 @@
                 <div>
                   <div>{{ formatDescription(exp) }}</div>
                   <div v-if="exp.format && exp.format !== 'csv'" class="text-caption text-grey">
-                    {{ exp.format.toUpperCase() }}
+                    {{ CALCULATION_FORMATS[exp.format]?.label || exp.format.toUpperCase() }}
                   </div>
                 </div>
               </div>
@@ -91,7 +91,7 @@
                       {{ (exp.rows_exported || 0).toLocaleString() }}
                     </span>
                   </template>
-                  {{ (exp.rows_exported || 0).toLocaleString() }} of {{ (exp.total_rows || 0).toLocaleString() }} works ({{ formatProgress(exp.progress, exp.total_rows) }}%)
+                  {{ (exp.rows_exported || 0).toLocaleString() }} of {{ (exp.total_rows || 0).toLocaleString() }} {{ CALCULATION_FORMATS[exp.format]?.noun || 'works' }} ({{ formatProgress(exp.progress, exp.total_rows) }}%)
                 </v-tooltip>
                 
                 <!-- Donut progress for running exports (in place of download button) -->
@@ -273,7 +273,19 @@ const getErrorDisplayText = (exp) => {
   return errorDisplayMap[exp.error_code] || 'Failed';
 };
 
+// OQL calculation exports (oxjob #1550) count groups or summary rows, not works.
+const CALCULATION_FORMATS = {
+  'groups-csv': { label: 'Groups (CSV)', noun: 'groups' },
+  'summary-csv': { label: 'Summary (CSV)', noun: 'summary rows' },
+  'summary-zip': { label: 'Summary (zip)', noun: 'summary rows' },
+};
+
 const formatDescription = (exp) => {
+  const calculation = CALCULATION_FORMATS[exp.format];
+  if (calculation) {
+    const n = exp.total_rows || exp.rows_exported;
+    return n ? `${n.toLocaleString()} ${n === 1 ? calculation.noun.replace(/s$/, '') : calculation.noun}` : calculation.label;
+  }
   // Get row count - prefer total_rows, fall back to rows_exported
   const rowCount = exp.total_rows || exp.rows_exported;
   

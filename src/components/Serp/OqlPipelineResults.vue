@@ -2,61 +2,33 @@
   <!-- Results of an OQL pipeline query (oxjob #1536, flat since #1550): one row per
        group with a column per split and per calculation (headed by their OQL words),
        every row sortable on its own. The summary (the whole set, each split on its own)
-       is not shown here yet (Jason, 2026-10-08: how to display it is unsolved); it
-       downloads: one CSV, or a zip of one CSV per table when there are several. -->
+       is not shown here yet (Jason, 2026-10-08: how to display it is unsolved). Export
+       goes through the same Export dialog and exporter as works (Jason, 2026-10-08: OQL
+       has no limits, so it writes every group, priced up front): the groups as one CSV,
+       or the summary (one CSV, or a zip of one CSV per table with 2+ splits). -->
   <v-card variant="outlined" class="bg-white oql-pipeline-results">
     <div class="results-card-head d-flex align-center">
       <span class="text-body-2 text-medium-emphasis">{{ headLabel }}</span>
       <v-spacer />
-      <span v-if="downloadError" class="text-body-2 text-error mr-2">{{ downloadError }}</span>
       <span v-if="costLabel" class="text-body-2 text-medium-emphasis">{{ costLabel }}</span>
-      <!-- No split: the one row is the whole set, so there is only one file. -->
-      <v-btn
-        v-if="depth === 0"
-        icon
-        variant="text"
-        size="small"
-        class="ml-1"
-        aria-label="Download CSV"
-        :loading="downloading"
-        @click="onDownload('groups')"
-      >
-        <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
-        <v-tooltip activator="parent" location="bottom" content-class="linear-tooltip">Download CSV</v-tooltip>
-      </v-btn>
-      <!-- Menu and tooltip share one activator (Vuetify's mergeProps pattern): a tooltip
-           nested inside the menu's button made the menu close as it opened. -->
-      <v-menu v-else location="bottom end">
-        <template #activator="{ props: menu }">
-          <v-tooltip location="bottom" text="Download" content-class="linear-tooltip">
-            <template #activator="{ props: tip }">
-              <v-btn
-                v-bind="mergeProps(menu, tip)"
-                icon
-                variant="text"
-                size="small"
-                class="ml-1"
-                aria-label="Download"
-                :loading="downloading"
-              >
-                <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
-              </v-btn>
-            </template>
-          </v-tooltip>
+      <v-tooltip location="bottom" :text="exportTooltip" content-class="linear-tooltip">
+        <template #activator="{ props: tip }">
+          <v-btn
+            v-bind="tip"
+            icon
+            variant="text"
+            size="small"
+            class="ml-1"
+            :aria-label="exportTooltip"
+            @click="exportButtonRef?.openExportDialog()"
+          >
+            <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
+          </v-btn>
         </template>
-        <v-list min-width="280">
-          <v-list-item @click="onDownload('groups')">
-            <template #prepend><v-icon>mdi-table</v-icon></template>
-            <v-list-item-title>Groups (CSV)</v-list-item-title>
-            <v-list-item-subtitle>{{ groupsDownloadNote }}</v-list-item-subtitle>
-          </v-list-item>
-          <v-list-item @click="onDownload('summary')">
-            <template #prepend><v-icon>{{ depth > 1 ? 'mdi-folder-zip-outline' : 'mdi-sigma' }}</v-icon></template>
-            <v-list-item-title>Summary ({{ depth > 1 ? 'zip' : 'CSV' }})</v-list-item-title>
-            <v-list-item-subtitle>{{ summaryDownloadNote }}</v-list-item-subtitle>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+      </v-tooltip>
+      <!-- The shared Export dialog (its own button hidden; dialogs are teleported). It
+           reads this response from the store and switches to its calculation mode. -->
+      <serp-results-export-button ref="exportButtonRef" class="d-none" />
     </div>
     <v-divider />
 
@@ -99,14 +71,14 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, mergeProps } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { api } from '@/api';
 import {
-  flatRows, sortRows, formatMeasure, formatCost, groupLink, csvFilename, downloadErrorMessage,
-  wholeSetMeasures, MAX_DOWNLOAD_GROUPS,
+  flatRows, sortRows, formatMeasure, formatCost, groupLink, wholeSetMeasures, exportRows,
 } from '@/oqlPipeline';
+import SerpResultsExportButton from '@/components/SerpResultsExportButton.vue';
 
 defineOptions({ name: 'OqlPipelineResults' });
 
@@ -178,48 +150,12 @@ async function onSort(col) {
   }
 }
 
-// ---- Downloads: the groups (one CSV) and the summary (one CSV, or a zip) ----------
-// Each runs the query again on the API (and costs what the query costs).
-const downloading = ref(false);
-const downloadError = ref(null);
-async function onDownload(table) {
-  const oql = props.resultsObject?.meta?.x_query?.oql || route.query.oql;
-  if (!oql || downloading.value) return;
-  downloading.value = true;
-  downloadError.value = null;
-  try {
-    const { blob, disposition } = await api.downloadPipelineCsv(oql, table);
-    const href = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = href;
-    a.download = csvFilename(disposition, new Date(), table, blob?.type);
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(href), 1000);
-  } catch (e) {
-    // A refusal (not enough credits, too slow) comes back as a blob holding JSON.
-    let text = null;
-    try { text = await e?.response?.data?.text?.(); } catch (_) { /* no body */ }
-    downloadError.value = downloadErrorMessage(text);
-  } finally {
-    downloading.value = false;
-  }
-}
-
-// What each download holds, said before it's clicked: the groups file stops at
-// MAX_DOWNLOAD_GROUPS for a single split; the summary is one file or a zip of several.
-const groupsDownloadNote = computed(() => {
-  const n = props.resultsObject?.meta?.groups_count;
-  if (depth.value === 1 && n > MAX_DOWNLOAD_GROUPS) {
-    return `The first ${MAX_DOWNLOAD_GROUPS.toLocaleString()} of about ${n.toLocaleString()} groups`;
-  }
-  return 'One row per group, a column per split';
-});
-const summaryDownloadNote = computed(() => {
-  const s = props.resultsObject?.meta?.splits || [];
-  if (s.length < 2) return 'All works, one row';
-  return `All works, ${s.map((x) => `by ${x.oql}`).join(', ')}: one CSV each`;
+// ---- Export: the shared Export dialog (oxjob #1550) -------------------------------
+const exportButtonRef = ref(null);
+const exportTooltip = computed(() => {
+  const n = exportRows(props.resultsObject, 'groups-csv');
+  if (!depth.value) return 'Export';
+  return n == null ? 'Export every group' : `Export ${n.toLocaleString()} ${n === 1 ? 'group' : 'groups'}`;
 });
 
 const headLabel = computed(() => {
