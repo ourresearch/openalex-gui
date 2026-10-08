@@ -24,9 +24,9 @@
                 <span class="meta-tag">Paris, France</span>
                 <span class="meta-tag">Tuesday 20 &amp; Wednesday 21 October 2026</span>
                 <span class="meta-tag">Hosted by CNRS and Sorbonne Universit&eacute;</span>
-                <span class="meta-tag">Free, registration required</span>
+                <span class="meta-tag">Registration closed</span>
             </div>
-            <p class="intro-note">Programme updated 8 October. Most talks are confirmed and listed below; we will fill the last few slots as speakers confirm. Times and breakout topics may still move a little.</p>
+            <p class="intro-note">Registration is closed. Programme updated 8 October. Most talks are confirmed and listed below; we will fill the last few slots as speakers confirm. Times and breakout topics may still move a little.</p>
         </header>
 
         <!-- THE WEEK -->
@@ -46,7 +46,7 @@
                 </div>
                 <div class="f26-card">
                     <h4>Wednesday 21 October, Sorbonne</h4>
-                    <p class="card-text">Fewer talks, more conversation. A short set of morning talks chosen to open discussion, an update from the OpenAlex team on what we are building, then an afternoon of breakouts in small rooms. In French and English. Lunch provided. Now full, with a waiting list.</p>
+                    <p class="card-text">Fewer talks, more conversation. A short set of morning talks chosen to open discussion, an update from the OpenAlex team on what we are building, then an afternoon of breakouts in small rooms. In French and English. Lunch provided.</p>
                     <span class="f26-tag tag-discuss">discussion</span><span class="f26-tag tag-hands-on">hands-on</span>
                 </div>
             </div>
@@ -382,30 +382,9 @@
         <div class="section" id="register">
             <h2 class="section-header">Registration</h2>
             <p class="section-subtitle">Attendance is free, and OpenAlex covers coffee and lunch on both days. The evening drinks are informal: everyone pays for their own drinks and food. You cover your own travel and accommodation.</p>
-            <div class="grid-2">
-                <div class="f26-card">
-                    <h4>How it works</h4>
-                    <ul>
-                        <li>Register for Tuesday, Wednesday, or both</li>
-                        <li>Tuesday at CNRS has space for about 80 people, and places are still available</li>
-                        <li>Wednesday at Sorbonne is <strong>full</strong>. If you register for Wednesday now, we will add you to the waiting list and let you know if a place opens up</li>
-                        <li>Registration closes on <strong>Monday 12 October</strong></li>
-                        <li>We confirm places by email, so you can book travel</li>
-                    </ul>
-                </div>
-                <div class="f26-card">
-                    <h4>If we are oversubscribed</h4>
-                    <ul>
-                        <li>Speakers and hosts are confirmed first</li>
-                        <li>Then people travelling to Paris for both days</li>
-                        <li>Then we spread places across institutions and countries</li>
-                        <li>Tuesday can take more local attendees than Wednesday</li>
-                    </ul>
-                </div>
-            </div>
             <div class="invite-note">
-                <a class="register-button" href="https://docs.google.com/forms/d/e/1FAIpQLSfZxhkNiWJJOUFjnjZfj4Vp-o0-Qv_JI0laCaJsd8uDYuJP-g/viewform" target="_blank" rel="noopener noreferrer">Register for the meeting</a>
-                <br>Takes about five minutes. Questions? Write to <a href="mailto:support@openalex.org">support@openalex.org</a>.
+                <strong>Registration is now closed.</strong> Thank you to everyone who signed up. We will email registrants with the practical details for each day.
+                <br>Questions about your registration? Write to <a href="mailto:support@openalex.org">support@openalex.org</a>.
             </div>
         </div>
 
