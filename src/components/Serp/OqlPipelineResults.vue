@@ -1,89 +1,128 @@
 <template>
-  <!-- Results of an OQL pipeline query (oxjob #1536): one row per group, one column
-       per calculation (headed by its OQL words), the total row first, nested groups
-       under their parents. Sort by any column. -->
-  <v-card variant="outlined" class="bg-white oql-pipeline-results">
-    <div class="results-card-head d-flex align-center">
-      <span class="text-body-2 text-medium-emphasis">{{ headLabel }}</span>
-      <v-spacer />
-      <span v-if="downloadError" class="text-body-2 text-error mr-2">{{ downloadError }}</span>
-      <span v-if="costLabel" class="text-body-2 text-medium-emphasis">{{ costLabel }}</span>
-      <!-- CSV zip (groups, totals, the query), once the API offers it (meta.splits
-           ships with format=csv). -->
-      <v-tooltip v-if="canDownload" location="bottom" text="Download CSV" content-class="linear-tooltip">
-        <template #activator="{ props: tip }">
-          <v-btn
-            v-bind="tip"
-            icon
-            variant="text"
-            size="small"
-            class="ml-1"
-            aria-label="Download CSV"
-            :loading="downloading"
-            @click="onDownload"
-          >
-            <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
-          </v-btn>
-        </template>
-      </v-tooltip>
-    </div>
-    <v-divider />
-
-    <div class="pipeline-table-wrap">
-      <table class="pipeline-table">
-        <thead>
-          <tr>
-            <th
-              v-for="col in columns"
-              :key="col.key"
-              :class="['pipeline-th', col.numeric ? 'numeric' : 'group-col', { sorted: sort?.key === col.key }]"
-              :aria-sort="sort?.key === col.key ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'"
-              @click="onSort(col)"
+  <!-- Results of an OQL pipeline query (oxjob #1536, flat since #1550): the groups
+       table, one row per group with a column per split and per calculation (headed by
+       their OQL words), every row sortable on its own; then the summary table, the
+       whole set and each split's groups on their own. Each table downloads as a CSV. -->
+  <div class="oql-pipeline-results">
+    <v-card v-if="depth > 0" variant="outlined" class="bg-white">
+      <div class="results-card-head d-flex align-center">
+        <span class="text-body-2 text-medium-emphasis">{{ headLabel }}</span>
+        <v-spacer />
+        <span v-if="downloadError.groups" class="text-body-2 text-error mr-2">{{ downloadError.groups }}</span>
+        <span v-if="costLabel" class="text-body-2 text-medium-emphasis">{{ costLabel }}</span>
+        <v-tooltip location="bottom" text="Download CSV" content-class="linear-tooltip">
+          <template #activator="{ props: tip }">
+            <v-btn
+              v-bind="tip"
+              icon
+              variant="text"
+              size="small"
+              class="ml-1"
+              aria-label="Download the groups as CSV"
+              :loading="downloading.groups"
+              @click="onDownload('groups')"
             >
-              <span class="th-inner">
-                {{ col.label }}
-                <v-icon v-if="sort?.key === col.key" size="14" class="sort-icon">
-                  {{ sort.dir === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
-                </v-icon>
-              </span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="row in rows"
-            :key="row.id"
-            :class="{ 'total-row': row.isTotal, 'child-row': row.level > 0 }"
-          >
-            <td class="group-col" :style="{ paddingLeft: `${12 + row.level * 22}px` }">
-              <span class="group-cell">
-                <v-btn
-                  v-if="row.hasChildren"
-                  icon
-                  variant="text"
-                  size="x-small"
-                  density="comfortable"
-                  class="toggle-btn"
-                  :aria-label="collapsed.has(row.id) ? 'Show groups' : 'Hide groups'"
-                  @click="toggle(row.id)"
-                >
-                  <v-icon size="18">{{ collapsed.has(row.id) ? 'mdi-chevron-right' : 'mdi-chevron-down' }}</v-icon>
-                </v-btn>
-                <span v-else-if="hasNesting" class="toggle-spacer" />
-                <router-link v-if="row.link" :to="row.link" class="group-link">{{ row.label }}</router-link>
-                <span v-else>{{ row.label }}</span>
-              </span>
-            </td>
-            <td v-for="m in measures" :key="m.key" class="numeric">
-              {{ formatMeasure(m, row.group[m.key]) }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+              <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
+            </v-btn>
+          </template>
+        </v-tooltip>
+      </div>
+      <v-divider />
 
-    <div v-if="footNote" class="pipeline-foot text-body-2 text-medium-emphasis">{{ footNote }}</div>
-  </v-card>
+      <div class="pipeline-table-wrap">
+        <table class="pipeline-table">
+          <thead>
+            <tr>
+              <th
+                v-for="col in columns"
+                :key="col.key"
+                :class="['pipeline-th', col.numeric ? 'numeric' : 'group-col', { sorted: sort?.key === col.key }]"
+                :aria-sort="sort?.key === col.key ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'"
+                @click="onSort(col)"
+              >
+                <span class="th-inner">
+                  {{ col.label }}
+                  <v-icon v-if="sort?.key === col.key" size="14" class="sort-icon">
+                    {{ sort.dir === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                  </v-icon>
+                </span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in rows" :key="row.id">
+              <td v-for="(g, i) in row.path" :key="i" class="group-col">
+                <router-link v-if="groupLink(g.key)" :to="groupLink(g.key)" class="group-link">{{ label(g) }}</router-link>
+                <span v-else>{{ label(g) }}</span>
+              </td>
+              <td v-for="m in measures" :key="m.key" class="numeric">
+                {{ formatMeasure(m, row.group[m.key]) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-if="footNote" class="pipeline-foot text-body-2 text-medium-emphasis">{{ footNote }}</div>
+    </v-card>
+
+    <v-card variant="outlined" :class="['bg-white', { 'mt-4': depth > 0 }]">
+      <div class="results-card-head d-flex align-center">
+        <span class="text-body-2 text-medium-emphasis">{{ summaryLabel }}</span>
+        <v-spacer />
+        <span v-if="downloadError.summary" class="text-body-2 text-error mr-2">{{ downloadError.summary }}</span>
+        <span v-if="depth === 0 && costLabel" class="text-body-2 text-medium-emphasis">{{ costLabel }}</span>
+        <v-tooltip location="bottom" text="Download CSV" content-class="linear-tooltip">
+          <template #activator="{ props: tip }">
+            <v-btn
+              v-bind="tip"
+              icon
+              variant="text"
+              size="small"
+              class="ml-1"
+              aria-label="Download the summary as CSV"
+              :loading="downloading.summary"
+              @click="onDownload('summary')"
+            >
+              <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
+            </v-btn>
+          </template>
+        </v-tooltip>
+      </div>
+      <v-divider />
+
+      <div class="pipeline-table-wrap">
+        <table class="pipeline-table">
+          <thead>
+            <tr>
+              <th class="pipeline-th group-col static">Summary of</th>
+              <th v-for="col in splitColumns" :key="col.key" class="pipeline-th group-col static">{{ col.label }}</th>
+              <th v-for="m in measures" :key="m.key" class="pipeline-th numeric static">{{ m.oql }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(row, n) in summary"
+              :key="row.id"
+              :class="{ 'all-row': row.of === null, 'section-start': n > 0 && row.of !== summary[n - 1].of }"
+            >
+              <td class="group-col">{{ row.of === null ? allLabel : splits[row.of]?.oql }}</td>
+              <td v-for="(g, i) in row.path" :key="i" class="group-col">
+                <template v-if="g">
+                  <router-link v-if="groupLink(g.key)" :to="groupLink(g.key)" class="group-link">{{ label(g) }}</router-link>
+                  <span v-else>{{ label(g) }}</span>
+                </template>
+              </td>
+              <td v-for="m in measures" :key="m.key" class="numeric">
+                {{ formatMeasure(m, row.group[m.key]) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div v-if="summaryNote" class="pipeline-foot text-body-2 text-medium-emphasis">{{ summaryNote }}</div>
+    </v-card>
+  </div>
 </template>
 
 <script setup>
@@ -92,7 +131,7 @@ import { useRoute } from 'vue-router';
 
 import { api } from '@/api';
 import {
-  flattenGroups, formatMeasure, formatCost, groupLink, splitDepth, splitsLabel, csvFilename,
+  flatRows, summaryRows, sortRows, formatMeasure, formatCost, groupLink, csvFilename,
 } from '@/oqlPipeline';
 
 defineOptions({ name: 'OqlPipelineResults' });
@@ -109,64 +148,35 @@ const route = useRoute();
 const serverSorted = ref(null); // response of the API-side sort, or null
 const sorting = ref(false);
 const sort = ref(null); // {key, dir} | null = the API's order
-const collapsed = ref(new Set());
 
 const response = computed(() => serverSorted.value || props.resultsObject);
 const meta = computed(() => response.value?.meta || {});
 const measures = computed(() => meta.value.measures || []);
-const groups = computed(() => response.value?.group_by || []);
-const total = computed(() => response.value?.total || null);
-const hasNesting = computed(() => splitDepth(groups.value) > 1 || !!total.value?.groups?.length);
+const splits = computed(() => meta.value.splits || []);
+const depth = computed(() => splits.value.length);
 
+const splitColumns = computed(() => splits.value.map((s, i) => (
+  { key: `split:${i}`, label: s.oql, numeric: false })));
 const columns = computed(() => [
-  { key: 'group', label: splitsLabel(meta.value.splits), numeric: false },
+  ...splitColumns.value,
   ...measures.value.map((m) => ({ key: m.key, label: m.oql, numeric: true, measure: m })),
 ]);
 
-// The total row's own inner splits start collapsed: they repeat the breakdown for
-// every work and would push the groups off screen.
-const TOTAL_ID = '#total';
-function resetView() {
+watch(() => props.resultsObject, () => {
   sort.value = null;
   serverSorted.value = null;
-  collapsed.value = new Set([TOTAL_ID]);
-}
-watch(() => props.resultsObject, resetView, { immediate: true });
+}, { immediate: true });
 
-function toggle(id) {
-  const next = new Set(collapsed.value);
-  if (next.has(id)) next.delete(id);
-  else next.add(id);
-  collapsed.value = next;
-}
+const allRows = computed(() => flatRows(response.value?.group_by, depth.value));
+// Local sort; an API-sorted page is already in order.
+const rows = computed(() => (serverSorted.value ? allRows.value : sortRows(allRows.value, sort.value)));
 
-const rows = computed(() => {
-  // Local sort applies at every level; an API-sorted page is already in order.
-  const localSort = serverSorted.value ? null : sort.value;
-  const out = [];
-  if (total.value) {
-    const t = total.value;
-    const children = t.groups || [];
-    out.push({
-      id: TOTAL_ID, level: 0, group: t, isTotal: true, hasChildren: children.length > 0,
-      label: capitalize(t.key_display_name || 'all works'), link: null,
-    });
-    if (children.length && !collapsed.value.has(TOTAL_ID)) {
-      out.push(...decorate(flattenGroups(children, {
-        sort: localSort, collapsed: collapsed.value, level: 1, parentId: TOTAL_ID,
-      })));
-    }
-  }
-  out.push(...decorate(flattenGroups(groups.value, { sort: localSort, collapsed: collapsed.value })));
-  return out;
-});
+// The summary comes from the first response: an API-side sort doesn't change it.
+const summary = computed(() => summaryRows(props.resultsObject?.summary, depth.value));
+const allLabel = computed(() => capitalize(props.resultsObject?.summary?.all?.key_display_name || 'all works'));
 
-function decorate(flat) {
-  return flat.map((r) => ({
-    ...r,
-    label: r.group.key_display_name ?? String(r.group.key),
-    link: groupLink(r.group.key),
-  }));
+function label(g) {
+  return g.key_display_name ?? String(g.key);
 }
 
 function capitalize(s) {
@@ -198,39 +208,49 @@ async function onSort(col) {
   }
 }
 
-// ---- CSV download ----------------------------------------------------------
-const canDownload = computed(() => Array.isArray(props.resultsObject?.meta?.splits));
-const downloading = ref(false);
-const downloadError = ref(null);
-async function onDownload() {
+// ---- CSV downloads: the groups table and the summary table -------------------
+const downloading = ref({ groups: false, summary: false });
+const downloadError = ref({ groups: null, summary: null });
+async function onDownload(table) {
   const oql = props.resultsObject?.meta?.x_query?.oql || route.query.oql;
-  if (!oql || downloading.value) return;
-  downloading.value = true;
-  downloadError.value = null;
+  if (!oql || downloading.value[table]) return;
+  downloading.value = { ...downloading.value, [table]: true };
+  downloadError.value = { ...downloadError.value, [table]: null };
   try {
-    const { blob, disposition } = await api.downloadPipelineCsv(oql);
+    const { blob, disposition } = await api.downloadPipelineCsv(oql, table);
     const href = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = href;
-    a.download = csvFilename(disposition);
+    a.download = csvFilename(disposition, new Date(), table);
     document.body.appendChild(a);
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(href), 1000);
   } catch (e) {
-    downloadError.value = 'Download failed.';
+    downloadError.value = { ...downloadError.value, [table]: 'Download failed.' };
   } finally {
-    downloading.value = false;
+    downloading.value = { ...downloading.value, [table]: false };
   }
 }
 
 const headLabel = computed(() => {
   const m = meta.value;
-  const nGroups = m.groups_count ?? groups.value.length;
+  if (sorting.value) return 'Sorting…';
+  // nested splits: every combination is here, one row each; one split: the API's
+  // count of its groups (it may hold only the top page)
+  const nGroups = depth.value > 1 ? allRows.value.length : (m.groups_count ?? allRows.value.length);
   const groupWord = nGroups === 1 ? 'group' : 'groups';
   const works = m.count != null ? ` of ${m.count.toLocaleString()} works` : '';
-  if (sorting.value) return 'Sorting…';
   return `${nGroups.toLocaleString()} ${groupWord}${works}`;
+});
+
+const summaryLabel = computed(() => 'Summary');
+
+const summaryNote = computed(() => {
+  const capped = (props.resultsObject?.summary?.splits || [])
+    .map((p, i) => (p?.more_groups ? splits.value[i]?.oql : null)).filter(Boolean);
+  if (!capped.length) return null;
+  return `Showing the biggest groups only for ${capped.join(' and ')}.`;
 });
 
 const costLabel = computed(() => {
@@ -241,7 +261,7 @@ const costLabel = computed(() => {
 const footNote = computed(() => {
   const m = meta.value;
   if (!m.more_groups) return null;
-  const shown = groups.value.length.toLocaleString();
+  const shown = allRows.value.length.toLocaleString();
   const by = serverSorted.value && sort.value
     ? (measures.value.find((x) => x.key === sort.value.key)?.oql || sort.value.key)
     : 'count';
@@ -281,7 +301,10 @@ const footNote = computed(() => {
   white-space: nowrap;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
-.pipeline-th:hover {
+.pipeline-th.static {
+  cursor: default;
+}
+.pipeline-th:not(.static):hover {
   background: rgba(0, 0, 0, 0.05);
 }
 .pipeline-th.sorted {
@@ -310,24 +333,11 @@ const footNote = computed(() => {
 .pipeline-table tbody tr:hover {
   background: rgba(0, 0, 0, 0.03);
 }
-.total-row td {
+.all-row td {
   font-weight: 600;
-  background: rgba(0, 0, 0, 0.03);
 }
-.child-row td {
-  color: rgba(0, 0, 0, 0.75);
-}
-.group-cell {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.toggle-btn {
-  margin-left: -6px;
-}
-.toggle-spacer {
-  display: inline-block;
-  width: 22px;
+.section-start td {
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 .pipeline-foot {
   padding: 10px 14px;

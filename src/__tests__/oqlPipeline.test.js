@@ -1,6 +1,7 @@
-// oxjob #1536: OQL pipeline-language results (calculated columns, total row,
-// nested groups, sort by any column). Shapes copied from production responses
-// (api.openalex.org, 2026-10-03).
+// oxjob #1536 / #1550: OQL pipeline-language results (calculated columns, a flat
+// groups table with a column per split, the summary table, sort by any column).
+// Shapes copied from production responses (api.openalex.org, 2026-10-03 and
+// 2026-10-08).
 
 import { describe, it, expect } from "vitest";
 import {
@@ -8,12 +9,11 @@ import {
   isPipelineOqo,
   formatMeasure,
   groupLink,
-  sortGroups,
-  flattenGroups,
-  splitDepth,
+  flatRows,
+  summaryRows,
+  sortRows,
   refusalMessage,
   formatCost,
-  splitsLabel,
   csvFilename,
 } from "@/oqlPipeline";
 
@@ -26,21 +26,21 @@ const institutions = [
   { key: "https://openalex.org/I136199984", key_display_name: "Harvard University", count: 2289, mean_fwci: 8.5282 },
 ];
 
+// wind power 2023-2024 by year, then by open access status (production, 2026-10-08)
+const oa = (rows) => rows.map(([key, count, mean_fwci]) => ({ key, key_display_name: key, count, mean_fwci }));
 const nested = [
-  {
-    key: "institution is (I99464096)", key_display_name: "institution is (I99464096)", count: 150235,
-    groups: [
-      { key: "https://openalex.org/sdgs/3", key_display_name: "Good health and well-being", count: 26536 },
-      { key: "https://openalex.org/sdgs/7", key_display_name: "Affordable and clean energy", count: 7393 },
-    ],
-  },
-  {
-    key: "country is (BE)", key_display_name: "country is (BE)", count: 500000,
-    groups: [
-      { key: "https://openalex.org/sdgs/4", key_display_name: "Quality education", count: 9 },
-    ],
-  },
+  { key: "2024", key_display_name: "2024", count: 7264, mean_fwci: 1.3597,
+    groups: oa([["closed", 3592, 1.3491], ["gold", 1393, 1.4877], ["hybrid", 507, 2.5219]]) },
+  { key: "2023", key_display_name: "2023", count: 6379, mean_fwci: 1.3422,
+    groups: oa([["closed", 3137, 1.368], ["gold", 1305, 1.4607], ["hybrid", 357, null]]) },
 ];
+const summary = {
+  all: { key: "all", key_display_name: "all works", count: 13643, mean_fwci: 1.3516 },
+  splits: [
+    { groups: nested.map(({ groups, ...g }) => g), more_groups: false },
+    { groups: oa([["closed", 6729, 1.3579], ["gold", 2698, 1.4744]]), more_groups: false },
+  ],
+};
 
 describe("isPipelineResponse / isPipelineOqo", () => {
   it("a response with meta.measures is a pipeline response; today's are not", () => {
@@ -90,70 +90,74 @@ describe("groupLink", () => {
   });
 });
 
-describe("sortGroups", () => {
+describe("flatRows", () => {
+  it("one row per innermost group, naming its group at every split", () => {
+    const rows = flatRows(nested, 2);
+    expect(rows.map((r) => r.path.map((g) => g.key_display_name))).toEqual([
+      ["2024", "closed"], ["2024", "gold"], ["2024", "hybrid"],
+      ["2023", "closed"], ["2023", "gold"], ["2023", "hybrid"],
+    ]);
+    expect(rows[0].group.count).toBe(3592);   // the innermost group's numbers
+    expect(rows[0].id).toBe("2024/closed");
+  });
+
+  it("one split: the groups themselves", () => {
+    expect(flatRows(institutions, 1).map((r) => r.group.count)).toEqual([1140, 1253, 2289]);
+  });
+
+  it("a group with no inner groups has no row", () => {
+    expect(flatRows([{ key: "2022", groups: [] }, ...nested], 2)).toHaveLength(6);
+    expect(flatRows(undefined, 2)).toEqual([]);
+  });
+});
+
+describe("sortRows", () => {
+  const rows = flatRows(nested, 2);
+
   it("null sort keeps the API order", () => {
-    expect(sortGroups(institutions, null)).toBe(institutions);
+    expect(sortRows(rows, null)).toBe(rows);
   });
 
-  it("sorts by any measure, both directions", () => {
-    const desc = sortGroups(institutions, { key: "mean_fwci", dir: "desc" }).map((g) => g.key_display_name);
-    expect(desc).toEqual(["Massachusetts Institute of Technology", "Harvard University", "Stanford University"]);
-    const asc = sortGroups(institutions, { key: "count", dir: "asc" }).map((g) => g.count);
-    expect(asc).toEqual([1140, 1253, 2289]);
+  it("every row sorts on its own, across groups, by any calculated column", () => {
+    const desc = sortRows(rows, { key: "count", dir: "desc" }).map((r) => r.id);
+    expect(desc).toEqual(["2024/closed", "2023/closed", "2024/gold", "2023/gold", "2024/hybrid", "2023/hybrid"]);
   });
 
-  it("sorts by the group's name", () => {
-    const byName = sortGroups(institutions, { key: "group", dir: "asc" }).map((g) => g.key_display_name);
-    expect(byName).toEqual(["Harvard University", "Massachusetts Institute of Technology", "Stanford University"]);
+  it("sorts by a split column's group names (numbers in number order)", () => {
+    const byStatus = sortRows(rows, { key: "split:1", dir: "asc" }).map((r) => r.id);
+    expect(byStatus).toEqual(["2024/closed", "2023/closed", "2024/gold", "2023/gold", "2024/hybrid", "2023/hybrid"]);
+    const byYear = sortRows(rows, { key: "split:0", dir: "asc" }).map((r) => r.path[0].key);
+    expect(byYear).toEqual(["2023", "2023", "2023", "2024", "2024", "2024"]);
   });
 
   it("missing values sort last in both directions", () => {
-    const withNull = [...institutions, { key: "x", key_display_name: "No FWCI", count: 1, mean_fwci: null }];
-    expect(sortGroups(withNull, { key: "mean_fwci", dir: "desc" }).at(-1).key).toBe("x");
-    expect(sortGroups(withNull, { key: "mean_fwci", dir: "asc" }).at(-1).key).toBe("x");
+    expect(sortRows(rows, { key: "mean_fwci", dir: "desc" }).at(-1).id).toBe("2023/hybrid");
+    expect(sortRows(rows, { key: "mean_fwci", dir: "asc" }).at(-1).id).toBe("2023/hybrid");
   });
 
   it("does not mutate its input", () => {
-    const copy = [...institutions];
-    sortGroups(institutions, { key: "count", dir: "desc" });
-    expect(institutions).toEqual(copy);
+    const copy = [...rows];
+    sortRows(rows, { key: "count", dir: "asc" });
+    expect(rows).toEqual(copy);
   });
 });
 
-describe("flattenGroups", () => {
-  it("nests children under their parent with a level", () => {
-    const rows = flattenGroups(nested);
-    expect(rows.map((r) => [r.level, r.group.key_display_name])).toEqual([
-      [0, "institution is (I99464096)"],
-      [1, "Good health and well-being"],
-      [1, "Affordable and clean energy"],
-      [0, "country is (BE)"],
-      [1, "Quality education"],
-    ]);
-    expect(rows[0].hasChildren).toBe(true);
-    expect(rows[1].hasChildren).toBe(false);
-  });
-
-  it("sorts every level the same way", () => {
-    const rows = flattenGroups(nested, { sort: { key: "count", dir: "asc" } });
-    expect(rows.map((r) => r.group.count)).toEqual([150235, 7393, 26536, 500000, 9]);
-  });
-
-  it("a collapsed parent hides its children; ids are key paths", () => {
-    const rows = flattenGroups(nested, { collapsed: new Set(["/institution is (I99464096)"]) });
-    expect(rows.map((r) => r.id)).toEqual([
-      "/institution is (I99464096)",
-      "/country is (BE)",
-      "/country is (BE)/https://openalex.org/sdgs/4",
+describe("summaryRows", () => {
+  it("the whole set, then each split's groups on their own", () => {
+    const rows = summaryRows(summary, 2);
+    expect(rows.map((r) => [r.of, r.path.map((g) => g?.key ?? null), r.group.count])).toEqual([
+      [null, [null, null], 13643],
+      [0, ["2024", null], 7264],
+      [0, ["2023", null], 6379],
+      [1, [null, "closed"], 6729],
+      [1, [null, "gold"], 2698],
     ]);
   });
-});
 
-describe("splitDepth", () => {
-  it("counts split levels", () => {
-    expect(splitDepth(institutions)).toBe(1);
-    expect(splitDepth(nested)).toBe(2);
-    expect(splitDepth([])).toBe(0);
+  it("one split or none: the whole set only", () => {
+    expect(summaryRows({ all: summary.all }, 1).map((r) => r.path)).toEqual([[null]]);
+    expect(summaryRows({ all: summary.all }, 0).map((r) => r.path)).toEqual([[]]);
+    expect(summaryRows(undefined, 2)).toEqual([]);
   });
 });
 
@@ -183,25 +187,14 @@ describe("formatCost", () => {
   });
 });
 
-describe("splitsLabel", () => {
-  it("joins each split's OQL words, outer first", () => {
-    expect(splitsLabel([{ oql: "institution or country" }, { oql: "SDG" }])).toBe("institution or country › SDG");
-    expect(splitsLabel([{ oql: "institution" }])).toBe("institution");
-  });
-
-  it("falls back to Group without splits", () => {
-    expect(splitsLabel(undefined)).toBe("Group");
-    expect(splitsLabel([])).toBe("Group");
-  });
-});
-
 describe("csvFilename", () => {
   it("reads the server's file name", () => {
-    expect(csvFilename('attachment; filename="openalex-crispr.zip"')).toBe("openalex-crispr.zip");
-    expect(csvFilename("attachment; filename*=UTF-8''openalex%20groups.zip")).toBe("openalex groups.zip");
+    expect(csvFilename('attachment; filename="openalex-crispr.csv"')).toBe("openalex-crispr.csv");
+    expect(csvFilename("attachment; filename*=UTF-8''openalex%20groups.csv")).toBe("openalex groups.csv");
   });
 
-  it("falls back to a dated name", () => {
-    expect(csvFilename(null, new Date("2026-10-04T12:00:00Z"))).toBe("openalex-groups-2026-10-04.zip");
+  it("falls back to a dated name per table", () => {
+    expect(csvFilename(null, new Date("2026-10-04T12:00:00Z"))).toBe("openalex-groups-2026-10-04.csv");
+    expect(csvFilename(null, new Date("2026-10-04T12:00:00Z"), "summary")).toBe("openalex-summary-2026-10-04.csv");
   });
 });

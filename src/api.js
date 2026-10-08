@@ -721,9 +721,10 @@ const api = (function () {
     // A pipeline query's results as a CSV zip (oxjob #1536): groups.csv (one row per
     // innermost group), totals.csv (the total and subtotal rows) and query.oql. Same
     // execute surface and price as running the query; `format` rides in the body.
-    const downloadPipelineCsv = async function(oql) {
+    // table: "groups" (the flat groups table) or "summary" (oxjob #1550)
+    const downloadPipelineCsv = async function(oql, table = 'groups') {
         const url = `${urlBase.api}/?mailto=ui@openalex.org`;
-        const resp = await axios.post(url, { oql, format: 'csv' }, { ...axiosConfig(), responseType: 'blob' });
+        const resp = await axios.post(url, { oql, format: 'csv', table }, { ...axiosConfig(), responseType: 'blob' });
         return { blob: resp.data, disposition: resp.headers?.['content-disposition'] || null };
     }
 
