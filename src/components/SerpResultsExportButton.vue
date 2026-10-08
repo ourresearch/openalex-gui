@@ -71,10 +71,10 @@
                 </template>
                 <template v-else-if="rateLimitData && !hasInsufficientTokens">
                   Exporting {{ resultsCount === 1 ? 'this row' : `these ${resultsCount.toLocaleString()} ${rowsNoun}` }} will cost approximately
-                  {{ formatUsd(costUsd) }} of your remaining {{ formatUsd(totalAvailableUsd) }} budget.
+                  {{ formatUsd(costUsd, costUsd > 0 && costUsd < 0.001 ? 4 : 3) }} of your remaining {{ formatUsd(totalAvailableUsd) }} budget.
                 </template>
                 <template v-else-if="rateLimitData && hasInsufficientTokens">
-                  This export costs approximately {{ formatUsd(costUsd) }}, but you only have
+                  This export costs approximately {{ formatUsd(costUsd, costUsd > 0 && costUsd < 0.001 ? 4 : 3) }}, but you only have
                   {{ formatUsd(totalAvailableUsd) }} remaining.
                 </template>
                 <template v-else>
@@ -91,7 +91,9 @@
                 <div class="export-setting-row__text pr-4">
                   <div class="export-setting-row__label">Format</div>
                   <div class="export-setting-row__desc">
-                    How would you like results presented?
+                    {{ isCalculation
+                      ? 'Every group as one CSV, or the summary: all works and each split on its own.'
+                      : 'How would you like results presented?' }}
                   </div>
                 </div>
                 <v-spacer />
@@ -107,7 +109,7 @@
                 />
               </div>
 
-              <div v-if="entityType === 'works'" class="export-setting-row d-flex align-center">
+              <div v-if="entityType === 'works' && !isCalculation" class="export-setting-row d-flex align-center">
                 <div class="export-setting-row__text pr-4">
                   <div class="export-setting-row__label">Include abstracts?</div>
                   <div class="export-setting-row__desc">
@@ -132,7 +134,7 @@
                  but only shapes THIS export; it is never written back to the
                  sticky localStorage column preference. The chip rail IS the CSV
                  header row (no separate preview). Hidden for RIS/WoS. -->
-            <div v-if="isCsvFormat || isPresetFormat" class="export-columns-section">
+            <div v-if="(isCsvFormat || isPresetFormat) && !isCalculation" class="export-columns-section">
               <div class="d-flex align-center mb-2">
                 <span class="export-section-title">
                   {{ isPresetFormat ? 'Columns to export (preset)' : 'Select columns to export' }}
@@ -215,6 +217,7 @@ import { useColumnsState } from '@/composables/useColumnsState';
 import { getColumnExportSpecs } from '@/components/Results/Table/columnConfig';
 import { resolveExportSelection, idsOpenAlexFilter } from '@/utils/selectionExport';
 import ColumnEditorPanel from '@/components/Results/Table/ColumnEditorPanel.vue';
+import { isPipelineResponse, exportRows, exportCredits, calculationFormatOptions } from '@/oqlPipeline';
 
 const props = defineProps({
   // Fixed query from outside the search page: { filter, count }, and optionally
@@ -268,8 +271,13 @@ const csvOnlyFormatOptions = [
 // (ZD #8373 / #388): resolve the selection here, and let resultsCount / the
 // cost line / the export request all key off it. Falls back to the full set in
 // select-all mode or when the selection is empty / too large to inline.
+// An OQL calculation (oxjob #1550): its groups or its summary, not rows of works. The
+// exporter writes every group (Jason, 2026-10-08: OQL has no limits), priced like works
+// exports (the query's price per 100 rows); the columns come from the query, so there is
+// no column picker.
+const isCalculation = computed(() => !props.scope && isPipelineResponse(store.state.resultsObject));
 const exportSelection = computed(() =>
-  props.scope ? { scoped: false } : resolveExportSelection(store.state.selection)
+  props.scope || isCalculation.value ? { scoped: false } : resolveExportSelection(store.state.selection)
 );
 
 // OQL-mode export scoping: on /q the query lives only in `?oql=`, never in
@@ -289,17 +297,24 @@ const isOqlExportBlocked = computed(
   () => isOqlMode.value && !exportSelection.value.scoped && !canonicalOql.value
 );
 const resultsCount = computed(() =>
-  props.scope ? (props.scope.count ?? 0)
+  isCalculation.value
+    ? (exportRows(store.state.resultsObject, exportFormat.value)
+        ?? (store.state.resultsObject?.group_by || []).length)
+  : props.scope ? (props.scope.count ?? 0)
   : exportSelection.value.scoped
     ? exportSelection.value.count
     : (store.state?.resultsObject?.meta?.count ?? 0)
 );
-const rowsNoun = computed(() => exportSelection.value.scoped ? 'selected rows' : 'rows');
+const rowsNoun = computed(() =>
+  isCalculation.value ? (exportFormat.value === 'summary' ? 'summary rows' : 'groups')
+  : exportSelection.value.scoped ? 'selected rows' : 'rows');
 const userId = computed(() => store.getters['user/userId']);
 const userApiKey = computed(() => store.getters['user/apiKey']);
 const isLoggedIn = computed(() => !!userId.value);
 const entityType = computed(() => props.scope ? (props.scope.entityType || 'works') : store.getters.entityType);
-const formatOptions = computed(() => entityType.value === 'works' ? allFormatOptions : csvOnlyFormatOptions);
+const formatOptions = computed(() =>
+  isCalculation.value ? calculationFormatOptions(store.state.resultsObject)
+  : entityType.value === 'works' ? allFormatOptions : csvOnlyFormatOptions);
 const isCsvFormat = computed(() => exportFormat.value === 'csv' || exportFormat.value === 'csv-excel');
 
 // RIS (Endnote), BibTeX, and WoS-plaintext (Text) are fixed-shape, works-only
@@ -333,7 +348,7 @@ const isPresetFormat = computed(() => exportFormat.value in PRESET_COLUMNS);
 const presetColumns = computed(() => PRESET_COLUMNS[exportFormat.value] ?? []);
 // Fixed dialog width across all formats — switching to Endnote/Text no longer
 // resizes the dialog (the jarring shrink). 760 fits the 50/50 column editor.
-const dialogMaxWidth = 760;
+const dialogMaxWidth = computed(() => (isCalculation.value ? 560 : 760));
 const perPage = computed(() => entityType.value === 'works' ? 100 : 200);
 const queriesNeeded = computed(() => Math.ceil(resultsCount.value / perPage.value));
 
@@ -386,7 +401,10 @@ const creditCostPerPage = computed(() => {
   return 1;
 });
 
-const creditsNeeded = computed(() => queriesNeeded.value * creditCostPerPage.value);
+const creditsNeeded = computed(() =>
+  isCalculation.value
+    ? (exportCredits(store.state.resultsObject, resultsCount.value) ?? 0)
+    : queriesNeeded.value * creditCostPerPage.value);
 const costUsd = computed(() => creditsToUsd(creditsNeeded.value));
 
 const totalAvailableUsd = computed(() => {
@@ -408,7 +426,7 @@ function openExportDialog() {
   
   // Reset state
   exportState.value = 'initial';
-  exportFormat.value = 'csv-excel';
+  exportFormat.value = isCalculation.value ? 'groups-csv' : 'csv-excel';
   submittedExport.value = null;
   includeAbstracts.value = false;
   // Seed the ephemeral export-column draft from EXACTLY what's on screen (job
@@ -461,7 +479,33 @@ async function fetchRateLimit() {
   }
 }
 
+// A calculation export: just the format and the canonical OQL (oxjob #1550).
+async function startCalculationExport() {
+  if (!canonicalOql.value) {
+    store.commit('snackbar', 'The query is still loading — please try again.');
+    closeExportDialog();
+    return;
+  }
+  try {
+    const resp = await axios.post(
+      `${urlBase.userApi}/export/${entityType.value}`,
+      { format: exportFormat.value, oql: canonicalOql.value },
+      axiosConfig({ userAuth: true })
+    );
+    submittedExport.value = resp.data;
+    exportState.value = 'submitted';
+  } catch (error) {
+    console.error('Export failed:', error);
+    const msg = [400, 403].includes(error.response?.status) && error.response?.data?.message
+      ? error.response.data.message
+      : 'Export failed. Please try again.';
+    store.commit('snackbar', msg);
+    closeExportDialog();
+  }
+}
+
 async function startExport() {
+  if (isCalculation.value) return startCalculationExport();
   const filterStr = props.scope ? props.scope.filter : route.query.filter;
   // If specific rows are ticked, export ONLY those by re-querying with an
   // `ids.openalex:` filter; the selected ids fully determine the set, so we
