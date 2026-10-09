@@ -104,22 +104,6 @@ const sections = [
 
 const upcomingWebinars = ref([
   {
-    title: 'Is it time to retire the OA colours? A community vibe check',
-    date: 'Tuesday 6 October 2026, 7:00am Pacific (10am Eastern, 3pm UK, 4pm Central Europe)',
-    links: [
-      { name: 'Register', href: 'https://zoom.us/webinar/register/WN_NbIKwVu6Q4SI83Fv5qwXxw' },
-      { name: 'Background', href: 'https://blog.openalex.org/is-it-time-to-retire-the-oa-colours-tell-us-what-you-think/' },
-    ],
-  },
-  {
-    title: 'Should OpenAlex publish a novelty score? A community vibe check',
-    date: 'Wednesday 7 October 2026, 8:00am Pacific (11am Eastern, 4pm UK, 5pm Central Europe)',
-    links: [
-      { name: 'Register', href: 'https://zoom.us/webinar/register/WN_EetlA-l3QgK2FvQVxE0GLg' },
-      { name: 'Background', href: 'https://blog.openalex.org/should-openalex-publish-a-novelty-score-a-vibe-check/' },
-    ],
-  },
-  {
     title: 'Searching OpenAlex: the new search, query builder and OQL',
     date: 'Friday 16 October 2026, 7:00am Pacific (10am Eastern, 3pm UK, 4pm Central Europe)',
     links: [
@@ -358,6 +342,22 @@ const pastWebinars = ref([
     date: 'June 11, 2026',
     links: [
       { name: 'Video', href: 'https://youtu.be/G3vPlE1c8sw' },
+    ],
+  },
+  {
+    title: 'Is it time to retire the OA colours? A community vibe check',
+    date: 'October 6, 2026',
+    links: [
+      { name: 'Video', href: 'https://youtu.be/5TDg5BECKrU' },
+      { name: 'Background', href: 'https://blog.openalex.org/is-it-time-to-retire-the-oa-colours-tell-us-what-you-think/' },
+    ],
+  },
+  {
+    title: 'Should OpenAlex publish a novelty score? A community vibe check',
+    date: 'October 7, 2026',
+    links: [
+      { name: 'Video', href: 'https://youtu.be/GeiaUVwjcpA' },
+      { name: 'Background', href: 'https://blog.openalex.org/should-openalex-publish-a-novelty-score-a-vibe-check/' },
     ],
   },
 ]);
