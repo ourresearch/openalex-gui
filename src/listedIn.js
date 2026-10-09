@@ -64,6 +64,10 @@ const listedInLabels = {
     "publindex-b": "Publindex (Colombia), B",
     "publindex-c": "Publindex (Colombia), C",
     "publindex-recognized": "Publindex (Colombia), recognized",
+    "dongbi-a": "Dongbi Index (China), A",
+    "dongbi-b": "Dongbi Index (China), B",
+    "dongbi-c": "Dongbi Index (China), C",
+    "dongbi-d": "Dongbi Index (China), D",
 };
 
 const isListedInKey = (filterKey) =>
