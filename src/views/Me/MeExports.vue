@@ -273,11 +273,11 @@ const getErrorDisplayText = (exp) => {
   return errorDisplayMap[exp.error_code] || 'Failed';
 };
 
-// OQL calculation exports (oxjob #1550) count groups or summary rows, not works.
+// OQL calculation exports (oxjob #1550) count groups, not works: no split is one row as
+// a CSV; with splits, a zip of every group and the summary.
 const CALCULATION_FORMATS = {
-  'groups-csv': { label: 'Groups (CSV)', noun: 'groups' },
-  'summary-csv': { label: 'Summary (CSV)', noun: 'summary rows' },
-  'summary-zip': { label: 'Summary (zip)', noun: 'summary rows' },
+  'calculation-csv': { label: 'Calculation (CSV)', noun: 'rows' },
+  'calculation-zip': { label: 'Groups and summary (zip)', noun: 'groups' },
 };
 
 const formatDescription = (exp) => {

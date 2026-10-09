@@ -14,7 +14,8 @@ import {
   wholeSetMeasures,
   exportRows,
   exportCredits,
-  calculationFormatOptions,
+  summaryRows,
+  calculationExportFile,
   refusalMessage,
   formatCost,
 } from "@/oqlPipeline";
@@ -183,30 +184,33 @@ describe("exports (mirror users-api export_calculation.py)", () => {
   const withMeta = (meta, extra = {}) => ({ meta: { cost: { credits: 1 }, ...meta }, ...extra });
 
   it("rows: no split is one row; one split the group count; nested every combination", () => {
-    expect(exportRows(withMeta({ splits: [] }), "groups-csv")).toBe(1);
-    expect(exportRows(withMeta({ splits: [{}], groups_count: 128284 }), "groups-csv")).toBe(128284);
-    expect(exportRows(withMeta({ splits: [{}], groups_count: null }), "groups-csv")).toBe(null);
-    expect(exportRows(withMeta({ splits: [{}, {}] }, { group_by: nested }), "groups-csv")).toBe(6);
+    expect(exportRows(withMeta({ splits: [] }))).toBe(1);
+    expect(exportRows(withMeta({ splits: [{}], groups_count: 128284 }))).toBe(128284);
+    expect(exportRows(withMeta({ splits: [{}], groups_count: null }))).toBe(null);
+    expect(exportRows(withMeta({ splits: [{}, {}] }, { group_by: nested }))).toBe(6);
   });
 
   it("summary rows: all works plus each split's groups", () => {
-    expect(exportRows(withMeta({ splits: [{}, {}] }, { summary }), "summary")).toBe(1 + 2 + 2);
-    expect(exportRows(withMeta({ splits: [{}] }, { summary: { all: {} } }), "summary")).toBe(1);
+    expect(summaryRows(withMeta({ splits: [{}, {}] }, { summary }))).toBe(1 + 2 + 2);
+    expect(summaryRows(withMeta({ splits: [{}] }, { summary: { all: {} } }))).toBe(1);
   });
 
-  it("the query's price for every 100 rows, at least once", () => {
-    expect(exportCredits(withMeta({}), 1)).toBe(1);
-    expect(exportCredits(withMeta({}), 100)).toBe(1);
-    expect(exportCredits(withMeta({}), 101)).toBe(2);
-    expect(exportCredits(withMeta({}), 128284)).toBe(1283);
-    expect(exportCredits(withMeta({ cost: { credits: 10 } }), 23235)).toBe(2330);
-    expect(exportCredits(withMeta({}), 0)).toBe(1);
-    expect(exportCredits(withMeta({}), null)).toBe(null);
+  it("the query's price for every 100 group rows, plus the summary's call with a split", () => {
+    const one = (groups_count, credits = 1) => withMeta({ splits: [{}], groups_count, cost: { credits } });
+    expect(exportCredits(withMeta({ splits: [] }))).toBe(1);
+    expect(exportCredits(withMeta({ splits: [], cost: { credits: 10 } }))).toBe(10);
+    expect(exportCredits(one(1))).toBe(1 + 1);
+    expect(exportCredits(one(100))).toBe(1 + 1);
+    expect(exportCredits(one(101))).toBe(2 + 1);
+    expect(exportCredits(one(128284))).toBe(1283 + 1);
+    expect(exportCredits(one(23235, 10))).toBe(2330 + 10);
+    expect(exportCredits(one(0))).toBe(1 + 1);
+    expect(exportCredits(one(null))).toBe(null);
   });
 
-  it("formats: the summary is a zip with 2+ splits", () => {
-    expect(calculationFormatOptions(withMeta({ splits: [{}] })).map((o) => o.label)).toEqual(["Groups (CSV)", "Summary (CSV)"]);
-    expect(calculationFormatOptions(withMeta({ splits: [{}, {}] })).map((o) => [o.label, o.value]))
-      .toEqual([["Groups (CSV)", "groups-csv"], ["Summary (zip)", "summary"]]);
+  it("the file: no split a CSV, any split a zip", () => {
+    expect(calculationExportFile(withMeta({ splits: [] })).label).toBe("CSV");
+    expect(calculationExportFile(withMeta({ splits: [{}] })).label).toBe("Zip");
+    expect(calculationExportFile(withMeta({ splits: [{}, {}] })).desc).toMatch(/each split on its own/);
   });
 });

@@ -93,36 +93,45 @@ function countLeaves(groups, depth, n) {
   return total;
 }
 
-// Rows an export writes: format "groups-csv" (no split 1; one split the API's group
-// count, an estimate past 3,000; nested splits all their combinations) or "summary"
-// (all works plus each split's groups on their own). null when unknown.
-export function exportRows(resultsObject, format) {
+// Group rows an export writes: no split 1; one split the API's group count (an estimate
+// past 3,000); nested splits all their combinations. null when unknown.
+export function exportRows(resultsObject) {
   const meta = resultsObject?.meta || {};
   const n = (meta.splits || []).length;
-  if (format === "summary") {
-    const parts = resultsObject?.summary?.splits || [];
-    return 1 + parts.reduce((s, p) => s + ((p && p.groups) || []).length, 0);
-  }
   if (n === 0) return 1;
   if (n === 1) return meta.groups_count ?? null;
   return countLeaves(resultsObject?.group_by, 0, n);
 }
 
-// The query's price (meta.cost.credits) for every 100 rows, at least once.
-export function exportCredits(resultsObject, rows) {
-  if (rows == null) return null;
-  const price = resultsObject?.meta?.cost?.credits || 1;
-  return price * Math.max(1, Math.ceil(rows / ROWS_PER_PRICE));
+// The summary's rows: all works plus each split's groups on their own.
+export function summaryRows(resultsObject) {
+  const parts = resultsObject?.summary?.splits || [];
+  return 1 + parts.reduce((s, p) => s + ((p && p.groups) || []).length, 0);
 }
 
-// The dialog's format choices for a calculation: every group, or the summary (one CSV,
-// or a zip of one CSV per table with 2+ splits).
-export function calculationFormatOptions(resultsObject) {
+const priced = (price, rows) => price * Math.max(1, Math.ceil(rows / ROWS_PER_PRICE));
+
+// The query's price for every 100 group rows (at least once), plus the same for the
+// summary's rows when there is a split (its own call). null when the rows are unknown.
+export function exportCredits(resultsObject) {
+  const rows = exportRows(resultsObject);
+  if (rows == null) return null;
+  const price = resultsObject?.meta?.cost?.credits || 1;
+  const hasSplit = (resultsObject?.meta?.splits || []).length >= 1;
+  return priced(price, rows) + (hasSplit ? priced(price, summaryRows(resultsObject)) : 0);
+}
+
+// What a calculation exports, nothing to choose (Jason, 2026-10-09): with no split the
+// one row as a CSV; with splits one zip of every group and the summary.
+export function calculationExportFile(resultsObject) {
   const n = (resultsObject?.meta?.splits || []).length;
-  return [
-    { label: "Groups (CSV)", value: "groups-csv" },
-    { label: n >= 2 ? "Summary (zip)" : "Summary (CSV)", value: "summary" },
-  ];
+  if (n === 0) return { label: "CSV", desc: "The calculation for the whole set, one row." };
+  return {
+    label: "Zip",
+    desc: n >= 2
+      ? "Every group (groups.csv), plus the summary: all works, and each split on its own."
+      : "Every group (groups.csv), plus the summary: all works (all-works.csv).",
+  };
 }
 
 // A row's value for a sort key: `split:<i>` sorts by that split's group name, any

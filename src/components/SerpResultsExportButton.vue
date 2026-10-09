@@ -91,13 +91,13 @@
                 <div class="export-setting-row__text pr-4">
                   <div class="export-setting-row__label">Format</div>
                   <div class="export-setting-row__desc">
-                    {{ isCalculation
-                      ? 'Every group as one CSV, or the summary: all works and each split on its own.'
-                      : 'How would you like results presented?' }}
+                    {{ isCalculation ? calculationFile.desc : 'How would you like results presented?' }}
                   </div>
                 </div>
                 <v-spacer />
+                <div v-if="isCalculation" class="export-setting-row__value">{{ calculationFile.label }}</div>
                 <v-select
+                  v-else
                   v-model="exportFormat"
                   :items="formatOptions"
                   item-title="label"
@@ -217,7 +217,7 @@ import { useColumnsState } from '@/composables/useColumnsState';
 import { getColumnExportSpecs } from '@/components/Results/Table/columnConfig';
 import { resolveExportSelection, idsOpenAlexFilter } from '@/utils/selectionExport';
 import ColumnEditorPanel from '@/components/Results/Table/ColumnEditorPanel.vue';
-import { isPipelineResponse, exportRows, exportCredits, calculationFormatOptions } from '@/oqlPipeline';
+import { isPipelineResponse, exportRows, exportCredits, calculationExportFile } from '@/oqlPipeline';
 
 const props = defineProps({
   // Fixed query from outside the search page: { filter, count }, and optionally
@@ -271,8 +271,8 @@ const csvOnlyFormatOptions = [
 // (ZD #8373 / #388): resolve the selection here, and let resultsCount / the
 // cost line / the export request all key off it. Falls back to the full set in
 // select-all mode or when the selection is empty / too large to inline.
-// An OQL calculation (oxjob #1550): its groups or its summary, not rows of works. The
-// exporter writes every group (Jason, 2026-10-08: OQL has no limits), priced like works
+// An OQL calculation (oxjob #1550): its groups and its summary, not rows of works, as one
+// file with nothing to choose (Jason, 2026-10-09). The exporter writes every group (Jason, 2026-10-08: OQL has no limits), priced like works
 // exports (the query's price per 100 rows); the columns come from the query, so there is
 // no column picker.
 const isCalculation = computed(() => !props.scope && isPipelineResponse(store.state.resultsObject));
@@ -298,7 +298,7 @@ const isOqlExportBlocked = computed(
 );
 const resultsCount = computed(() =>
   isCalculation.value
-    ? (exportRows(store.state.resultsObject, exportFormat.value)
+    ? (exportRows(store.state.resultsObject)
         ?? (store.state.resultsObject?.group_by || []).length)
   : props.scope ? (props.scope.count ?? 0)
   : exportSelection.value.scoped
@@ -306,15 +306,15 @@ const resultsCount = computed(() =>
     : (store.state?.resultsObject?.meta?.count ?? 0)
 );
 const rowsNoun = computed(() =>
-  isCalculation.value ? (exportFormat.value === 'summary' ? 'summary rows' : 'groups')
+  isCalculation.value ? 'groups'
   : exportSelection.value.scoped ? 'selected rows' : 'rows');
 const userId = computed(() => store.getters['user/userId']);
 const userApiKey = computed(() => store.getters['user/apiKey']);
 const isLoggedIn = computed(() => !!userId.value);
 const entityType = computed(() => props.scope ? (props.scope.entityType || 'works') : store.getters.entityType);
 const formatOptions = computed(() =>
-  isCalculation.value ? calculationFormatOptions(store.state.resultsObject)
-  : entityType.value === 'works' ? allFormatOptions : csvOnlyFormatOptions);
+  entityType.value === 'works' ? allFormatOptions : csvOnlyFormatOptions);
+const calculationFile = computed(() => calculationExportFile(store.state.resultsObject));
 const isCsvFormat = computed(() => exportFormat.value === 'csv' || exportFormat.value === 'csv-excel');
 
 // RIS (Endnote), BibTeX, and WoS-plaintext (Text) are fixed-shape, works-only
@@ -403,7 +403,7 @@ const creditCostPerPage = computed(() => {
 
 const creditsNeeded = computed(() =>
   isCalculation.value
-    ? (exportCredits(store.state.resultsObject, resultsCount.value) ?? 0)
+    ? (exportCredits(store.state.resultsObject) ?? 0)
     : queriesNeeded.value * creditCostPerPage.value);
 const costUsd = computed(() => creditsToUsd(creditsNeeded.value));
 
@@ -426,7 +426,7 @@ function openExportDialog() {
   
   // Reset state
   exportState.value = 'initial';
-  exportFormat.value = isCalculation.value ? 'groups-csv' : 'csv-excel';
+  exportFormat.value = isCalculation.value ? 'calculation' : 'csv-excel';
   submittedExport.value = null;
   includeAbstracts.value = false;
   // Seed the ephemeral export-column draft from EXACTLY what's on screen (job
@@ -683,6 +683,14 @@ defineExpose({ openExportDialog });
 .export-setting-row__control {
   flex: 0 0 auto;
   width: 200px;
+}
+
+/* A calculation's file type: shown, not chosen (oxjob #1550). */
+.export-setting-row__value {
+  flex: 0 0 auto;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1A1A1A;
 }
 
 /* Section title above the column editor — dominant weight, distinct from the

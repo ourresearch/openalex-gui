@@ -4,8 +4,9 @@
        every row sortable on its own. The summary (the whole set, each split on its own)
        is not shown here yet (Jason, 2026-10-08: how to display it is unsolved). Export
        goes through the same Export dialog and exporter as works (Jason, 2026-10-08: OQL
-       has no limits, so it writes every group, priced up front): the groups as one CSV,
-       or the summary (one CSV, or a zip of one CSV per table with 2+ splits). -->
+       has no limits, so it writes every group, priced up front), as one file with nothing
+       to choose (Jason, 2026-10-09): no split, one CSV; splits, a zip of every group and
+       the summary. -->
   <v-card variant="outlined" class="bg-white oql-pipeline-results">
     <div class="results-card-head d-flex align-center">
       <span class="text-body-2 text-medium-emphasis">{{ headLabel }}</span>
@@ -153,9 +154,10 @@ async function onSort(col) {
 // ---- Export: the shared Export dialog (oxjob #1550) -------------------------------
 const exportButtonRef = ref(null);
 const exportTooltip = computed(() => {
-  const n = exportRows(props.resultsObject, 'groups-csv');
+  const n = exportRows(props.resultsObject);
   if (!depth.value) return 'Export';
-  return n == null ? 'Export every group' : `Export ${n.toLocaleString()} ${n === 1 ? 'group' : 'groups'}`;
+  const groups = n == null ? 'every group' : `${n.toLocaleString()} ${n === 1 ? 'group' : 'groups'}`;
+  return `Export ${groups} and the summary`;
 });
 
 const headLabel = computed(() => {
