@@ -157,6 +157,14 @@ function compareRows(a, b, sort) {
   return sign * (va - vb);
 }
 
+// A group's own field that comes back as text (an author's last known institution, an
+// institution's country; oxjob #1555) is a text column: left-aligned and wrapping, sorted
+// A-Z on the page. Numbers and yes/no own fields stay numeric.
+export function isTextMeasure(measure, rows) {
+  if (measure?.measure !== "value") return false;
+  return (rows || []).some((r) => typeof r?.group?.[measure.key] === "string");
+}
+
 // Sort flat rows on any column (stable); null sort keeps the API's order.
 export function sortRows(rows, sort) {
   if (!Array.isArray(rows)) return [];

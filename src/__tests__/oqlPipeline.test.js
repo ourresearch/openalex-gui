@@ -18,6 +18,7 @@ import {
   calculationExportFile,
   refusalMessage,
   formatCost,
+  isTextMeasure,
 } from "@/oqlPipeline";
 
 const MEAN_FWCI = { key: "mean_fwci", measure: "mean", column_id: "fwci", oql: "mean FWCI" };
@@ -212,5 +213,20 @@ describe("exports (mirror users-api export_calculation.py)", () => {
     expect(calculationExportFile(withMeta({ splits: [] })).label).toBe("CSV");
     expect(calculationExportFile(withMeta({ splits: [{}] })).label).toBe("Zip");
     expect(calculationExportFile(withMeta({ splits: [{}, {}] })).desc).toMatch(/each split on its own/);
+  });
+});
+
+describe("isTextMeasure (a group's own name or code, oxjob #1555)", () => {
+  const rows = [
+    { group: { count: 63, summary_stats_h_index: 88, last_known_institutions_id: "The University of Western Australia; Oceans Institute" } },
+    { group: { count: 55, summary_stats_h_index: 1, last_known_institutions_id: null } },
+  ];
+  it("reads text own fields as text", () => {
+    expect(isTextMeasure({ key: "last_known_institutions_id", measure: "value" }, rows)).toBe(true);
+  });
+  it("keeps numbers and calculations numeric", () => {
+    expect(isTextMeasure({ key: "summary_stats_h_index", measure: "value" }, rows)).toBe(false);
+    expect(isTextMeasure({ key: "count", measure: "count" }, rows)).toBe(false);
+    expect(isTextMeasure({ key: "last_known_institutions_id", measure: "value" }, [])).toBe(false);
   });
 });

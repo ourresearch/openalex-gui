@@ -59,7 +59,7 @@
               <router-link v-if="groupLink(g.key)" :to="groupLink(g.key)" class="group-link">{{ label(g) }}</router-link>
               <span v-else>{{ label(g) }}</span>
             </td>
-            <td v-for="m in rowMeasures" :key="m.key" class="numeric">
+            <td v-for="m in rowMeasures" :key="m.key" :class="textKeys.has(m.key) ? 'text-col' : 'numeric'">
               {{ formatMeasure(m, row.group[m.key]) }}
             </td>
           </tr>
@@ -77,7 +77,7 @@ import { useRoute } from 'vue-router';
 
 import { api } from '@/api';
 import {
-  flatRows, sortRows, formatMeasure, formatCost, groupLink, wholeSetMeasures, exportRows,
+  flatRows, sortRows, formatMeasure, formatCost, groupLink, wholeSetMeasures, exportRows, isTextMeasure,
 } from '@/oqlPipeline';
 import SerpResultsExportButton from '@/components/SerpResultsExportButton.vue';
 
@@ -104,9 +104,14 @@ const depth = computed(() => splits.value.length);
 // With no split the one row is the whole set, which has no share or own-field value.
 const rowMeasures = computed(() => (depth.value ? measures.value : wholeSetMeasures(measures.value)));
 
+// A group's own name or code (`last known institution`) is text, not a number (#1555).
+const textKeys = computed(() => new Set(
+  rowMeasures.value.filter((m) => isTextMeasure(m, allRows.value)).map((m) => m.key),
+));
+
 const columns = computed(() => [
   ...splits.value.map((s, i) => ({ key: `split:${i}`, label: s.oql, numeric: false })),
-  ...rowMeasures.value.map((m) => ({ key: m.key, label: m.oql, numeric: true, measure: m })),
+  ...rowMeasures.value.map((m) => ({ key: m.key, label: m.oql, numeric: !textKeys.value.has(m.key), measure: m })),
 ]);
 
 watch(() => props.resultsObject, () => {
@@ -235,6 +240,11 @@ const footNote = computed(() => {
 }
 .group-col {
   text-align: left;
+}
+.text-col {
+  text-align: left;
+  min-width: 12em;
+  max-width: 28em;
 }
 .numeric {
   text-align: right;
