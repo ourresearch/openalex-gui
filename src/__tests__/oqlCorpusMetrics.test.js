@@ -49,6 +49,8 @@ describe("corpus facets (explicit fields from corpus.yaml)", () => {
     // splits by listed values / conditions / bins, sets in `in (...)`
     "pipeline", "calculate", "group-filter", "listed-values", "condition-groups",
     "bins", "collection",
+    // walks and sets defined by a whole query (oxjob #1535)
+    "walk", "query-set",
   ]);
   const PROVENANCE_TYPES = new Set([
     "spec design", "analytics question", "librarian guide",
