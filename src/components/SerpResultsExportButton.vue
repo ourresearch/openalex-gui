@@ -272,9 +272,9 @@ const csvOnlyFormatOptions = [
 // cost line / the export request all key off it. Falls back to the full set in
 // select-all mode or when the selection is empty / too large to inline.
 // An OQL calculation (oxjob #1550): its groups and its summary, not rows of works, as one
-// file with nothing to choose (Jason, 2026-10-09). The exporter writes every group (Jason, 2026-10-08: OQL has no limits), priced like works
-// exports (the query's price per 100 rows); the columns come from the query, so there is
-// no column picker.
+// file with nothing to choose (Jason, 2026-10-09). The exporter writes every group (Jason,
+// 2026-10-08: OQL has no limits), priced like works exports (the query's price per 100
+// rows); the columns come from the query, so there is no column picker.
 const isCalculation = computed(() => !props.scope && isPipelineResponse(store.state.resultsObject));
 const exportSelection = computed(() =>
   props.scope || isCalculation.value ? { scoped: false } : resolveExportSelection(store.state.selection)

@@ -93,11 +93,13 @@ function countLeaves(groups, depth, n) {
   return total;
 }
 
+const splitsOf = (resultsObject) => (resultsObject?.meta?.splits || []).length;
+
 // Group rows an export writes: no split 1; one split the API's group count (an estimate
 // past 3,000); nested splits all their combinations. null when unknown.
 export function exportRows(resultsObject) {
   const meta = resultsObject?.meta || {};
-  const n = (meta.splits || []).length;
+  const n = splitsOf(resultsObject);
   if (n === 0) return 1;
   if (n === 1) return meta.groups_count ?? null;
   return countLeaves(resultsObject?.group_by, 0, n);
@@ -117,14 +119,13 @@ export function exportCredits(resultsObject) {
   const rows = exportRows(resultsObject);
   if (rows == null) return null;
   const price = resultsObject?.meta?.cost?.credits || 1;
-  const hasSplit = (resultsObject?.meta?.splits || []).length >= 1;
-  return priced(price, rows) + (hasSplit ? priced(price, summaryRows(resultsObject)) : 0);
+  return priced(price, rows) + (splitsOf(resultsObject) ? priced(price, summaryRows(resultsObject)) : 0);
 }
 
 // What a calculation exports, nothing to choose (Jason, 2026-10-09): with no split the
 // one row as a CSV; with splits one zip of every group and the summary.
 export function calculationExportFile(resultsObject) {
-  const n = (resultsObject?.meta?.splits || []).length;
+  const n = splitsOf(resultsObject);
   if (n === 0) return { label: "CSV", desc: "The calculation for the whole set, one row." };
   return {
     label: "Zip",
