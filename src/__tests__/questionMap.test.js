@@ -17,9 +17,9 @@ const data = index({
         O1: {id: 'O1', branch: 'O', scope: 'out'},
     },
     questions: [
-        q('1', 'A1.2', 'real', 4, {opus: run(true), haiku: run(false)}, {gold: {oql: 'get works', sort: null}}),
+        q('1', 'A1.2', 'real', 4, {opus: run(true), haiku: run(false)}, {gold: {oql: 'get works', sort: null}, case: 7}),
         q('2', 'A1.1', 'synthetic', 1, {opus: run(false), haiku: run(false, 'partly'), sonnet: run(true)}, {wording: 'model'}),
-        q('3', 'A1.1', 'real', 2, {opus: run(false), haiku: run(false), sonnet: run(false)}, {grade: {oql: 'get authors'}}),
+        q('3', 'A1.1', 'real', 2, {opus: run(false), haiku: run(false), sonnet: run(false)}, {grade: {oql: 'get authors'}, case: 42}),
         q('4', 'O1', 'real', 5),
     ],
 });
@@ -39,6 +39,8 @@ describe('question map', () => {
     it('filters by wording, need and how the models did', () => {
         expect(data.inScope.filter(x => matches(x, {wordings: new Set(['model'])})).map(x => x.id)).toEqual(['2']);
         expect(data.inScope.filter(x => matches(x, {need: 'A1.1', search: 'question 3'})).map(x => x.id)).toEqual(['3']);
+        expect(data.inScope.filter(x => matches(x, {search: '#42'})).map(x => x.id)).toEqual(['3']);
+        expect(data.inScope.filter(x => matches(x, {search: '7'})).map(x => x.id)).toEqual(['1']);
         expect(data.inScope.filter(x => hasResult(x, 'launchWrong', data)).map(x => x.id)).toEqual(['2', '3']);
         expect(data.inScope.filter(x => hasResult(x, 'split', data)).map(x => x.id)).toEqual(['1', '2']);
         expect(data.inScope.filter(x => hasResult(x, 'allWrong', data)).map(x => x.id)).toEqual(['3']);
@@ -60,6 +62,6 @@ describe('question map', () => {
 
     it('turns the judge calls into text to paste back', () => {
         const t = feedbackText({'3|opus': {call: 'disagrees', note: 'it is right'}}, data);
-        expect(t).toContain('3 · opus: judge said "no"; Jason disagrees. Note: it is right');
+        expect(t).toContain('#42 (3) · opus: judge said "no"; Jason disagrees. Note: it is right');
     });
 });

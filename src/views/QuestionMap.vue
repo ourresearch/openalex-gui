@@ -43,7 +43,7 @@
           </label>
         </div>
         <div class="ctl-row">
-          <input v-model="searchInput" type="search" placeholder="Find a question…" aria-label="Find a question">
+          <input v-model="searchInput" type="search" placeholder="Find a question, or a case number (#42)…" aria-label="Find a question or case number">
           <button v-if="feedbackCount" type="button" class="chip on" @click="copyFeedback">
             {{ copied ? 'Copied' : `Copy feedback (${feedbackCount})` }}
           </button>
@@ -74,11 +74,11 @@
           <span class="strip" :style="{background: data.wordingByKey[q.wording]?.color}" :title="data.wordingByKey[q.wording]?.name" />
           <div>
             <div class="c-q" :class="{model: q.wording === 'model'}">{{ q.text }}</div>
-            <button type="button" class="c-type" :title="`Show only this type`" @click="need = q.need">{{ data.needs[q.need]?.name }}</button>
+            <div class="c-sub"><span>#{{ q.case }}</span> · <button type="button" class="c-type" title="Show only this type" @click="need = q.need">{{ data.needs[q.need]?.name }}</button></div>
           </div>
           <div>
             <div class="c-oql">
-              <template v-if="refs[q.id]">{{ refs[q.id].oql }}<span v-if="refs[q.id].tag" class="unchecked" :title="refs[q.id].by"> ·{{ refs[q.id].tag === 'agent' ? data.launch.name : 'unchecked draft' }}</span></template>
+              <template v-if="refs[q.id]">{{ refs[q.id].oql }}<span v-if="refs[q.id].tag" class="unchecked" :title="refs[q.id].by"> ·{{ refs[q.id].tag === 'agent' ? data.launch.key : 'draft' }}</span></template>
               <span v-else class="muted">{{ q.kind === 'data' ? '–' : 'not a query' }}</span>
             </div>
             <div class="c-m">
@@ -259,7 +259,8 @@ const copyFeedback = async () => {
 .mk.bad { background: var(--ox-danger-bg); color: var(--ox-danger-fg); }
 .mk.none { background: var(--ox-bg-muted); color: var(--ox-text-muted); }
 .mk.flag { box-shadow: 0 0 0 2px var(--ox-text-primary); }
-.c-type { display: block; text-align: left; margin-top: 4px; font-size: 12.5px; line-height: 1.35; color: var(--ox-text-muted); background: none; border: 0; padding: 0; }
+.c-sub { margin-top: 4px; font-size: 12.5px; line-height: 1.35; color: var(--ox-text-muted); }
+.c-type { display: inline; text-align: left; font: inherit; color: inherit; background: none; border: 0; padding: 0; }
 .c-type:hover { text-decoration: underline; }
 .sentinel { padding: 16px 0; text-align: center; font-size: 13px; color: var(--ox-text-muted); }
 .muted { color: var(--ox-text-muted); }

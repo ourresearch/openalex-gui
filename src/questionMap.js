@@ -84,8 +84,10 @@ export function hasResult(q, result, data) {
     return true;
 }
 
-// `search` must already be lowercased.
+// `search` must already be lowercased; "42" or "#42" finds case 42.
 export function matches(q, {wordings, label, branch, need, search} = {}) {
+    const caseNo = search && /^#?\d+$/.test(search) ? Number(search.replace('#', '')) : null;
+    if (caseNo) return q.case === caseNo;
     return (!wordings || wordings.has(q.wording))
         && (!label || q.label === label)
         && (!branch || q.branch === branch)
@@ -168,7 +170,7 @@ export function feedbackText(fb, data) {
         const [id, arm] = k.split('|');
         const q = byId[id];
         const run = q?.runs?.[arm] || {};
-        lines.push(`- ${id} · ${arm}: judge said "${run.verdict || 'none'}"; Jason ${v.call || 'noted'}.`
+        lines.push(`- #${q?.case} (${id}) · ${arm}: judge said "${run.verdict || 'none'}"; Jason ${v.call || 'noted'}.`
             + `${v.note ? ` Note: ${v.note}` : ''}\n  Q: ${(q?.text || '').slice(0, 200)}`);
     }
     return lines.join('\n');

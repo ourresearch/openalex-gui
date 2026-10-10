@@ -5,7 +5,7 @@
         <span class="ad-strip" :style="{background: wording?.color}" :title="wording?.name" />
         <div class="ad-q">
           <div class="ad-text" :class="{model: q.wording === 'model'}">{{ q.text }}</div>
-          <div class="ad-meta">{{ wording?.name }} · {{ q.detail }} · {{ data.needs[q.need]?.name }}</div>
+          <div class="ad-meta">#{{ q.case }} · {{ data.needs[q.need]?.name }} · {{ wording?.name }} · {{ q.detail }}</div>
         </div>
         <div class="ad-nav">
           <button type="button" aria-label="Previous question" :disabled="!hasPrev" @click="emit('step', -1)">‹</button>
