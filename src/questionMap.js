@@ -126,7 +126,7 @@ export function sortQuestions(questions, key, data) {
         map: q => data.mapOrder[q.need] ?? 1e6,
     }[key] || (q => data.ease[q.need]);
     return [...questions].sort((a, b) => needKey(a) - needKey(b) || (a.need < b.need ? -1 : a.need > b.need ? 1 : 0)
-        || (a.rung || 9) - (b.rung || 9));
+        || (a.rung || 9) - (b.rung || 9) || (a.case || 0) - (b.case || 0));   // case numbers were assigned in this order
 }
 
 // The one query that answers it: #1492's checked gold; else the launch agent's query when the judge called it right
