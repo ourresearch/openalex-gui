@@ -221,8 +221,8 @@ const groups = computed(() => {
 
 <style scoped>
 .qm-eyebrow { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ox-text-muted); }
+/* Not sticky: on an iPad the filters scroll away with the page (Jason, 2026-10-10). */
 .qm-controls {
-  position: sticky; top: 64px; z-index: 4; background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(6px);
   max-width: 1200px; margin: 16px auto 0; padding: 12px 0; border-bottom: 1px solid var(--ox-border-subtle);
   display: flex; flex-direction: column; gap: 8px;
 }
