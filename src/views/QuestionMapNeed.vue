@@ -145,7 +145,7 @@ const byRung = computed(() => {
 .facts { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 24px; }
 .facts dt { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ox-text-muted); }
 .facts dd { margin: 2px 0 0; font-size: 14px; color: var(--ox-text-secondary); line-height: 1.5; }
-.qm .tiles { max-width: 1000px; grid-template-columns: repeat(4, 1fr); }
+.qm .tiles { max-width: 1000px; grid-template-columns: repeat(3, 1fr); }  /* nine tiles, three rows */
 .qm-section { max-width: 1000px; }
 h3 { font-size: 15px; font-weight: 600; margin: 20px 0 8px; }
 .gap-row { display: grid; grid-template-columns: minmax(200px, 340px) 1fr 40px; gap: 12px; align-items: center; font-size: 14px; padding: 3px 0; }
