@@ -44,12 +44,12 @@ const fmt = v => (v == null ? '' : typeof v === 'number'
 </script>
 
 <style scoped>
-.pv { margin-top: 8px; font-size: 12.5px; }
+.pv { margin-top: 8px; font-size: 12.5px; overflow-x: auto; }
 .pv-count { color: var(--ox-text-muted); margin-bottom: 4px; }
 table { width: 100%; border-collapse: collapse; }
 td, th { padding: 3px 4px; border-top: 1px solid var(--ox-border-subtle); vertical-align: top; }
 th { font-weight: 500; color: var(--ox-text-muted); border-top: 0; text-align: right; }
-.pv-name { color: var(--ox-text-secondary); overflow-wrap: anywhere; }
+.pv-name { color: var(--ox-text-secondary); overflow-wrap: break-word; min-width: 9em; }
 .pv-num { text-align: right; white-space: nowrap; color: var(--ox-text-tertiary); font-variant-numeric: tabular-nums; }
 tr.all td { color: var(--ox-text-muted); font-style: italic; }
 .pv-err { color: var(--ox-danger-fg); margin-top: 4px; overflow-wrap: anywhere; }
