@@ -68,24 +68,24 @@
         <div class="row head" role="row">
           <span />
           <div role="columnheader">Question</div>
-          <div role="columnheader">OQL</div>
-          <div role="columnheader" class="c-m">{{ data.arms.map(a => a.name[0]).join(' ') }}</div>
-          <div role="columnheader">Type</div>
+          <div role="columnheader">OQL · {{ data.arms.map(a => a.name).join(', ') }}</div>
         </div>
         <div v-for="(q, i) in shown" :key="q.id" class="row" role="row">
           <span class="strip" :style="{background: data.wordingByKey[q.wording]?.color}" :title="data.wordingByKey[q.wording]?.name" />
-          <div class="c-q" :class="{model: q.wording === 'model'}">{{ q.text }}</div>
-          <div class="c-oql" :class="{open: openOql.has(q.id)}" @click="toggleOql(q.id)">
-            <template v-if="referenceOql(q)">{{ referenceOql(q).oql }}<span v-if="!referenceOql(q).checked" class="unchecked" title="Written by #1555's grader; not checked by hand"> ·unchecked</span></template>
-            <span v-else class="muted">{{ q.kind === 'data' ? '–' : 'not a query' }}</span>
+          <div>
+            <div class="c-q" :class="{model: q.wording === 'model'}">{{ q.text }}</div>
+            <button type="button" class="c-type" :title="`Show only this type`" @click="need = q.need">{{ data.needs[q.need]?.name }}</button>
           </div>
-          <div class="c-m">
-            <button v-for="a in data.arms" :key="a.key" type="button" class="mk" :class="[mark(q.runs?.[a.key]).key, {flag: flagged(q, a.key)}]"
-                    :aria-label="`${a.name}: open answer`" @click="openDialog(i, a.key)">{{ mark(q.runs?.[a.key]).icon }}</button>
+          <div>
+            <div class="c-oql">
+              <template v-if="refs[q.id]">{{ refs[q.id].oql }}<span v-if="refs[q.id].tag" class="unchecked" :title="refs[q.id].by"> ·{{ refs[q.id].tag === 'agent' ? data.launch.name : 'unchecked draft' }}</span></template>
+              <span v-else class="muted">{{ q.kind === 'data' ? '–' : 'not a query' }}</span>
+            </div>
+            <div class="c-m">
+              <button v-for="a in data.arms" :key="a.key" type="button" class="mk" :class="[mark(q.runs?.[a.key]).key, {flag: flagged(q, a.key)}]"
+                      :title="a.name" :aria-label="`${a.name}: open answer`" @click="openDialog(i, a.key)">{{ mark(q.runs?.[a.key]).icon }}</button>
+            </div>
           </div>
-          <button type="button" class="c-type" :title="`Show only: ${data.needs[q.need]?.name}`" @click="need = q.need">
-            {{ data.needs[q.need]?.name }}
-          </button>
         </div>
         <div ref="sentinel" class="sentinel">{{ shown.length < sorted.length ? 'Loading more…' : '' }}</div>
       </div>
@@ -176,6 +176,7 @@ const wordingCounts = computed(() => countBy(base.value, 'wording'));
 const sorted = computed(() => sortQuestions(base.value.filter(q => wordings.value.has(q.wording)), sortKey.value, data.value));
 const shares = computed(() => armShares(sorted.value, data.value.arms));
 const shown = computed(() => sorted.value.slice(0, limit.value));
+const refs = computed(() => Object.fromEntries(shown.value.map(q => [q.id, referenceOql(q, data.value.launch.key)])));
 
 const sentinel = ref(null);
 let observer;
@@ -188,13 +189,6 @@ watch(sentinel, el => {
   observer.observe(el);
 });
 onBeforeUnmount(() => observer?.disconnect());
-
-const openOql = shallowRef(new Set());
-const toggleOql = id => {
-  const s = new Set(openOql.value);
-  s.has(id) ? s.delete(id) : s.add(id);
-  openOql.value = s;
-};
 
 // The answer dialog steps through the list in its current order.
 const dialogIndex = ref(-1);
@@ -251,32 +245,29 @@ const copyFeedback = async () => {
 .says li { margin-bottom: 8px; }
 .says b { color: var(--ox-text-primary); }
 .tbl { margin-top: 12px; }
-.row { display: grid; grid-template-columns: 5px minmax(0, 1.15fr) minmax(0, 1fr) 86px 104px; gap: 10px; align-items: start; padding: 10px 0; border-top: 1px solid var(--ox-border-subtle); }
+.row { display: grid; grid-template-columns: 5px minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; padding: 12px 0; border-top: 1px solid var(--ox-border-subtle); }
 .row.head { font-size: 12px; font-weight: 600; color: var(--ox-text-muted); border-top: 0; padding-bottom: 6px; }
 .strip { align-self: stretch; border-radius: 3px; }
 .c-q { font-size: 14.5px; line-height: 1.45; color: var(--ox-text-primary); overflow-wrap: anywhere; }
 .c-q.model { font-style: italic; color: var(--ox-text-secondary); }
-.c-oql { font-family: 'Roboto Mono', ui-monospace, monospace; font-size: 11.5px; line-height: 1.45; color: var(--ox-text-secondary); white-space: pre-wrap; overflow-wrap: anywhere;
-  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
-.c-oql.open { display: block; -webkit-line-clamp: none; }
+.c-oql { font-family: 'Roboto Mono', ui-monospace, monospace; font-size: 13.5px; line-height: 1.5; color: var(--ox-text-primary); white-space: pre-wrap; overflow-wrap: anywhere; }
 .unchecked { font-family: inherit; color: var(--ox-text-disabled); }
-.c-m { display: flex; gap: 4px; justify-content: flex-start; }
+.c-m { display: flex; gap: 6px; margin-top: 8px; }
 .mk { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; font-size: 13px; font-weight: 700; border: 0; }
 .mk.good { background: var(--ox-success-bg); color: var(--ox-success-fg); }
 .mk.partly { background: var(--ox-warning-bg); color: var(--ox-warning-fg); }
 .mk.bad { background: var(--ox-danger-bg); color: var(--ox-danger-fg); }
 .mk.none { background: var(--ox-bg-muted); color: var(--ox-text-muted); }
 .mk.flag { box-shadow: 0 0 0 2px var(--ox-text-primary); }
-.c-type { text-align: left; font-size: 12.5px; line-height: 1.35; color: var(--ox-text-tertiary); background: none; border: 0; padding: 0; }
+.c-type { display: block; text-align: left; margin-top: 4px; font-size: 12.5px; line-height: 1.35; color: var(--ox-text-muted); background: none; border: 0; padding: 0; }
 .c-type:hover { text-decoration: underline; }
 .sentinel { padding: 16px 0; text-align: center; font-size: 13px; color: var(--ox-text-muted); }
 .muted { color: var(--ox-text-muted); }
 .small { font-size: 12.5px; }
-/* Phones: OQL and type under the question. */
+/* Phones: OQL under the question. */
 @media (max-width: 600px) {
-  .row { grid-template-columns: 5px minmax(0, 1fr) 86px; }
-  .strip { grid-row: 1 / span 3; }
-  .c-m { grid-column: 3; grid-row: 1; }
-  .c-oql, .c-type { grid-column: 2 / 4; }
+  .row { grid-template-columns: 5px minmax(0, 1fr); }
+  .strip { grid-row: 1 / span 2; }
+  .row > :last-child { grid-column: 2; }
 }
 </style>

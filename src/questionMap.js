@@ -127,10 +127,13 @@ export function sortQuestions(questions, key, data) {
         || (a.rung || 9) - (b.rung || 9));
 }
 
-// The one query that answers it: #1492's checked gold, else #1555's grader's query (not checked).
-export function referenceOql(q) {
-    if (q.gold?.oql) return {oql: q.gold.oql, sort: q.gold.sort, checked: true, by: q.gold.by};
-    if (q.grade?.oql) return {oql: q.grade.oql, checked: false, by: "#1555's grader (parsed, not checked by hand)"};
+// The one query that answers it: #1492's checked gold; else the launch agent's query when the judge called it right
+// (real ids, ran live); else #1555's grader's draft (placeholder ids, parsed only).
+export function referenceOql(q, launchKey) {
+    if (q.gold?.oql) return {oql: q.gold.oql, sort: q.gold.sort, tag: null, by: q.gold.by};
+    const launch = q.runs?.[launchKey];
+    if (launch?.correct && launch.oql) return {oql: launch.oql, sort: launch.sort, tag: 'agent', by: "the launch agent's answer, judged right"};
+    if (q.grade?.oql) return {oql: q.grade.oql, tag: 'draft', by: "#1555's grader: a draft with placeholder ids, parsed but not run"};
     return null;
 }
 

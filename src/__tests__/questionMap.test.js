@@ -50,9 +50,11 @@ describe('question map', () => {
         expect(s.sonnet).toMatchObject({right: 1, tested: 2});
     });
 
-    it('shows checked gold first, else the grader\'s query, and marks verdicts', () => {
-        expect(referenceOql(data.questions[0])).toMatchObject({oql: 'get works', checked: true});
-        expect(referenceOql(data.questions[2])).toMatchObject({oql: 'get authors', checked: false});
+    it('shows checked gold, else the launch agent\'s right answer, else the grader\'s draft; marks verdicts', () => {
+        expect(referenceOql(data.questions[0], 'opus')).toMatchObject({oql: 'get works', tag: null});
+        expect(referenceOql({runs: {opus: {correct: true, oql: 'get sources'}}, grade: {oql: 'x'}}, 'opus'))
+            .toMatchObject({oql: 'get sources', tag: 'agent'});
+        expect(referenceOql(data.questions[2], 'opus')).toMatchObject({oql: 'get authors', tag: 'draft'});
         expect([run(true), run(false, 'partly'), run(false), null].map(r => mark(r).key)).toEqual(['good', 'partly', 'bad', 'none']);
     });
 

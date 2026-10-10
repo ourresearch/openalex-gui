@@ -84,7 +84,7 @@ const emit = defineEmits(['close', 'arm', 'step', 'feedback']);
 
 const run = computed(() => props.q?.runs?.[props.arm]);
 const wording = computed(() => props.data.wordingByKey[props.q?.wording]);
-const ref = computed(() => props.q && referenceOql(props.q));
+const ref = computed(() => props.q && referenceOql(props.q, props.data.launch.key));
 const fb = computed(() => props.feedback[feedbackKey(props.q, props.arm)] || {});
 const VERDICTS = {answers: 'Answers it', partly: 'Answers part of it', no: "Doesn't answer it"};
 const verdictText = computed(() => (run.value?.verdict ? VERDICTS[run.value.verdict]
