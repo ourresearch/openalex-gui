@@ -1,71 +1,63 @@
 import {describe, expect, it} from 'vitest';
-import {index, labelsFromQuery, matches, needRows, pinned, sortRows, statsFor, toggled} from '@/questionMap';
+import {armShares, feedbackText, hasResult, index, mark, matches, referenceOql, sortQuestions} from '@/questionMap';
 
 const run = (correct, verdict = correct ? 'answers' : 'no') => ({verdict, correct});
-const q = (id, need, label, rung, runs = {}, kind = 'data', wording = 'own') =>
-    ({id, text: `Question ${id}`, need, label, rung, runs, kind, wording});
+const q = (id, need, label, rung, runs = {}, extra = {}) =>
+    ({id, text: `Question ${id}`, need, label, rung, runs, kind: 'data', wording: 'user', ...extra});
 
 const data = index({
     labels: [{key: 'real'}, {key: 'synthetic'}],
-    rungs: [1, 2, 3, 4, 5].map(n => ({n, name: `r${n}`})),
+    wordings: [{key: 'user'}, {key: 'person'}, {key: 'model'}],
     arms: [{key: 'haiku', name: 'Haiku'}, {key: 'sonnet', name: 'Sonnet'}, {key: 'opus', name: 'Opus', launch: true}],
     branches: [{id: 'A', name: 'Find', nodes: [{id: 'A1', name: 'Search', needs: ['A1.1', 'A1.2']}]}],
-    appendices: [{id: 'O', name: 'Out', needs: ['O1']}],
+    appendices: [],
     needs: {
-        'A1.1': {id: 'A1.1', branch: 'A', scope: 'in', prevalence: {website_users: 10, api_keys: 5}},
-        'A1.2': {id: 'A1.2', branch: 'A', scope: 'in', prevalence: {}},
-        O1: {id: 'O1', branch: 'O', scope: 'out', prevalence: {}},
+        'A1.1': {id: 'A1.1', branch: 'A', scope: 'in'},
+        'A1.2': {id: 'A1.2', branch: 'A', scope: 'in'},
+        O1: {id: 'O1', branch: 'O', scope: 'out'},
     },
     questions: [
-        q('1', 'A1.1', 'real', 1, {opus: run(true), haiku: run(false)}),
-        q('2', 'A1.1', 'synthetic', 2, {opus: run(false), haiku: run(false, 'partly')}, 'data', 'model'),
-        q('3', 'A1.2', 'real', 5, {}, 'not_data'),
-        q('4', 'A1.2', 'real', 3, {opus: run(false)}),
-        q('5', 'A1.2', 'real', 4),
-        q('6', 'O1', 'real', 5),
+        q('1', 'A1.2', 'real', 4, {opus: run(true), haiku: run(false)}, {gold: {oql: 'get works', sort: null}}),
+        q('2', 'A1.1', 'synthetic', 1, {opus: run(false), haiku: run(false, 'partly'), sonnet: run(true)}, {wording: 'model'}),
+        q('3', 'A1.1', 'real', 2, {opus: run(false), haiku: run(false), sonnet: run(false)}, {grade: {oql: 'get authors'}}),
+        q('4', 'O1', 'real', 5),
     ],
 });
 
 describe('question map', () => {
-    it('indexes branch, scope, lowercased text and the launch arm', () => {
-        expect(data.inScope.map(x => x.id)).toEqual(['1', '2', '3', '4', '5']);
-        expect(data.questions[0]).toMatchObject({branch: 'A', lc: 'question 1'});
+    it('keeps in-scope questions, the launch arm and each need\'s ease', () => {
+        expect(data.inScope.map(x => x.id)).toEqual(['1', '2', '3']);
         expect(data.launch.key).toBe('opus');
+        expect(data.ease['A1.1']).toBe(1.5);
     });
 
-    it('counts rungs, labels, wording and per-model accuracy on data questions only', () => {
-        const s = statsFor(data.byNeed['A1.1'], data.arms);
-        expect(s).toMatchObject({n: 2, real: 1, own: 1, oneQuery: 1});
-        expect(s.arms.opus).toMatchObject({right: 1, tested: 2, share: 0.5});
-        expect(s.arms.haiku).toMatchObject({right: 0, tested: 2});
-        expect(s.arms.sonnet.share).toBeNull();
+    it('orders easiest types first, easiest questions first within a type', () => {
+        expect(sortQuestions(data.inScope, 'ease', data).map(x => x.id)).toEqual(['2', '3', '1']);
+        expect(sortQuestions(data.inScope, 'hard', data).map(x => x.id)).toEqual(['1', '2', '3']);
     });
 
-    it('takes the median rung as typical and ignores not-data questions for models', () => {
-        const s = statsFor(data.byNeed['A1.2'], data.arms);
-        expect(s.typicalRung).toBe(4);
-        expect(s.oneQuery).toBe(0);
-        expect(s.arms.opus.tested).toBe(1);
+    it('filters by wording, need and how the models did', () => {
+        expect(data.inScope.filter(x => matches(x, {wordings: new Set(['model'])})).map(x => x.id)).toEqual(['2']);
+        expect(data.inScope.filter(x => matches(x, {need: 'A1.1', search: 'question 3'})).map(x => x.id)).toEqual(['3']);
+        expect(data.inScope.filter(x => hasResult(x, 'launchWrong', data)).map(x => x.id)).toEqual(['2', '3']);
+        expect(data.inScope.filter(x => hasResult(x, 'split', data)).map(x => x.id)).toEqual(['1', '2']);
+        expect(data.inScope.filter(x => hasResult(x, 'allWrong', data)).map(x => x.id)).toEqual(['3']);
     });
 
-    it('filters, then sorts needs easiest first', () => {
-        const qs = data.inScope.filter(x => matches(x, {labels: new Set(['real']), search: 'question'}));
-        const rows = needRows(data, qs);
-        expect(rows.map(r => r.stats.n)).toEqual([1, 3]);
-        expect(sortRows(rows, 'ease', 'opus').map(r => r.need.id)).toEqual(['A1.1', 'A1.2']);
-        expect(sortRows(rows, 'common', 'opus')[0].need.id).toBe('A1.1');
-        expect(data.inScope.filter(x => matches(x, {wording: 'model'})).map(x => x.id)).toEqual(['2']);
+    it('scores each model on judged data questions', () => {
+        const s = Object.fromEntries(armShares(data.inScope, data.arms).map(a => [a.key, a]));
+        expect(s.opus).toMatchObject({right: 1, tested: 3});
+        expect(s.sonnet).toMatchObject({right: 1, tested: 2});
     });
 
-    it('pins a real user success and the agent-misses failure', () => {
-        const p = pinned(data.byNeed['A1.1'], 'opus');
-        expect(p.success.id).toBe('1');
-        expect(p.failure.id).toBe('2');
+    it('shows checked gold first, else the grader\'s query, and marks verdicts', () => {
+        expect(referenceOql(data.questions[0])).toMatchObject({oql: 'get works', checked: true});
+        expect(referenceOql(data.questions[2])).toMatchObject({oql: 'get authors', checked: false});
+        expect([run(true), run(false, 'partly'), run(false), null].map(r => mark(r).key)).toEqual(['good', 'partly', 'bad', 'none']);
     });
 
-    it('reads and toggles the source filter', () => {
-        expect([...labelsFromQuery({sources: 'real,bogus'}, data.labels)]).toEqual(['real']);
-        expect(labelsFromQuery({}, data.labels).size).toBe(2);
-        expect([...toggled(new Set(['real']), 'synthetic')]).toEqual(['real', 'synthetic']);
+    it('turns the judge calls into text to paste back', () => {
+        const t = feedbackText({'3|opus': {call: 'disagrees', note: 'it is right'}}, data);
+        expect(t).toContain('3 · opus: judge said "no"; Jason disagrees. Note: it is right');
     });
 });

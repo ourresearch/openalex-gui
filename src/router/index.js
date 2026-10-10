@@ -29,7 +29,6 @@ const BrandPage = () => import('@/views/Brand.vue');
 const OqlPlayground = () => import('@/views/OqlPlayground.vue');
 const NlWorkbench = () => import('@/views/NlWorkbench.vue');
 const QuestionMap = () => import('@/views/QuestionMap.vue');
-const QuestionMapNeed = () => import('@/views/QuestionMapNeed.vue');
 const Funders2026Page = () => import('@/views/Funders2026.vue');
 const Paris2026Page = () => import('@/views/Paris2026.vue');
 const PricingPage = () => import('@/views/PricingPage.vue');
@@ -464,7 +463,8 @@ const routes = [
     // The question map (#1618): every question OQL and the chat agent must answer, by need. Staff only; its data
     // (real users' questions) is fetched from oxjobs.org for admins, never bundled.
     {path: '/nl/map', name: 'QuestionMap', component: QuestionMap, meta: {requiresAuth: true, requiresAdmin: true, chrome: 'site'}},
-    {path: '/nl/map/:need', name: 'QuestionMapNeed', component: QuestionMapNeed, meta: {requiresAuth: true, requiresAdmin: true, chrome: 'site'}},
+    // One page now (Jason, 2026-10-10): an old need link opens the list filtered to that type.
+    {path: '/nl/map/:need', redirect: to => ({path: '/nl/map', query: {need: to.params.need}})},
     {path: '/nl/:section(cases|annotate|playground)', name: 'Nl', component: NlWorkbench, props: true},
     // NL gold-standard annotator (#382): deep-link a specific case with it preselected.
     {path: '/nl/annotate/:id', name: 'NlAnnotate', component: NlWorkbench, props: route => ({section: 'annotate', caseId: route.params.id})},
