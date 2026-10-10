@@ -1,82 +1,41 @@
 <template>
-  <div
-    class="rung-bar"
-    :style="{height: height + 'px'}"
-    role="img"
-    :aria-label="label"
-    @mouseleave="hover = null"
-  >
-    <div
-      v-for="seg in segments"
-      :key="seg.n"
-      class="rung-seg"
-      :style="{flexGrow: seg.count, background: colors[seg.n]}"
-      @mouseenter="hover = seg"
-    />
-    <div v-if="hover && tooltip" class="rung-tip">
-      <span class="rung-swatch" :style="{background: colors[hover.n]}" />
-      {{ rungName(hover.n) }}: <b>{{ hover.count.toLocaleString('en-US') }}</b>
-      ({{ Math.round(100 * hover.count / total) }}%)
-    </div>
+  <div class="rung-bar" :style="{height: height + 'px'}" role="img" :aria-label="label">
+    <v-tooltip v-for="seg in segments" :key="seg.n" location="top" :text="seg.tip">
+      <template #activator="{props: tip}">
+        <div v-bind="tip" class="rung-seg" tabindex="0" :style="{flexGrow: seg.count, background: RUNG_COLORS[seg.n]}" />
+      </template>
+    </v-tooltip>
   </div>
 </template>
 
 <script setup>
-import {computed, ref} from 'vue';
+import {computed} from 'vue';
 import {RUNG_COLORS} from '@/questionMap';
 
 defineOptions({name: 'RungBar'});
 
 const props = defineProps({
-  rungs: {type: Object, required: true},     // {1: count, ..., 5: count}
-  names: {type: Array, default: () => []},    // data.rungs: [{n, name}]
+  counts: {type: Object, required: true},   // {1: count, ..., 5: count}
+  rungs: {type: Array, required: true},     // data.rungs: [{n, name}]
   height: {type: Number, default: 10},
-  tooltip: {type: Boolean, default: true},
 });
 
-const colors = RUNG_COLORS;
-const hover = ref(null);
-const segments = computed(() => [1, 2, 3, 4, 5].map(n => ({n, count: props.rungs[n] || 0})).filter(s => s.count));
-const total = computed(() => segments.value.reduce((t, s) => t + s.count, 0));
-const rungName = n => props.names.find(r => r.n === n)?.name || `Rung ${n}`;
-const label = computed(() => segments.value.map(s => `${rungName(s.n)} ${s.count}`).join(', '));
+const segments = computed(() => {
+  const total = [1, 2, 3, 4, 5].reduce((t, n) => t + (props.counts[n] || 0), 0);
+  return [1, 2, 3, 4, 5].filter(n => props.counts[n]).map(n => {
+    const name = props.rungs.find(r => r.n === n)?.name;
+    return {n, count: props.counts[n], name,
+      tip: `${name}: ${props.counts[n].toLocaleString('en-US')} (${Math.round(100 * props.counts[n] / total)}%)`};
+  });
+});
+const label = computed(() => segments.value.map(s => `${s.name} ${s.count}`).join(', '));
 </script>
 
 <style scoped>
-.rung-bar {
-  position: relative;
-  display: flex;
-  gap: 2px;
-  width: 100%;
-  min-width: 40px;
-}
-.rung-seg {
-  flex-basis: 0;
-  min-width: 2px;
-  border-radius: 1px;
-}
+.rung-bar { display: flex; gap: 2px; width: 100%; min-width: 40px; }
+.rung-seg { flex-basis: 0; min-width: 2px; border-radius: 1px; }
 .rung-seg:first-child { border-radius: 4px 1px 1px 4px; }
 .rung-seg:last-child { border-radius: 1px 4px 4px 1px; }
 .rung-seg:only-child { border-radius: 4px; }
-.rung-tip {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 0;
-  z-index: 5;
-  white-space: nowrap;
-  background: #0a0a0a;
-  color: #fafafa;
-  font-size: 12px;
-  line-height: 1.3;
-  padding: 5px 8px;
-  border-radius: 6px;
-  pointer-events: none;
-}
-.rung-swatch {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  margin-right: 4px;
-}
+.rung-seg:focus-visible { outline: 2px solid var(--ox-text-primary); outline-offset: 1px; }
 </style>
