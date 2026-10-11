@@ -26,7 +26,7 @@
                 <span class="meta-tag">Hosted by CNRS and Sorbonne Universit&eacute;</span>
                 <span class="meta-tag">Registration closed</span>
             </div>
-            <p class="intro-note">Registration is closed. Programme updated 8 October. Most talks are confirmed and listed below; we will fill the last few slots as speakers confirm. Times and breakout topics may still move a little.</p>
+            <p class="intro-note">Registration is closed. Programme updated 11 October. Most talks are confirmed and listed below; we will fill the last few slots as speakers confirm. Times and breakout topics may still move a little.</p>
         </header>
 
         <!-- THE WEEK -->
@@ -41,7 +41,7 @@
                 </div>
                 <div class="f26-card">
                     <h4>Tuesday 20 October, CNRS</h4>
-                    <p class="card-text">Community talks. Nineteen presentations from people building with OpenAlex, in four themed sessions with discussion, plus a round of lightning demos. Coffee and lunch provided. Informal drinks nearby afterwards.</p>
+                    <p class="card-text">Community talks. Sixteen presentations from people building with OpenAlex, in four themed sessions with discussion, plus a round of lightning demos. Coffee and lunch provided. Informal drinks nearby afterwards.</p>
                     <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-break">social</span>
                 </div>
                 <div class="f26-card">
@@ -99,7 +99,7 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">10:50 &ndash; 12:05</div>
+                    <div class="sched-time">10:50 &ndash; 12:30</div>
                     <div class="sched-content">
                         <h4>Session 2: National monitors and funder intelligence</h4>
                         <p>OpenAlex at national and funder scale: building a national research output database, a national open science monitor, a funder's research intelligence stack, and tracing who funds the infrastructure research depends on.</p>
@@ -114,20 +114,6 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">12:05 &ndash; 12:30</div>
-                    <div class="sched-content">
-                        <h4>Lightning talks: tools for the community</h4>
-                        <p>Short demos of reusable tools and workflows built on OpenAlex: ready-made dashboard templates, lightweight scripts libraries use to answer everyday requests, and a researcher-level map of institutional strengths.</p>
-                        <ul class="speaker-list">
-                            <li><strong>Michel de Moura</strong> (Universit&eacute; de Versailles Saint-Quentin-en-Yvelines) &mdash; How the UVSQ libraries use the OpenAlex API to support research</li>
-                            <li><strong>Paloma Garc&iacute;a Bl&aacute;zquez</strong> (University of Salamanca) &mdash; Mapping research excellence with OpenAlex: from scholarly data to strategic research intelligence</li>
-                            <li><strong>Patricia Ranoarisoa</strong> (Inist-CNRS) &mdash; LODEX template for OpenAlex: turnkey interactive bibliometrics</li>
-                            <li class="placeholder">One or two more lightning talks to be confirmed</li>
-                        </ul>
-                        <span class="f26-tag tag-presentation">lightning</span>
-                    </div>
-                </div>
-                <div class="sched-block">
                     <div class="sched-time">12:30 &ndash; 14:00</div>
                     <div class="sched-content">
                         <h4>Lunch</h4>
@@ -136,42 +122,55 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">14:00 &ndash; 15:15</div>
+                    <div class="sched-time">14:00 &ndash; 14:40</div>
+                    <div class="sched-content">
+                        <h4>Lightning talks: tools for the community</h4>
+                        <p>Short demos of reusable tools and workflows built on OpenAlex: ready-made dashboard templates, lightweight scripts libraries use to answer everyday requests, a researcher-level map of institutional strengths, and more, with questions taken together at the end.</p>
+                        <ul class="speaker-list">
+                            <li><strong>Michel de Moura</strong> (Universit&eacute; de Versailles Saint-Quentin-en-Yvelines) &mdash; How the UVSQ libraries use the OpenAlex API to support research</li>
+                            <li><strong>Paloma Garc&iacute;a Bl&aacute;zquez</strong> (University of Salamanca) &mdash; Mapping research excellence with OpenAlex: from scholarly data to strategic research intelligence</li>
+                            <li><strong>Patricia Ranoarisoa</strong> (Inist-CNRS) &mdash; LODEX template for OpenAlex: turnkey interactive bibliometrics</li>
+                            <li><strong>Jack Culbert</strong> (GESIS) &mdash; The Open Research Converter</li>
+                            <li><strong>Ma&iuml;ca Poirier Murphy</strong> (Higher Education Strategy Associates) &mdash; Title to come</li>
+                        </ul>
+                        <span class="f26-tag tag-presentation">lightning</span>
+                    </div>
+                </div>
+                <div class="sched-block">
+                    <div class="sched-time">14:40 &ndash; 15:25</div>
                     <div class="sched-content">
                         <h4>Session 3: Mapping, foresight and signal detection</h4>
-                        <p>Maps of science and patents, indicators of emerging topics, technology foresight, research intelligence platforms, and early-warning signals in research output, all computed from OpenAlex.</p>
+                        <p>Maps of science and patents, technology foresight, and early-warning signals in research output, all computed from OpenAlex.</p>
                         <ul class="speaker-list">
                             <li><strong>Shruti Agarwal</strong> (Center for Security and Emerging Technology) &mdash; Building Map of Science and Map of Patents</li>
                             <li><strong>Melanie Martini</strong> (Fraunhofer FKIE) &mdash; KATI and OpenAlex: open science intelligence for technology foresight</li>
                             <li><strong>G&eacute;raldine Geoffroy</strong> (SmartBibl.IA Solutions) &mdash; Research Signal Radar: an OSINT-style situation room for research output on OpenAlex</li>
-                            <li class="placeholder">Two more talks to be confirmed</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">15:15 &ndash; 15:35</div>
+                    <div class="sched-time">15:25 &ndash; 15:45</div>
                     <div class="sched-content">
                         <h4>Break</h4>
                         <span class="f26-tag tag-break">break</span>
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">15:35 &ndash; 16:35</div>
+                    <div class="sched-time">15:45 &ndash; 16:30</div>
                     <div class="sched-content">
                         <h4>Session 4: Coverage, comparisons and quality</h4>
-                        <p>How OpenAlex compares with proprietary databases for institutional benchmarking, what affiliation and coverage checks reveal, and what national repositories and heritage collections could add to the record.</p>
+                        <p>What affiliation and coverage checks reveal, and what national repositories and heritage collections could add to the record.</p>
                         <ul class="speaker-list">
                             <li><strong>Jack Culbert</strong> (GESIS) &mdash; Comparing affiliations in OpenAlex to the Competence Network for Bibliometrics&rsquo; infrastructure</li>
                             <li><strong>Sitthida Samath and colleagues</strong> (Pers&eacute;e, CNRS and ENS de Lyon) &mdash; Through the OpenAlex looking-glass, and what Pers&eacute;e found there</li>
                             <li><strong>Yannick Barborini</strong> (CNRS, CCSD) &mdash; How OpenAlex can benefit from HAL metadata richness</li>
-                            <li class="placeholder">One more talk to be confirmed</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">16:35 &ndash; 17:15</div>
+                    <div class="sched-time">16:30 &ndash; 17:00</div>
                     <div class="sched-content">
                         <h4>What we heard</h4>
                         <p>The OpenAlex team responds to the day: the themes that came up across sessions, what we can act on, and what we want to dig into on Wednesday.</p>
