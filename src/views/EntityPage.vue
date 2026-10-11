@@ -355,6 +355,7 @@
                 :loading="observedNamesCuration.loading.value"
                 :submitting="observedNamesCuration.submitting.value"
                 :progress="observedNamesCuration.progress.value"
+                :too-large="observedNamesCuration.tooLarge.value"
                 @submit="onRemoveObservedNames"
               />
             </template>
@@ -569,6 +570,7 @@ const observedNamesCuration = useObservedNamesCuration({
   authorId: computed(() => (isAuthorOwner.value ? entityData.value?.id || '' : '')),
   observedNames,
   onSubmitted: () => worksCuration.reconcile(),
+  worksCount: computed(() => entityData.value?.works_count || 0),
 });
 const observedNamesDialogOpen = ref(false);
 async function openObservedNamesDialog() {

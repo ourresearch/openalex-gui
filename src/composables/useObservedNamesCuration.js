@@ -29,12 +29,22 @@ import {
 // mandatory — ~22% of an author's works can be xpac and are otherwise
 // silently dropped from `?filter=` queries (workspace learning, bit #240 in
 // this exact dialog area).
+//
+// The mapping pass reads every work on the profile, 200 a request, in the
+// browser. Past this size (machine-made series and organizations: a claimed
+// profile has 2.94M works, which would be ~14,700 requests on every page load)
+// the pass is skipped and the editor asks the owner to write to support
+// instead (oxjob #1641).
+export const MAX_NAME_MAPPING_WORKS = 20000;
+
 export function useObservedNamesCuration({
   authorId,
   observedNames,
   onSubmitted,
+  worksCount = ref(0),
 }) {
   const store = useStore();
+  const tooLarge = computed(() => (worksCount.value || 0) > MAX_NAME_MAPPING_WORKS);
 
   const loading = ref(false); // mapping pass in flight
   const mapped = ref(false); // mapping has completed at least once
@@ -62,7 +72,7 @@ export function useObservedNamesCuration({
   // One paginated pass over the author's works, bucketing by this author's
   // exact raw_author_name. Cursor-paged for stability over large sets.
   async function buildMapping() {
-    if (!authorShort.value) return;
+    if (!authorShort.value || tooLarge.value) return;
     loading.value = true;
     progress.value = { done: 0, total: 0 };
     const buckets = {};
@@ -216,6 +226,7 @@ export function useObservedNamesCuration({
     submitting,
     progress,
     hasRemovals,
+    tooLarge,
     nameToWorkIds,
     nameRows,
     buildMapping,

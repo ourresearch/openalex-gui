@@ -27,6 +27,12 @@
           </div>
         </div>
 
+        <div v-else-if="tooLarge" class="text-body-2 text-medium-emphasis py-8 text-center">
+          This profile has too many works to edit its names here.
+          Write to <a href="mailto:support@openalex.org">support@openalex.org</a>
+          with the names to remove and we'll do it for you.
+        </div>
+
         <div v-else-if="!nameRows.length" class="text-body-2 text-medium-emphasis py-8 text-center">
           No removable observed names found.
         </div>
@@ -101,6 +107,8 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   submitting: { type: Boolean, default: false },
   progress: { type: Object, default: () => ({ done: 0, total: 0 }) },
+  // the profile is past MAX_NAME_MAPPING_WORKS: no mapping pass, ask support instead
+  tooLarge: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['update:modelValue', 'submit']);
