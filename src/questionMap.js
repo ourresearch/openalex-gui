@@ -7,6 +7,7 @@
 import {markRaw} from 'vue';
 
 const DATA_URL = 'https://oxjobs.org/admin-data/1618/map_data.json.gz';
+export const DEFAULT_SET = 'test';   // the list the page opens on: the test questions
 const FEEDBACK_KEY = 'oxQuestionMapFeedback';
 
 let pending = null;
@@ -35,7 +36,6 @@ export function index(data) {
     const byNeed = {};
     for (const q of data.questions) {
         const need = data.needs[q.need];
-        q.set ||= 'test';
         q.branch = need?.branch;
         q.inScope = need?.scope === 'in';
         q.lc = q.text.toLowerCase();
@@ -50,11 +50,11 @@ export function index(data) {
     const mapOrder = {};
     let i = 0;
     for (const b of data.branches) for (const n of b.nodes) for (const id of n.needs) mapOrder[id] = i++;
-    const sets = data.sets || [{key: 'test', name: 'Test questions'}];
+    const setByKey = Object.fromEntries(data.sets.map(x => [x.key, x]));
+    for (const q of data.questions) q.right = rightAnswer(q, setByKey);
     return markRaw({
         ...data,
-        sets,
-        setByKey: Object.fromEntries(sets.map(x => [x.key, x])),
+        setByKey,
         wordingByKey: Object.fromEntries(data.wordings.map(w => [w.key, w])),
         byNeed,
         ease,
@@ -88,9 +88,14 @@ export function hasResult(q, result, data) {
     return true;
 }
 
-// `search` must already be lowercased; "42" or "#42" finds case 42.
+// "42" or "#42" is a search for case 42 (in any set); anything else is null.
+export function caseNumber(search) {
+    return search && /^#?\d+$/.test(search) ? Number(search.replace('#', '')) : null;
+}
+
+// `search` must already be lowercased.
 export function matches(q, {wordings, label, branch, need, search} = {}) {
-    const caseNo = search && /^#?\d+$/.test(search) ? Number(search.replace('#', '')) : null;
+    const caseNo = caseNumber(search);
     if (caseNo) return q.case === caseNo;
     return (!wordings || wordings.has(q.wording))
         && (!label || q.label === label)
@@ -136,6 +141,7 @@ export function sortQuestions(questions, key, data) {
 // The one query that answers it: #1492's checked gold; else the launch agent's query when the judge called it right
 // (real ids, ran live); else #1555's grader's draft (placeholder ids, parsed only).
 export function referenceOql(q, launchKey) {
+    if (q.set === 'router') return null;   // a router test's right answer has no OQL
     if (q.gold?.oql) return {oql: q.gold.oql, sort: q.gold.sort, tag: null, by: q.gold.by};
     const launch = q.runs?.[launchKey];
     if (launch?.correct && launch.oql) return {oql: launch.oql, sort: launch.sort, tag: 'agent', by: "the launch agent's answer, judged right"};
@@ -143,11 +149,19 @@ export function referenceOql(q, launchKey) {
     return null;
 }
 
-// What the right answer is when it isn't just "one query that answers it" (the 2026-10-11 cleanup).
-export function rightAnswer(q) {
-    if (q.set === 'router') return 'No OQL: a help-desk answer, or a pointer to the help desk.';
+// What the right answer is when it isn't just "one query that answers it": the set's own rule (router tests), or
+// for a question that asks two things, the first one only. Set once per question by index() as `q.right`.
+export function rightAnswer(q, setByKey) {
+    if (setByKey[q.set]?.right) return setByKey[q.set].right;
     if (q.multi) return `Answers only the first question ("${q.multi.first}") and says it left out ${q.multi.left_out}.`;
     return null;
+}
+
+// Why a question has no model answer: short for the list, long for the dialog.
+export function notRun(q) {
+    if (q.kind !== 'data') return {short: 'not a query', long: 'Not run: not a data question.'};
+    if (q.origin === 'rewrite') return {short: 'new: not run yet', long: 'Not run yet: a new question, added in a cleanup. It runs with the next model run.'};
+    return {short: '–', long: 'Not run yet.'};
 }
 
 export function mark(run) {

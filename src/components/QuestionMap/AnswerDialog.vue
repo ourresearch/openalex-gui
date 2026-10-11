@@ -16,9 +16,9 @@
 
       <div class="ad-body">
         <blockquote v-if="q.evidence" class="ad-evidence">
-          <span class="ad-label">{{ q.from_case ? `Rewritten from #${q.from_case}: the original words` : "The source's words" }}</span>{{ q.evidence }}
+          <span class="ad-label">{{ q.from_case ? 'The original question' : "The source's words" }}</span>{{ q.evidence }}
         </blockquote>
-        <div v-if="right" class="ad-right"><span class="ad-label">Right answer</span>{{ right }}</div>
+        <div v-if="q.right" class="ad-panel ad-right"><span class="ad-label">Right answer</span>{{ q.right }}</div>
 
         <div class="ad-tabs" role="tablist">
           <button v-for="a in data.arms" :key="a.key" type="button" role="tab" class="ad-tab" :class="{on: a.key === arm}"
@@ -38,11 +38,11 @@
           <p v-if="run.note" class="ad-note">“{{ run.note }}”</p>
           <preview-table :run="run" />
 
-          <div class="ad-judge">
+          <div class="ad-panel ad-judge">
             <span class="ad-label">Judge</span>
             <span v-if="run.how === 'match'">The result matches the checked gold query.</span>
             <span v-else>{{ run.reason || 'Not judged.' }}</span>
-            <div v-if="run.prior?.verdict" class="muted small ad-prior">Before the 2026-10-11 rule: {{ VERDICTS[run.prior.verdict] || run.prior.verdict }}. {{ run.prior.reason }}</div>
+            <div v-if="run.prior?.verdict" class="muted small ad-prior">Before {{ run.prior.rule }}: {{ VERDICTS[run.prior.verdict] || run.prior.verdict }}. {{ run.prior.reason }}</div>
           </div>
 
           <div v-if="run.verdict" class="ad-fb">
@@ -54,8 +54,7 @@
             </div>
           </div>
         </template>
-        <div v-else class="muted ad-none">{{ q.kind !== 'data' ? 'Not run: not a data question.'
-          : q.origin === 'rewrite' ? 'Not run yet: a new question (2026-10-11). It runs when the new OQL guide ships.' : 'Not run yet.' }}</div>
+        <div v-else class="muted ad-none">{{ notRun(q).long }}</div>
 
         <details v-if="ref" class="ad-ref">
           <summary>Reference OQL <span class="muted">· {{ ref.by }}</span></summary>
@@ -71,7 +70,7 @@
 import {computed} from 'vue';
 import CodeBlock from '@/components/CodeBlock.vue';
 import PreviewTable from './PreviewTable.vue';
-import {feedbackKey, mark, referenceOql, rightAnswer} from '@/questionMap';
+import {feedbackKey, mark, notRun, referenceOql} from '@/questionMap';
 
 defineOptions({name: 'AnswerDialog'});
 
@@ -87,8 +86,7 @@ const emit = defineEmits(['close', 'arm', 'step', 'feedback']);
 
 const run = computed(() => props.q?.runs?.[props.arm]);
 const wording = computed(() => props.data.wordingByKey[props.q?.wording]);
-const ref = computed(() => props.q && props.q.set !== 'router' && referenceOql(props.q, props.data.launch.key));
-const right = computed(() => props.q && rightAnswer(props.q));
+const ref = computed(() => props.q && referenceOql(props.q, props.data.launch.key));
 const fb = computed(() => props.feedback[feedbackKey(props.q, props.arm)] || {});
 const VERDICTS = {answers: 'Answers it', partly: 'Answers part of it', no: "Doesn't answer it"};
 const verdictText = computed(() => (run.value?.verdict ? VERDICTS[run.value.verdict]
@@ -114,14 +112,15 @@ const setNote = note => emit('feedback', {q: props.q, arm: props.arm, value: {..
 .ad-body { padding: 12px 16px 20px; overflow-y: auto; }
 .ad-evidence { margin: 0 0 12px; padding: 8px 12px; border-left: 3px solid var(--ox-border-default); font-size: 14px; line-height: 1.5; color: var(--ox-text-secondary); }
 .ad-label { display: block; font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ox-text-tertiary); margin-bottom: 4px; }
-.ad-right { margin: 0 0 12px; padding: 8px 12px; background: var(--ox-bg-subtle); border-radius: 10px; font-size: 14px; line-height: 1.5; color: var(--ox-text-secondary); }
+.ad-panel { background: var(--ox-bg-subtle); border-radius: 10px; font-size: 14px; line-height: 1.5; color: var(--ox-text-secondary); }
+.ad-right { margin: 0 0 12px; padding: 8px 12px; }
 .ad-prior { margin-top: 6px; }
 .ad-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
 .ad-tab { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--ox-border-default); background: var(--ox-bg-base); font-size: 14px; color: var(--ox-text-secondary); }
 .ad-tab.on { border-color: var(--ox-text-primary); color: var(--ox-text-primary); font-weight: 600; }
 .ad-verdict { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; font-size: 15px; }
 .ad-note { font-size: 14px; color: var(--ox-text-secondary); margin: 10px 0; line-height: 1.5; }
-.ad-judge { margin-top: 14px; padding: 10px 12px; background: var(--ox-bg-subtle); border-radius: 10px; font-size: 14px; line-height: 1.5; color: var(--ox-text-secondary); }
+.ad-judge { margin-top: 14px; padding: 10px 12px; }
 .ad-fb { margin-top: 14px; }
 .ad-fb-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .ad-fb-note { flex: 1; min-width: 180px; font-size: 14px; padding: 7px 10px; border: 1px solid var(--ox-border-default); border-radius: 8px; }

@@ -17,7 +17,7 @@
             {{ x.name }} <span class="chip-n">{{ setCounts[x.key] || 0 }}</span>
           </button>
         </div>
-        <p v-if="data.setByKey[setKey]?.story && setKey !== 'test'" class="set-story">{{ data.setByKey[setKey].story }}</p>
+        <p v-if="currentSet?.story" class="set-story">{{ currentSet.story }}</p>
         <div class="ctl-chips" role="group" aria-label="Who wrote the words">
           <button v-for="w in data.wordings" :key="w.key" type="button" class="chip" :class="{on: wordings.has(w.key)}"
                   :title="w.story" @click="toggleWording(w.key)">
@@ -87,12 +87,9 @@
             </div>
           </div>
           <div>
-            <div v-if="q.set === 'router'" class="c-right">{{ rightAnswer(q) }}</div>
-            <div v-else class="c-oql">
-              <template v-if="refs[q.id]">{{ refs[q.id].oql }}<span v-if="refs[q.id].tag" class="unchecked" :title="refs[q.id].by"> ·{{ refs[q.id].tag === 'agent' ? data.launch.key : 'draft' }}</span></template>
-              <span v-else class="muted">{{ q.kind !== 'data' ? 'not a query' : q.origin === 'rewrite' ? 'new: runs with the new OQL' : '–' }}</span>
-            </div>
-            <div v-if="q.multi" class="c-right">Answers the first question only; leaves out {{ q.multi.left_out }}, and says so.</div>
+            <div v-if="refs[q.id]" class="c-oql">{{ refs[q.id].oql }}<span v-if="refs[q.id].tag" class="unchecked" :title="refs[q.id].by"> ·{{ refs[q.id].tag === 'agent' ? data.launch.key : 'draft' }}</span></div>
+            <div v-else-if="!q.right" class="c-oql muted">{{ notRun(q).short }}</div>
+            <div v-if="q.right" class="c-right">{{ q.right }}</div>
             <div class="c-m">
               <button v-for="a in data.arms" :key="a.key" type="button" class="mk" :class="[mark(q.runs?.[a.key]).key, {flag: flagged(q, a.key)}]"
                       :title="a.name" :aria-label="`${a.name}: open answer`" @click="openDialog(i, a.key)">{{ mark(q.runs?.[a.key]).icon }}</button>
@@ -114,8 +111,8 @@ import {computed, onBeforeUnmount, onMounted, ref, shallowRef, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router';
 import StaticPage from '@/components/StaticPage/StaticPage.vue';
 import AnswerDialog from '@/components/QuestionMap/AnswerDialog.vue';
-import {RESULTS, SORTS, armShares, countBy, feedbackKey, feedbackText, hasResult, loadFeedback, loadQuestionMap,
-  mark, matches, num, pct, referenceOql, rightAnswer, saveFeedback, sortQuestions} from '@/questionMap';
+import {DEFAULT_SET, RESULTS, SORTS, armShares, caseNumber, countBy, feedbackKey, feedbackText, hasResult, loadFeedback,
+  loadQuestionMap, mark, matches, notRun, num, pct, referenceOql, saveFeedback, sortQuestions} from '@/questionMap';
 
 defineOptions({name: 'QuestionMap'});
 
@@ -126,7 +123,7 @@ const error = shallowRef(null);
 
 // Filters live in the URL so a link (or the back button) keeps them.
 const qy = route.query;
-const setKey = shallowRef(qy.set || 'test');
+const setKey = shallowRef(qy.set || DEFAULT_SET);
 const wordings = shallowRef(new Set());
 const label = shallowRef(qy.source || null);
 const branch = shallowRef(qy.branch || null);
@@ -171,7 +168,7 @@ const limit = ref(PAGE);
 
 watch([setKey, wordings, label, branch, need, result, sortKey, search], () => {
   const q = {};
-  if (setKey.value !== 'test') q.set = setKey.value;
+  if (setKey.value !== DEFAULT_SET) q.set = setKey.value;
   if (data.value && !allWordings.value) q.wording = [...wordings.value].join(',');
   for (const [k, v] of [['source', label.value], ['branch', branch.value], ['need', need.value], ['result', result.value],
     ['q', search.value]]) if (v) q[k] = v;
@@ -187,10 +184,9 @@ const base = computed(() => {
     && hasResult(q, result.value, data.value));
 });
 const setCounts = computed(() => countBy(base.value, 'set'));
-const inSet = computed(() => {
-  const s = search.value.trim();
-  return /^#?\d+$/.test(s) ? base.value : base.value.filter(q => q.set === setKey.value);   // a case number finds it in any set
-});
+const currentSet = computed(() => data.value.setByKey[setKey.value]);
+const inSet = computed(() => (caseNumber(search.value.trim()) ? base.value   // a case number finds it in any set
+  : base.value.filter(q => q.set === setKey.value)));
 const wordingCounts = computed(() => countBy(inSet.value, 'wording'));
 const sorted = computed(() => sortQuestions(inSet.value.filter(q => wordings.value.has(q.wording)), sortKey.value, data.value));
 const shares = computed(() => armShares(sorted.value, data.value.arms));

@@ -1,12 +1,13 @@
 import {describe, expect, it} from 'vitest';
-import {armShares, feedbackText, hasResult, index, mark, matches, referenceOql, rightAnswer, sortQuestions} from '@/questionMap';
+import {armShares, caseNumber, feedbackText, hasResult, index, mark, matches, notRun, referenceOql, sortQuestions} from '@/questionMap';
 
 const run = (correct, verdict = correct ? 'answers' : 'no') => ({verdict, correct});
 const q = (id, need, label, rung, runs = {}, extra = {}) =>
-    ({id, text: `Question ${id}`, need, label, rung, runs, kind: 'data', wording: 'user', ...extra});
+    ({id, text: `Question ${id}`, need, label, rung, runs, kind: 'data', wording: 'user', set: 'test', ...extra});
 
 const data = index({
     labels: [{key: 'real'}, {key: 'synthetic'}],
+    sets: [{key: 'test', name: 'Test questions'}, {key: 'router', name: 'Router tests', right: 'No OQL.'}],
     wordings: [{key: 'user'}, {key: 'person'}, {key: 'model'}],
     arms: [{key: 'haiku', name: 'Haiku'}, {key: 'sonnet', name: 'Sonnet'}, {key: 'opus', name: 'Opus', launch: true}],
     branches: [{id: 'A', name: 'Find', nodes: [{id: 'A1', name: 'Search', needs: ['A1.1', 'A1.2']}]}],
@@ -60,13 +61,24 @@ describe('question map', () => {
         expect([run(true), run(false, 'partly'), run(false), null].map(r => mark(r).key)).toEqual(['good', 'partly', 'bad', 'none']);
     });
 
-    it('puts questions without a set in the test set and says what a router or two-question row should answer', () => {
-        expect(data.questions.every(x => x.set === 'test')).toBe(true);
-        expect(data.setByKey.test.name).toBe('Test questions');
-        expect(rightAnswer({set: 'router'})).toMatch(/^No OQL/);
-        expect(rightAnswer({set: 'test', multi: {first: 'Most cited?', left_out: 'the least cited'}}))
-            .toBe('Answers only the first question ("Most cited?") and says it left out the least cited.');
-        expect(rightAnswer({set: 'test'})).toBeNull();
+    it('says what a router test or a two-question row should answer, and why a question has no answer yet', () => {
+        const d = index({
+            labels: [], wordings: [], arms: [{key: 'opus', launch: true}], branches: [], needs: {},
+            sets: [{key: 'test'}, {key: 'router', right: 'No OQL.'}],
+            questions: [
+                q('r', 'A1.1', 'real', null, {opus: {verdict: 'no', oql: 'get works'}}, {set: 'router', grade: {oql: 'get works'}}),
+                q('m', 'A1.1', 'real', 1, {}, {multi: {first: 'Most cited?', left_out: 'the least cited'}, origin: 'rewrite'}),
+                q('t', 'A1.1', 'real', 1),
+            ],
+        });
+        const [r, m, t] = d.questions;
+        expect(r.right).toBe('No OQL.');
+        expect(referenceOql(r, 'opus')).toBeNull();
+        expect(m.right).toBe('Answers only the first question ("Most cited?") and says it left out the least cited.');
+        expect(t.right).toBeNull();
+        expect(notRun(m).short).toBe('new: not run yet');
+        expect(notRun(t).short).toBe('–');
+        expect([caseNumber('#42'), caseNumber('42'), caseNumber('kelp 42')]).toEqual([42, 42, null]);
     });
 
     it('turns the judge calls into text to paste back', () => {
