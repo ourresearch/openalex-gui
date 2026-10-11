@@ -42,7 +42,7 @@
             <span class="ad-label">Judge</span>
             <span v-if="run.how === 'match'">The result matches the checked gold query.</span>
             <span v-else>{{ run.reason || 'Not judged.' }}</span>
-            <div v-if="run.prior?.verdict" class="muted small ad-prior">Before {{ run.prior.rule }}: {{ VERDICTS[run.prior.verdict] || run.prior.verdict }}. {{ run.prior.reason }}</div>
+            <div v-if="run.prior?.verdict" class="muted small ad-prior">Before{{ run.prior.rule ? ` ${run.prior.rule}` : ' the new rule' }}: {{ VERDICTS[run.prior.verdict] || run.prior.verdict }}. {{ run.prior.reason }}</div>
           </div>
 
           <div v-if="run.verdict" class="ad-fb">
