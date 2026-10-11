@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {armShares, feedbackText, hasResult, index, mark, matches, referenceOql, sortQuestions} from '@/questionMap';
+import {armShares, feedbackText, hasResult, index, mark, matches, referenceOql, rightAnswer, sortQuestions} from '@/questionMap';
 
 const run = (correct, verdict = correct ? 'answers' : 'no') => ({verdict, correct});
 const q = (id, need, label, rung, runs = {}, extra = {}) =>
@@ -58,6 +58,15 @@ describe('question map', () => {
             .toMatchObject({oql: 'get sources', tag: 'agent'});
         expect(referenceOql(data.questions[2], 'opus')).toMatchObject({oql: 'get authors', tag: 'draft'});
         expect([run(true), run(false, 'partly'), run(false), null].map(r => mark(r).key)).toEqual(['good', 'partly', 'bad', 'none']);
+    });
+
+    it('puts questions without a set in the test set and says what a router or two-question row should answer', () => {
+        expect(data.questions.every(x => x.set === 'test')).toBe(true);
+        expect(data.setByKey.test.name).toBe('Test questions');
+        expect(rightAnswer({set: 'router'})).toMatch(/^No OQL/);
+        expect(rightAnswer({set: 'test', multi: {first: 'Most cited?', left_out: 'the least cited'}}))
+            .toBe('Answers only the first question ("Most cited?") and says it left out the least cited.');
+        expect(rightAnswer({set: 'test'})).toBeNull();
     });
 
     it('turns the judge calls into text to paste back', () => {

@@ -11,6 +11,13 @@
 
     <template v-else>
       <div class="ctl">
+        <div class="ctl-chips" role="group" aria-label="Which set">
+          <button v-for="x in data.sets" :key="x.key" type="button" class="chip" :class="{on: setKey === x.key}"
+                  :title="x.story" @click="setKey = x.key">
+            {{ x.name }} <span class="chip-n">{{ setCounts[x.key] || 0 }}</span>
+          </button>
+        </div>
+        <p v-if="data.setByKey[setKey]?.story && setKey !== 'test'" class="set-story">{{ data.setByKey[setKey].story }}</p>
         <div class="ctl-chips" role="group" aria-label="Who wrote the words">
           <button v-for="w in data.wordings" :key="w.key" type="button" class="chip" :class="{on: wordings.has(w.key)}"
                   :title="w.story" @click="toggleWording(w.key)">
@@ -74,13 +81,18 @@
           <span class="strip" :style="{background: data.wordingByKey[q.wording]?.color}" :title="data.wordingByKey[q.wording]?.name" />
           <div>
             <div class="c-q" :class="{model: q.wording === 'model'}">{{ q.text }}</div>
-            <div class="c-sub"><span>#{{ q.case }}</span> · <button type="button" class="c-type" title="Show only this type" @click="need = q.need">{{ data.needs[q.need]?.name }}</button></div>
+            <div class="c-sub"><span>#{{ q.case }}</span> · <button type="button" class="c-type" title="Show only this type" @click="need = q.need">{{ data.needs[q.need]?.name }}</button>
+              <template v-if="q.from_case"> · <button type="button" class="c-type" title="Show the original" @click="searchInput = `#${q.from_case}`">rewritten from #{{ q.from_case }}</button></template>
+              <template v-if="q.rewritten_to"> · <button type="button" class="c-type" title="Show the rewrite" @click="searchInput = `#${q.rewritten_to}`">rewritten as #{{ q.rewritten_to }}</button></template>
+            </div>
           </div>
           <div>
-            <div class="c-oql">
+            <div v-if="q.set === 'router'" class="c-right">{{ rightAnswer(q) }}</div>
+            <div v-else class="c-oql">
               <template v-if="refs[q.id]">{{ refs[q.id].oql }}<span v-if="refs[q.id].tag" class="unchecked" :title="refs[q.id].by"> ·{{ refs[q.id].tag === 'agent' ? data.launch.key : 'draft' }}</span></template>
-              <span v-else class="muted">{{ q.kind === 'data' ? '–' : 'not a query' }}</span>
+              <span v-else class="muted">{{ q.kind !== 'data' ? 'not a query' : q.origin === 'rewrite' ? 'new: runs with the new OQL' : '–' }}</span>
             </div>
+            <div v-if="q.multi" class="c-right">Answers the first question only; leaves out {{ q.multi.left_out }}, and says so.</div>
             <div class="c-m">
               <button v-for="a in data.arms" :key="a.key" type="button" class="mk" :class="[mark(q.runs?.[a.key]).key, {flag: flagged(q, a.key)}]"
                       :title="a.name" :aria-label="`${a.name}: open answer`" @click="openDialog(i, a.key)">{{ mark(q.runs?.[a.key]).icon }}</button>
@@ -103,7 +115,7 @@ import {useRoute, useRouter} from 'vue-router';
 import StaticPage from '@/components/StaticPage/StaticPage.vue';
 import AnswerDialog from '@/components/QuestionMap/AnswerDialog.vue';
 import {RESULTS, SORTS, armShares, countBy, feedbackKey, feedbackText, hasResult, loadFeedback, loadQuestionMap,
-  mark, matches, num, pct, referenceOql, saveFeedback, sortQuestions} from '@/questionMap';
+  mark, matches, num, pct, referenceOql, rightAnswer, saveFeedback, sortQuestions} from '@/questionMap';
 
 defineOptions({name: 'QuestionMap'});
 
@@ -114,6 +126,7 @@ const error = shallowRef(null);
 
 // Filters live in the URL so a link (or the back button) keeps them.
 const qy = route.query;
+const setKey = shallowRef(qy.set || 'test');
 const wordings = shallowRef(new Set());
 const label = shallowRef(qy.source || null);
 const branch = shallowRef(qy.branch || null);
@@ -145,7 +158,7 @@ const toggleWording = k => {
   wordings.value = s;
 };
 const allWordings = computed(() => data.value && wordings.value.size === data.value.wordings.length);
-const filtersOn = computed(() => !allWordings.value || label.value || branch.value || need.value || result.value || search.value);
+const filtersOn = computed(() => !allWordings.value || label.value || branch.value || need.value || result.value || search.value);   // the set isn't a filter: it picks the list
 const clearFilters = () => {
   wordings.value = new Set(data.value.wordings.map(w => w.key));
   label.value = branch.value = need.value = result.value = null;
@@ -156,8 +169,9 @@ const clearFilters = () => {
 const PAGE = 150;
 const limit = ref(PAGE);
 
-watch([wordings, label, branch, need, result, sortKey, search], () => {
+watch([setKey, wordings, label, branch, need, result, sortKey, search], () => {
   const q = {};
+  if (setKey.value !== 'test') q.set = setKey.value;
   if (data.value && !allWordings.value) q.wording = [...wordings.value].join(',');
   for (const [k, v] of [['source', label.value], ['branch', branch.value], ['need', need.value], ['result', result.value],
     ['q', search.value]]) if (v) q[k] = v;
@@ -166,14 +180,19 @@ watch([wordings, label, branch, need, result, sortKey, search], () => {
   limit.value = PAGE;
 });
 
-// One pass: every filter but wording (the wording chips count that set), then wording, then order.
+// One pass: every filter but set and wording (their chips count those), then set and wording, then order.
 const base = computed(() => {
   const s = search.value.trim().toLowerCase();
   return data.value.inScope.filter(q => matches(q, {label: label.value, branch: branch.value, need: need.value, search: s})
     && hasResult(q, result.value, data.value));
 });
-const wordingCounts = computed(() => countBy(base.value, 'wording'));
-const sorted = computed(() => sortQuestions(base.value.filter(q => wordings.value.has(q.wording)), sortKey.value, data.value));
+const setCounts = computed(() => countBy(base.value, 'set'));
+const inSet = computed(() => {
+  const s = search.value.trim();
+  return /^#?\d+$/.test(s) ? base.value : base.value.filter(q => q.set === setKey.value);   // a case number finds it in any set
+});
+const wordingCounts = computed(() => countBy(inSet.value, 'wording'));
+const sorted = computed(() => sortQuestions(inSet.value.filter(q => wordings.value.has(q.wording)), sortKey.value, data.value));
 const shares = computed(() => armShares(sorted.value, data.value.arms));
 const shown = computed(() => sorted.value.slice(0, limit.value));
 const refs = computed(() => Object.fromEntries(shown.value.map(q => [q.id, referenceOql(q, data.value.launch.key)])));
@@ -259,6 +278,9 @@ const copyFeedback = async () => {
 .mk.bad { background: var(--ox-danger-bg); color: var(--ox-danger-fg); }
 .mk.none { background: var(--ox-bg-muted); color: var(--ox-text-muted); }
 .mk.flag { box-shadow: 0 0 0 2px var(--ox-text-primary); }
+.c-right { margin-top: 6px; font-size: 13.5px; line-height: 1.45; color: var(--ox-text-secondary); }
+.c-right:first-child { margin-top: 0; }
+.set-story { margin: -2px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--ox-text-tertiary); max-width: 760px; }
 .c-sub { margin-top: 4px; font-size: 12.5px; line-height: 1.35; color: var(--ox-text-muted); }
 .c-type { display: inline; text-align: left; font: inherit; color: inherit; background: none; border: 0; padding: 0; }
 .c-type:hover { text-decoration: underline; }

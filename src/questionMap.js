@@ -35,6 +35,7 @@ export function index(data) {
     const byNeed = {};
     for (const q of data.questions) {
         const need = data.needs[q.need];
+        q.set ||= 'test';
         q.branch = need?.branch;
         q.inScope = need?.scope === 'in';
         q.lc = q.text.toLowerCase();
@@ -49,8 +50,11 @@ export function index(data) {
     const mapOrder = {};
     let i = 0;
     for (const b of data.branches) for (const n of b.nodes) for (const id of n.needs) mapOrder[id] = i++;
+    const sets = data.sets || [{key: 'test', name: 'Test questions'}];
     return markRaw({
         ...data,
+        sets,
+        setByKey: Object.fromEntries(sets.map(x => [x.key, x])),
         wordingByKey: Object.fromEntries(data.wordings.map(w => [w.key, w])),
         byNeed,
         ease,
@@ -136,6 +140,13 @@ export function referenceOql(q, launchKey) {
     const launch = q.runs?.[launchKey];
     if (launch?.correct && launch.oql) return {oql: launch.oql, sort: launch.sort, tag: 'agent', by: "the launch agent's answer, judged right"};
     if (q.grade?.oql) return {oql: q.grade.oql, tag: 'draft', by: "#1555's grader: a draft with placeholder ids, parsed but not run"};
+    return null;
+}
+
+// What the right answer is when it isn't just "one query that answers it" (the 2026-10-11 cleanup).
+export function rightAnswer(q) {
+    if (q.set === 'router') return 'No OQL: a help-desk answer, or a pointer to the help desk.';
+    if (q.multi) return `Answers only the first question ("${q.multi.first}") and says it left out ${q.multi.left_out}.`;
     return null;
 }
 
