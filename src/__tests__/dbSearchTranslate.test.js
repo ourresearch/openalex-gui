@@ -264,6 +264,75 @@ describe('says what is wrong instead of guessing', () => {
   });
 });
 
+// From the Opus check of 100 published strategies (2026-10-12): each was a real bug.
+describe('fixes from the Opus check', () => {
+  it('Scopus quoted single words run stemmed, said so', () => {
+    const r = translateSearch('TITLE-ABS-KEY("asthma" AND "kelp forest")');
+    expect(r.oql).toBe('get works where title-abstract-keywords has (asthma AND stemmed "kelp forest")');
+    expect(r.changes.filter(c => c.ref === 'phrases').length).toBe(2);
+  });
+  it('Scopus quoted phrases with a wildcard stay exact, said so', () => {
+    const r = translateSearch('TITLE-ABS-KEY("thermal runaway*")');
+    expect(r.oql).toBe('get works where title-abstract-keywords has ("thermal runaway*")');
+    expect(r.changes.some(c => /exact/.test(c.result))).toBe(true);
+  });
+  it('Ovid suffix without its closing period', () => {
+    expect(oql('social prescrib*.mp or link worker.mp')).toBe('get works where title-abstract-keywords has ("social prescrib*" OR "link worker")');
+    expect(oql('1 asthma.mp\n2 kelp.ti,ab\n3 1 and 2')).toBe('get works where title-abstract-keywords has (asthma) and title-abstract has (kelp)');
+  });
+  it('a bare Deduplicate line works on the line before it', () => {
+    expect(oql('1 kelp.ti,ab.\n2 seaweed.ti,ab.\n3 1 or 2\n4 Deduplicate')).toBe('get works where title-abstract has (kelp OR seaweed)');
+  });
+  it('Ovid limits it cannot read are listed', () => {
+    const r = translateSearch("1 kelp.ti,ab.\n2 limit 1 to (english language and yr='2015 -Current' and humans)");
+    expect(r.oql).toBe('get works where title-abstract has (kelp) and year >= (2015) and language is (en)');
+    expect(r.changes.some(c => /humans/.test(c.original))).toBe(true);
+  });
+  it('hit counts after a single space', () => {
+    expect(oql('1 kelp.ti,ab. 1,234\n2 seaweed.ti,ab. 567\n3 1 or 2 1,700')).toBe('get works where title-abstract has (kelp OR seaweed)');
+  });
+  it('PubMed [Filter] tags are limits', () => {
+    expect(oql('kelp[tiab] AND english[Filter] AND randomizedcontrolledtrial[Filter]')).toBe(
+      'get works where title-abstract-keywords has (kelp) and language is (en) and study design is (randomized-controlled-trial)');
+    expect(oql('kelp[tiab] AND humans[Filter]')).toBe('get works where title-abstract-keywords has (kelp)');
+  });
+  it('Web of Science history format', () => {
+    expect(oql('(kelp AND decline) (Topic) and 2024 or 2023 (Publication Years) and Article (Document Types) and English (Languages)')).toBe(
+      'get works where title-abstract-keywords has (kelp AND decline) and year >= (2023) and year <= (2024) and type is (article) and language is (en)');
+    expect(oql('TS=(kelp), Language: English, Publication date: since 2000')).toBe(
+      'get works where title-abstract-keywords has (kelp) and language is (en) and year >= (2000)');
+  });
+  it('Embase /lim limits and spaced colon suffixes', () => {
+    expect(oql("'kelp':ti,ab,kw AND [english]/lim")).toBe('get works where title-abstract-keywords has ("kelp") and language is (en)');
+    expect(oql("'lung cancer':ti,ab,kw AND 'tislelizumab':ti,ab, kw.")).toBe('get works where title-abstract-keywords has ("lung cancer" AND "tislelizumab")');
+  });
+  it('proximity keeps a title-abstract field when one side is an OR group', () => {
+    expect(oql('((kelp or seaweed) adj3 decline).tw.')).toBe(
+      'get works where title-abstract has ((kelp and decline within 2 words of each other) OR (seaweed and decline within 2 words of each other))');
+  });
+  it('precedence note inside numbered lines and with implicit AND', () => {
+    expect(refs('1 kelp.ti,ab. or seaweed.ti,ab. and decline.ti,ab.\n2 reef.ti,ab.\n3 1 and 2')).toContain('precedence');
+  });
+  it('EBSCO lists lines newest first', () => {
+    expect(oql('S3 S1 AND S2\nS2 TI decline\nS1 TI kelp')).toBe('get works where title has (kelp AND decline)');
+  });
+  it("Ovid ? is zero or one letter", () => {
+    expect(oql('colo?r.ti,ab.')).toBe('get works where title-abstract has (color OR colo?r)');
+  });
+  it('Cochrane "# 2" with a space', () => {
+    expect(oql('#1 kelp:ti,ab,kw\n#2 decline:ti,ab,kw\n#3 #1 AND # 2')).toBe('get works where title-abstract-keywords has (kelp AND decline)');
+  });
+  it('asks instead of guessing when several searches come one per line', () => {
+    const r = translateSearch('TITLE-ABS-KEY (fireworks AND noise)\nTITLE-ABS-KEY (pyrotechnics AND noise)');
+    expect(r.oql).toBeNull();
+    expect(r.error.message).toMatch(/2 separate searches/);
+  });
+  it('declines references it cannot read rather than searching the numbers', () => {
+    const r = translateSearch('#1 kelp[tiab]\n#2 decline[tiab]\n#3 1 AND 2 AND reef[tiab]');
+    expect(r.oql).toBeNull();
+  });
+});
+
 describe('methodsText', () => {
   it('has the original, the query as run, and the changes', () => {
     const original = 'TITLE-ABS-KEY(smart PRE/3 phone)';

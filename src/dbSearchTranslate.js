@@ -45,7 +45,10 @@ const PUBMED_TAGS = [
   [/^(ad|affiliation|affil)$/, 'raw affiliation'],
   [/^(dp|pdat|publication date|date - publication|edat|crdt|dcom|mhda|date - create|date - entry|date - completion)$/, 'limit:year'],
   [/^(la|lang|language)$/, 'limit:lang'],
-  [/^(pt|publication type|ptyp)$/, 'limit:type'],
+  [/^(pt|publication type|ptyp|document types)$/, 'limit:type'],
+  [/^(publication years)$/, 'limit:year'],
+  [/^(languages)$/, 'limit:lang'],
+  [/^(filter|sb)$/, 'limit:filter'],
 ];
 
 const SCOPUS_FUNCS = {
@@ -95,7 +98,7 @@ function fieldFromCodes(codes) {
 }
 
 const EBSCO_CODES = {
-  TI: ['title'], AB: ['abstract'], TX: [TAK, 'all-fields'], KW: [TAK], SU: ['heading'], MH: ['heading'],
+  TI: ['title'], AB: ['abstract'], TX: [TAK, 'all-fields'], KW: [TAK], AK: [TAK, 'author-keywords'], SU: ['heading'], MH: ['heading'],
   MM: ['heading'], DE: ['heading'], AU: ['byline'], AF: ['raw affiliation'], SO: ['drop'], PT: ['limit:type'],
   LA: ['limit:lang'], DT: ['limit:year'],
 };
@@ -191,6 +194,7 @@ const RE = {
   scopusNear: /\s(?:W|PRE)\/\d+\s/i,
   wos: /(?:^|[\s(])(?:TS|TI|AB|AK|KP|AU|AI|AD|OG|SO|PY|DT|LA|WC|SU|FO|UT|DO|IS|ALL)\s*=\s*[("\w]/i,
   ovidSuffix: /[\w)$*?#"'\]]\.(?:[a-z]{2,3}(?:,[a-z]{2,3})*)\.(?=\s|$|\)|,)/,
+  ovidSuffixNoDot: /[\w*$?)"]\.(?:mp|tw|kf|kw|sh|ti,ab|ab,ti|ti,ab,kf|ti,ab,kw)(?=\s|$|\))/i,
   ovidHeading: /(?:^|[\s(])(?:exp\s+\*?|\*)?[A-Za-z][\w ,'&-]*\/(?:[a-z]{2}(?:,[a-z]{2})*)?(?=\s|$|\))/,
   ovidExp: /(?:^|[\s(])exp\s+\*?[A-Za-z]/i,
   ovidAdj: /\s(?:adj\d*|ADJ\d*)\s/,
@@ -224,7 +228,8 @@ export function detectSource(text) {
   if (RE.scopusFunc.test(t) || RE.scopusUpper.test(t) || RE.scopusYear.test(t)) vote('scopus', 3);
   if (RE.scopusNear.test(` ${t} `)) vote('scopus', 1);
   if (RE.wos.test(t)) vote('wos', 3);
-  if (RE.ovidSuffix.test(t) || RE.ovidExp.test(t) || RE.ovidCombine.test(t) || RE.ovidLimit.test(t)) vote('ovid', 3);
+  if (/\[(?:publication years|document types|languages)\]/i.test(t) || /\(\s*topic\s*\)/i.test(text)) vote('wos', 4);
+  if (RE.ovidSuffix.test(t) || RE.ovidSuffixNoDot.test(t) || RE.ovidExp.test(t) || RE.ovidCombine.test(t) || RE.ovidLimit.test(t)) vote('ovid', 3);
   if (RE.ovidAdj.test(` ${t} `)) vote('ovid', 1);
   const ebsco = (t.match(RE.ebscoCode) || []).length;
   if (RE.ebscoMh.test(t)) vote('ebsco', 3);
@@ -240,7 +245,7 @@ export function detectSource(text) {
 function dialectsIn(text, source) {
   const t = normalize(text);
   const d = new Set([source]);
-  if (RE.ovidSuffix.test(t) || RE.ovidExp.test(t) || RE.ovidCombine.test(t) || RE.ovidLimit.test(t)) d.add('ovid');
+  if (RE.ovidSuffix.test(t) || RE.ovidSuffixNoDot.test(t) || RE.ovidExp.test(t) || RE.ovidCombine.test(t) || RE.ovidLimit.test(t)) d.add('ovid');
   if (RE.wos.test(t)) d.add('wos');
   if (RE.colonSuffix.test(t) || RE.embaseEmtree.test(t)) d.add('colon');
   if (source === 'embase' || source === 'cochrane') d.add('colon');
@@ -253,7 +258,7 @@ function dialectsIn(text, source) {
 // pull in the lines they name.
 // ---------------------------------------------------------------------------------------------------------------
 
-const LINE = /^\s*(#|S)?(\d{1,3})(?:[.):]|\s)\s*(.*?)\s*$/;
+const LINE = /^\s*(#|S)?(\d{1,3})(?:[.):]|\s|(?<=#\d{1,3})(?=\())\s*(.*?)\s*$/;
 
 function splitNumberedLines(text) {
   const raw = text.split(/\n/).map(l => l.trim()).filter(Boolean);
@@ -272,8 +277,19 @@ function splitNumberedLines(text) {
     lines.push({ n: Number(m[2]), prefix: m[1] || '', text: body.trim() });
   }
   if (lines.length < 2) return null;
-  // numbering must be the line numbers: 1, 2, 3 ... (allow gaps), increasing
-  for (let i = 1; i < lines.length; i++) if (lines[i].n <= lines[i - 1].n) return null;
+  // numbering must be the line numbers: 1, 2, 3 ... (allow gaps), increasing; EBSCO lists newest first (S9 ... S1)
+  const up = lines.every((l, i) => i === 0 || l.n > lines[i - 1].n);
+  const down = lines.every((l, i) => i === 0 || l.n < lines[i - 1].n);
+  if (!up && !down) return null;
+  if (down) lines.reverse();
+  // a hit count after a single space: "24 22 and 23 9,996" (a count with a thousands comma, or a number past the last line)
+  const max = lines[lines.length - 1].n;
+  for (const l of lines) {
+    const m = l.text.match(/^(.*\S)\s+\(?(\d{1,3}(?:,\d{3})+|\d+)\)?$/);
+    if (!m) continue;
+    // ... or a count after a statement that has ended: an Ovid suffix, a heading's slash, a closing bracket
+    if (/,/.test(m[2]) || (isCombinationLine(m[1]) && +m[2] > max) || /[./)\]]$/.test(m[1])) l.text = m[1];
+  }
   return lines;
 }
 
@@ -303,6 +319,7 @@ function isCombinationLine(text) {
   if (/^(?:or|and)\/\d+/i.test(t)) return true;
   if (/^limit\s+\d+\s+to\s/i.test(t)) return true;
   if (/^remove duplicates from\s+\d+/i.test(t)) return true;
+  if (/^(?:deduplicate|remove duplicates)\b/i.test(t)) return true;
   const rest = t.replace(/(?:#|S)?\d+/g, ' ').replace(/\b(?:and|or|not)\b/gi, ' ').replace(/[()\s]/g, '');
   return rest === '' && /\d/.test(t);
 }
@@ -312,7 +329,7 @@ function isCombinationLine(text) {
 // ---------------------------------------------------------------------------------------------------------------
 
 // PubMed's and Web of Science's search history show the field in parentheses: kelp (All Fields), covid (Topic)
-const HISTORY_TAG = /\s*\(\s*(all fields|title\s*\/\s*abstract|title|abstract|mesh terms|mesh major topic|text word|topic|author keywords|keywords|mesh)\s*\)/gi;
+const HISTORY_TAG = /\s*\(\s*(all fields|title\s*\/\s*abstract|title|abstract|mesh terms|mesh major topic|text word|topic|author keywords|keywords|mesh|pt|tw|tiab|filter|publication type|language|publication years|document types|languages)\s*\)/gi;
 
 function normalize(text) {
   return text
@@ -321,6 +338,7 @@ function normalize(text) {
     // no-break and zero-width spaces (pasted from Word or PDFs)
     .replace(/[\u00a0\u2009\u202f\u200b\u200c\u200d\u2060\ufeff]/g, ' ')
     .replace(/[\u2010\u2011\u2013\u2014]/g, '-')
+    .replace(/[\u2217\uff0a]/g, '*')
     .replace(/\r\n?/g, '\n')
     .replace(HISTORY_TAG, (m, tag) => `[${tag.replace(/\s*\/\s*/g, '/')}]`)
     // Ovid's field notes: .mp. [mp = title, abstract, ...]
@@ -452,7 +470,7 @@ function tokenize(s, ctx) {
 
     // EBSCO field codes: TI asthma, AB ( ... ), MH "Asthma+"
     if (source === 'ebsco') {
-      m = at(/^(TI|AB|TX|SU|MH|MM|KW|AU|AF|SO|DE)\s+(?=[("\w])/);
+      m = at(/^(TI|AB|TX|SU|MH|MM|KW|AK|AU|AF|SO|DE)\s+(?=[("\w])/);
       if (m && (i === 0 || /[\s(]/.test(s[i - 1]))) {
         const [f, ref] = EBSCO_CODES[m[1]] || ['drop'];
         let j = i + m[0].length;
@@ -474,6 +492,18 @@ function tokenize(s, ctx) {
       }
     }
 
+    // Embase limits: [english]/lim, [adult]/lim, [article]/it, [2010-2020]/py
+    m = at(/^\[([^\]]+)\]\/(lim|py|it)\b/i);
+    if (m) {
+      const v = m[1].trim();
+      const kind = m[2].toLowerCase();
+      if (kind === 'py') push(limitFromKey('PUBYEAR', [v.replace(/\s+/g, '')], false, m[0], 'embase'));
+      else if (kind === 'it') push(limitFromKey('DOCTYPE', [v], false, m[0], 'embase'));
+      else if (LANGUAGES[v.toLowerCase()]) push(limitFromKey('LANGUAGE', [v], false, m[0], 'embase'));
+      else push({ t: 'limit', kind: 'unsupported', key: 'Embase limit', values: [v], raw: m[0] });
+      i += m[0].length; continue;
+    }
+
     // Cochrane: MeSH descriptor: [Asthma] explode all trees / this term only; [mh Asthma], [mh ^Asthma]
     m = at(/^MeSH descriptor:\s*\[([^\]]+)\](?:\s*explode all trees|\s*this term only)?(?:\s*and with qualifier\(s\):\s*\[[^\]]*\])?/i);
     if (m) { push({ t: 'heading', v: m[1], explode: /explode/i.test(m[0]), raw: m[0] }); i += m[0].length; continue; }
@@ -483,7 +513,7 @@ function tokenize(s, ctx) {
     // Ovid headings: exp Asthma/, *Asthma/, Asthma/, exp Asthma/dt [Drug Therapy]
     if (ds.has('ovid')) {
       // the heading's words never include an operator or "exp": "exp A/ or exp B/" is two headings
-      m = at(/^(exp\s+)?(\*)?((?!(?:or|and|not|exp)\b)[A-Za-z][\w,'&-]*(?:\s+(?!(?:or|and|not|exp)\b)[\w,'&-]+)*?)\/(?:(?!or\b|and\b)([a-z]{2}(?:,\s?[a-z]{2})*)\b)?\.?(?:\s*\[[^\]]*\])?(?=\s|$|\)|,|or\b|and\b)/i);
+      m = at(/^(exp\s+)?(\*)?"?((?!(?:or|and|not|exp)\b)[A-Za-z][\w,'&-]*(?:\s+(?!(?:or|and|not|exp)\b)[\w,'&-]+)*?)"?\/(?:(?!or\b|and\b)([a-z]{2}(?:,\s?[a-z]{2})*)\b)?\.?(?:\s*\[[^\]]*\])?(?=\s|$|\)|,|or\b|and\b)/i);
       if (m && !/^(?:or|and)$/i.test(m[3]) && (i === 0 || /[\s(]/.test(s[i - 1]))) {
         push({ t: 'heading', v: m[3], explode: !!m[1], raw: m[0].trim() });
         i += m[0].length; continue;
@@ -505,7 +535,7 @@ function tokenize(s, ctx) {
     }
 
     // Line references in a numbered strategy: #1, S1, and bare numbers on a combination line
-    m = at(/^(#|S)(\d{1,3})\b/);
+    m = at(/^(#|S)\s?(\d{1,3})\b/);
     if (m && (m[1] === '#' || (numbered && prefix === 'S'))) { push({ t: 'ref', n: +m[2], raw: m[0] }); i += m[0].length; continue; }
     m = at(/^(or|and)\/(\d+(?:\s*-\s*\d+)?(?:\s*,\s*\d+(?:\s*-\s*\d+)?)*)/i);
     if (m && numbered) {
@@ -515,6 +545,11 @@ function tokenize(s, ctx) {
         for (let k = a; k <= (b || a); k++) ns.push(k);
       }
       push({ t: 'refs', op: m[1].toUpperCase(), ns, raw: m[0] }); i += m[0].length; continue;
+    }
+    if (combo || numbered) {
+      // "1# and 2#": a reference written backwards
+      m = at(/^(\d{1,3})#(?=[\s)]|$)/);
+      if (m) { push({ t: 'ref', n: +m[1], raw: m[0] }); i += m[0].length; continue; }
     }
     if (combo) {
       m = at(/^(\d{1,3})\b/);
@@ -541,8 +576,9 @@ function tokenize(s, ctx) {
     }
 
     // a word, with any Ovid .ti,ab. or Embase/Cochrane :ti,ab,kw suffix split off for afterTerm
-    m = (ds.has('ovid') && at(/^([^\s()"{}[\],]+?)(?=\.[a-z]{2,3}(?:,[a-z]{2,3})*\.(?:\s|$|\)|,))/i))
-      || (ds.has('colon') && at(/^([^\s()"{}[\],:]+?)(?=:[a-z]{2,3}(?:,[a-z]{2,3})*(?:\s|$|\)))/i))
+    m = (ds.has('ovid') && (at(/^([^\s()"{}[\],]+?)(?=\.[a-z]{2,3}(?:,[a-z]{2,3})*\.(?:\s|$|\)|,))/i)
+        || at(OVID_SUFFIX_NO_DOT_WORD)))
+      || (ds.has('colon') && at(/^([^\s()"{}[\],:]+?)(?=:\s?[a-z]{2,3}(?:\s?,\s?[a-z]{2,3})*\.?(?:\s|$|\)))/i))
       || at(/^[^\s()"{}[\],]+/);
     if (!m) {
       if (c === '[') {
@@ -646,18 +682,23 @@ function tagAfter(s, i, tok) {
   return i + tag[0].length;
 }
 
+// Ovid suffixes are sometimes written without the closing period (asthma.mp, (a or b).ti,ab): only known codes count.
+const OVID_CODE = '(?:ti|ab|tw|mp|kw|kf|sh|hw|pt|fs|ot|nm|rn|jw|jn|so|au|in|tx|af|ds|dv|tn|ab,ti)';
+const OVID_SUFFIX_NO_DOT = new RegExp(`^\\.(${OVID_CODE}(?:,${OVID_CODE})*)(?=\\s|$|\\))`, 'i');
+const OVID_SUFFIX_NO_DOT_WORD = new RegExp(`^([^\\s()"{}[\\],]+?)(?=\\.${OVID_CODE}(?:,${OVID_CODE})*(?:\\s|$|\\)))`, 'i');
+
 // After a term or ")": an Ovid .ti,ab. or Embase/Cochrane :ti,ab,kw suffix.
 function suffixAt(s, i, ds) {
   const text = s.slice(i);
-  let m = text.match(/^\.([a-z]{2,3}(?:,[a-z]{2,3})*)\.(?=\s|$|\)|,)/i);
+  let m = text.match(/^\.([a-z]{2,3}(?:,[a-z]{2,3})*)\.(?=\s|$|\)|,)/i) || (ds.has('ovid') && text.match(OVID_SUFFIX_NO_DOT));
   if (m && ds.has('ovid')) {
     const codes = m[1].split(',');
     const [field, ref] = fieldFromCodes(codes);
     return { tok: { t: 'suffix', field, fieldRef: ref || `.${m[1]}.`, raw: m[0] }, len: m[0].length };
   }
-  m = text.match(/^:([a-z]{2,3}(?:,[a-z]{2,3})*)(?=\s|$|\))/i);
+  m = text.match(/^:\s?([a-z]{2,3}(?:\s?,\s?[a-z]{2,3})*)\.?(?=\s|$|\))/i);
   if (m && ds.has('colon')) {
-    const codes = m[1].split(',');
+    const codes = m[1].split(',').map(c => c.trim());
     const [field, ref] = fieldFromCodes(codes);
     return { tok: { t: 'suffix', field, fieldRef: ref || `:${m[1]}`, raw: m[0] }, len: m[0].length };
   }
@@ -899,6 +940,18 @@ function limitFromField(node, kind, source, changes) {
     return { k: 'limit', kind: 'years', years, raw };
   }
   if (kind === 'type') return { k: 'limit', kind: 'type', values: vals.map(v => v.toLowerCase()), raw };
+  if (kind === 'filter') {
+    // PubMed filters: humans, english, y_10, randomizedcontrolledtrial, ffrft ...
+    const v = vals.join(' ').toLowerCase().replace(/\s+/g, '');
+    const years = v.match(/^y_(\d+)$/);
+    if (years) return { k: 'limit', kind: 'lastyears', n: +years[1], raw };
+    if (LANGUAGES[v]) return { k: 'limit', kind: 'lang', values: [v], raw };
+    const design = { randomizedcontrolledtrial: 'randomized controlled trial', systematicreview: 'systematic review',
+      metaanalysis: 'meta-analysis', review: 'review' }[v];
+    if (design) return { k: 'limit', kind: 'type', values: [design], raw };
+    if (v === 'humans' || v === 'animals') return { k: 'heading', v, explode: false, raw };
+    return { k: 'limit', kind: 'unsupported', key: 'PubMed filter', values: vals, raw };
+  }
   if (kind === 'lang') return { k: 'limit', kind: 'lang', values: vals.map(v => v.toLowerCase()), raw };
   return { k: 'limit', kind: 'unsupported', key: kind, values: vals, raw };
 }
@@ -1027,9 +1080,13 @@ function simplify(node) {
 function fieldsOf(node, acc = new Set()) {
   if (!node) return acc;
   if (node.k === 'term') acc.add(node.field || TAK);
-  if (node.k === 'near') acc.add(node.field || node.a?.field || TAK);
-  for (const key of ['a', 'b']) if (node[key] && node.k !== 'near') fieldsOf(node[key], acc);
-  if (node.k === 'near') { fieldsOf(node.a, acc); fieldsOf(node.b, acc); }
+  if (node.k === 'near') {
+    if (node.field) acc.add(node.field);
+    fieldsOf(node.a, acc);
+    fieldsOf(node.b, acc);
+    return acc;
+  }
+  for (const key of ['a', 'b']) if (node[key]) fieldsOf(node[key], acc);
   (node.kids || []).forEach(k => fieldsOf(k, acc));
   return acc;
 }
@@ -1072,6 +1129,16 @@ function cleanWord(v, changes, raw) {
   return sanitize(w);
 }
 
+// Ovid's ? means zero or one letter (colo?r: color, colour); OpenAlex's ? means exactly one. Run both forms.
+function ovidQuestion(text, node, changes) {
+  // only the ? the person typed (Ovid's # also becomes ? and means exactly one letter)
+  if (!/\?/.test(node.v) || /\?.*\?/.test(text) || /#/.test(node.v)) return text;
+  changes.add('wildcards', node.raw, 'both spellings, with and without the letter', 'Ovid\'s ? matches zero or one letter; OpenAlex\'s ? matches exactly one');
+  return `(${text.replace('?', '')} OR ${text})`;
+}
+
+const CURRENT = { source: null };
+
 function searchText(node, changes, parentOp, inNot) {
   if (node.k === 'term') {
     let v = cleanWord(node.v, changes, node.raw);
@@ -1081,12 +1148,24 @@ function searchText(node, changes, parentOp, inNot) {
     if (!v) return null;
     if (!phrase && /^(within|stemmed|and|or|not)$/i.test(v)) return `"${v}"`;
     if (phrase) {
-      if (node.scopusLoose && !/[*?]/.test(v) && /\s/.test(v)) {
-        changes.add('phrases', node.raw, `stemmed "${v}"`, 'Scopus\'s quoted phrases also match plurals and spelling variants; OpenAlex searched a stemmed phrase');
-        return `stemmed "${v.replace(/"/g, '')}"`;
+      if (node.scopusLoose) {
+        const wild = /[*?]/.test(v);
+        const multi = /\s/.test(v);
+        if (!wild && multi) {
+          changes.add('phrases', node.raw, 'searched as a stemmed phrase', 'Scopus\'s quoted phrases also match plurals and spelling variants; OpenAlex\'s stemmed phrase does the same');
+          return `stemmed "${v.replace(/"/g, '')}"`;
+        }
+        if (!wild && !multi) {
+          changes.add('phrases', node.raw, 'searched as a stemmed word', 'Scopus\'s quotes also match plurals and spelling variants; OpenAlex\'s stemmed search does the same');
+          return /^(within|stemmed|and|or|not)$/i.test(v) ? `"${v}"` : v;
+        }
+        if (multi) changes.add('phrases', node.raw, 'searched as an exact phrase', 'a phrase with a wildcard runs exactly in OpenAlex, so the plurals and variants Scopus\'s quotes add are missed');
+        else return v;
       }
+      if (CURRENT.source === 'ovid' && !node.quoted) return ovidQuestion(`"${v.replace(/"/g, '')}"`, node, changes);
       return `"${v.replace(/"/g, '')}"`;
     }
+    if (CURRENT.source === 'ovid') return ovidQuestion(v, node, changes);
     return v;
   }
   if (node.k === 'near') return nearText(node, changes);
@@ -1165,7 +1244,7 @@ function nearText(node, changes) {
     for (const b of bs) {
       const [av, bv] = fitWildcards([cleanWord(a.v, changes, a.raw), cleanWord(b.v, changes, b.raw)], true, changes, raw);
       if (!av || !bv) continue;
-      if (phrase && !/[*?]/.test(av + bv)) { pairs.push(`"${av} ${bv}"`); continue; }
+      if (phrase) { pairs.push(`"${av} ${bv}"`); continue; }
       const quote = a.quoted || b.quoted || /[*?\s]/.test(av + bv);
       const q = v => (quote ? `"${v.replace(/"/g, '')}"` : v);
       pairs.push(`(${q(av)} and ${q(bv)} within ${n} words of each other)`);
@@ -1314,8 +1393,31 @@ export function translateSearch(input) {
   return translateFrom(text, source);
 }
 
+// Web of Science's history: `(...) (Topic) and 2024 or 2023 (Publication Years) and Article (Document Types)`, and its
+// refine text `, Language: English, Publication date: since 2000`. Rewritten as WoS field codes before parsing.
+const WOS_HISTORY_FIELDS = { topic: 'TS', title: 'TI', abstract: 'AB', 'all fields': 'ALL', 'author keywords': 'AK',
+  'publication years': 'PY', 'document types': 'DT', languages: 'LA' };
+function wosHistory(text) {
+  let t = text.replace(/\s+/g, ' ').trim()
+    .replace(/,?\s*Language:\s*([A-Za-z]+)/gi, ' AND LA=($1)')
+    .replace(/,?\s*Publication date:\s*since\s*(\d{4})/gi, ' AND PUBYEAR >= $1');
+  const re = /(.+?)\s*\[(topic|title|abstract|all fields|author keywords|publication years|document types|languages)\]\s*(?:and\s+|$)/gi;
+  if (!/\[(?:topic|publication years|document types|languages)\]/i.test(t)) return t === text.replace(/\s+/g, ' ').trim() ? text : t;
+  const parts = [];
+  let last = 0;
+  for (const m of t.matchAll(re)) {
+    if (m.index !== last) return text;
+    parts.push(`${WOS_HISTORY_FIELDS[m[2].toLowerCase()]}=(${m[1].trim()})`);
+    last = m.index + m[0].length;
+  }
+  if (last !== t.length) return text;
+  return parts.join(' AND ');
+}
+
 function translateFrom(text, source) {
+  if (source === 'wos') text = wosHistory(text);
   const dialects = dialectsIn(text, source);
+  CURRENT.source = source;
   const changes = new Changes();
   const result = { source, sourceLabel: LABELS[source] || LABELS.mixed, oql: null, changes: [], error: null };
 
@@ -1333,8 +1435,12 @@ function translateFrom(text, source) {
         if (lim) { body = lim[1]; limitToks = ovidLimits(lim[2], changes); }
         const dup = body.match(/^remove duplicates from\s+(\d+)$/i);
         if (dup) body = dup[1];
-        const toks = tokenize(body, { source, dialects, numbered: true, combo: combo || !!lim || !!dup, prefix: line.prefix });
+        // "Deduplicate" on its own works on the line before it
+        const bare = /^(?:deduplicate|remove duplicates)\s*$/i.test(body);
+        if (bare) body = String(numbered[numbered.indexOf(line) - 1]?.n ?? '');
+        const toks = tokenize(body, { source, dialects, numbered: true, combo: combo || !!lim || !!dup || bare, prefix: line.prefix });
         let { tree: t } = parse(toks, source, changes);
+        if (!combo) notePrecedence(toks, source, changes);
         if (limitToks.length) t = { k: 'and', kids: [t, ...limitToks] };
         lines.set(line.n, { tree: t, used: false });
       }
@@ -1344,16 +1450,19 @@ function translateFrom(text, source) {
       const unused = numbered.filter(l => !lines.get(l.n).used).map(l => l.n);
       changes.add('numbered-lines', `${numbered.length} numbered lines`, `ran line ${last.n}, with the lines it combines`, 'the last line is the search; OpenAlex wrote it out in full');
       if (unused.length) changes.add('numbered-lines', `line${unused.length > 1 ? 's' : ''} ${unused.join(', ')}`, 'left out', 'the last line doesn\'t use them');
+      // a reference that never resolved to a line ("3 AND 6" left over from "3# and 6#") would search the digits
+      if (hasNumberTerms(tree)) throw new ParseError('Some search lines refer to other lines in a way OpenAlex can\'t read. Paste the lines with one numbered line per row.');
     } else {
-      const flat = text.replace(/\s+/g, ' ').replace(/^\d{1,2}[.)]\s+(?=\S)/, '');
+      // several complete searches, one per line, with nothing joining them: ask rather than guess AND or OR
+      const searches = text.split(/\n/).map(l => l.trim()).filter(Boolean);
+      if (searches.length >= 2 && searches.every(balanced) && !searches.some((l, k) => k > 0 && (/^(?:AND|OR|NOT)\b|^\)/i.test(l) || /\b(?:AND|OR|NOT)$|\($/i.test(searches[k - 1])))) {
+        throw new ParseError(`This has ${searches.length} separate searches, one per line. Paste one at a time, or join them with OR (any of them) or AND (all of them).`);
+      }
+      const flat = text.replace(/\s+/g, ' ').replace(/^\d{1,2}[.)]\s+(?=\S)/, '').replace(/^\d{1,2}\s+(?=\()/, '');
       const toks = tokenize(flat, { source, dialects, numbered: false, combo: false });
       const parsed = parse(toks, source, changes);
       tree = resolveRefs(parsed.tree, new Map(), changes);
-      const { mixed } = parsed;
-      if (mixed.has('OR') && (mixed.has('AND') || mixed.has('NOT')) && hasUnparenthesizedMix(toks)) {
-        const how = { pubmed: 'left to right, as PubMed does', scopus: 'OR before AND, as Scopus does' }[source] || 'AND before OR, as the source database does';
-        changes.add('precedence', 'AND and OR without parentheses', `grouped ${how}`, 'the OpenAlex query shows the grouping with parentheses; check it matches what you meant');
-      }
+      notePrecedence(toks, source, changes);
     }
 
     const ctx = { anyTagged: anyTagged(tree) };
@@ -1376,6 +1485,24 @@ function translateFrom(text, source) {
   return result;
 }
 
+function balanced(line) {
+  let depth = 0;
+  let q = false;
+  for (const c of line) {
+    if (c === '"') q = !q;
+    if (q) continue;
+    if (c === '(') depth++;
+    if (c === ')' && --depth < 0) return false;
+  }
+  return depth === 0 && !q;
+}
+
+function hasNumberTerms(node) {
+  if (!node) return false;
+  if (node.k === 'term' && !node.quoted && /^\d{1,3}[#*?]?$/.test(node.v)) return true;
+  return ['a', 'b', 'kid'].some(k => hasNumberTerms(node[k])) || (node.kids || []).some(hasNumberTerms);
+}
+
 function anyTagged(node) {
   if (!node) return false;
   if (node.k === 'field' || node.k === 'heading' || (node.k === 'term' && (node.tag || node.prox))) return true;
@@ -1384,23 +1511,33 @@ function anyTagged(node) {
 
 function hasUnparenthesizedMix(toks) {
   const levels = [new Set()];
-  for (const t of toks) {
-    if (t.t === '(' || t.t === 'fieldopen') levels.push(new Set());
+  const ends = new Set(['term', 'heading', ')', 'ref', 'refs', 'limit', 'drop', 'suffix']);
+  const starts = new Set(['term', 'heading', '(', 'fieldopen', 'ref', 'refs', 'limit', 'drop']);
+  for (let k = 0; k < toks.length; k++) {
+    const t = toks[k];
+    const l = levels[levels.length - 1];
+    // two operands side by side: an implicit AND
+    if (k > 0 && starts.has(t.t) && ends.has(toks[k - 1].t) && l) l.add('AND');
+    if (t.t === '(' || t.t === 'fieldopen') { if (!t.single) levels.push(new Set()); }
     else if (t.t === ')') levels.pop();
-    else if (t.t === 'op' && levels.length) {
-      const l = levels[levels.length - 1];
-      l.add(t.v === 'ANDNOT' ? 'NOT' : t.v);
-      if (l.has('OR') && (l.has('AND') || l.has('NOT'))) return true;
-    }
+    else if (t.t === 'op' && l) l.add(t.v === 'ANDNOT' ? 'NOT' : t.v);
+    const cur = levels[levels.length - 1];
+    if (cur && cur.has('OR') && (cur.has('AND') || cur.has('NOT'))) return true;
   }
   return false;
+}
+
+function notePrecedence(toks, source, changes) {
+  if (!hasUnparenthesizedMix(toks)) return;
+  const how = { pubmed: 'left to right, as PubMed does', scopus: 'OR before AND, as Scopus does' }[source] || 'AND before OR, as the source database does';
+  changes.add('precedence', 'AND and OR without parentheses', `grouped ${how}`, 'the OpenAlex query shows the grouping with parentheses; check it matches what you meant');
 }
 
 // Ovid "limit N to (...)": english language, yr="2000 - 2020", humans, journal article ...
 function ovidLimits(text, changes) {
   const out = [];
   const t = text.replace(/^\(|\)$/g, '');
-  const yr = t.match(/yr\s*=\s*"?\s*(\d{4})\s*(?:-\s*(\d{4}|current))?\s*"?/i);
+  const yr = t.match(/yr\s*=\s*["']?\s*(\d{4})\s*(?:-\s*(\d{4}|current))?\s*["']?/i);
   if (yr) out.push({ k: 'limit', kind: 'year', from: +yr[1], to: yr[2] && /^\d{4}$/.test(yr[2]) ? +yr[2] : (yr[2] ? null : +yr[1]), raw: yr[0] });
   for (const [re, lim] of [
     [/english language|\benglish\b/i, { kind: 'lang', values: ['english'] }],
@@ -1415,8 +1552,12 @@ function ovidLimits(text, changes) {
   ]) {
     if (re.test(t)) out.push({ k: 'limit', ...lim, raw: (t.match(re) || [''])[0] });
   }
-  for (const word of ['humans', 'animals', 'abstracts', 'full text', 'last year', 'yearly']) {
-    if (new RegExp(`\\b${word}\\b`, 'i').test(t)) changes.add('limits', word, 'left out', 'OpenAlex has no equivalent for this Ovid limit');
+  // whatever is left: humans, animals, age groups ("adolescent <13 to 18 years>"), abstracts, full text ...
+  let rest = t;
+  if (yr) rest = rest.replace(yr[0], ' ');
+  for (const l of out) rest = rest.replace(new RegExp(l.raw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), ' ');
+  for (const item of rest.split(/\s+(?:and|or)\s+|[(),;]/i).map(x => x.trim()).filter(x => /[a-z]/i.test(x))) {
+    changes.add('limits', `limit to ${item}`, 'left out', 'OpenAlex has no equivalent for this Ovid limit');
   }
   return out;
 }
