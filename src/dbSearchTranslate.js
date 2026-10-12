@@ -1425,7 +1425,8 @@ function wosHistory(text) {
 }
 
 function translateFrom(text, source) {
-  if (source === 'wos' && (/[\u4e00-\u9fff]/.test(text) || /'\s*\+\s*'/.test(text))) {
+  // Web of Science never joins terms with +; CNKI, VIP and CBM use it for OR
+  if (source === 'wos' && (/[\u4e00-\u9fff]/.test(text) || /[\w')"]\s+\+\s+[\w'("]|'\s*\+\s*'/.test(text))) {
     return { source, sourceLabel: 'a Chinese database', oql: null, changes: [],
       error: { message: 'Searches written for CNKI, VIP, CBM or Wanfang use their own syntax, which OpenAlex can\'t translate yet.' } };
   }
@@ -1558,7 +1559,7 @@ function notePrecedence(toks, source, changes) {
 function ovidLimits(text, changes) {
   const out = [];
   const t = text.replace(/^\(|\)$/g, '');
-  const yr = t.match(/yr\s*=\s*["']?\s*(\d{4})\s*(?:-\s*(\d{4}|current))?\s*["']?/i);
+  const yr = t.match(/(?:yr|year)\s*=\s*["']?\s*(\d{4})\s*(?:-\s*(\d{4}|current))?\s*["']?/i);
   if (yr) out.push({ k: 'limit', kind: 'year', from: +yr[1], to: yr[2] && /^\d{4}$/.test(yr[2]) ? +yr[2] : (yr[2] ? null : +yr[1]), raw: yr[0] });
   for (const [re, lim] of [
     [/english language|\benglish\b/i, { kind: 'lang', values: ['english'] }],
