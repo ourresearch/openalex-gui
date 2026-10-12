@@ -77,7 +77,8 @@ const WOS_CODES = {
 
 // Ovid / Embase.com / Cochrane field codes (.ti,ab. and :ti,ab,kw): a set of two- or three-letter codes.
 function fieldFromCodes(codes) {
-  const set = new Set(codes.map(c => c.toLowerCase()));
+  const alias = { m_titl: 'ti', m_abs: 'ab', m_key: 'kw', dq: 'kf' };
+  const set = new Set(codes.map(c => c.toLowerCase()).map(c => alias[c] || c));
   const has = c => set.has(c);
   if ([...set].every(c => ['sh', 'hw', 'exp', 'de', 'mj', 'fs', 'nm', 'rn', 'ps', 'dm', 'mh'].includes(c))) return ['heading'];
   if ([...set].every(c => ['pt', 'it'].includes(c))) return ['limit:type'];
@@ -193,7 +194,7 @@ const RE = {
   scopusYear: /\bPUBYEAR\s*(?:>|<|=|>=|<=|AFT|BEF|IS)\s*\d{4}/i,
   scopusNear: /\s(?:W|PRE)\/\d+\s/i,
   wos: /(?:^|[\s(])(?:TS|TI|AB|AK|KP|AU|AI|AD|OG|SO|PY|DT|LA|WC|SU|FO|UT|DO|IS|ALL)\s*=\s*[("\w]/i,
-  ovidSuffix: /[\w)$*?#"'\]]\.(?:[a-z]{2,3}(?:,[a-z]{2,3})*)\.(?=\s|$|\)|,)/,
+  ovidSuffix: /[\w)$*?#"'\]]\.(?:[a-z]{2,3}(?:,[a-z]{2,3})*|m_titl|m_abs|m_key)\.(?=\s|$|\)|,)/,
   ovidSuffixNoDot: /[\w*$?)"]\.(?:mp|tw|kf|kw|sh|ti,ab|ab,ti|ti,ab,kf|ti,ab,kw)(?=\s|$|\))/i,
   ovidHeading: /(?:^|[\s(])(?:exp\s+\*?|\*)?[A-Za-z][\w ,'&-]*\/(?:[a-z]{2}(?:,[a-z]{2})*)?(?=\s|$|\))/,
   ovidExp: /(?:^|[\s(])exp\s+\*?[A-Za-z]/i,
@@ -512,8 +513,13 @@ function tokenize(s, ctx) {
 
     // Ovid headings: exp Asthma/, *Asthma/, Asthma/, exp Asthma/dt [Drug Therapy]
     if (ds.has('ovid')) {
+      m = at(/^(exp\s+)?(\*)?\s?"\s*([^"]+?)\s*"\/(?:\s?(?!or\b|and\b)[a-z]{2}(?:,\s?[a-z]{2})*\b)?\.?(?:\s*\[[^\]]*\])?(?=\s|$|\)|,|or\b|and\b)/i);
+      if (m && (i === 0 || /[\s(]/.test(s[i - 1]))) {
+        push({ t: 'heading', v: m[3], explode: !!m[1], raw: m[0].trim() });
+        i += m[0].length; continue;
+      }
       // the heading's words never include an operator or "exp": "exp A/ or exp B/" is two headings
-      m = at(/^(exp\s+)?(\*)?"?((?!(?:or|and|not|exp)\b)[A-Za-z][\w,'&-]*(?:\s+(?!(?:or|and|not|exp)\b)[\w,'&-]+)*?)"?\/(?:(?!or\b|and\b)([a-z]{2}(?:,\s?[a-z]{2})*)\b)?\.?(?:\s*\[[^\]]*\])?(?=\s|$|\)|,|or\b|and\b)/i);
+      m = at(/^(exp\s+)?(\*)?"?((?!(?:or|and|not|exp)\b)[A-Za-z][\w,'&-]*(?:\s+(?!(?:or|and|not|exp)\b)[\w,'&-]+)*?)"?\/(?:\s?(?!or\b|and\b)([a-z]{2}(?:,\s?[a-z]{2})*)\b)?\.?(?:\s*\[[^\]]*\])?(?=\s|$|\)|,|or\b|and\b)/i);
       if (m && !/^(?:or|and)$/i.test(m[3]) && (i === 0 || /[\s(]/.test(s[i - 1]))) {
         push({ t: 'heading', v: m[3], explode: !!m[1], raw: m[0].trim() });
         i += m[0].length; continue;
@@ -535,7 +541,7 @@ function tokenize(s, ctx) {
     }
 
     // Line references in a numbered strategy: #1, S1, and bare numbers on a combination line
-    m = at(/^(#|S)\s?(\d{1,3})\b/);
+    m = at(/^(#|S)\s?(\d{1,3})(?!\d)(?=\b|AND|OR|NOT)/);
     if (m && (m[1] === '#' || (numbered && prefix === 'S'))) { push({ t: 'ref', n: +m[2], raw: m[0] }); i += m[0].length; continue; }
     m = at(/^(or|and)\/(\d+(?:\s*-\s*\d+)?(?:\s*,\s*\d+(?:\s*-\s*\d+)?)*)/i);
     if (m && numbered) {
@@ -576,7 +582,7 @@ function tokenize(s, ctx) {
     }
 
     // a word, with any Ovid .ti,ab. or Embase/Cochrane :ti,ab,kw suffix split off for afterTerm
-    m = (ds.has('ovid') && (at(/^([^\s()"{}[\],]+?)(?=\.[a-z]{2,3}(?:,[a-z]{2,3})*\.(?:\s|$|\)|,))/i)
+    m = (ds.has('ovid') && (at(/^([^\s()"{}[\],]+?)(?=\.[a-z_]{2,6}(?:,[a-z_]{2,6})*\.(?:\s|$|\)|,))/i)
         || at(OVID_SUFFIX_NO_DOT_WORD)))
       || (ds.has('colon') && at(/^([^\s()"{}[\],:]+?)(?=:\s?[a-z]{2,3}(?:\s?,\s?[a-z]{2,3})*\.?(?:\s|$|\)))/i))
       || at(/^[^\s()"{}[\],]+/);
@@ -588,7 +594,7 @@ function tokenize(s, ctx) {
       throw new ParseError(`Couldn't read "${s.slice(i, i + 12)}".`);
     }
     let w = m[1] || m[0];
-    const glued = w.match(/^(.*[^A-Z])(AND|OR|NOT)$/);
+    const glued = w.match(/^(.*[^A-Z])(AND|OR|NOT)$/) || w.match(/^(.*[*?$])(and|or|not)$/i);
     if (glued && /[*?$)\]]$/.test(glued[1])) w = glued[1];
     i += w.length;
 
@@ -690,7 +696,7 @@ const OVID_SUFFIX_NO_DOT_WORD = new RegExp(`^([^\\s()"{}[\\],]+?)(?=\\.${OVID_CO
 // After a term or ")": an Ovid .ti,ab. or Embase/Cochrane :ti,ab,kw suffix.
 function suffixAt(s, i, ds) {
   const text = s.slice(i);
-  let m = text.match(/^\.([a-z]{2,3}(?:,[a-z]{2,3})*)\.(?=\s|$|\)|,)/i) || (ds.has('ovid') && text.match(OVID_SUFFIX_NO_DOT));
+  let m = text.match(/^\.([a-z_]{2,6}(?:,[a-z_]{2,6})*)\.(?=\s|$|\)|,)/i) || (ds.has('ovid') && text.match(OVID_SUFFIX_NO_DOT));
   if (m && ds.has('ovid')) {
     const codes = m[1].split(',');
     const [field, ref] = fieldFromCodes(codes);
@@ -1210,6 +1216,10 @@ function needsParens(node) {
 // "a NEAR/3 b" -> ("a" and "b" within 3 words of each other); OR groups on either side expand pairwise.
 function nearText(node, changes) {
   const flat = n => {
+    if (n.k === 'term' && CURRENT.source === 'ovid' && /^[^?#]*\?[^?]*$/.test(n.v) && !/#/.test(n.v)) {
+      changes.add('wildcards', n.raw, 'both spellings, with and without the letter', 'Ovid\'s ? matches zero or one letter; OpenAlex\'s ? matches exactly one');
+      return [{ ...n, v: n.v.replace('?', '') }, n];
+    }
     if (n.k === 'term') return [n];
     if (n.k === 'or') { const all = n.kids.map(flat); return all.every(Boolean) ? all.flat() : null; }
     return null;
@@ -1415,6 +1425,10 @@ function wosHistory(text) {
 }
 
 function translateFrom(text, source) {
+  if (source === 'wos' && (/[\u4e00-\u9fff]/.test(text) || /'\s*\+\s*'/.test(text))) {
+    return { source, sourceLabel: 'a Chinese database', oql: null, changes: [],
+      error: { message: 'Searches written for CNKI, VIP, CBM or Wanfang use their own syntax, which OpenAlex can\'t translate yet.' } };
+  }
   if (source === 'wos') text = wosHistory(text);
   const dialects = dialectsIn(text, source);
   CURRENT.source = source;
@@ -1450,6 +1464,7 @@ function translateFrom(text, source) {
       const unused = numbered.filter(l => !lines.get(l.n).used).map(l => l.n);
       changes.add('numbered-lines', `${numbered.length} numbered lines`, `ran line ${last.n}, with the lines it combines`, 'the last line is the search; OpenAlex wrote it out in full');
       if (unused.length) changes.add('numbered-lines', `line${unused.length > 1 ? 's' : ''} ${unused.join(', ')}`, 'left out', 'the last line doesn\'t use them');
+      if (selfExclusion(tree)) throw new ParseError('A line excludes a limited version of another line, and OpenAlex can\'t apply that limit, so the search would exclude everything. Remove the NOT line, or paste the lines before it.');
       // a reference that never resolved to a line ("3 AND 6" left over from "3# and 6#") would search the digits
       if (hasNumberTerms(tree)) throw new ParseError('Some search lines refer to other lines in a way OpenAlex can\'t read. Paste the lines with one numbered line per row.');
     } else {
@@ -1495,6 +1510,12 @@ function balanced(line) {
     if (c === ')' && --depth < 0) return false;
   }
   return depth === 0 && !q;
+}
+
+function selfExclusion(node) {
+  if (!node) return false;
+  if (node.k === 'not' && node.a && JSON.stringify(node.a) === JSON.stringify(node.b)) return true;
+  return ['a', 'b', 'kid'].some(k => selfExclusion(node[k])) || (node.kids || []).some(selfExclusion);
 }
 
 function hasNumberTerms(node) {

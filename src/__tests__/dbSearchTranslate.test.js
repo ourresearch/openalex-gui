@@ -327,6 +327,24 @@ describe('fixes from the Opus check', () => {
     expect(r.oql).toBeNull();
     expect(r.error.message).toMatch(/2 separate searches/);
   });
+  it('operators glued to a word: sativ*or, #8AND', () => {
+    expect(oql('(cannabis sativ*or indica).ti,ab.')).toBe('get works where title-abstract has ("cannabis sativ*" OR indica)');
+    expect(oql('#1 kelp[tiab]\n#2 decline[tiab]\n#3 #1 AND #2\n#4 reef[tiab]\n#5 #3AND #4')).toBe('get works where title-abstract-keywords has (kelp AND decline AND reef)');
+  });
+  it('quoted Ovid headings may hold operator words', () => {
+    expect(oql('exp "Wounds and Injuries"/ and kelp.ti,ab.')).toBe('get works where title-abstract-keywords has (wounds and injuries) and title-abstract has (kelp)');
+  });
+  it('Ovid .m_titl. is the title', () => {
+    expect(oql('kelp.m_titl.')).toBe('get works where title has (kelp)');
+  });
+  it('declines a line that would exclude itself once a limit is left out', () => {
+    const r = translateSearch('1 kelp.ti,ab.\n2 limit 1 to conference abstracts\n3 1 not 2');
+    expect(r.oql).toBeNull();
+    expect(r.error.message).toMatch(/exclude everything/);
+  });
+  it('declines Chinese-database syntax rather than misreading it as Web of Science', () => {
+    expect(translateSearch("SU=('kelp'+'seaweed') AND SU='decline'").error.message).toMatch(/CNKI/);
+  });
   it('declines references it cannot read rather than searching the numbers', () => {
     const r = translateSearch('#1 kelp[tiab]\n#2 decline[tiab]\n#3 1 AND 2 AND reef[tiab]');
     expect(r.oql).toBeNull();
