@@ -316,10 +316,11 @@ const HISTORY_TAG = /\s*\(\s*(all fields|title\s*\/\s*abstract|title|abstract|me
 
 function normalize(text) {
   return text
-    .replace(/[“”„‟«»″]/g, '"')
-    .replace(/[‘’‚‛′]/g, "'")
-    .replace(/[   ]/g, ' ')
-    .replace(/[‐‑–—]/g, '-')
+    .replace(/[\u201c\u201d\u201e\u201f\u00ab\u00bb\u2033]/g, '"')
+    .replace(/[\u2018\u2019\u201a\u201b\u2032]/g, "'")
+    // no-break and zero-width spaces (pasted from Word or PDFs)
+    .replace(/[\u00a0\u2009\u202f\u200b\u200c\u200d\u2060\ufeff]/g, ' ')
+    .replace(/[\u2010\u2011\u2013\u2014]/g, '-')
     .replace(/\r\n?/g, '\n')
     .replace(HISTORY_TAG, (m, tag) => `[${tag.replace(/\s*\/\s*/g, '/')}]`)
     // Ovid's field notes: .mp. [mp = title, abstract, ...]
@@ -533,6 +534,8 @@ function tokenize(s, ctx) {
       if (emtree) { push({ t: 'heading', v, explode: /exp/i.test(emtree[1]), raw: `'${v}'/${emtree[1]}` }); i += emtree[0].length; continue; }
       const tok = { t: 'term', v, quoted: true, exact: c === '{', scopusLoose: c === '"' && source === 'scopus', raw: c === '{' ? `{${v}}` : `${c}${v}${c}` };
       if (v) push(tok); else push({ t: 'empty' });
+      const slop = s.slice(i).match(/^~(\d+)/);
+      if (slop && v && /\s/.test(v)) { tok.prox = +slop[1]; tok.raw += slop[0]; i += slop[0].length; }
       i = afterTerm(s, i, ds, tok, out);
       continue;
     }
@@ -548,7 +551,9 @@ function tokenize(s, ctx) {
       }
       throw new ParseError(`Couldn't read "${s.slice(i, i + 12)}".`);
     }
-    const w = m[1] || m[0];
+    let w = m[1] || m[0];
+    const glued = w.match(/^(.*[^A-Z])(AND|OR|NOT)$/);
+    if (glued && /[*?$)\]]$/.test(glued[1])) w = glued[1];
     i += w.length;
 
     const upper = w.toUpperCase();
@@ -823,7 +828,7 @@ function assignFields(node, inherited, source, changes, ctx) {
     if (node.prox) {
       // PubMed "a b"[tiab:~N]: the phrase's words within N words of each other
       const words = node.v.split(/\s+/).filter(Boolean);
-      changes.add('proximity', node.raw, `within ${node.prox} words`, 'PubMed counts the words between the terms; OpenAlex counts word moves, so terms in reverse order must be closer');
+      changes.add('proximity', node.raw, `within ${node.prox} words`, 'OpenAlex counts distance in word moves, so terms in reverse order must be up to 2 words closer');
       if (words.length >= 2) {
         return { k: 'near', a: { k: 'term', v: words[0], quoted: false, field: field || TAK }, b: { k: 'term', v: words.slice(1).join(' '), quoted: words.length > 2, field: field || TAK }, n: node.prox, raw: node.raw, field: field || TAK };
       }
@@ -1074,7 +1079,7 @@ function searchText(node, changes, parentOp, inNot) {
     const phrase = node.quoted || (/\s/.test(v) && (!node.fromHeading || /[*?]/.test(v)));
     [v] = fitWildcards([v], phrase, changes, node.raw);
     if (!v) return null;
-    if (!phrase && /^(within|stemmed)$/i.test(v)) return `"${v}"`;
+    if (!phrase && /^(within|stemmed|and|or|not)$/i.test(v)) return `"${v}"`;
     if (phrase) {
       if (node.scopusLoose && !/[*?]/.test(v) && /\s/.test(v)) {
         changes.add('phrases', node.raw, `stemmed "${v}"`, 'Scopus\'s quoted phrases also match plurals and spelling variants; OpenAlex searched a stemmed phrase');
