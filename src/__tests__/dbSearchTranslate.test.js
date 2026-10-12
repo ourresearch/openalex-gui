@@ -224,7 +224,7 @@ describe('numbered lines', () => {
   it('runs the last line with the lines it combines', () => {
     const r = translateSearch('1. exp Asthma/\n2. (asthma or wheez$).ti,ab.\n3. 1 or 2\n4. (child$ or pediatric$).ti,ab.\n5. 3 and 4');
     expect(r.oql).toBe('get works where (title-abstract-keywords has (asthma) or title-abstract has (asthma OR wheez*)) and title-abstract has (child* OR pediatric*)');
-    expect(r.changes.map(c => c.ref)).toContain('lines');
+    expect(r.changes.map(c => c.ref)).toContain('numbered-lines');
   });
 
   it('reads PubMed and Cochrane #n lines', () => {

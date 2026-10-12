@@ -376,6 +376,7 @@
         </v-tooltip>
       </template>
     </div>
+    <div v-if="dbSearchError" class="db-search-error text-error text-body-2 px-3 py-2" role="alert">{{ dbSearchError }}</div>
   </div>
 </template>
 
@@ -396,6 +397,8 @@ import { edgeOn, edgeSupports, edgeRows, edgeWarm } from '@/edgeAutocomplete';
 import { extractIssn, extractLocationId, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, requestSearchBoxFocus, consumeSearchBoxFocus, authorNameMatchesQuery, dedupeByName, footerSearchEntityType } from '@/components/searchBox.helpers';
 import { ensureIntentModel, classifyQuery } from '@/intent/useIntent';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
+import { translateSearch } from '@/dbSearchTranslate';
+import { rememberTranslation } from '@/dbSearchNotes';
 import { entityCounts, worksCoreCount, compactCount } from '@/entityCounts';
 import { getShortId } from '@/openalexId';
 import EntitySelectorButton from '@/components/EntitySelectorButton.vue';
@@ -582,6 +585,32 @@ async function tryOqlRoute() {
     name: 'OqlQuery',
     query: { oql: url.oqlForUrl(res.oql) },
   });
+  return true;
+}
+
+// A search strategy pasted from PubMed, Scopus, Web of Science, Ovid, Embase, Cochrane or EBSCO (oxjob #1659): as a
+// literal text search it returns 0 results with no warning ([tiab], TITLE-ABS-KEY). Translate it locally (no model,
+// no request) and open it in the OQL tab, with the differences listed above it (DbSearchNotes). One we can't read
+// (unbalanced brackets, a missing search line) stays in the box with the reason. Plain Boolean strings return null
+// here and search as before. Same gate as tryOqlRoute.
+const dbSearchError = ref('');
+function tryDatabaseSearchRoute() {
+  if (!props.singleRow || !store.getters.featureFlags['oql']) return false;
+  if (entityType.value !== 'works') return false;
+  const text = searchString.value;
+  const result = translateSearch(text);
+  if (!result) return false;
+  if (!result.oql) {
+    dbSearchError.value = `This looks like a ${result.sourceLabel} search, but OpenAlex couldn't read it: ${result.error.message} Fix it and press Enter, or remove the field codes to search the words.`;
+    dismissDropdown();
+    return true;
+  }
+  dbSearchError.value = '';
+  const entry = rememberTranslation(result, text);
+  searchString.value = '';
+  dismissDropdown();
+  store.commit('setSerpModeOverride', 'oql');
+  url.pushToRoute(router, { name: 'OqlQuery', query: { oql: entry.oql } });
   return true;
 }
 
@@ -1075,6 +1104,7 @@ function onEscape() {
 
 function onTextareaInput() {
   isUserTyping.value = true;
+  dbSearchError.value = '';
   resizeTextarea();
 }
 
@@ -1088,6 +1118,8 @@ function onTextareaPaste() {
     resizeTextarea();
     // Pasted OQL routes straight to the OQL tab (#598) — don't autocomplete it.
     if (await tryOqlRoute()) return;
+    // A pasted PubMed / Scopus / WoS ... search opens translated (#1659).
+    if (tryDatabaseSearchRoute()) return;
     if (searchString.value) debouncedFetch(searchString.value);
   });
 }
@@ -1213,6 +1245,9 @@ async function submitSearch(forceEntityType) {
     return;
   }
 
+  // A search strategy from another database: translated locally, before any lookup (#1659)
+  if (tryDatabaseSearchRoute()) return;
+
   // Intercept DOI/ORCID before regular search
   const handled = await tryIdentifierLookup();
   if (handled) return;
@@ -1295,6 +1330,11 @@ function focusSearchInput() {
 </script>
 
 <style lang="scss" scoped>
+.db-search-error {
+  border-top: 1px solid rgba(var(--v-theme-error), 0.3);
+  background: rgba(var(--v-theme-error), 0.04);
+  border-radius: 0 0 16px 16px;
+}
 .search-box {
   position: relative;
   border: 1px solid #E0E0E0;

@@ -12,7 +12,7 @@
  * search line that isn't there).
  */
 
-export const DB_SEARCH_HELP_URL = 'https://help.openalex.org/how-to/search-strategies-from-other-databases';
+export const DB_SEARCH_HELP_URL = 'https://help.openalex.org/how-to/search-strategies-from-other-databases/';
 
 const LABELS = {
   pubmed: 'PubMed', scopus: 'Scopus', wos: 'Web of Science', ovid: 'Ovid', embase: 'Embase',
@@ -164,6 +164,8 @@ class Changes {
 }
 
 // Group repeats ("[mh]" on twelve headings) into one line each, in the order they first appeared.
+const ORDER = ['headings', 'fields', 'limits', 'proximity', 'precedence', 'wildcards', 'phrases', 'numbered-lines'];
+
 function summarize(list) {
   const byRef = new Map();
   for (const c of list) {
@@ -174,7 +176,7 @@ function summarize(list) {
   return [...byRef.values()].map(c => {
     const shown = c.originals.slice(0, 3).join(', ') + (c.originals.length > 3 ? `, and ${c.originals.length - 3} more` : '');
     return { ref: c.ref, original: shown, result: c.result, why: c.why, count: c.originals.length };
-  });
+  }).sort((a, b) => ORDER.indexOf(a.ref) - ORDER.indexOf(b.ref));
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1218,6 +1220,11 @@ function emitClause(node, changes) {
   return null;
 }
 
+function rawFor(l, v) {
+  const parts = String(l.raw || '').split(/\s+OR\s+/i);
+  return parts.find(p => p.toLowerCase().includes(String(v).toLowerCase())) || v;
+}
+
 function limitClauses(limits, changes, source) {
   const out = [];
   for (const l of limits) {
@@ -1259,8 +1266,8 @@ function limitClauses(limits, changes, source) {
       for (const v of l.values) {
         const key = v.toLowerCase().replace(/^"|"$/g, '').trim();
         const hit = TYPES[key];
-        if (hit === undefined || hit === null) { changes.add('limits', v, 'left out', 'OpenAlex has no matching document type'); continue; }
-        if (hit[2]) changes.add('limits', v, `type ${hit[1]}`, hit[2]);
+        if (hit === undefined || hit === null) { changes.add('limits', rawFor(l, v), 'left out', 'OpenAlex has no matching document type'); continue; }
+        if (hit[2]) changes.add('limits', rawFor(l, v), `type ${hit[1]}`, hit[2]);
         if (hit[0] === 'type') types.push(hit[1]);
         else if (hit[0] === 'design') designs.push(hit[1]);
         else if (hit[0] === 'retracted') out.push('it\'s retracted');
@@ -1330,8 +1337,8 @@ function translateFrom(text, source) {
       lines.get(last.n).used = true;
       tree = resolveRefs(structuredClone(lines.get(last.n).tree), lines, changes);
       const unused = numbered.filter(l => !lines.get(l.n).used).map(l => l.n);
-      changes.add('lines', `${numbered.length} numbered lines`, `ran line ${last.n}, with the lines it combines`, 'the last line is the search; OpenAlex wrote it out in full');
-      if (unused.length) changes.add('lines', `line${unused.length > 1 ? 's' : ''} ${unused.join(', ')}`, 'left out', 'the last line doesn\'t use them');
+      changes.add('numbered-lines', `${numbered.length} numbered lines`, `ran line ${last.n}, with the lines it combines`, 'the last line is the search; OpenAlex wrote it out in full');
+      if (unused.length) changes.add('numbered-lines', `line${unused.length > 1 ? 's' : ''} ${unused.join(', ')}`, 'left out', 'the last line doesn\'t use them');
     } else {
       const flat = text.replace(/\s+/g, ' ').replace(/^\d{1,2}[.)]\s+(?=\S)/, '');
       const toks = tokenize(flat, { source, dialects, numbered: false, combo: false });

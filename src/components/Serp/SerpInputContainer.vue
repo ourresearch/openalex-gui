@@ -69,6 +69,8 @@
          point the buffer is replaced with the server's canonical formatting AND the
          query runs — "format on save". -->
     <template v-else-if="mode === 'oql'">
+      <!-- A pasted PubMed / Scopus / WoS ... search, translated: from where, and every difference (#1659). -->
+      <db-search-notes />
       <v-card variant="outlined" class="search-card bg-white mb-4">
         <div class="search-card-body">
           <!-- One quiet, non-blocking line when a builder edit overflowed the grid
@@ -283,6 +285,7 @@ import ComplexQueryCard from '@/components/ComplexQueryCard.vue';
 import SerpApiEditor from '@/components/SerpApiEditor.vue';
 import SearchBox from '@/components/SearchBox.vue';
 import SearchErrorAlert from '@/components/SearchErrorAlert.vue';
+import DbSearchNotes from '@/components/DbSearchNotes.vue';
 import SerpDiceButton from '@/components/SerpDiceButton.vue';
 import SerpModeTabs from '@/components/Serp/SerpModeTabs.vue';
 import SerpResultsKebab from '@/components/Serp/SerpResultsKebab.vue';
