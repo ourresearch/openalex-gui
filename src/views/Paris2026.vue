@@ -131,7 +131,7 @@
                             <li><strong>Paloma Garc&iacute;a Bl&aacute;zquez</strong> (University of Salamanca) &mdash; Mapping research excellence with OpenAlex: from scholarly data to strategic research intelligence</li>
                             <li><strong>Patricia Ranoarisoa</strong> (Inist-CNRS) &mdash; LODEX template for OpenAlex: turnkey interactive bibliometrics</li>
                             <li><strong>Jack Culbert</strong> (GESIS) &mdash; The Open Research Converter</li>
-                            <li><strong>Ma&iuml;ca Poirier Murphy</strong> (Higher Education Strategy Associates) &mdash; Title to come</li>
+                            <li><strong>Ma&iuml;ca Poirier Murphy</strong> (Higher Education Strategy Associates) &mdash; Articuler une identit&eacute; institutionnelle dans un syst&egrave;me marqu&eacute; par l&rsquo;isomorphie</li>
                         </ul>
                         <span class="f26-tag tag-presentation">lightning</span>
                     </div>
@@ -221,7 +221,8 @@
                             <li><strong>Abdesslam Chai-allah and colleagues</strong> (INRAE) &mdash; OpenAlex at INRAE: what works, what doesn&rsquo;t, and what&rsquo;s next</li>
                             <li><strong>Elke Hausner</strong> (IQWiG) &mdash; A practical assessment of OpenAlex and Lens for systematic literature searches</li>
                             <li><strong>H&eacute;lo&iuml;se Gazeau</strong> (Universit&eacute; de Strasbourg) &mdash; Building institutional indicators without being a data analyst, or knowing how to code</li>
-                            <li class="placeholder">Two more talks to be confirmed</li>
+                            <li><strong>Abdelghani Maddi</strong> (GEMASS, CNRS and Sorbonne Universit&eacute;) &mdash; When quality signals come late: what OpenAlex reveals about journal discontinuation</li>
+                            <li class="placeholder">One more talk to be confirmed</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span>
                     </div>
