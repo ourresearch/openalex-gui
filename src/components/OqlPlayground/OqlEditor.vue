@@ -181,6 +181,8 @@ import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 import { lintKeymap } from "@codemirror/lint";
 
 import { oqlSyntax, makeOqlLinter } from "./oqlLanguage";
+import { useStore } from "vuex";
+import { pickOql } from "@/oqlForm";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
@@ -280,9 +282,12 @@ const badgeSummary = computed(() =>
 // The doc already matches the server's canonical (tidy) formatting → tidy is a
 // no-op, so disable the broom. Gated on validation.value (reactive) which refreshes
 // after every edit's /validate round-trip; the doc compare reads the live buffer.
+// The canonical form the site shows (oxjob #1555: the `new_oql` flag picks x_new_oql).
+const store = useStore();
+const tidyOql = computed(() => pickOql(validation.value, store.getters.newOql));
 const isAlreadyTidy = computed(() => {
   const v = validation.value;
-  return !!v?.valid && !!v.oql && !!view && v.oql === view.state.doc.toString();
+  return !!v?.valid && !!tidyOql.value && !!view && tidyOql.value === view.state.doc.toString();
 });
 const canTidy = computed(
   () => !!validation.value?.valid && !!validation.value?.oql && !isAlreadyTidy.value
@@ -297,7 +302,7 @@ function onValidateResult(data) {
   validation.value = data || null;
   emit("validation", data || null);
   if (data && data.valid) {
-    emit("valid", { oql: data.oql, oqo: data.oqo, oxurl: data.oxurl });
+    emit("valid", { oql: pickOql(data, store.getters.newOql), oqo: data.oqo, oxurl: data.oxurl });
   }
 }
 
@@ -321,7 +326,7 @@ function copy() {
 // query (only available when valid). Cursor parks at the end.
 function tidy() {
   if (!view || !canTidy.value) return;
-  const text = validation.value.oql;
+  const text = tidyOql.value;
   setDoc(text, { external: false }); // a tidy IS a user-visible edit → emit
 }
 

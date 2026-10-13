@@ -13,6 +13,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
 
 import { url } from '@/url';
+import { pickOql } from '@/oqlForm';
 import { api } from '@/api';
 import { createFetchSequencer } from '@/serpFetchSeq';
 import { shouldDropSavedSearchId } from '@/store/userBoot';
@@ -193,7 +194,7 @@ watch(
       // it IS the settled response for exactly this query, so restore it instantly
       // (no refetch, no scroll reset). No match → fall through to a normal fetch.
       const mirrored = store.state.resultsObject;
-      if (mirrored?.meta?.x_query?.oql === route.query.oql) {
+      if (pickOql(mirrored?.meta?.x_query, store.getters.newOql) === route.query.oql) {
         resultsObject.value = mirrored;
         resultsFilters.value = [];
         searchError.value = null;
@@ -416,7 +417,8 @@ watch(
     // this router.replace as our own projection and bails. Keep the current mode.
     // Match the projected string to lastExecutedOql exactly (no oqlForUrl reshaping)
     // so the skip-guard comparison holds. (oxjob #464 Phase 2a)
-    const canonicalOql = resultsObject.value?.meta?.x_query?.oql;
+    // the form the site shows (oxjob #1555 `new_oql` flag); lastExecutedOql uses the same
+    const canonicalOql = pickOql(resultsObject.value?.meta?.x_query, store.getters.newOql);
     if (canonicalOql && canonicalOql !== route.query.oql) {
       // Back-button policy (#464 Phase 2b): the edit action tagged its nav intent
       // (`lastEditNav`) by SEMANTICS — push for a back-worthy NEW query (add/remove

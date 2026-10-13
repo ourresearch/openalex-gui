@@ -553,6 +553,7 @@ import { useStore } from "vuex";
 import { useRoute, useRouter } from "vue-router";
 import { debounce } from 'lodash-es';
 import { api } from "@/api";
+import { pickOql } from "@/oqlForm";
 import OqlBrick from "@/components/Oql/OqlBrick.vue";
 import OqlTextBlockChip from "@/components/Oql/OqlTextBlockChip.vue";
 import OqlLineTailControls from "@/components/Oql/OqlLineTailControls.vue";
@@ -1632,7 +1633,7 @@ const renderQuery = async ({ swap, commit = swap, nav = swap ? "push" : "replace
   // guard: only the newest render of any kind updates the displayed OQL + execution channel.
   if (seq !== commitSeq) return;
   rendering.value = false;
-  renderedOql.value = data.oql || "";
+  renderedOql.value = pickOql(data, store.getters.newOql) || "";   // oxjob #1555: old or new form
   oxurl.value = data.oxurl || "";
   validation.value = data.validation || null;
   lastEmittedOql = renderedOql.value;
@@ -3778,7 +3779,7 @@ const rebuildFromOqo = async (data) => {
   corpus.value = oqo.corpus || "core"; // seed corpus from the loaded query (#481)
   // (#661: any sort_by/select a stale OQO still carries is ignored — sort and
   // columns are view state and the builder has no rows for them.)
-  renderedOql.value = data.oql || "";
+  renderedOql.value = pickOql(data, store.getters.newOql) || "";   // oxjob #1555: old or new form
   oxurl.value = data.oxurl || "";
   validation.value = data.validation || null;
   lastEmittedOql = renderedOql.value;

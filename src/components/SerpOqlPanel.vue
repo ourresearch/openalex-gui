@@ -101,6 +101,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 
 import { url } from '@/url';
+import { pickOql } from '@/oqlForm';
 
 defineOptions({ name: 'SerpOqlPanel' });
 
@@ -148,10 +149,12 @@ const currentOql = computed(() => {
   // In OQL-submit mode we fall back to the execute response's meta.x_query.oql
   // (now bare-ID, #378 S3) and then the raw submitted text while the translate
   // request is in flight.
+  // (oxjob #1555: the `new_oql` flag shows x_new_oql instead, through pickOql)
+  const newOql = store.getters.newOql;
   if (route.query.oql) {
-    return queryObject.value?.oql || xQuery.value?.oql || route.query.oql || '';
+    return pickOql(queryObject.value, newOql) || pickOql(xQuery.value, newOql) || route.query.oql || '';
   }
-  return queryObject.value?.oql || '';
+  return pickOql(queryObject.value, newOql) || '';
 });
 
 const submitErrors = computed(() => store.getters.oqlSubmitError?.errors || []);

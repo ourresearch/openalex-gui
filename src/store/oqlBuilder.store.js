@@ -49,7 +49,7 @@ export default {
     async renderOqo(_ctx, oqo) {
       try {
         const data = await api.getQuery({ oqo });
-        return { oql: data.oql || "", oxurl: data.oxurl || "",
+        return { oql: data.oql || "", x_new_oql: data.x_new_oql || null, oxurl: data.oxurl || "",
                  oql_render_v2: data.oql_render_v2 || null,
                  validation: data.validation || null };
       } catch (e) {
@@ -70,7 +70,7 @@ export default {
       try {
         const data = await api.getQuery({ oql });
         if (data && data.oqo) {
-          return { oqo: data.oqo, oql: data.oql, oxurl: data.oxurl,
+          return { oqo: data.oqo, oql: data.oql, x_new_oql: data.x_new_oql || null, oxurl: data.oxurl,
                    oql_render_v2: data.oql_render_v2 || null,
                    validation: data.validation };
         }

@@ -160,6 +160,7 @@
 import { ref, computed, reactive } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
+import { pickOql } from '@/oqlForm';
 import { canAlertOnFilter } from '@/collectionFilter';
 import { legacyApiUrl as buildLegacyApiUrl, importSource } from '@/collectionImportSource';
 import CollectionQuickCreateDialog from '@/components/Collection/CollectionQuickCreateDialog.vue';
@@ -196,7 +197,7 @@ const userId = computed(() => store.getters['user/userId']);
 // truth for all three copy targets; the route params are only a fallback for the
 // legacy GET path, whose responses don't carry x_query.
 const xQuery = computed(() => store.state.resultsObject?.meta?.x_query);
-const canonicalOql = computed(() => xQuery.value?.oql || route.query.oql || null);
+const canonicalOql = computed(() => pickOql(xQuery.value, store.getters.newOql) || route.query.oql || null);
 const canonicalOqo = computed(() => xQuery.value?.oqo || null);
 
 // The API URL to copy: the flat oxurl format when the query can be expressed that

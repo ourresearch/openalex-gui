@@ -9,6 +9,7 @@ import { entityConfigs } from '@/entityConfigs';
 import { facetsByCategory } from '@/facetConfigUtils';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { api } from '@/api';
+import { NEW_OQL_FLAG, pickOql } from '@/oqlForm';
 
 // Conversion: 1 credit = $0.0001 (10,000 credits = $1)
 const CREDIT_TO_USD = 0.0001;
@@ -419,6 +420,15 @@ export default createStore({
             // launch-day per-device localStorage opt-out is retired.
             flags.oql = !flags.legacy_ui;
             return flags;
+        },
+        // The new OQL (oxjob #1555): show `x_new_oql` wherever the site shows canonical OQL.
+        newOql(state, getters) {
+            return !!getters.featureFlags[NEW_OQL_FLAG];
+        },
+        // The canonical OQL to show for the current results (see oqlForm.js); every display
+        // and the URL projection read this, so a rewrite and the flag can't drift apart.
+        shownOql(state, getters) {
+            return pickOql(state.resultsObject?.meta?.x_query, getters.newOql);
         },
     },
 })

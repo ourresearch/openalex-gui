@@ -265,6 +265,7 @@ import { useStore } from 'vuex';
 import { debounce } from 'lodash-es';
 
 import { url } from '@/url';
+import { pickOql } from '@/oqlForm';
 import filters from '@/filters';
 import { filtersFromUrlStr } from '@/filterConfigs';
 import { basicCanRepresent, chipSlotCount } from '@/components/Filter/basicFilterMode';
@@ -560,14 +561,14 @@ async function submitOqlTab() {
   if (!text) return;
   let canonical =
     oqlTabValidation.value?.valid && oqlTabValidation.value.oql
-      ? oqlTabValidation.value.oql
+      ? pickOql(oqlTabValidation.value, store.getters.newOql)   // oxjob #1555
       : null;
   if (!canonical) {
     let res;
     try { res = await validateOql(text); } catch (e) { return; }
     if (text !== (oqlTabText.value || '').trim()) return; // kept typing — stale gesture
     if (!res?.valid || !res.oql) return;
-    canonical = res.oql;
+    canonical = pickOql(res, store.getters.newOql);
   }
   seedOqlTab(canonical);
   onOqlRun(canonical);
@@ -585,7 +586,7 @@ async function prefetchPrettySeed(raw) {
   try {
     const res = await validateOql(r);
     if ((seedOql.value || '').trim() !== r) return; // seed moved on while fetching
-    if (res?.valid && res.oql) prettySeed.value = { raw: r, oql: res.oql };
+    if (res?.valid && res.oql) prettySeed.value = { raw: r, oql: pickOql(res, store.getters.newOql) };
   } catch (e) { /* fall back to the editor's own in-place prettify on validate */ }
 }
 watch(seedOql, (s) => prefetchPrettySeed(s), { immediate: true });

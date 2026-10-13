@@ -37,5 +37,5 @@ const store = useStore();
 // (nested booleans / cross-field OR). meta.x_query.oql is the bare-ID canonical
 // OQL (decision 14); the name-annotated render lives in the OQL panel, which the
 // "View as OQL" button reveals. This is only a lightweight preview + signpost.
-const oql = computed(() => store.state.resultsObject?.meta?.x_query?.oql || '');
+const oql = computed(() => store.getters.shownOql || '');   // oxjob #1555: old or new form
 </script>

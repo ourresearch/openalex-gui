@@ -386,6 +386,7 @@ defineOptions({ name: 'SearchBox' });
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
+import { pickOql } from '@/oqlForm';
 import { useDisplay } from 'vuetify';
 import { debounce } from 'lodash-es';
 import { getEntityConfig, getEntityConfigs } from '@/entityConfigs';
@@ -583,7 +584,7 @@ async function tryOqlRoute() {
   store.commit('setSerpModeOverride', 'oql');
   url.pushToRoute(router, {
     name: 'OqlQuery',
-    query: { oql: url.oqlForUrl(res.oql) },
+    query: { oql: url.oqlForUrl(pickOql(res, store.getters.newOql)) },   // oxjob #1555
   });
   return true;
 }

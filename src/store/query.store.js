@@ -60,6 +60,7 @@ const QUERY_KEYS = ["get_rows", "filter_rows", "corpus", "calculate"];
 // #661: page/per_page/cursor left the OQO too — they travel as sibling request
 // params (state.paging → executionParams), per the query/view split.
 import { SEMANTIC_MAX_PER_PAGE } from "@/semanticLimits";
+import { pickOql } from "@/oqlForm";
 export { SEMANTIC_MAX_PER_PAGE };
 
 // True when any leaf anywhere in the filter tree is a semantic-search clause
@@ -248,9 +249,10 @@ export default {
     // paging are CLIENT-owned (transient / sibling params) — the echo never
     // overwrites them, and any sort_by/select/page/per_page/cursor a transitional
     // server still echoes is simply ignored (splitOqo drops unknown keys).
-    syncFromResponse({ commit }, resultsObject) {
+    syncFromResponse({ commit, rootGetters }, resultsObject) {
       const oqo = resultsObject?.meta?.x_query?.oqo;
-      const oql = resultsObject?.meta?.x_query?.oql ?? null;
+      // the form the URL shows (oxjob #1555: `new_oql` flag), so the skip-guard matches it
+      const oql = pickOql(resultsObject?.meta?.x_query, rootGetters?.newOql);
       if (!oqo) {
         // No canonical OQO echoed (errored / empty fetch) — clear the shadow.
         commit("setQueryOqoFull", null);
