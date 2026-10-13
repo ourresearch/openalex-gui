@@ -453,7 +453,7 @@ const queryParams = computed(() => {
 const queryObject = computed(() => store.getters.queryObject);
 // The OQL to hand the builder/editor: the live ?oql= if present, else the
 // server-translated OQL of the current chip/URL query.
-const seedOql = computed(() => route.query.oql || queryObject.value?.oql || '');
+const seedOql = computed(() => route.query.oql || pickOql(queryObject.value, store.getters.newOql) || '');
 // Remount only on a mode switch. The builder now takes `:oql` reactively and
 // re-seeds itself on external query changes, and it auto-runs its own edits — so
 // keying on the seed would remount it mid-edit on every keystroke. (oxjob #428.)
@@ -516,8 +516,10 @@ function onOqlTabValidation(v) {
   // so the tab opens tidied — no manual broom click. Updating text + baseline together
   // keeps it not-dirty; idempotent (canonical-of-canonical == canonical) so no loop.
   // Skipped once the user has diverged, so we never reformat text mid-edit.
-  if (v?.valid && v.oql && !oqlTabDirty.value && v.oql !== oqlTabText.value) {
-    seedOqlTab(v.oql);
+  // (oxjob #1555) the form the site shows; x_new_oql re-validates to itself, so no loop
+  const shown = pickOql(v, store.getters.newOql);
+  if (v?.valid && shown && !oqlTabDirty.value && shown !== oqlTabText.value) {
+    seedOqlTab(shown);
   }
 }
 // A valid pipeline query (#1536) gets the free /query check: what it costs and how

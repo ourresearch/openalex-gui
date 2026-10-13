@@ -152,7 +152,7 @@ const currentOql = computed(() => {
   // (oxjob #1555: the `new_oql` flag shows x_new_oql instead, through pickOql)
   const newOql = store.getters.newOql;
   if (route.query.oql) {
-    return pickOql(queryObject.value, newOql) || pickOql(xQuery.value, newOql) || route.query.oql || '';
+    return pickOql(queryObject.value, newOql) || store.getters.shownOql || route.query.oql || '';
   }
   return pickOql(queryObject.value, newOql) || '';
 });

@@ -320,10 +320,10 @@ export default createStore({
         // translate goes through the store, which already imports api. Returns the oql
         // string, or null on a translate failure (the caller falls back to ?filter=,
         // which round-trips losslessly for a Basic-representable query).
-        async translateFiltersToOql(_ctx, { entityType, filter, query }) {
+        async translateFiltersToOql({ getters }, { entityType, filter, query }) {
             try {
                 const resp = await api.getQuery({ entity_type: entityType, filter, query: query || {} });
-                return resp?.oql ?? null;
+                return pickOql(resp, getters.newOql);   // the form the URL shows (oxjob #1555)
             } catch (e) {
                 return null;
             }

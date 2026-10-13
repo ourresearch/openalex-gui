@@ -194,7 +194,7 @@ watch(
       // it IS the settled response for exactly this query, so restore it instantly
       // (no refetch, no scroll reset). No match → fall through to a normal fetch.
       const mirrored = store.state.resultsObject;
-      if (pickOql(mirrored?.meta?.x_query, store.getters.newOql) === route.query.oql) {
+      if (mirrored && store.getters.shownOql === route.query.oql) {   // shownOql reads this mirror
         resultsObject.value = mirrored;
         resultsFilters.value = [];
         searchError.value = null;

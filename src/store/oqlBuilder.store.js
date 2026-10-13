@@ -56,6 +56,7 @@ export default {
         const body = e?.response?.data || {};
         return {
           oql: body.oql || "",
+          x_new_oql: body.x_new_oql || null,
           oxurl: body.oxurl || "",
           oql_render_v2: body.oql_render_v2 || null,
           validation: body.validation || { valid: false, errors: [{ message: String(e) }] },

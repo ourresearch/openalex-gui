@@ -289,7 +289,7 @@ const exportSelection = computed(() =>
 // This covers every OQL shape, including ones with no classic-URL equivalent
 // (nested boolean trees, corpus selector).
 const isOqlMode = computed(() => !props.scope && !!route.query.oql);
-const canonicalOql = computed(() => store.getters.shownOql ?? null);   // oxjob #1555: old or new form
+const canonicalOql = computed(() => store.state.resultsObject?.meta?.x_query?.oql ?? null);
 // Defensive: the dialog only opens once results (and their x_query echo) have
 // landed, so a missing canonical OQL should be unreachable — but if it ever
 // happens we must block rather than fall through to an unfiltered request.

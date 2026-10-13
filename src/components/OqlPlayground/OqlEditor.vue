@@ -290,7 +290,7 @@ const isAlreadyTidy = computed(() => {
   return !!v?.valid && !!tidyOql.value && !!view && tidyOql.value === view.state.doc.toString();
 });
 const canTidy = computed(
-  () => !!validation.value?.valid && !!validation.value?.oql && !isAlreadyTidy.value
+  () => !!validation.value?.valid && !!tidyOql.value && !isAlreadyTidy.value
 );
 const tidyTitle = computed(() =>
   !validation.value?.valid ? 'Tidy up (query must be valid)'
