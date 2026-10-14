@@ -12,7 +12,7 @@
 
 import crypto from "node:crypto";
 import { toHtml, toMarkdown } from "./format.mjs";
-import { entityPage, listPage, errorPage, worksFilterOf, API, NATIVE } from "./pages.mjs";
+import { entityPage, listPage, errorPage, knownWorksFilter, worksFilterOf, listSelect, API, NATIVE, SINGULAR, SEARCH_LABEL } from "./pages.mjs";
 
 export const HEADER = "x-openalex-verified-assistant";
 const PER_PAGE = 25;
@@ -20,37 +20,10 @@ const TOP_WORKS = 10;
 const RERANK_WINDOW = 100; // the website reranks searches whose page starts inside the top 100 (url.js)
 const TIMEOUT_MS = 10000;
 
-// Native ids have a one-letter prefix (src/openalexId.js); the website accepts /W123 too.
+// Native ids have a one-letter prefix; the website accepts /W123 too.
 const PREFIX = Object.fromEntries(Object.entries(NATIVE).map(([k, v]) => [v, k]));
-const OTHER_TYPES = ["keywords", "subfields", "fields", "domains", "sdgs", "countries", "continents", "languages"];
-const ENTITY_TYPES = new Set([...Object.values(NATIVE), ...OTHER_TYPES]);
-
-// The website's search parameters (src/searchParamKeys.js); one is used at a time.
-const SEARCH_KEYS = [
-  "search", "search.exact", "search.semantic",
-  "search.title", "search.title.exact",
-  "search.title_and_abstract", "search.title_and_abstract.exact",
-  "search.title_abstract_keywords", "search.title_abstract_keywords.exact",
-];
-
-// Works filter that lists an entity's works, for the "most-cited works" section.
-const WORKS_FILTER = {
-  authors: "author.id",
-  sources: "primary_location.source.id",
-  institutions: "institutions.id",
-  topics: "topics.id",
-  funders: "funders.id",
-  publishers: "primary_location.source.publisher_lineage",
-};
-
-// Fields a list row needs, so a page of 25 results stays small.
-const LIST_SELECT = {
-  works: "id,display_name,publication_year,type,cited_by_count,doi,authorships,primary_location,open_access,is_retracted",
-  authors: "id,display_name,orcid,works_count,cited_by_count,last_known_institutions",
-  sources: "id,display_name,type,host_organization_name,issn_l,works_count,cited_by_count",
-  institutions: "id,display_name,type,country_code,geo,works_count,cited_by_count",
-  topics: "id,display_name,subfield,field,works_count,cited_by_count",
-};
+const ENTITY_TYPES = new Set(Object.keys(SINGULAR));
+export const SEARCH_KEYS = Object.keys(SEARCH_LABEL); // one is used at a time
 const TOP_WORKS_SELECT = "id,display_name,publication_year,cited_by_count,primary_location";
 
 // Query strings readable by a person or a model: only what must be escaped is.
@@ -78,7 +51,7 @@ export function route(url) {
       return null;
     }
     if (PREFIX[type]) {
-      if (!new RegExp(`^${PREFIX[type]}\\d+$`, "i").test(id)) return null;
+      if (!/^[a-z]\d+$/i.test(id) || id[0].toLowerCase() !== PREFIX[type]) return null;
       id = id.toUpperCase();
     } else if (!/^[\w.-]+$/.test(id)) {
       return null;
@@ -100,9 +73,8 @@ export function listQuery(type, params) {
   const searchKey = SEARCH_KEYS.find((k) => params.get(k));
   if (searchKey) q[searchKey] = params.get(searchKey);
   const filterSearch = (filter || "").split(",").some((f) => f.split(":")[0].includes(".search"));
-  const isSearch = Boolean(searchKey) || filterSearch;
   const defaultSort = { works: "cited_by_count:desc", awards: "amount:desc" }[type] || "works_count:desc";
-  q.sort = params.get("sort") || (isSearch ? "relevance_score:desc" : defaultSort);
+  q.sort = params.get("sort") || (searchKey || filterSearch ? "relevance_score:desc" : defaultSort);
   const page = Math.max(1, Math.min(10000, parseInt(params.get("page"), 10) || 1));
   q.per_page = PER_PAGE;
   if (page > 1) q.page = page;
@@ -111,7 +83,7 @@ export function listQuery(type, params) {
   if (type === "works" && q.sort === "relevance_score:desc" && searchKey && searchKey !== "search.semantic" && (page - 1) * PER_PAGE < RERANK_WINDOW) {
     q.rerank = "true";
   }
-  return { query: q, page, searchKey, isSearch };
+  return { query: q, page, searchKey };
 }
 
 // HTML unless the client asks for Markdown at least as strongly.
@@ -168,41 +140,24 @@ function makeGetJson(env, fetchImpl) {
   };
 }
 
+// The record, and for anything but a work its 10 most-cited works: both at once when the works
+// filter is known from the id, else after the record (from its works_api_url). A failed works list
+// costs the section, not the page.
 async function buildEntity(r, getJson) {
   const apiPath = `/${r.type}/${encodeURIComponent(r.id)}`;
   const publicUrl = `${API}${apiPath}`;
-  const filterKey = WORKS_FILTER[r.type];
-  const topQuery = (filter) => `/works?${queryString({ filter, sort: "cited_by_count:desc", per_page: TOP_WORKS, select: TOP_WORKS_SELECT })}`;
-  let record;
-  let top = null;
-  if (filterKey) {
-    // Both calls at once; a failed works list costs the section, not the page.
-    const [rec, works] = await Promise.all([
-      getJson(apiPath, publicUrl),
-      getJson(topQuery(`${filterKey}:${r.id}`), publicUrl).catch(() => null),
-    ]);
-    record = rec;
-    top = works;
-  } else {
-    record = await getJson(apiPath, publicUrl);
-    const f = worksFilterOf(record);
-    if (f) top = await getJson(topQuery(f), publicUrl).catch(() => null);
-  }
-  return entityPage(r.type, record, top);
+  const topWorks = (filter) =>
+    filter ? getJson(`/works?${queryString({ filter, sort: "cited_by_count:desc", per_page: TOP_WORKS, select: TOP_WORKS_SELECT })}`, publicUrl).catch(() => null) : null;
+  const known = knownWorksFilter(r.type, r.id);
+  const [record, top] = await Promise.all([getJson(apiPath, publicUrl), topWorks(known)]);
+  return entityPage(r.type, record, known ? top : await topWorks(worksFilterOf(record)));
 }
 
-// Created-date filters and sorting are paid-plan features (Premium, Institutional, Partner). The
-// server key must not hand them to everyone: a free user's website gets "Plan upgrade required" for
-// these, and so does an assistant here, whatever plan the key is on.
-const PLAN_GATED = /(^|,)!?[\w.]*created_date[\w.]*:|^created_date/;
-
+// Paid-plan features (created/updated-date filters and sorts) are refused by the API itself: the server
+// key has no paid plan (SHIP.md), so an assistant gets the answer a free user gets.
 async function buildList(r, url, getJson) {
   const publicUrl = `${API}/${r.type}?${queryString(r.query)}`;
-  if (PLAN_GATED.test(r.query.filter || "") || PLAN_GATED.test(r.query.sort)) {
-    throw new ApiError(403, "created-date filters and sorting need a paid plan; run this query in the API with your own key", publicUrl);
-  }
-  const select = LIST_SELECT[r.type];
-  const data = await getJson(`/${r.type}?${queryString({ ...r.query, select })}`, publicUrl);
+  const data = await getJson(`/${r.type}?${queryString({ ...r.query, select: listSelect(r.type) })}`, publicUrl);
   return listPage(r, url, data, publicUrl);
 }
 

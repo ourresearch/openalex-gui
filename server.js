@@ -37,25 +37,24 @@ app.use(function (req, res, next) {
 // for those, entity and list URLs get a plain page built from the API. With
 // VERIFIED_ASSISTANT_TOKEN unset this does nothing, and any failure serves the site.
 let assistantPage = null;
-app.use(function (req, res, next) {
+app.use(async function (req, res, next) {
     const token = process.env.VERIFIED_ASSISTANT_TOKEN;
     if (!assistantPage || !token || !req.get('x-openalex-verified-assistant')) return next();
-    let url;
+    let page = null;
     try {
-        url = new URL('https://openalex.org' + req.originalUrl);
+        page = await assistantPage(
+            { method: req.method, url: new URL('https://openalex.org' + req.originalUrl), header: (name) => req.get(name) },
+            { VERIFIED_ASSISTANT_TOKEN: token, ASSISTANT_PAGES_API_KEY: process.env.ASSISTANT_PAGES_API_KEY },
+        );
     } catch (err) {
-        return next();
-    }
-    assistantPage(
-        { method: req.method, url, header: (name) => req.get(name) },
-        { VERIFIED_ASSISTANT_TOKEN: token, ASSISTANT_PAGES_API_KEY: process.env.ASSISTANT_PAGES_API_KEY },
-    ).catch((err) => {
         console.error('Assistant page failed; serving the site instead.', err);
-        return null;
-    }).then((page) => {
-        if (page) res.status(page.status).set(page.headers).send(page.body);
-        else next();
-    }).catch(next);
+    }
+    if (!page) return next();
+    try {
+        res.status(page.status).set(page.headers).send(page.body);
+    } catch (err) {
+        next(err);
+    }
 });
 
 // this was helpful for configs:

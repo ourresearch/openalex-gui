@@ -2,13 +2,12 @@
 //
 // A page is { title, canonical, apiUrl, intro, sections: [{ heading, blocks }] }.
 // A block is { p: inline } | { facts: [[label, inline], ...] } | { ol: [inline, ...], start? }.
-// An inline is a string, a link { text, href }, code { code } (a filter, say), or an array of inlines. Strings are
-// plain text from the API: tags are stripped here, then escaped for the format.
+// An inline is a string, a link { text, href }, code { code } (a filter, say), or an array of inlines.
+// Strings are plain text from the API: tags are stripped here, then escaped for the format.
 
 const ENTITIES = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", "#39": "'", nbsp: " " };
 
-// API text can carry markup (<i>E. coli</i>, <sup>2</sup>) and entities; an assistant
-// wants the words.
+// API text can carry markup (<i>E. coli</i>, <sup>2</sup>) and entities; an assistant wants the words.
 // plain() keeps edge spaces (inline pieces join up: [link, " (journal)"]); clean() trims.
 function plain(s) {
   if (s === null || s === undefined) return "";
@@ -22,73 +21,62 @@ export function clean(s) {
   return plain(s).trim();
 }
 
-function escapeHtml(s) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
+const escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 // "_" stays: intraword it is never emphasis, and assistants read the raw text (primary_location).
-function escapeMd(s) {
-  return s.replace(/([\\`*[\]<>])/g, "\\$1");
-}
+const escapeMd = (s) => s.replace(/([\\`*[\]<>])/g, "\\$1");
 
-function inlineHtml(x) {
+const HTML = {
+  text: escapeHtml,
+  code: (c) => `<code>${escapeHtml(c)}</code>`,
+  link: (text, href) => `<a href="${escapeHtml(href)}">${escapeHtml(text)}</a>`,
+  h1: (s) => `<h1>${escapeHtml(s)}</h1>`,
+  h2: (s) => `<h2>${escapeHtml(s)}</h2>`,
+  p: (s) => `<p>${s}</p>`,
+  facts: (rows) => `<ul>\n${rows.map(([k, v]) => `<li><strong>${escapeHtml(k)}:</strong> ${v}</li>`).join("\n")}\n</ul>`,
+  ol: (items, start) => `<ol${start > 1 ? ` start="${start}"` : ""}>\n${items.map((v) => `<li>${v}</li>`).join("\n")}\n</ol>`,
+};
+
+const MD = {
+  text: escapeMd,
+  code: (c) => `\`${c.replace(/`/g, "'")}\``,
+  // a bare URL reads best as itself
+  link: (text, href) => (text === href ? href : `[${escapeMd(text)}](${href.replace(/\(/g, "%28").replace(/\)/g, "%29").replace(/\s/g, "%20")})`),
+  h1: (s) => `# ${escapeMd(s)}`,
+  h2: (s) => `## ${escapeMd(s)}`,
+  p: (s) => s,
+  facts: (rows) => rows.map(([k, v]) => `- **${escapeMd(k)}:** ${v}`).join("\n"),
+  ol: (items, start) => items.map((v, i) => `${(start || 1) + i}. ${v}`).join("\n"),
+};
+
+function inline(x, f) {
   if (x === null || x === undefined || x === false) return "";
-  if (Array.isArray(x)) return x.map(inlineHtml).join("");
-  if (typeof x === "object" && "code" in x) return `<code>${escapeHtml(String(x.code))}</code>`;
-  if (typeof x === "object") return `<a href="${escapeHtml(x.href)}">${escapeHtml(clean(x.text ?? x.href))}</a>`;
-  return escapeHtml(plain(x));
+  if (Array.isArray(x)) return x.map((y) => inline(y, f)).join("");
+  if (typeof x === "object" && "code" in x) return f.code(String(x.code));
+  if (typeof x === "object") return f.link(clean(x.text ?? x.href), x.href);
+  return f.text(plain(x));
 }
 
-function inlineMd(x) {
-  if (x === null || x === undefined || x === false) return "";
-  if (Array.isArray(x)) return x.map(inlineMd).join("");
-  if (typeof x === "object" && "code" in x) return `\`${String(x.code).replace(/`/g, "'")}\``;
-  if (typeof x === "object") {
-    const text = clean(x.text ?? x.href);
-    if (text === x.href) return x.href; // a bare URL reads best as itself
-    const href = x.href.replace(/\(/g, "%28").replace(/\)/g, "%29").replace(/\s/g, "%20");
-    return `[${escapeMd(text)}](${href})`;
-  }
-  return escapeMd(plain(x));
-}
-
-// Joined pieces can double a period ("PeerJ, Inc." + "."); an ellipsis stays.
-function tidy(s) {
-  return s.replace(/([^.])\.\.(?=\s|$)/g, "$1.");
-}
-
-function blocks(page) {
-  const out = [];
-  if (page.intro) out.push({ p: page.intro });
+function body(page, f) {
+  const out = [f.h1(clean(page.title))];
+  const blocks = page.intro ? [{ p: page.intro }] : [];
   for (const s of page.sections) {
-    if (s.heading) out.push({ heading: s.heading });
-    out.push(...s.blocks);
+    if (s.heading) blocks.push({ heading: s.heading });
+    blocks.push(...s.blocks);
+  }
+  for (const b of blocks) {
+    if (b.heading) out.push(f.h2(clean(b.heading)));
+    else if (b.p) out.push(f.p(inline(b.p, f)));
+    else if (b.facts) out.push(f.facts(b.facts.map(([k, v]) => [k, inline(v, f)])));
+    else if (b.ol) out.push(f.ol(b.ol.map((v) => inline(v, f)), b.start));
   }
   return out;
 }
 
 export function toMarkdown(page) {
-  const parts = [`# ${escapeMd(clean(page.title))}`];
-  for (const b of blocks(page)) {
-    if (b.heading) parts.push(`## ${escapeMd(clean(b.heading))}`);
-    else if (b.p) parts.push(tidy(inlineMd(b.p)));
-    else if (b.facts) parts.push(b.facts.map(([k, v]) => `- **${escapeMd(k)}:** ${tidy(inlineMd(v))}`).join("\n"));
-    else if (b.ol) parts.push(b.ol.map((v, i) => `${(b.start || 1) + i}. ${tidy(inlineMd(v))}`).join("\n"));
-  }
-  return parts.join("\n\n") + "\n";
+  return body(page, MD).join("\n\n") + "\n";
 }
 
 export function toHtml(page) {
-  const body = [`<h1>${escapeHtml(clean(page.title))}</h1>`];
-  for (const b of blocks(page)) {
-    if (b.heading) body.push(`<h2>${escapeHtml(clean(b.heading))}</h2>`);
-    else if (b.p) body.push(`<p>${tidy(inlineHtml(b.p))}</p>`);
-    else if (b.facts) {
-      body.push(`<ul>\n${b.facts.map(([k, v]) => `<li><strong>${escapeHtml(k)}:</strong> ${tidy(inlineHtml(v))}</li>`).join("\n")}\n</ul>`);
-    } else if (b.ol) {
-      body.push(`<ol${b.start > 1 ? ` start="${b.start}"` : ""}>\n${b.ol.map((v) => `<li>${tidy(inlineHtml(v))}</li>`).join("\n")}\n</ol>`);
-    }
-  }
   const head = [
     '<meta charset="utf-8">',
     `<title>${escapeHtml(clean(page.title))} | OpenAlex</title>`,
@@ -97,5 +85,5 @@ export function toHtml(page) {
     `<link rel="canonical" href="${escapeHtml(page.canonical)}">`,
   ];
   if (page.apiUrl) head.push(`<link rel="alternate" type="application/json" href="${escapeHtml(page.apiUrl)}">`);
-  return `<!doctype html>\n<html lang="en">\n<head>\n${head.join("\n")}\n</head>\n<body>\n<main>\n${body.join("\n")}\n</main>\n</body>\n</html>\n`;
+  return `<!doctype html>\n<html lang="en">\n<head>\n${head.join("\n")}\n</head>\n<body>\n<main>\n${body(page, HTML).join("\n")}\n</main>\n</body>\n</html>\n`;
 }

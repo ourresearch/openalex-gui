@@ -7,7 +7,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { assistantPage, route, listQuery, wantsMarkdown, tokenOk, queryString, HEADER } from "./index.mjs";
-import { abstractText, siteUrl } from "./pages.mjs";
+import { abstractText, siteUrl, NATIVE, SEARCH_LABEL } from "./pages.mjs";
+import { NATIVE_PREFIX_TO_ENTITY } from "../src/openalexId.js";
+import { searchParamKeys } from "../src/searchParamKeys.js";
 import { toHtml, toMarkdown } from "./format.mjs";
 
 const DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "fixtures");
@@ -315,16 +317,14 @@ describe("API errors become plain pages", () => {
     expect(page.body).toContain("bogus is not a valid field.");
   });
 
-  it.each([
-    "/works?filter=from_created_date:2026-01-01",
-    "/works?filter=type:article,to_created_date:2026-01-01",
-    "/works?sort=created_date:desc",
-  ])("a paid-plan query (%s) is refused without calling the API, whatever the key's plan", async (target) => {
-    const f = fixtureFetch();
-    const { page } = await render(target, { accept: "text/markdown" }, f);
-    expect(page.status).toBe(403);
-    expect(page.body).toContain("need a paid plan");
-    expect(f).not.toHaveBeenCalled();
+  it("a paid-plan query gets the API's own refusal (the server key has no paid plan)", async () => {
+    const url = "https://api.openalex.org/works?filter=from_created_date:2026-01-01&sort=cited_by_count:desc&per_page=25&select=id,display_name,publication_year,type,cited_by_count,doi,authorships,primary_location,open_access,is_retracted";
+    const refusal = { error: "Plan upgrade required", message: 'The "from_created_date:2026-01-01" filter requires a Premium, Institutional, or Partner plan. See https://openalex.org/pricing for details.' };
+    const f = fixtureFetch({ [url]: () => jsonResponse(refusal, 429) });
+    const { page } = await render("/works?filter=from_created_date:2026-01-01", { accept: "text/markdown" }, f);
+    expect(page.status).toBe(400);
+    expect(page.body).toContain("requires a Premium, Institutional, or Partner plan. See https://openalex.org/pricing for details.");
+    expect(page.body).not.toContain("details..");
   });
 
   it("network failure -> 502, never an exception", async () => {
@@ -334,6 +334,16 @@ describe("API errors become plain pages", () => {
     const { page } = await render("/W2741809807", {}, f);
     expect(page.status).toBe(502);
     expect(page.body).toContain("did not answer");
+  });
+});
+
+describe("tables copied from the app stay equal to it", () => {
+  // The server can't import src/ at runtime (no "type": "module"; "@/" imports), so it keeps copies.
+  it("id prefixes match src/openalexId.js", () => {
+    expect(NATIVE).toEqual(NATIVE_PREFIX_TO_ENTITY);
+  });
+  it("search parameters match src/searchParamKeys.js", () => {
+    expect(Object.keys(SEARCH_LABEL)).toEqual(searchParamKeys);
   });
 });
 
