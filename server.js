@@ -30,6 +30,34 @@ app.use(function (req, res, next) {
     }
 });
 
+// Readable pages for verified AI assistants (oxjob #1688; assistantPages/index.mjs).
+// ChatGPT, Claude and other assistants fetch entity and search pages for a person but
+// don't run JavaScript, so the shell tells them nothing. Cloudflare sets
+// X-OpenAlex-Verified-Assistant to a secret on verified "AI Assistant" requests only;
+// for those, entity and list URLs get a plain page built from the API. With
+// VERIFIED_ASSISTANT_TOKEN unset this does nothing, and any failure serves the site.
+let assistantPage = null;
+app.use(function (req, res, next) {
+    const token = process.env.VERIFIED_ASSISTANT_TOKEN;
+    if (!assistantPage || !token || !req.get('x-openalex-verified-assistant')) return next();
+    let url;
+    try {
+        url = new URL('https://openalex.org' + req.originalUrl);
+    } catch (err) {
+        return next();
+    }
+    assistantPage(
+        { method: req.method, url, header: (name) => req.get(name) },
+        { VERIFIED_ASSISTANT_TOKEN: token, ASSISTANT_PAGES_API_KEY: process.env.ASSISTANT_PAGES_API_KEY },
+    ).catch((err) => {
+        console.error('Assistant page failed; serving the site instead.', err);
+        return null;
+    }).then((page) => {
+        if (page) res.status(page.status).set(page.headers).send(page.body);
+        else next();
+    }).catch(next);
+});
+
 // this was helpful for configs:
 // https://scotch.io/tutorials/creating-a-single-page-todo-app-with-node-and-angular
 // Static assets (oxjob #860). Webpack content-hashes everything under
@@ -98,8 +126,17 @@ async function loadCompanyPageHtml() {
     }
 }
 
+async function loadAssistantPages() {
+    try {
+        ({ assistantPage } = await import('./assistantPages/index.mjs'));
+    } catch (err) {
+        // Never keep the site down over this: assistants get the shell, as before.
+        console.error('Assistant pages not loaded; serving the site to assistants as before.', err);
+    }
+}
+
 const port = process.env.PORT || 5000;
-loadCompanyPageHtml().then(() => {
+Promise.all([loadCompanyPageHtml(), loadAssistantPages()]).then(() => {
     app.listen(port, () => {
         console.log('Listening on port ' + port)
     });
