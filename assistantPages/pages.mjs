@@ -463,8 +463,8 @@ export function errorPage(r, pageUrlIn, err) {
   const what = r.kind === "entity" ? `${SINGULAR[r.type] || r.type} ${r.id}` : `this ${r.type} list`;
   const intro = err.status === 404
     ? `OpenAlex has no ${what}.`
-    : err.status === 400
-      ? `The OpenAlex API could not run ${what}: ${err.message.length > 300 ? `${err.message.slice(0, 300)}...` : err.message}`
+    : err.status === 400 || err.status === 403
+      ? `The OpenAlex API could not run ${what}: ${err.message.length > 300 ? `${err.message.slice(0, 300)}...` : err.message}.`
       : `The OpenAlex API did not answer for ${what} just now (${err.message}). Try again in a moment.`;
   return {
     title: err.status === 404 ? "Not found" : "Could not load this page",

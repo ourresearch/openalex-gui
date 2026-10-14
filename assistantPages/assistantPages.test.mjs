@@ -315,6 +315,18 @@ describe("API errors become plain pages", () => {
     expect(page.body).toContain("bogus is not a valid field.");
   });
 
+  it.each([
+    "/works?filter=from_created_date:2026-01-01",
+    "/works?filter=type:article,to_created_date:2026-01-01",
+    "/works?sort=created_date:desc",
+  ])("a paid-plan query (%s) is refused without calling the API, whatever the key's plan", async (target) => {
+    const f = fixtureFetch();
+    const { page } = await render(target, { accept: "text/markdown" }, f);
+    expect(page.status).toBe(403);
+    expect(page.body).toContain("need a paid plan");
+    expect(f).not.toHaveBeenCalled();
+  });
+
   it("network failure -> 502, never an exception", async () => {
     const f = vi.fn(async () => {
       throw new TypeError("fetch failed");

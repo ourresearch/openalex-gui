@@ -191,8 +191,16 @@ async function buildEntity(r, getJson) {
   return entityPage(r.type, record, top);
 }
 
+// Created-date filters and sorting are paid-plan features (Premium, Institutional, Partner). The
+// server key must not hand them to everyone: a free user's website gets "Plan upgrade required" for
+// these, and so does an assistant here, whatever plan the key is on.
+const PLAN_GATED = /(^|,)!?[\w.]*created_date[\w.]*:|^created_date/;
+
 async function buildList(r, url, getJson) {
   const publicUrl = `${API}/${r.type}?${queryString(r.query)}`;
+  if (PLAN_GATED.test(r.query.filter || "") || PLAN_GATED.test(r.query.sort)) {
+    throw new ApiError(403, "created-date filters and sorting need a paid plan; run this query in the API with your own key", publicUrl);
+  }
   const select = LIST_SELECT[r.type];
   const data = await getJson(`/${r.type}?${queryString({ ...r.query, select })}`, publicUrl);
   return listPage(r, url, data, publicUrl);
