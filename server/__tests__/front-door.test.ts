@@ -28,6 +28,11 @@ beforeAll(async () => {
       setResponseHeader(event, 'last-modified', new Date(0).toUTCString())
       return 'User-agent: *\n' + 'Allow: /\n'.repeat(300)
     }
+    // The sitemaps track's R2 files: already gzipped, served as application/gzip.
+    if (event.path === '/sitemaps/works-1.xml.gz') {
+      setResponseHeader(event, 'content-type', 'application/gzip')
+      return zlib.gzipSync(Buffer.from(PROXIED))
+    }
     // Nitro's static handler serving a precompressed .br file (compressPublicAssets).
     if (event.path === '/_nuxt/precompressed.js') {
       setResponseHeader(event, 'cache-control', 'public, max-age=31536000, immutable')
@@ -157,6 +162,12 @@ describe('compression (the compression package, as server.js)', () => {
     const r = await get('/proxied', { 'Accept-Encoding': 'br' })
     expect(r.headers['content-encoding']).toBe('br')
     expect(zlib.brotliDecompressSync(r.body).toString()).toBe(PROXIED)
+  })
+  it('leaves application/gzip files (sitemaps) alone: no Content-Encoding added', async () => {
+    const r = await get('/sitemaps/works-1.xml.gz', { 'Accept-Encoding': 'gzip, br' })
+    expect(r.headers['content-type']).toBe('application/gzip')
+    expect(r.headers['content-encoding']).toBeUndefined()
+    expect(zlib.gunzipSync(r.body).toString()).toBe(PROXIED)
   })
   it('never compresses a precompressed static file twice', async () => {
     const r = await get('/_nuxt/precompressed.js', { 'Accept-Encoding': 'gzip, br' })
