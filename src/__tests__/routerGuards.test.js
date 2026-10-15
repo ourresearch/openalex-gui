@@ -24,6 +24,7 @@ vi.mock("@/views/Me/MeProfile.vue", () => ({ default: stub }));
 vi.mock("@/views/Settings/SettingsOrgUsage.vue", () => ({ default: stub }));
 
 const { routes, scrollBehavior, installGuards, setAppRouter } = await import("@/router/index.js");
+const { sanitizeRedirectPath } = await import("@/util");
 
 function fakeStore({ userId = null, isAdmin = false, orgRole = null } = {}) {
   return {
@@ -46,6 +47,20 @@ async function go(to, store = fakeStore()) {
   installGuards(router, store);
   setAppRouter(router);
   await router.push(to);
+  return router.currentRoute.value;
+}
+
+// Nuxt's router plugin: the first navigation runs before our global guards are
+// installed, then Nuxt replays the first URL with force: true on the same route
+// record (pages/runtime/plugins/router.js). Fixups must survive that replay.
+async function nuxtFreshLoad(url) {
+  router = createRouter({ history: createMemoryHistory(), routes, scrollBehavior });
+  setAppRouter(router);
+  await router.push(url);
+  installGuards(router, fakeStore());
+  const initial = router.currentRoute.value.fullPath === url ? { ...router.currentRoute.value } : router.resolve(url);
+  delete initial.name;
+  await router.replace({ ...initial, force: true });
   return router.currentRoute.value;
 }
 
@@ -86,19 +101,6 @@ describe("navigation guards on vue-router 5", () => {
     expect(r.params.entityType).toBe("locations");
   });
 
-  // Nuxt's router plugin: the first navigation runs before our global guards are
-  // installed, then Nuxt replays the first URL with force: true on the same route
-  // record (pages/runtime/plugins/router.js). Fixups must survive that replay.
-  async function nuxtFreshLoad(url) {
-    router = createRouter({ history: createMemoryHistory(), routes, scrollBehavior });
-    setAppRouter(router);
-    await router.push(url);
-    installGuards(router, fakeStore());
-    const initial = router.currentRoute.value.fullPath === url ? { ...router.currentRoute.value } : router.resolve(url);
-    delete initial.name;
-    await router.replace({ ...initial, force: true });
-    return router.currentRoute.value;
-  }
 
   it("on a Nuxt fresh load, location pages keep entityType (else 'Page not found')", async () => {
     const r = await nuxtFreshLoad("/locations/doi.org%2F10.7717%2Fpeerj.4375");
@@ -135,6 +137,43 @@ describe("navigation guards on vue-router 5", () => {
     expect((await go("/works?search=kelp")).fullPath).toBe("/works?search=kelp");
     expect((await go("/login")).name).toBe("Login");
     expect((await go("/no/such/page")).name).toBe("PageNotFound");
+  });
+});
+
+// The MCP sign-in (OAuth consent, oxjob #1266): a logged-out visitor lands on
+// /oauth/consent from the MCP server, is sent to /login with the way back, gets a
+// magic link by email (users-api puts `redirect` in the link), and comes back to
+// the consent page, which must read exactly the query it was first given. Nuxt
+// re-spells the first URL (vue-router's encoding instead of the visitor's), so the
+// `redirect` value is decoded one level further than on master; the round trip
+// must still land on the same query, character for character.
+describe("MCP login round trip through /login and the magic link", () => {
+  const RETURN = "https://mcp.openalex.org/oauth/callback?state=a+b%2Bc&x=1&y=two words&z=%23frag&u=caf\u00e9&p=100%25";
+  const cases = {
+    "encoded the usual way": `/oauth/consent?request=req_123&return=${encodeURIComponent(RETURN)}&client=Claude`,
+    "spaces as %20, plus literal": "/oauth/consent?request=a%20b%2Bc&return=https%3A%2F%2Fexample.com%2Fcb&client=Claude%20Desktop",
+    "spaces as +": "/oauth/consent?request=a+b&return=https://example.com/cb?k=v&client=ChatGPT",
+  };
+  it.each(Object.entries(cases))("%s", async (_label, url) => {
+    // What the consent page would read on master (vue-router parses the URL as typed).
+    const expected = createRouter({ history: createMemoryHistory(), routes }).resolve(url).query;
+
+    // 1. Fresh load, logged out: Nuxt's replay, then the requiresAuth bounce.
+    const atLogin = await nuxtFreshLoad(url);
+    expect(atLogin.name).toBe("Login");
+    const redirect = sanitizeRedirectPath(atLogin.query.redirect, null);
+    expect(redirect).toBeTruthy();
+
+    // 2. The magic link carries `redirect` as a query parameter; the token page reads it back.
+    const linkPath = `/login/magic-token/tok123?redirect=${encodeURIComponent(redirect)}`;
+    const atToken = router.resolve(linkPath);
+    expect(atToken.name).toBe("Magic-token");
+    const back = sanitizeRedirectPath(atToken.query.redirect, "/");
+
+    // 3. Logged in now: back to the consent page with the same query.
+    const r = await go(back, fakeStore({ userId: "user-1" }));
+    expect(r.name).toBe("OAuthConsent");
+    expect(r.query).toEqual(expected);
   });
 });
 

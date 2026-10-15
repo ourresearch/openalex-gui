@@ -92,7 +92,10 @@ export default defineNuxtConfig({
     rootId: 'app',
     head: {
       htmlAttrs: { lang: 'en' },
-      title: 'OpenAlex',
+      // No `title` here (#1689 parity): an app-level title is a head entry that
+      // App.vue's titleTemplate turns into "OpenAlex | OpenAlex" on pages without
+      // their own title. The client-rendered shell gets master's plain
+      // <title>OpenAlex</title> from server/lib/page-shell.ts instead.
       meta: [
         { charset: 'utf-8' },
         { 'http-equiv': 'X-UA-Compatible', content: 'IE=edge' },

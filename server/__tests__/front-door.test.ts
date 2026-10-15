@@ -28,6 +28,14 @@ beforeAll(async () => {
       setResponseHeader(event, 'last-modified', new Date(0).toUTCString())
       return 'User-agent: *\n' + 'Allow: /\n'.repeat(300)
     }
+    // Nitro's static handler serving a precompressed .br file (compressPublicAssets).
+    if (event.path === '/_nuxt/precompressed.js') {
+      setResponseHeader(event, 'cache-control', 'public, max-age=31536000, immutable')
+      setResponseHeader(event, 'content-type', 'text/javascript; charset=utf-8')
+      setResponseHeader(event, 'content-encoding', 'br')
+      setResponseHeader(event, 'vary', 'Accept-Encoding')
+      return zlib.brotliCompressSync(Buffer.from(PROXIED))
+    }
     if (event.path.startsWith('/_nuxt/')) {
       setResponseHeader(event, 'cache-control', 'public, max-age=31536000, immutable')
       setResponseHeader(event, 'content-type', 'text/javascript; charset=utf-8')
@@ -147,6 +155,11 @@ describe('compression (the compression package, as server.js)', () => {
   })
   it('streams a large proxied response through whole (no stall after 16 KB)', async () => {
     const r = await get('/proxied', { 'Accept-Encoding': 'br' })
+    expect(r.headers['content-encoding']).toBe('br')
+    expect(zlib.brotliDecompressSync(r.body).toString()).toBe(PROXIED)
+  })
+  it('never compresses a precompressed static file twice', async () => {
+    const r = await get('/_nuxt/precompressed.js', { 'Accept-Encoding': 'gzip, br' })
     expect(r.headers['content-encoding']).toBe('br')
     expect(zlib.brotliDecompressSync(r.body).toString()).toBe(PROXIED)
   })

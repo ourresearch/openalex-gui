@@ -58,6 +58,22 @@ describe('company page heads (#1486)', () => {
   })
 })
 
+describe('shell title', () => {
+  it('a client-rendered page with no <title> gets master\'s plain one, after the viewport meta', () => {
+    const html = spaShell()
+    html.head = [html.head[0].replace('<title>OpenAlex</title>\n', '')]
+    applyShell(html, '/works')
+    expect(html.head[0]).toBe('<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1.0">\n<title>OpenAlex</title>\n<link rel="preconnect" href="https://api.openalex.org" crossorigin>')
+  })
+  it('and a company page then gets its own head in its place', () => {
+    const html = spaShell()
+    html.head = [html.head[0].replace('<title>OpenAlex</title>\n', '')]
+    applyShell(html, '/about')
+    expect(html.head[0]).toContain('<title>About | OpenAlex</title>')
+    expect(html.head[0].match(/<title>/g)).toHaveLength(1)
+  })
+})
+
 describe('boot skeleton (#860)', () => {
   it('client-rendered pages get it after the noscript text, before the app root', () => {
     const html = spaShell()
