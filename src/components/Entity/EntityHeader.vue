@@ -138,9 +138,12 @@
       <!-- A collection's name is user text, and a collection shared by link shows it
            to other people: render it as plain text, never HTML (oxjob #646). -->
       <div v-if="isCollection" :class="titleClass">{{ displayTitle }}</div>
-      <div
+      <!-- #1689: the record's name is the page's one <h1> on the full page;
+           the drawer sits on a search page, so it stays a div there. -->
+      <component
+        :is="isDrawer ? 'div' : 'h1'"
         v-else
-        :class="titleClass"
+        :class="[titleClass, 'entity-title']"
         v-html="filters.prettyTitle(displayTitle)"
       />
       <slot name="after-title" />
@@ -316,6 +319,10 @@ const apiUrl = computed(() => {
 
 
 <style scoped lang="scss">
+h1.entity-title {
+  // Vuetify's text-h* classes set the type; drop the browser's default h1 margin-top.
+  margin-top: 0;
+}
 .header-meta-row {
   // Subtle visual weight for the meta strip: type indicator + collection chips
   // shouldn't outshout the title beneath.
