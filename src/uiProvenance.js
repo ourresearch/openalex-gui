@@ -10,10 +10,17 @@
 // in memory, and re-mint shortly before it expires. `axiosConfig()` attaches it
 // as the `X-OpenAlex-UI` header on OpenAlex API calls.
 //
+// Since oxjobs #1691/#1692 the token earns the website's API perks (cheap search
+// facets, no pausing of searches under load) and only works from the IP that
+// minted it. So we keep it in localStorage (a page load needn't start without
+// one; before this ~41% of the website's calls went out before the mint landed),
+// and when the API answers `X-OpenAlex-UI-Token: refresh` (token expired, minted
+// on another network, or unknown) we drop it and mint a new one.
+//
 // DESIGN INVARIANTS:
-// - Provenance, not auth: the API NEVER gates on this token. Every failure path
-//   here (script not loaded, off-domain, challenge unsolved, mint error) just
-//   means "no token" → requests go out untagged → tagged untrusted server-side.
+// - Never blocks: every failure path here (script not loaded, off-domain,
+//   challenge unsolved, mint error, storage blocked) just means "no token" →
+//   requests go out without it and are priced like any keyless call.
 //   Nothing here may ever block, delay, or break an API call. It's best-effort.
 // - Fully async / fire-and-forget: never awaited by the render path.
 
@@ -25,14 +32,37 @@ let _expiresAtMs = 0;     // epoch ms when _token expires
 let _widgetId = null;     // Turnstile widget id
 let _initialized = false; // guard against double-init
 let _remintTimer = null;
+let _refreshing = false;  // a re-mint asked for by the API is in flight
 
 // Re-mint this many ms before expiry so a valid token is (almost) always ready.
 const REMINT_LEAD_MS = 60_000;
+const STORAGE_KEY = 'openalexUiToken';
+const STATUS_HEADER = 'x-openalex-ui-token'; // axios lower-cases response header names
 
 /** Synchronous getter used by axiosConfig(). Returns a non-expired token or null. */
 export function getUiToken() {
     if (_token && Date.now() < _expiresAtMs) return _token;
     return null;
+}
+
+function setToken(token, expiresAtMs) {
+    _token = token;
+    _expiresAtMs = expiresAtMs;
+    try {
+        if (token) localStorage.setItem(STORAGE_KEY, JSON.stringify({ token, expiresAt: expiresAtMs }));
+        else localStorage.removeItem(STORAGE_KEY);
+    } catch { /* storage blocked or full: memory only */ }
+}
+
+function loadStoredToken() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        if (saved?.token && Number(saved.expiresAt) > Date.now() + REMINT_LEAD_MS) {
+            _token = saved.token;
+            _expiresAtMs = Number(saved.expiresAt);
+            scheduleRemint(_expiresAtMs - Date.now());
+        }
+    } catch { /* unreadable: mint fresh */ }
 }
 
 // The Turnstile script (public/index.html) is async; window.turnstile may not
@@ -56,15 +86,14 @@ async function mintFromTurnstile(turnstileResponse) {
         const token = res?.data?.token;
         const expiresIn = res?.data?.expiresIn; // seconds
         if (token && expiresIn) {
-            _token = token;
-            _expiresAtMs = Date.now() + expiresIn * 1000;
+            setToken(token, Date.now() + expiresIn * 1000);
             scheduleRemint(expiresIn * 1000);
         }
     } catch (e) {
-        // Mint not configured (503), Turnstile rejected (403), or network error.
-        // Harmless — we simply have no token this cycle.
-        _token = null;
-        _expiresAtMs = 0;
+        // Mint not configured (503), Turnstile rejected (403), capped (429), or network error.
+        // Harmless — we keep any still-valid token (getUiToken checks expiry) or go without.
+    } finally {
+        _refreshing = false;
     }
 }
 
@@ -83,6 +112,23 @@ function scheduleRemint(ttlMs) {
 }
 
 /**
+ * The API refused the token this response was sent with: drop it and mint once,
+ * however many responses in a burst carry the signal. A response to a request
+ * sent with an older token than the current one is ignored.
+ */
+export function handleUiTokenStatus(response) {
+    try {
+        if (response?.headers?.[STATUS_HEADER] !== 'refresh') return;
+        const sent = response?.config?.headers?.['X-OpenAlex-UI'];
+        if (sent && sent !== _token) return;
+        setToken(null, 0);
+        if (_refreshing) return;
+        _refreshing = true;
+        refreshTurnstile();
+    } catch { /* never break a response */ }
+}
+
+/**
  * Initialise UI provenance. Call once at app startup. Never throws, never
  * blocks — safe to call fire-and-forget.
  */
@@ -90,6 +136,12 @@ export async function initUiProvenance() {
     if (_initialized) return;
     _initialized = true;
     try {
+        loadStoredToken();
+        axios.interceptors.response.use(
+            (response) => { handleUiTokenStatus(response); return response; },
+            (error) => { handleUiTokenStatus(error?.response); return Promise.reject(error); },
+        );
+
         const ready = await ensureTurnstileLoaded();
         if (!ready) return; // no Turnstile → no token; harmless
 
@@ -113,14 +165,22 @@ export async function initUiProvenance() {
         anchor.setAttribute('aria-hidden', 'true');
         document.body.appendChild(anchor);
 
+        // Mints on every app start, as before; a stored token covers the calls made before it lands.
         _widgetId = window.turnstile.render(anchor, {
             sitekey: UI_PROVENANCE_SITEKEY,
             appearance: 'interaction-only', // silent pass mints; any interactive promo stays off-screen
             callback: (turnstileResponse) => { mintFromTurnstile(turnstileResponse); },
-            'error-callback': () => { /* leave _token as-is; retry on next remint */ },
+            'error-callback': () => { _refreshing = false; /* leave _token as-is; retry on next remint */ },
             'expired-callback': () => { refreshTurnstile(); },
         });
     } catch (e) {
         // Any failure here must not affect the app.
     }
+}
+
+/** Test hook: reset module state between tests. */
+export function _resetForTests() {
+    _token = null; _expiresAtMs = 0; _widgetId = null; _initialized = false; _refreshing = false;
+    if (_remintTimer) clearTimeout(_remintTimer);
+    _remintTimer = null;
 }
