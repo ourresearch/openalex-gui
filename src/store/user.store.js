@@ -29,6 +29,8 @@ export default {
         isSiteCurator: false,
         apiKey: null,
         retiredApiKey: null,
+        // The key an AI agent asked for on this account, if any (oxjob #1697): its ending and status only.
+        agentApiKey: null,
         plan: null,
         planExpiresAt: null,
         organizationId: null,
@@ -103,6 +105,7 @@ export default {
             state.savedSearches = []
             state.savedSearchesLoaded = false
             state.authorId = ""
+            state.agentApiKey = null
             state.plan = null
             state.planExpiresAt = null
             state.isSiteCurator = false
@@ -129,6 +132,7 @@ export default {
             state.authorId = apiResp.author_id
             state.apiKey = apiResp.api_key || null
             state.retiredApiKey = apiResp.retired_api_key || null
+            state.agentApiKey = apiResp.agent_api_key || null
             state.plan = apiResp.plan || null
             state.planExpiresAt = apiResp.plan_expires_at || null
             state.organizationId = apiResp.organization_id || null
@@ -145,6 +149,9 @@ export default {
         },
         setEmails(state, emails) {
             state.emails = emails || []
+        },
+        setAgentApiKey(state, summary) {
+            state.agentApiKey = summary || null
         },
     },
     actions: {
@@ -229,11 +236,13 @@ export default {
             await dispatch('fetchUser');
         },
 
-        async loginWithMagicToken({commit, dispatch}, magicToken) {
-            console.log("user.store loginWithMagicToken", magicToken)
+        // Payload: the token, or {token, turnstileToken}. Activating a key an AI agent asked for needs the
+        // Turnstile token (oxjob #1697); users-api ignores it for every other login.
+        async loginWithMagicToken({commit, dispatch}, payload) {
+            const {token: magicToken, turnstileToken} = typeof payload === "string" ? {token: payload} : payload
             const resp = await axios.post(
                 apiBaseUrl + "/users/magic-login",
-                {token: magicToken}
+                turnstileToken ? {token: magicToken, turnstile_token: turnstileToken} : {token: magicToken}
             )
             // oxjob #290: store the api_key as the universal auth credential
             // (was the JWT access_token). users-api accepts api_key on the same
@@ -629,6 +638,12 @@ export default {
             const myUrl = apiBaseUrl + `/users/${state.id}/api-key/retired`
             const resp = await axios.delete(myUrl, axiosConfig({userAuth: true}))
             commit("setFromApiResp", resp.data)
+        },
+
+        // Revoke the key an AI agent asked for (oxjob #1697). The account's own key is untouched.
+        async revokeAgentApiKey({commit, state}) {
+            const resp = await axios.delete(apiBaseUrl + `/users/${state.id}/api-key/agent`, axiosConfig({userAuth: true}))
+            commit("setAgentApiKey", resp.data)
         },
 
         // **************************************************
