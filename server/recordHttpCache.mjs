@@ -21,7 +21,7 @@ import { canonicalUrl, apiUrl } from '../src/seo/recordHead.mjs';
 
 export const CACHE_CONTROL = 'no-cache';
 export const VARY = 'User-Agent';
-export const CONTENT_SIGNAL = 'search=yes, ai-input=yes, ai-train=no';
+export const CONTENT_SIGNAL = 'search=yes, ai-input=yes, ai-train=yes';
 
 // Link header for a record page: its canonical URL and the same record in the API.
 export function recordLinkHeader(recordId) {

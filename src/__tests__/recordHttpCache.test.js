@@ -117,7 +117,7 @@ describe('Link and Content-Signal (#1689)', () => {
     expect(recordLinkHeader(null)).toBe(null);
   });
   it('Content-Signal matches robots.txt: search and AI input yes, training no', () => {
-    expect(CONTENT_SIGNAL).toBe('search=yes, ai-input=yes, ai-train=no');
+    expect(CONTENT_SIGNAL).toBe('search=yes, ai-input=yes, ai-train=yes');
     expect(applyRecordHttpCache(res(), req()).headers['content-signal']).toBe(CONTENT_SIGNAL);
   });
   it('a 304 keeps them (and Vary)', () => {

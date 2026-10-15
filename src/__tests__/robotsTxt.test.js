@@ -84,11 +84,10 @@ const COMPANY = Object.keys(COMPANY_PAGES);
 const PRIVATE = ['/settings/profile', '/me/api', '/admin', '/admin/users'];
 
 describe('robots.txt', () => {
-  it('parses into the three groups plus a sitemap', () => {
+  it('parses into the two groups plus a sitemap', () => {
     expect(robots.groups.map((g) => g.agents)).toEqual([
       ['*'],
       ASSISTANTS.map((a) => a.toLowerCase()),
-      TRAINING.map((a) => a.toLowerCase()),
     ]);
     expect(robots.sitemaps).toEqual(['https://openalex.org/sitemap.xml']);
   });
@@ -113,9 +112,11 @@ describe('robots.txt', () => {
     }
   });
 
-  it('training crawlers: off record, short-form and list URLs', () => {
+  // Training allowed on record pages (Jason, 2026-10-15): training crawlers follow the * group.
+  it('training crawlers: record pages and short record URLs open, faceted list URLs closed', () => {
     for (const agent of TRAINING) {
-      for (const p of [...RECORDS, ...SHORT_RECORDS, ...FACETED, '/works', '/q']) expect(allowed(agent, p), `${agent} ${p}`).toBe(false);
+      for (const p of [...RECORDS, ...SHORT_RECORDS, '/works', '/authors']) expect(allowed(agent, p), `${agent} ${p}`).toBe(true);
+      for (const p of [...FACETED, ...PRIVATE]) expect(allowed(agent, p), `${agent} ${p}`).toBe(false);
     }
   });
 
@@ -132,13 +133,13 @@ describe('robots.txt', () => {
     for (const name of names) {
       expect(allowed('Googlebot', `/${name}?filter=x`), `* /${name}?`).toBe(false);
       expect(allowed('Googlebot', `/${name}/x1`), `* /${name}/x1`).toBe(true);
-      expect(allowed('GPTBot', `/${name}/x1`), `GPTBot /${name}/x1`).toBe(false);
+      expect(allowed('GPTBot', `/${name}/x1`), `GPTBot /${name}/x1`).toBe(true);
     }
   });
 
   it('matches user-agent tokens case-insensitively and keeps groups apart', () => {
     expect(allowed('claude-user', '/works?filter=x')).toBe(true);
-    expect(allowed('CLAUDEBOT', '/works/W1')).toBe(false);
+    expect(allowed('CLAUDEBOT', '/works?filter=x')).toBe(false);
     expect(allowed('Claude-SearchBot', '/works/W1')).toBe(true);
   });
 });
