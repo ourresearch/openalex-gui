@@ -1,0 +1,6 @@
+{
+  "name": "openalex-gui-site-qa",
+  "private": true,
+  "description": "oxjob #1689 whole-site QA harness (site-qa.mjs); kept out of the app's dependencies.",
+  "dependencies": { "playwright-core": "^1.63.0" }
+}
