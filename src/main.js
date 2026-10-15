@@ -76,7 +76,9 @@ app.mount('#app');
 const initSentry = () => Promise.all([import("@sentry/vue"), import("@/sentryScrub")]).then(([Sentry, scrub]) => {
   Sentry.init({
     app,
-    dsn: "https://fb8a98f98b30ac77643b286fc1842ba9@o4505840077701120.ingest.us.sentry.io/4509509908299776",
+    // Project openalex-gui in the openalex-u3 org (oxjob #1685). A browser DSN is public by design.
+    dsn: "https://db1c393aec6e9b2a1632747abe5900f5@o4512257233649664.ingest.us.sentry.io/4512257301807104",
+    environment: location.hostname === "openalex.org" ? "production" : "development",
     sendDefaultPii: false,
     beforeBreadcrumb: scrub.scrubBreadcrumb,
     beforeSend: scrub.scrubEvent,
