@@ -8,6 +8,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    // Vuetify components import their CSS; let Vite load them (#1689: server/__tests__/agent-notice.test.ts).
+    server: { deps: { inline: ['vuetify'] } },
   },
   resolve: {
     alias: {

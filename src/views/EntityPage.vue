@@ -1,6 +1,7 @@
 <template>
   <div style="min-height: 80vh">
     <v-container v-if="entityData" class="entity-page">
+      <agent-notice v-if="showAgentNotice" :api-url="recordApiUrl" class="mt-2 mb-3" />
       <entity-header
         :entity-data="entityData"
         :entity-type="myEntityType"
@@ -433,7 +434,7 @@ import { ref, computed, watch, onMounted, mergeProps, provide } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
-import { useAsyncData, useRequestEvent } from '#app';  // #1689 Nuxt trial: record data fetched on the server, reused on hydration
+import { useAsyncData, useRequestEvent, useState } from '#app';  // #1689 Nuxt trial: record data fetched on the server, reused on hydration
 
 import { api } from '@/api';
 import { url } from '@/url';
@@ -441,9 +442,10 @@ import { getEntityConfig } from '@/entityConfigs';
 import { tagRecordData, recordDataFor } from '@/ssr/recordData';
 import { createSimpleFilter, filtersAsUrlStr } from '@/filterConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
-import { recordHead } from '@/seo/recordHead.mjs';
+import { recordHead, apiUrl } from '@/seo/recordHead.mjs';
 
 import EntityNew from '@/components/Entity/EntityNew.vue';
+import AgentNotice from '@/components/Entity/AgentNotice.vue';
 import EntityHeader from '@/components/Entity/EntityHeader.vue';
 import EntityMetrics from '@/components/Entity/EntityMetrics.vue';
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
@@ -554,6 +556,13 @@ const {
 // Only the record fetched for THIS route: on a client-side navigation Nuxt seeds
 // the new key with the previous record while it loads (src/ssr/recordData.js).
 const entityData = computed(() => recordDataFor(entityAsync.value, apiPath.value));
+// #1689: the "Notice to agents" (verified AI assistants, scripts, HTTP libraries).
+// The record middleware decides per request (server/lib/agentNotice.mjs); Nuxt state
+// carries the answer to the browser so hydration renders the same DOM. A browser
+// that started on any other page never has it.
+const agentNotice = useState('ox-agent-notice', () => !!ssrRecord?.agentNotice);
+const recordApiUrl = computed(() => apiUrl(entityData.value?.id));
+const showAgentNotice = computed(() => agentNotice.value && !!recordApiUrl.value);
 // Bad/unknown id: show the failure state instead of a blank page (oxjob #671).
 const entityLoadFailed = computed(() => !!entityAsyncError.value);
 // #1689: the not-found page (status 404 from the server) says so in its title.

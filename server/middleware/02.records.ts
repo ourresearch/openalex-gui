@@ -10,19 +10,21 @@
 //   - API slow (> ~1.5 s) or failing -> the plain SPA shell (the browser fetches
 //     and renders, exactly as before SSR), never an error page
 //   - otherwise                    -> server render, with the data in
-//     event.context.oxRecord for EntityPage.vue
+//     event.context.oxRecord for EntityPage.vue, and whether this visitor gets
+//     the "Notice to agents" (server/lib/agentNotice.mjs)
 // Paths under a record prefix that aren't a valid id (/works/W1/x, /keywords/a%2Fb)
 // get the SPA shell, as today. Runs after the front door (server/plugins/00.front-door.ts:
 // HTTPS, subdomain redirects, #1688 assistant pages) and before 03.paths.ts.
 import { defineEventHandler, getRequestHeader, sendRedirect, setResponseHeader, setResponseStatus } from 'h3'
 import { isUnderRecordPrefix, parseRecordPath, pathFromApiId, trimWorksList, worksListApiPath, worksListPlan } from '../../src/ssr/recordRoutes.js'
 import { apiGet, LIST_TIMEOUT_MS, RECORD_TIMEOUT_MS } from '../lib/ssrApi'
+import { showsAgentNotice } from '../lib/agentNotice.mjs'
 
 export const SPA_FALLBACK_HEADER = 'x-openalex-ssr-fallback'
 
 // Cache-Control for the responses this middleware ends or reroutes. A successfully
-// server-rendered page gets its caching headers (ETag, Cache-Control,
-// CDN-Cache-Control) from track seo-content's render:response hook; anything left
+// server-rendered page gets its caching headers (ETag, Cache-Control: no-cache,
+// Vary) from the render:response hook (server/recordHttpCache.mjs); anything left
 // unset gets the server's default (no-cache).
 const CACHE_NOT_FOUND = 'public, max-age=0, s-maxage=3600'
 const CACHE_REDIRECT = 'public, max-age=3600, s-maxage=86400'
@@ -138,6 +140,7 @@ export default defineEventHandler(async (event) => {
     apiPath: ref.apiPath,
     data: rec.data,
     works: earlyList || (plan ? fetchWorksList(plan, ref.id) : null),
+    agentNotice: showsAgentNotice((name: string) => getRequestHeader(event, name)),
   }
   setResponseHeader(event, 'x-openalex-render', 'ssr')
 })

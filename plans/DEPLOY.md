@@ -128,6 +128,11 @@ skip it. A late transform rule adds `X-OpenAlex-Verified-Assistant` to "AI Assis
 (#1688). So Cloudflare caches only static file extensions today (including `/_nuxt/*.js` and `.css`
 once the branch ships) and passes all HTML through.
 
+**Decided 2026-10-15 (Jason): no edge caching for now; that is #1701.** Record HTML is `no-cache` with
+`Vary: User-Agent`, because agents get a "Notice to agents" that browsers don't (#1689 agent notice), so
+one cached copy can't serve everyone. Proposals A-C below are kept for #1701 and would need that variant
+in the cache key.
+
 **Proposal A: cache SSR record HTML at the edge, honoring the origin.** One Cache Rule:
 
 ```

@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  recordHead, recordDescription, recordJsonLd, canonicalUrl, recordTitle, surname, plain, jsonForScript, DESCRIPTION_MAX,
+  recordHead, recordDescription, recordJsonLd, canonicalUrl, apiUrl, bareDoi, recordTitle, surname, plain, jsonForScript, DESCRIPTION_MAX,
 } from '@/seo/recordHead.mjs';
 import { noindexReason, isIndexable } from '@/seo/indexable.mjs';
 
@@ -35,12 +35,49 @@ describe('canonicalUrl', () => {
   });
   it('never carries the page URL query string (it comes from the record, not the request)', () => {
     const head = recordHead('works', work);
-    expect(head.link).toEqual([{ rel: 'canonical', href: 'https://openalex.org/works/W2741809807' }]);
+    expect(head.link).toEqual([
+      { rel: 'canonical', href: 'https://openalex.org/works/W2741809807' },
+      { rel: 'alternate', type: 'application/json', href: 'https://api.openalex.org/works/W2741809807' },
+    ]);
   });
   it('points a merged id at the record it was merged into', () => {
     // The API answers /works/W_old with the surviving record; its id wins.
     const head = recordHead('works', { ...work, id: 'https://openalex.org/W999' });
     expect(head.link[0].href).toBe('https://openalex.org/works/W999');
+  });
+});
+
+describe('API pointer (#1689)', () => {
+  it('apiUrl is the API URL for the record id, any entity type', () => {
+    expect(apiUrl(work)).toBe('https://api.openalex.org/works/W2741809807');
+    expect(apiUrl('https://openalex.org/a5023888391')).toBe('https://api.openalex.org/authors/A5023888391');
+    expect(apiUrl('https://openalex.org/keywords/open-access')).toBe('https://api.openalex.org/keywords/open-access');
+    expect(apiUrl('https://openalex.org/sdgs/3')).toBe('https://api.openalex.org/sdgs/3');
+    expect(apiUrl('https://openalex.org/countries/US')).toBe('https://api.openalex.org/countries/US');
+    expect(apiUrl(null)).toBe(null);
+    expect(apiUrl('doi:10.1/x')).toBe(null);
+  });
+  it('every record head links the same record as JSON (rel=alternate)', () => {
+    const want = {
+      works: 'works/W2741809807', authors: 'authors/A5048491430', sources: 'sources/S1983995261',
+      institutions: 'institutions/I136199984', funders: 'funders/F4320306076', publishers: 'publishers/P4310320595',
+      topics: 'topics/T13607', keywords: 'keywords/open-access',
+    };
+    for (const [type, r] of Object.entries(RECORDS)) {
+      const alt = recordHead(type, r).link.filter((l) => l.rel === 'alternate');
+      expect(alt, type).toEqual([{ rel: 'alternate', type: 'application/json', href: `https://api.openalex.org/${want[type]}` }]);
+    }
+  });
+  it('a merged id points at the surviving record in the API too', () => {
+    const head = recordHead('works', { ...work, id: 'https://openalex.org/W999' });
+    expect(head.link.find((l) => l.rel === 'alternate').href).toBe('https://api.openalex.org/works/W999');
+  });
+  it('bareDoi strips the resolver and rejects non-DOIs', () => {
+    expect(bareDoi('https://doi.org/10.7717/peerj.4375')).toBe('10.7717/peerj.4375');
+    expect(bareDoi('http://dx.doi.org/10.1000/ABC(1)')).toBe('10.1000/ABC(1)');
+    expect(bareDoi('doi:10.1/x')).toBe('10.1/x');
+    expect(bareDoi(null)).toBe('');
+    expect(bareDoi('https://example.org/paper')).toBe('');
   });
 });
 

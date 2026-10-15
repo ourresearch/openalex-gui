@@ -10,6 +10,14 @@
              below it (topic..). Fires once, right after the first null divider. -->
         <slot v-if="i === firstDividerIndex" name="after-first-divider" />
       </template>
+      <!-- #1689: the DOI as text (search engines and AI fetchers read the server
+           render), linked to its resolver. -->
+      <div v-else-if="filterKey === 'doi' && type === 'works'" :key="'data-doi'" class="px-4 pb-1">
+        <span class="font-weight-bold">DOI:</span> <a :href="doiUrl" target="_blank">
+          {{ doi }}
+          <v-icon size="x-small" class="ml-1">mdi-open-in-new</v-icon>
+        </a>
+      </div>
       <entity-datum-row
         v-else
         :key="'data-'+filterKey"
@@ -38,6 +46,7 @@ import { getEntityConfig } from '@/entityConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
 import EntityDatumRow from '@/components/Entity/EntityDatumRow.vue';
 import * as openalexId from '@/openalexId';
+import { bareDoi } from '@/seo/recordHead.mjs';
 
 defineOptions({ name: 'EntityNew' });
 
@@ -52,6 +61,7 @@ const myEntityConfig = computed(() => type.value ? getEntityConfig(type.value) :
 // Check if a row has displayable data
 const hasData = (filterKey) => {
   if (filterKey === null) return true; // Dividers are handled separately
+  if (filterKey === 'doi' && type.value === 'works') return !!doi.value;
   const facetConfig = getFacetConfig(type.value, filterKey);
   if (!facetConfig?.extractFn) return false;
   try {
@@ -100,6 +110,9 @@ const rowsToShow = computed(() => {
 // Index of the first null divider in the final rendered row list (or -1 if
 // none). The `after-first-divider` slot fires here exactly once.
 const firstDividerIndex = computed(() => rowsToShow.value.indexOf(null));
+
+const doi = computed(() => bareDoi(props.data?.doi));
+const doiUrl = computed(() => (doi.value ? `https://doi.org/${doi.value}` : null));
 
 // Null when the id doesn't parse, which hides the row.
 const openAlexIdShort = computed(() => openalexId.toDisplayFormat(props.data?.id, 'short'));
