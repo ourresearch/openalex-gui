@@ -58,6 +58,20 @@ describe('record middleware redirects', () => {
     expect(res.status).toBe(404)
   })
 
+  it('301s and 404s carry Cache-Tag record-html for the deploy purge; the SPA fallback does not', async () => {
+    expect((await get('/W7171967220')).headers.get('cache-tag')).toBe('record-html')
+    apiGet.mockResolvedValue({ status: 'ok', data: { id: 'https://openalex.org/W2' } })
+    expect((await get('/works/W1')).headers.get('cache-tag')).toBe('record-html')
+    apiGet.mockResolvedValue({ status: 'notfound' })
+    const notFound = await get('/works/W999')
+    expect(notFound.headers.get('cache-tag')).toBe('record-html')
+    expect(notFound.headers.get('cache-control')).toBe('public, max-age=0, s-maxage=3600')
+    apiGet.mockResolvedValue({ status: 'unavailable', reason: 'timeout' })
+    const shell = await get('/works/W5')
+    expect(shell.headers.get('cache-control')).toBe('no-cache')
+    expect(shell.headers.get('cache-tag')).toBe(null)
+  })
+
   it('the canonical URL renders with the record', async () => {
     apiGet.mockResolvedValue({ status: 'ok', data: { id: 'https://openalex.org/W7171967220', display_name: 'x' } })
     const res = await get('/works/W7171967220')

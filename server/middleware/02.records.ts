@@ -17,13 +17,16 @@
 import { defineEventHandler, getRequestHeader, sendRedirect, setResponseHeader, setResponseStatus } from 'h3'
 import { isUnderRecordPrefix, parseRecordPath, pathFromApiId, trimWorksList, worksListApiPath, worksListPlan } from '../../src/ssr/recordRoutes.js'
 import { apiGet, LIST_TIMEOUT_MS, RECORD_TIMEOUT_MS } from '../lib/ssrApi'
+import { RECORD_CACHE_TAG } from '../lib/purgeRecordCache.mjs'
 
 export const SPA_FALLBACK_HEADER = 'x-openalex-ssr-fallback'
 
 // Cache-Control for the responses this middleware ends or reroutes. A successfully
 // server-rendered page gets its caching headers (ETag, Cache-Control,
 // CDN-Cache-Control) from track seo-content's render:response hook; anything left
-// unset gets the server's default (no-cache).
+// unset gets the server's default (no-cache). The 301s and 404s Cloudflare may keep
+// carry Cache-Tag record-html like the pages, so the deploy purge drops them too (a
+// 404 page names the build's /_nuxt/ files; a 301 can change with the code).
 const CACHE_NOT_FOUND = 'public, max-age=0, s-maxage=3600'
 const CACHE_REDIRECT = 'public, max-age=3600, s-maxage=86400'
 // The SPA fallback (slow API) must never be cached, or crawlers keep getting it.
@@ -66,6 +69,7 @@ function releaseRenderSlot() {
 
 function redirect(event: any, location: string) {
   setResponseHeader(event, 'cache-control', CACHE_REDIRECT)
+  setResponseHeader(event, 'cache-tag', RECORD_CACHE_TAG)
   return sendRedirect(event, location, 301)
 }
 
@@ -109,6 +113,7 @@ export default defineEventHandler(async (event) => {
     setResponseStatus(event, 404)
     setResponseHeader(event, 'x-openalex-render', 'ssr; not found')
     setResponseHeader(event, 'cache-control', CACHE_NOT_FOUND)
+    setResponseHeader(event, 'cache-tag', RECORD_CACHE_TAG)
     event.context.oxRecord = { apiPath: ref.apiPath, notFound: true }
     return
   }

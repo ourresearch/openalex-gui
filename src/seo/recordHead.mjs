@@ -127,6 +127,20 @@ export function canonicalUrl(recordOrId) {
   return null;
 }
 
+// The record in the API: https://api.openalex.org/works/W123, .../keywords/kelp.
+// Same id rules as canonicalUrl (the record's own id, never the request's).
+export const API_URL = 'https://api.openalex.org';
+export function apiUrl(recordOrId) {
+  const canonical = canonicalUrl(recordOrId);
+  return canonical ? API_URL + canonical.slice(SITE_URL.length) : null;
+}
+
+// The DOI without its resolver: "10.7717/peerj.4375", or '' when there is none.
+export function bareDoi(doi) {
+  const s = String(doi ?? '').trim().replace(/^https?:\/\/(dx\.)?doi\.org\//i, '').replace(/^doi:/i, '');
+  return /^10\.\S+\/\S+/.test(s) ? s : '';
+}
+
 // ---------- titles ----------
 
 export function recordName(type, r) {
@@ -431,6 +445,7 @@ export function recordHead(type, record, { abstract = '' } = {}) {
   const name = recordName(type, record);
   const description = recordDescription(type, record);
   const canonical = canonicalUrl(record);
+  const api = apiUrl(record);
   const robots = noindexReason(type, record) ? 'noindex' : null;
   const ld = recordJsonLd(type, record, { abstract });
   const meta = [
@@ -451,7 +466,11 @@ export function recordHead(type, record, { abstract = '' } = {}) {
     title,
     titleTemplate: null,
     meta,
-    link: canonical ? [{ rel: 'canonical', href: canonical }] : [],
+    // The same record as JSON, for agents and scripts that read the head (#1689).
+    link: [
+      canonical ? { rel: 'canonical', href: canonical } : null,
+      api ? { rel: 'alternate', type: 'application/json', href: api } : null,
+    ].filter(Boolean),
     script: ld ? [{ type: 'application/ld+json', key: 'record-jsonld', innerHTML: jsonForScript(ld) }] : [],
   };
 }

@@ -40,6 +40,7 @@ const entityConfigs = reactive({
             "study_designs.id",
             "abstract",
             "primary_location.source.id",
+            "doi",
             "authorships.author.id",
             "authorships.institutions.lineage",
             "language",

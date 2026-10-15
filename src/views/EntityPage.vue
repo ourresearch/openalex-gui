@@ -32,6 +32,7 @@
                   <entity-new
                     :data="entityData"
                     :type="myEntityType"
+                    api-link
                   />
                 </div>
               </v-window-item>
@@ -133,6 +134,7 @@
                   <entity-new
                     :data="entityData"
                     :type="myEntityType"
+                    api-link
                   />
                 </div>
               </v-window-item>
@@ -145,6 +147,7 @@
             <entity-new
               :data="entityData"
               :type="myEntityType"
+              api-link
             />
           </v-card>
 
@@ -375,6 +378,7 @@
                   <entity-new
                     :data="entityData"
                     :type="myEntityType"
+                    api-link
                   />
                 </div>
               </v-window-item>
@@ -387,6 +391,7 @@
             <entity-new
               :data="entityData"
               :type="myEntityType"
+              api-link
             />
           </v-card>
         </v-col>

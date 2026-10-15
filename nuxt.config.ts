@@ -34,6 +34,9 @@ export default defineNuxtConfig({
   // hosts on 8081-8085 (`npm run dev -- --port 8081`).
   devServer: { port: 8080 },
   telemetry: false,
+  // #1689 edge cache: when this build was made, so the boot-time purge
+  // (server/plugins/purge-record-cache.ts) can tell a deploy from a daily restart.
+  runtimeConfig: { recordCacheBuiltAt: String(Date.now()) },
   // Browser source maps stay public, as under Vue CLI: Sentry fetches each file's
   // sourceMappingURL to symbolicate (nothing is uploaded). Server maps stay off: they
   // are what pushed the Nitro bundling step past a 1.8 GB heap in the trial (#1689 build-qa).
