@@ -107,7 +107,7 @@ node scripts/qa/site-qa.mjs                                   # prod origin vs l
 ```
 
 Output: `~/ox/oxdata/search-engines-see-record-pages/qa/<CT timestamp>/report.md`, `results.json`,
-`shots/`, `compare/`.
+`shots/`, `compare/`. `--rereport <run dir>` redoes the composites, pixel diffs and report from a finished run.
 
 ## 5. Cloudflare (proposal only; nothing changed)
 

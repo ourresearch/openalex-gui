@@ -10,7 +10,7 @@
 //   node scripts/qa/site-qa.mjs --targets branch=http://localhost:5391 --only work,author
 //
 // Options: --targets name=url[,name=url]  --routes file.json  --widths 1280,400  --keyless
-//          --only id[,id]  --out dir (default ~/ox/oxdata/search-engines-see-record-pages/qa/<CT timestamp>)
+//          --only id[,id]  --rereport <run dir> (redo composites and report.md only)  --out dir (default ~/ox/oxdata/search-engines-see-record-pages/qa/<CT timestamp>)
 // Needs playwright-core (`npm --prefix scripts/qa install`) and Google Chrome (CHROME_PATH).
 // Requests to a localhost target carry X-Forwarded-Proto: https (the server's SSL redirect
 // answers 301 otherwise). Plausible and Sentry ingest are blocked so QA runs don't count
@@ -55,13 +55,13 @@ function ctStamp() {
 }
 
 const args = parseArgs(process.argv.slice(2))
-const targets = (args.targets || 'prod=https://openalex-gui.herokuapp.com,branch=http://localhost:5391')
+let targets = (args.targets || 'prod=https://openalex-gui.herokuapp.com,branch=http://localhost:5391')
   .split(',').map(s => { const [name, ...u] = s.split('='); return { name, base: u.join('=').replace(/\/$/, '') } })
-const widths = String(args.widths || '1280,400').split(',').map(Number)
+let widths = String(args.widths || '1280,400').split(',').map(Number)
 const routeFile = args.routes || path.join(here, 'routes.json')
 let routes = JSON.parse(fs.readFileSync(routeFile, 'utf8')).routes
 if (args.only) { const only = new Set(String(args.only).split(',')); routes = routes.filter(r => only.has(r.id)) }
-const outDir = args.out || path.join(os.homedir(), 'ox/oxdata/search-engines-see-record-pages/qa', ctStamp())
+let outDir = args.rereport || args.out || path.join(os.homedir(), 'ox/oxdata/search-engines-see-record-pages/qa', ctStamp())
 const chromePath = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const viewerKey = process.env.OPENALEX_TEST_VIEWER_API_KEY
 // Logged-out pages call api.openalex.org with no key, which spends the free budget of the
@@ -233,6 +233,27 @@ async function runTarget(browser, target) {
   return out
 }
 
+// Share of pixels that differ between the first two targets' screenshots, per width
+// (grey level differs by more than 40 of 255). 0 = the first screen looks the same.
+const pixelDiff = {}
+async function diffShots(page, aPath, bPath) {
+  const a = 'data:image/png;base64,' + fs.readFileSync(aPath).toString('base64')
+  const b = 'data:image/png;base64,' + fs.readFileSync(bPath).toString('base64')
+  return page.evaluate(async ([a, b]) => {
+    const load = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src })
+    const [A, B] = await Promise.all([load(a), load(b)])
+    if (A.width !== B.width || A.height !== B.height) return null
+    const px = img => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d'); x.drawImage(img, 0, 0); return x.getImageData(0, 0, img.width, img.height).data }
+    const pa = px(A), pb = px(B)
+    let n = 0
+    for (let i = 0; i < pa.length; i += 4) {
+      const ga = (pa[i] + pa[i + 1] + pa[i + 2]) / 3, gb = (pb[i] + pb[i + 1] + pb[i + 2]) / 3
+      if (Math.abs(ga - gb) > 40) n++
+    }
+    return Math.round(1000 * n / (pa.length / 4)) / 10
+  }, [a, b])
+}
+
 // One PNG per route: every target at every width, side by side, labelled.
 async function composites(browser, results) {
   const dir = path.join(outDir, 'compare'); fs.mkdirSync(dir, { recursive: true })
@@ -240,6 +261,14 @@ async function composites(browser, results) {
   const page = await ctx.newPage()
   for (const route of routes) {
     if (route.landmark === null) continue
+    if (targets.length >= 2) {
+      for (const w of widths) {
+        const [ra, rb] = targets.slice(0, 2).map(t => results[t.name]?.[route.id]?.widths?.[w])
+        if (ra?.shot && rb?.shot && fs.existsSync(path.join(outDir, ra.shot)) && fs.existsSync(path.join(outDir, rb.shot))) {
+          ;(pixelDiff[route.id] ||= {})[w] = await diffShots(page, path.join(outDir, ra.shot), path.join(outDir, rb.shot)).catch(() => null)
+        }
+      }
+    }
     const cells = []
     for (const w of widths) for (const t of targets) {
       const r = results[t.name]?.[route.id]?.widths?.[w]
@@ -267,9 +296,10 @@ function report(results) {
   const L = []
   L.push(`# Whole-site QA (#1689) — ${path.basename(outDir)}`, '')
   L.push(`Targets: ${targets.map(t => `**${t.name}** ${t.base}`).join(', ')}. Widths: ${widths.join(', ')} px. Routes: ${routes.length} (\`${path.relative(process.cwd(), routeFile)}\`).`, '')
-  L.push('Columns per target: raw = status of the first response with no JavaScript (a crawler\'s view; `301→` shows the redirect), SSR = route text or an `<h1>` already in that raw HTML, then the browser at the first width: status, console errors + page errors, failed requests to the site or the OpenAlex APIs (4xx/5xx or network errors; third-party failures are listed in the details only), landmark found, Vue hydration warnings (all widths summed). Composite screenshots are in `compare/`.', '')
+  L.push('Columns per target: raw = status of the first response with no JavaScript (a crawler\'s view; `301→` shows the redirect), SSR = route text or an `<h1>` already in that raw HTML, then the browser at the first width: status (plus where it ended up, when that differs from the first target), console errors + page errors (most across widths), failed requests to the site or the OpenAlex APIs (4xx/5xx or network errors; third-party failures are listed in the details only), landmark found, Vue hydration warnings (all widths summed), and the share of pixels that differ between the first two targets\' first screens (above 1% is worth a look; animated pages such as home always differ a little). Composite screenshots are in `compare/`.', '')
   const head = ['route', 'class']
   for (const t of targets) head.push(`${t.name} raw`, `${t.name} SSR`, `${t.name} browser`, `${t.name} err`, `${t.name} fail`, `${t.name} landmark`, `${t.name} hyd`)
+  if (targets.length >= 2) head.push(`pixels differ (${widths.join(' / ')})`)
   head.push('shot')
   L.push('| ' + head.join(' | ') + ' |', '|' + head.map(() => '---').join('|') + '|')
   for (const route of routes) {
@@ -285,8 +315,13 @@ function report(results) {
       const err = Object.values(r.widths).reduce((n, x) => Math.max(n, x.consoleErrors.length + x.pageErrors.length), 0)
       const fail = Object.values(r.widths).reduce((n, x) => Math.max(n, x.failed.filter(f => isAppRequest(f, t.base)).length), 0)
       const lm = b.landmarkFound === null ? '' : (b.landmarkFound ? 'yes' : '**no**') + (route.text ? (b.dom.textFound ? ', text' : ', **no text**') : '')
-      row.push(esc(raw), ssr, String(b.status ?? 'ERR'), String(err), String(fail), lm, hyd ? `**${hyd}**` : '0')
+      // Where the browser ended up, when that differs from the first target (e.g. bounced to /login).
+      const first = results[targets[0].name]?.[route.id]?.widths?.[widths[0]]
+      const endPath = x => (x?.finalUrl || '').replace(/^https?:\/\/[^/]+/, '')
+      const moved = t !== targets[0] && first && endPath(b) !== endPath(first) ? ` **→ ${esc(endPath(b)).slice(0, 50)}**` : ''
+      row.push(esc(raw), ssr, String(b.status ?? 'ERR') + moved, String(err), String(fail), lm, hyd ? `**${hyd}**` : '0')
     }
+    if (targets.length >= 2) row.push(pixelDiff[route.id] ? widths.map(w => pixelDiff[route.id][w] == null ? '?' : pixelDiff[route.id][w] + '%').join(' / ') : '')
     row.push(fs.existsSync(path.join(outDir, 'compare', `${route.id}.png`)) ? `[png](compare/${route.id}.png)` : '')
     L.push('| ' + row.join(' | ') + ' |')
   }
@@ -312,11 +347,17 @@ function report(results) {
 const { chromium } = loadPlaywright()
 const browser = await chromium.launch({ executablePath: chromePath, headless: true, args: [`--qa-run=${process.pid}`] })
 const guard = setInterval(guardTick, 1000)
-const results = {}
+let results = {}
 try {
-  await Promise.all(targets.map(async t => { results[t.name] = await runTarget(browser, t) }))
-  fs.writeFileSync(path.join(outDir, 'results.json'), JSON.stringify({ targets, widths, routes, results }, null, 1))
+  if (args.rereport) {
+    // Rebuild composites, pixel diffs and report.md from a finished run's results.json.
+    const saved = JSON.parse(fs.readFileSync(path.join(outDir, 'results.json'), 'utf8'))
+    ;({ targets, widths, routes, results } = saved)
+  } else {
+    await Promise.all(targets.map(async t => { results[t.name] = await runTarget(browser, t) }))
+  }
   await composites(browser, results)
+  fs.writeFileSync(path.join(outDir, 'results.json'), JSON.stringify({ targets, widths, routes, results, pixelDiff }, null, 1))
   report(results)
 } finally {
   clearInterval(guard)
