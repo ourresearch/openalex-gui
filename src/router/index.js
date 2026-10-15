@@ -131,17 +131,16 @@ export const routes = [
         path: `/:entityType(${entityNames})`,
         name: 'Serp',
         component: SerpPage,
-        beforeEnter: (to, from, next) => {
+        beforeEnter: (to) => {
             // Back-compat: already-shared `/:entityType?oql=…` links (and any with a
             // deliberately MISMATCHED path entity, e.g. `/authors?oql=works where…`)
             // redirect to the entity-less `/q?oql=…`. Dropping the path entity makes
             // the path-vs-OQL mismatch structurally impossible — the OQL is the sole
             // source of the entity. Preserve the rest of the query (mode, per_page,
             // …). (oxjob #373 Phase 2)
+            // (#1689: guards return their result; vue-router 5 deprecates next().)
             if (to.query.oql) {
-                next({ name: 'OqlQuery', query: to.query });
-            } else {
-                next();
+                return { name: 'OqlQuery', query: to.query };
             }
         },
     },
@@ -149,9 +148,8 @@ export const routes = [
         path: '/locations/:entityId(.*)',
         name: 'LocationPage',
         component: EntityPage,
-        beforeEnter: (to, from, next) => {
+        beforeEnter: (to) => {
             to.params.entityType = 'locations';
-            next();
         }
     },
     {
@@ -173,7 +171,7 @@ export const routes = [
         path: `/:entityType(${entityNames})/:entityId`,
         name: 'EntityPage',
         component: EntityPage,
-        beforeEnter: (to, from, next) => {
+        beforeEnter: (to) => {
             // A namespaced id in the param (/keywords/keywords%2Fkelp) means an old
             // link minted before oxjob #671's autocomplete fix — normalize it to the
             // canonical route instead of 404ing.
@@ -181,16 +179,14 @@ export const routes = [
             if (entityId.includes('/')) {
                 const parsed = openalexId.parseId(entityId);
                 if (parsed) {
-                    next({
+                    return {
                         name: 'EntityPage',
                         params: { entityType: parsed.entityType, entityId: parsed.shortId },
                         query: to.query,
                         replace: true,
-                    });
-                    return;
+                    };
                 }
             }
-            next();
         },
     },
 
@@ -695,12 +691,12 @@ export function scrollBehavior(to, from, savedPosition) {
 // `filter=<scope>.search:<terms>` clause to the canonical `?search.*=` shape the search box
 // hydrates, so it no longer lands on an empty-looking box + "No filters applied". Only the
 // single, non-negated clause case is rewritten (see url.filterSearchRedirectQuery).
-const redirectFilterSearchToTopLevel = function (to, from, next) {
-    if (to.name !== "Serp") return false
+// Returns the redirect, or null to carry on (#1689: no next() in vue-router 5).
+const redirectFilterSearchToTopLevel = function (to) {
+    if (to.name !== "Serp") return null
     const newQuery = url.filterSearchRedirectQuery(to.query)
-    if (!newQuery) return false
-    next({...to, query: newQuery, replace: true})
-    return true
+    if (!newQuery) return null
+    return {...to, query: newQuery, replace: true}
 }
 
 export function installGuards(router, store) {
@@ -708,18 +704,20 @@ export function installGuards(router, store) {
 // redirect-and-rerun cases of beforeEach).
 let liveUserBoot = null
 
-router.beforeEach(async (to, from, next) => {
+// #1689: returns its result (a redirect, or nothing to carry on); vue-router 5
+// deprecates the next() callback.
+router.beforeEach(async (to) => {
 
     // Handle legacy v2 parameter - convert to data-version=2
     if (to.query.v2 !== undefined) {
         const newQuery = { ...to.query };
         delete newQuery.v2;
         newQuery['data-version'] = '2';
-        return next({
+        return {
             ...to,
             query: newQuery,
             replace: true
-        });
+        };
     }
 
     // Identity at boot (oxjob #860 round 2). With a token but no live user yet:
@@ -750,41 +748,40 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 
-    if (redirectFilterSearchToTopLevel(to, from, next)) return;
+    const filterSearchRedirect = redirectFilterSearchToTopLevel(to);
+    if (filterSearchRedirect) return filterSearchRedirect;
 
 
     // Enforce authentication for protected routes
     if (to.matched.some(record => record.meta.requiresAuth) && !store.getters["user/userId"]) {
-        return next({
+        return {
             name: 'Login',
             query: { redirect: to.fullPath }
-        });
+        };
     }
 
     // Enforce admin access for admin routes
     if (to.matched.some(record => record.meta.requiresAdmin) && !store.getters["user/isAdmin"]) {
-        return next({ name: 'Home' });
+        return { name: 'Home' };
     }
 
     // Enforce org owner access for org owner routes
     if (to.matched.some(record => record.meta.requiresOrgOwner) && !store.getters["user/isOrgOwner"]) {
-        return next({ name: 'settings-profile' });
+        return { name: 'settings-profile' };
     }
 
     // Enforce site-wide access (admin or site curator)
     if (to.matched.some(record => record.meta.requiresSiteWideAccess) && !store.getters["user/hasSiteWideAccess"]) {
-        return next({ name: 'settings-profile' });
+        return { name: 'settings-profile' };
     }
 
     // Enforce org curator or owner access
     if (to.matched.some(record => record.meta.requiresOrgCuratorOrOwner)) {
         const role = store.state.user.organizationRole;
         if (!['owner', 'curator'].includes(role)) {
-            return next({ name: 'settings-profile' });
+            return { name: 'settings-profile' };
         }
     }
-
-    next();
 });
 }
 
