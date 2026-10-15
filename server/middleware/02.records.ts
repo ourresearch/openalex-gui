@@ -2,10 +2,11 @@
 //
 // Before Nuxt renders a record page this middleware fetches the record (and starts
 // the page's works list) with the server's own key, then decides:
+//   - the URL isn't the canonical form (short form /W123, lowercase id, trailing
+//     slash)                       -> 301 to /works/W123 at once, no API call: the
+//     long form then does the rest (a merged id is a second 301; unknown id a 404)
 //   - API says 404                 -> status 404; the page renders "not found"
-//     (at the canonical URL: /W999 and /works/w999 301 there first)
-//   - the URL isn't the canonical one (short form /W123, lowercase id, merged id
-//     whose record has another id)  -> one 301 to the canonical URL
+//   - merged id (the record has another id) -> one 301 to the record's URL
 //   - API slow (> ~1.5 s) or failing -> the plain SPA shell (the browser fetches
 //     and renders, exactly as before SSR), never an error page
 //   - otherwise                    -> server render, with the data in
@@ -88,21 +89,23 @@ export default defineEventHandler(async (event) => {
   // this header to get the SPA shell. Anyone may send it; they just get the SPA.
   if (getRequestHeader(event, SPA_FALLBACK_HEADER)) return spaShell(event, 'render error')
 
-  const isCanonicalGuess = pathname === ref.canonicalPath
-  // Start the list with the record, unless we'll redirect (non-canonical URL) or the
-  // list depends on the record (sources: repositories list works in any location).
-  const earlyPlan = isCanonicalGuess && ref.type !== 'sources' ? worksListPlan(ref.type, null) : null
+  // Short form (/W123), lowercase id or trailing slash: 301 to the long form right
+  // away, without asking the API (live: 30% of record requests were short forms,
+  // and the lookup made their 301 wait p50 356 ms, p95 1.9 s). The long form does
+  // the merged-id 301 and the 404, so a merged short id is two cheap hops.
+  if (pathname !== ref.canonicalPath) return redirect(event, ref.canonicalPath + search)
+
+  // Start the list with the record, unless the list depends on the record
+  // (sources: repositories list works in any location).
+  const earlyPlan = ref.type !== 'sources' ? worksListPlan(ref.type, null) : null
   const earlyList = earlyPlan ? fetchWorksList(earlyPlan, ref.id) : null
 
   const rec = await apiGet(ref.apiPath, RECORD_TIMEOUT_MS)
   if (rec.status === 'unavailable') {
     console.warn('[record-ssr] SPA fallback', ref.apiPath, rec.reason)
-    if (!isCanonicalGuess) return redirect(event, ref.canonicalPath + search)
     return spaShell(event, rec.reason)
   }
   if (rec.status === 'notfound') {
-    // Unknown id: 404 at the canonical URL (a short or lowercase form 301s there first).
-    if (!isCanonicalGuess) return redirect(event, ref.canonicalPath + search)
     setResponseStatus(event, 404)
     setResponseHeader(event, 'x-openalex-render', 'ssr; not found')
     setResponseHeader(event, 'cache-control', CACHE_NOT_FOUND)
