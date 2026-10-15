@@ -3,7 +3,7 @@
     <v-btn
       rounded
       variant="flat"
-      :href="data.primary_location.landing_page_url"
+      :href="data.primary_location?.landing_page_url"
       target="_blank"
       :color="data.primary_location?.is_oa ? 'primary' : 'grey darken-1'"
       class="mr-3"
@@ -47,8 +47,8 @@ const props = defineProps({
   data: Object,
 });
 
-const pdfUrl = computed(() => props.data.best_oa_location?.pdf_url);
+const pdfUrl = computed(() => props.data?.best_oa_location?.pdf_url);
 const isOaAtPublisher = computed(() =>
-  props.data.open_access?.is_oa && props.data.open_access?.oa_status !== 'green'
+  props.data?.open_access?.is_oa && props.data?.open_access?.oa_status !== 'green'
 );
 </script>

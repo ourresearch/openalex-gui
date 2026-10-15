@@ -438,6 +438,7 @@ import { useAsyncData, useRequestEvent } from '#app';  // #1689 Nuxt trial: reco
 import { api } from '@/api';
 import { url } from '@/url';
 import { getEntityConfig } from '@/entityConfigs';
+import { tagRecordData, recordDataFor } from '@/ssr/recordData';
 import { createSimpleFilter, filtersAsUrlStr } from '@/filterConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
 import { recordHead } from '@/seo/recordHead.mjs';
@@ -545,9 +546,14 @@ const {
   status: entityAsyncStatus,
 } = useAsyncData(
   () => `entity:${apiPath.value}`,
-  async () => massageEntity(import.meta.server ? ssrRecordFor(apiPath.value).data : await api.get(apiPath.value)),
+  async () => {
+    const path = apiPath.value;
+    return tagRecordData(path, massageEntity(import.meta.server ? ssrRecordFor(path).data : await api.get(path)));
+  },
 );
-const entityData = computed(() => entityAsync.value ?? null);
+// Only the record fetched for THIS route: on a client-side navigation Nuxt seeds
+// the new key with the previous record while it loads (src/ssr/recordData.js).
+const entityData = computed(() => recordDataFor(entityAsync.value, apiPath.value));
 // Bad/unknown id: show the failure state instead of a blank page (oxjob #671).
 const entityLoadFailed = computed(() => !!entityAsyncError.value);
 // #1689: the not-found page (status 404 from the server) says so in its title.
@@ -594,17 +600,19 @@ const worksSelectable = computed(() => isAuthorOwner.value);
 // On the server the list is trimmed to what a row shows (src/ssr/recordRoutes.js);
 // if it was slow, the server sends `{deferred: true}` and the browser fetches it
 // after hydration (onMounted below).
-const { data: worksFirstPage, refresh: refreshWorksFirstPage } = useAsyncData(
+const { data: worksFirstPageAsync, refresh: refreshWorksFirstPage } = useAsyncData(
   () => `entity-works:${apiPath.value}`,
   async () => {
+    const path = apiPath.value;
     if (import.meta.server) {
-      if (!ssrRecord?.works || ssrRecord.apiPath !== apiPath.value || !showEntityPageStats.value) return {};
-      return (await ssrRecord.works) ?? { deferred: true };
+      if (!ssrRecord?.works || ssrRecord.apiPath !== path || !showEntityPageStats.value) return tagRecordData(path, {});
+      return tagRecordData(path, (await ssrRecord.works) ?? { deferred: true });
     }
-    return (await fetchWorksPage(1)) ?? {};
+    return tagRecordData(path, (await fetchWorksPage(1)) ?? {});
   },
-  { default: () => ({}) },
 );
+// Same guard as entityData: never show the previous record's works list.
+const worksFirstPage = computed(() => recordDataFor(worksFirstPageAsync.value, apiPath.value) ?? {});
 const worksMore = ref(null);
 const worksResultObject = computed(() => worksMore.value ?? worksFirstPage.value ?? {});
 const addMenuOpen = ref(false);
