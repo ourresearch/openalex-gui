@@ -7,7 +7,7 @@ import {sanitizeRedirectPath} from "@/util";
 import {bootUser, readUserCache, writeUserCache, clearUserCache} from "@/store/userBoot";
 import {orcidAutoClaim} from "@/components/Entity/claimCopy.js";
 
-const shortUuid = require('short-uuid');
+import shortUuid from 'short-uuid'; // #1689 spike: ESM import (require() is undefined under Vite SSR)
 
 const apiBaseUrl = urlBase.userApi
 
@@ -18,7 +18,8 @@ let userInFlight = null
 
 export default {
     namespaced: true,
-    state: {
+    // oxjob #1689 SSR spike: a function, so each store (one per server request) gets its own state.
+    state: () => ({
         id: "",
         name: "",
         email: "",
@@ -59,7 +60,7 @@ export default {
         activeSearchId: null,
         impersonatingUserId: null,
         impersonatingUserName: null,
-    },
+    }),
     mutations: {
         setToken(state, token) {
             // A new token means a (possibly different) account: never let the

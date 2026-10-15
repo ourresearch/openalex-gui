@@ -232,6 +232,7 @@
 </template>
 
 <script setup>
+import { storage, isHydrating } from '@/ssrSafe';
 import { computed, ref, watch, nextTick, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
@@ -249,7 +250,7 @@ const userId = computed(() => store.getters['user/userId']);
 // The token in localStorage is the logged-in marker: it exists before the user
 // object has been fetched, and user/logout removes it. Depending on userId in
 // the same computed keeps this reactive across login/logout transitions.
-const showLoggedIn = computed(() => !!userId.value || !!localStorage.getItem('token'));
+const showLoggedIn = computed(() => !!userId.value || (!isHydrating.value && !!storage.getItem('token'))); // #1689 spike: logged-out while hydrating
 
 // 'app'-chrome pages ARE the app, so the "Open app" button is redundant there
 // (oxjob #853). Everything else (site pages) still offers it.

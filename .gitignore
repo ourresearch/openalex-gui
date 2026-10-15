@@ -26,3 +26,8 @@ yarn-error.log*
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# oxjob #1689 SSR spike build output and local tools
+ssr-spike/dist-server
+ssr-spike/tools/node_modules
+ssr-spike/dist-client

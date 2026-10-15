@@ -22,24 +22,27 @@ const urlBase = {
 // Use port to change local API endpoints
 // Example: npm run serve -- --port 8081
 
+// oxjob #1689 SSR spike: no window in Node (the server always uses production APIs).
+const pagePort = typeof window !== 'undefined' ? window.location.port : '';
+
 // 8081: Local Elastic API
-if (window.location.port && parseInt(window.location.port) === 8081) {
+if (pagePort && parseInt(pagePort) === 8081) {
     urlBase.api = "http://localhost:5006";
     console.log("Setting API base URL to local machine (dev use only): " + urlBase.api);
 
 // 8082: Staging Elastic API
-} else if (window.location.port && parseInt(window.location.port) === 8082) {
+} else if (pagePort && parseInt(pagePort) === 8082) {
     urlBase.api = "https://staging-jump-api.herokuapp.com";
     console.log("Setting API base URL to staging heroku (dev use only): " + urlBase.api);
 
 // 8083: Local User API
-} else if (window.location.port && parseInt(window.location.port) === 8083) {
+} else if (pagePort && parseInt(pagePort) === 8083) {
     urlBase.userApi = "http://localhost:5106";
     urlBase.collectionsApi = "http://localhost:5106/api";
     console.log("Setting User API base URL to local machine (dev use only): " + urlBase.userApi);
 
 // 8084: Local Elastic & User API
-} else if (window.location.port && parseInt(window.location.port) === 8084) {
+} else if (pagePort && parseInt(pagePort) === 8084) {
     urlBase.api = "http://localhost:5006";
     console.log("Setting API base URL to local machine (dev use only): " + urlBase.api);
     urlBase.userApi = "http://localhost:5106";
@@ -47,7 +50,7 @@ if (window.location.port && parseInt(window.location.port) === 8081) {
     console.log("Setting User API base URL to local machine (dev use only): " + urlBase.userApi);
 
 // 8085: Local CV Parse Server
-} else if (window.location.port && parseInt(window.location.port) === 8085) {
+} else if (pagePort && parseInt(pagePort) === 8085) {
     urlBase.cvParseApi = "http://localhost:3456";
     console.log("Setting CV Parse API base URL to local machine (dev use only): " + urlBase.cvParseApi);
 }

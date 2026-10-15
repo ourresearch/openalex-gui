@@ -1,0 +1,10 @@
+import v8 from 'node:v8';
+const mod = await import('./dist-server/entry-server.mjs');
+const p = '/works/W2741809807';
+const u = mod.api.makeUrl(p.slice(1));
+const key = process.env.OPENALEX_API_KEY;
+const seed = { [u]: await (await fetch(u, { headers: key ? { Authorization: `Bearer ${key}` } : {} })).json() };
+for (let i = 0; i < 20; i++) await mod.render(p, { seed });
+global.gc();
+console.log('heap MB', (process.memoryUsage().heapUsed / 1e6).toFixed(0));
+console.log(v8.writeHeapSnapshot('/tmp/ssr1689/leak.heapsnapshot'));

@@ -10,6 +10,7 @@ import { facetsByCategory } from '@/facetConfigUtils';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { api } from '@/api';
 import { NEW_OQL_FLAG, pickOql } from '@/oqlForm';
+import { storage } from '@/ssrSafe';
 
 // Conversion: 1 credit = $0.0001 (10,000 credits = $1)
 const CREDIT_TO_USD = 0.0001;
@@ -59,14 +60,14 @@ const stateDefaults = function () {
         // defaults 10, table defaults 100. url.js getPerPage picks by current view;
         // a deep-link `per_page` is adopted into the active view's size as a session
         // override (persist:false) without overwriting the saved preference.
-        serpPageSize: parseInt(localStorage.getItem('serp-page-size'), 10) || 10,
-        serpTablePageSize: parseInt(localStorage.getItem('serp-table-page-size'), 10) || 100,
+        serpPageSize: parseInt(storage.getItem('serp-page-size'), 10) || 10,
+        serpTablePageSize: parseInt(storage.getItem('serp-table-page-size'), 10) || 100,
         // SERP results presentation (list vs table) — recipient-local CHROME, kept
         // OFF the URL (#492). This reactive store is the source of truth so the
         // toggle updates the UI with no navigation; persisted to localStorage
         // (key `oax.resultsView`, zd#8973). url.isTableView reads this; a legacy
         // inbound `?view=table` is seeded here then stripped (see Serp.vue).
-        serpResultsView: localStorage.getItem('oax.resultsView') === 'table' ? 'table' : 'list',
+        serpResultsView: storage.getItem('oax.resultsView') === 'table' ? 'table' : 'list',
         // The "Show API query" overlay (#492) — session-only chrome, never
         // persisted, off the URL. Seeded from a legacy `?view=api` link, then
         // stripped. (Replaces the vestigial `isApiEditorShowing` flag below.)
@@ -120,7 +121,8 @@ const clearPerUserStateOnLogout = (store) => {
     });
 };
 
-export default createStore({
+// oxjob #1689 SSR spike: a factory, so the server makes one store per request.
+export const createAppStore = () => createStore({
     state: stateDefaults(),
     modules: {
         user,
@@ -431,4 +433,6 @@ export default createStore({
             return pickOql(state.resultsObject?.meta?.x_query, getters.newOql);
         },
     },
-})
+});
+
+export default createAppStore();

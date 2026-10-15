@@ -9,7 +9,8 @@ const baseWeight = "lighten5";
 const darkerWeight = "lighten4";
 const darkWeight = "darken1";
 
-export default createVuetify({
+// oxjob #1689 SSR spike: a factory so the server can make one per request with ssr: true.
+export const vuetifyOptions = {
   defaults: {
     // Global icon size default
     VIcon: {
@@ -92,4 +93,8 @@ export default createVuetify({
   icons: {
     defaultSet: 'mdi',
   }
-})
+};
+
+export const makeVuetify = (extra = {}) => createVuetify({ ...vuetifyOptions, ...extra });
+
+export default makeVuetify();

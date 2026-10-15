@@ -250,6 +250,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue';
+import { IN_BROWSER } from '@/ssrSafe';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 
@@ -578,6 +579,10 @@ const getGroups = async () => {
   if (oqlMode.value && signature == null) return;
   if (signature === lastGroupsSignature) return;
   isLoading.value = true;
+  // oxjob #1689 SSR spike: group-bys are client-only. The server renders the
+  // same loading state the client's first (hydrating) render shows, then the
+  // browser fetches after hydration.
+  if (!IN_BROWSER) return;
   // Record the signature BEFORE awaiting: the fetch takes long enough that the
   // canonical-URL projection re-fires this watcher while it's still in flight,
   // and a post-await record let that re-fire slip past the guard (observed: a

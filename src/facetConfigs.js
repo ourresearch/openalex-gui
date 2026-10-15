@@ -202,7 +202,7 @@ const facetCategoriesIcons = {
 }
 
 
-const facetConfigs = function (entityType) {
+const buildFacetConfigs = function (entityType) {
     const ret = [
         // ============================================================
         // WORKS
@@ -4585,6 +4585,17 @@ const facetConfigs = function (entityType) {
     })
 
     return manipulated
+}
+
+// oxjob #1689 SSR spike (measurement only): memoize per entity type. Rebuilding
+// ~all facet configs on every call was ~27% of server render CPU. A real version
+// must invalidate when the /meta catalog (metaCatalog.js) refreshes labels.
+const _facetConfigsMemo = new Map();
+const facetConfigs = function (entityType) {
+    if (typeof process === 'undefined' || process.env.SPIKE_MEMO_FACETS !== '1') return buildFacetConfigs(entityType);
+    const k = entityType ?? '';
+    if (!_facetConfigsMemo.has(k)) _facetConfigsMemo.set(k, buildFacetConfigs(entityType));
+    return _facetConfigsMemo.get(k);
 }
 
 

@@ -102,7 +102,9 @@ const { smAndDown } = useDisplay();
 
 const entityData = ref(null);
 const isLoading = ref(false);
-const windowWidth = ref(window.innerWidth);
+// oxjob #1689 SSR spike: a fixed width on the server AND the hydrating pass (they
+// must agree), then the real width once mounted.
+const windowWidth = ref(1280);
 
 const zoomId = computed(() => store.getters['zoomId']);
 const setZoomId = (val) => store.commit('setZoomId', val);
@@ -191,6 +193,7 @@ watch(
 );
 
 onMounted(() => {
+  handleResize();
   window.addEventListener('resize', handleResize);
 });
 

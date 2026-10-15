@@ -1,0 +1,1 @@
+{"name":"ssr-spike-tools","private":true,"dependencies":{"@vitejs/plugin-vue":"^5.2.4","vite-plugin-vuetify":"^2.1.2"}}

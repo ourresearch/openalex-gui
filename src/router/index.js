@@ -1,6 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, createMemoryHistory } from 'vue-router';
+import { IN_BROWSER, storage, isHydrating } from '@/ssrSafe';
 
-import store from '@/store';
+import defaultStore from '@/store';
 import {getEntityConfigs} from "@/entityConfigs";
 import * as openalexId from "@/openalexId";
 import {url} from "@/url";
@@ -669,10 +670,7 @@ const routes = [
 ];
 
 
-const router = createRouter({
-    history: createWebHistory(),
-    routes,
-    scrollBehavior(to, from, savedPosition) {
+const scrollBehavior = function (to, from, savedPosition) {
         if (to.hash) {
             return {
                 el: to.hash,
@@ -686,8 +684,7 @@ const router = createRouter({
         } else {
             return {left: 0, top: 0};
         }
-    },
-});
+};
 
 // #397: normalize a shared/legacy/API-style search URL that carries the query in a single
 // `filter=<scope>.search:<terms>` clause to the canonical `?search.*=` shape the search box
@@ -700,6 +697,15 @@ const redirectFilterSearchToTopLevel = function (to, from, next) {
     next({...to, query: newQuery, replace: true})
     return true
 }
+
+// oxjob #1689 SSR spike: a factory, so the server makes one router per request
+// (with memory history) bound to that request's store.
+export function createAppRouter({ store = defaultStore, history } = {}) {
+const router = createRouter({
+    history: history ?? (IN_BROWSER ? createWebHistory() : createMemoryHistory()),
+    routes,
+    scrollBehavior,
+});
 
 // The one live fetchUser started by the guard below (deduped across the
 // redirect-and-rerun cases of beforeEach).
@@ -725,8 +731,9 @@ router.beforeEach(async (to, from, next) => {
     // role-gated routes always, requiresAuth routes only if the user is still
     // unknown, public routes never. App.vue paints as soon as this guard
     // resolves, so on public routes the shell no longer waits on users-api.
-    if (localStorage.getItem("token") && !store.getters["user/userLive"]) {
-        if (!store.getters["user/userId"]) {
+    if (storage.getItem("token") && !store.getters["user/userLive"]) {
+        // #1689 spike: not while hydrating server HTML (entry-client applies it after mount).
+        if (!store.getters["user/userId"] && !isHydrating.value) {
             store.dispatch("user/restoreUserFromCache")
         }
         if (!liveUserBoot) {
@@ -781,5 +788,8 @@ router.beforeEach(async (to, from, next) => {
 
     next();
 });
+return router;
+}
 
+const router = createAppRouter();
 export default router;

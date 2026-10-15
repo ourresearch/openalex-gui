@@ -429,7 +429,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, mergeProps, provide } from 'vue';
+import { ref, computed, watch, onMounted, onServerPrefetch, mergeProps, provide } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
@@ -642,6 +642,16 @@ const allLocations = computed(() => {
 });
 
 const getEntityData = async () => {
+  // oxjob #1689 SSR spike: a record already in api.js's cache (fetched by the
+  // server, or inlined in the server HTML for hydration) is used SYNCHRONOUSLY,
+  // so the server render and the client's first (hydrating) render both have it.
+  const cached = api.getEntityFromCache(apiPath.value);
+  if (cached) {
+    entityLoadFailed.value = false;
+    entityData.value = cached;
+    store.state.isLoading = false;
+    return;
+  }
   store.state.isLoading = true;
   entityLoadFailed.value = false;
   // Clear old data first to prevent mixing location and work data
@@ -687,7 +697,7 @@ const getEntityData = async () => {
   store.state.isLoading = false;
 };
 
-const fetchWorksPage = async (page) => {
+const worksPageUrl = (page) => {
   if (myEntityType.value === 'works') return null;
   if (!myEntityConfig.value) return null;
   if (isComponentEntity.value) return null; // no works rollup (oxjob #852)
@@ -697,19 +707,26 @@ const fetchWorksPage = async (page) => {
   // For awards, sort by publication year (most recent funded works first)
   // For other entities, sort by citation count (most cited works first)
   const sortOrder = isAward.value ? 'publication_year:desc' : 'cited_by_count:desc';
-  const apiUrl = api.makeUrl('works', {
+  return api.makeUrl('works', {
     filter: filterString,
     sort: sortOrder,
     'per-page': WORKS_PER_PAGE,
     page,
   }, true);
+};
 
+const fetchWorksPage = async (page) => {
+  const apiUrl = worksPageUrl(page);
+  if (!apiUrl) return null;
   return api.getResultsList(apiUrl);
 };
 
 const getWorks = async () => {
-  worksResultObject.value = {};
   worksPage.value = 1;
+  // oxjob #1689 SSR spike: same synchronous cache path as getEntityData.
+  const cached = worksPageUrl(1) && api.getCachedResultsList(worksPageUrl(1));
+  if (cached) { worksResultObject.value = cached; return; }
+  worksResultObject.value = {};
   const resp = await fetchWorksPage(1);
   if (resp) worksResultObject.value = resp;
 };
@@ -782,7 +799,30 @@ onMounted(() => {
   store.state.entityType = route.params.entityType;
 });
 
-watch(apiPath, async () => {
+// oxjob #1689 SSR spike: fill the record AND its works list from the cache
+// synchronously, before the first render. loadEntityPage() awaits between the
+// two, so on the client the hydrating render would otherwise see no works list.
+{
+  const cachedEntity = api.getEntityFromCache(apiPath.value);
+  if (cachedEntity) {
+    entityData.value = cachedEntity;
+    const u = worksPageUrl(1);
+    const cachedWorks = u && api.getCachedResultsList(u);
+    if (cachedWorks) worksResultObject.value = cachedWorks;
+  }
+}
+
+// oxjob #1689 SSR spike: the server awaits the first load before rendering.
+let firstLoad = null;
+onServerPrefetch(() => firstLoad);
+
+watch(apiPath, () => {
+  const p = loadEntityPage();
+  firstLoad ??= p;
+  return p;
+}, { immediate: true });
+
+async function loadEntityPage() {
   myEntityType.value = route.params.entityType;
   await getEntityData();
   // The 'harvest' tab only exists on repository sources; landing anywhere else
@@ -792,7 +832,7 @@ watch(apiPath, async () => {
     activeTab.value = 'details';
   }
   await getWorks();
-}, { immediate: true });
+}
 
 // Sync activeTab to URL query parameter
 watch(activeTab, (newTab) => {

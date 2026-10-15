@@ -180,6 +180,16 @@ const api = (function () {
         return resp;
     };
 
+    // oxjob #1689 SSR spike: synchronous cache read for a results list, with the
+    // same row normalization getResultsList applies.
+    const getCachedResultsList = function (url) {
+        if (store.state.useV2) url += url.includes('?') ? '&data-version=2' : '?data-version=2';
+        const ret = getFromCache(url);
+        if (!ret) return null;
+        if (ret.results) ret.results = normalizeEntityRows(entityConfigForUrl(url), ret.results);
+        return ret;
+    };
+
     const getEntityFromCache = function(id) {
         const myUrl = makeUrl(id);
         return cloneDeep(cache[myUrl]);
@@ -757,6 +767,7 @@ const api = (function () {
         getResultsCount,
         getEntity,
         getEntityFromCache,
+        getCachedResultsList,
         get,
         getAutocompleteResponses,
         getGroups,
@@ -772,6 +783,10 @@ const api = (function () {
         getQuery,
         executeOql,
         executeOqo,
+        // oxjob #1689 SSR spike: seed the response cache with data the server
+        // already fetched (server render) or inlined in the HTML (hydration).
+        seedCache: stockCache,
+        cacheSnapshot: () => cloneDeep(cache),
     }
 })();
 
