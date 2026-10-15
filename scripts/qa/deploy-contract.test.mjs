@@ -12,7 +12,12 @@ describe('Heroku deploy contract', () => {
     expect(pkg.scripts.build).toMatch(/\bnuxt build\b/)
     expect(pkg.scripts.start).toBe('node .output/server/index.mjs')
     const procfile = fs.readFileSync(path.join(root, 'Procfile'), 'utf8')
-    expect(procfile).toMatch(/^web: node \.output\/server\/index\.mjs\s*$/m)
+    // The V8 heap cap keeps one SSR process inside a Standard-2X dyno (1 GB) under a crawler
+    // burst (record-ssr: 1.1-1.4 GB RSS uncapped; 329 MB at a 384 MB cap).
+    expect(procfile).toMatch(/^web: NODE_OPTIONS=--max-old-space-size=(\d+) node \.output\/server\/index\.mjs\s*$/m)
+    const heapMb = Number(/max-old-space-size=(\d+)/.exec(procfile)[1])
+    expect(heapMb).toBeGreaterThanOrEqual(384)
+    expect(heapMb).toBeLessThanOrEqual(640)
   })
   it('pins Node 24 and npm 11 (npm 10 crashes installing Nuxt 4.5)', () => {
     expect(pkg.engines.node).toBe('24.x')

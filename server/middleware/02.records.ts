@@ -11,7 +11,8 @@
 //   - otherwise                    -> server render, with the data in
 //     event.context.oxRecord for EntityPage.vue
 // Paths under a record prefix that aren't a valid id (/works/W1/x, /keywords/a%2Fb)
-// get the SPA shell, as today. Runs after 02.assistant-pages (verified AI assistants).
+// get the SPA shell, as today. Runs after the front door (server/plugins/00.front-door.ts:
+// HTTPS, subdomain redirects, #1688 assistant pages) and before 03.paths.ts.
 import { defineEventHandler, getRequestHeader, sendRedirect, setResponseHeader, setResponseStatus } from 'h3'
 import { isUnderRecordPrefix, parseRecordPath, pathFromApiId, trimWorksList, worksListApiPath, worksListPlan } from '../../src/ssr/recordRoutes.js'
 import { apiGet, LIST_TIMEOUT_MS, RECORD_TIMEOUT_MS } from '../lib/ssrApi'
