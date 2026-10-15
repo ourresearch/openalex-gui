@@ -63,8 +63,10 @@ const allowed = (agent, p) => isAllowed(robots, agent, p);
 
 const SEARCH = ['Googlebot', 'Bingbot', 'OAI-SearchBot', 'Claude-SearchBot', 'PerplexityBot', 'Applebot', 'DuckDuckBot'];
 const ASSISTANTS = ['ChatGPT-User', 'Claude-User', 'Perplexity-User', 'MistralAI-User'];
-const TRAINING = ['GPTBot', 'ClaudeBot', 'CCBot', 'Google-Extended', 'Applebot-Extended', 'meta-externalagent'];
-const EVERYONE = [...SEARCH, ...ASSISTANTS, ...TRAINING];
+const TRAINING = ['GPTBot', 'ClaudeBot', 'CCBot', 'Applebot-Extended', 'meta-externalagent'];
+// Google-Extended also governs Gemini Apps grounding (assistant traffic), so it follows the * group.
+const GROUNDING = ['Google-Extended'];
+const EVERYONE = [...SEARCH, ...ASSISTANTS, ...TRAINING, ...GROUNDING];
 
 const RECORDS = [
   '/works/W2741809807', '/works/w2741809807', '/works/W2741809807?utm_source=chatgpt.com',
@@ -95,6 +97,12 @@ describe('robots.txt', () => {
     for (const agent of SEARCH) {
       for (const p of [...RECORDS, ...SHORT_RECORDS, '/works', '/authors']) expect(allowed(agent, p), `${agent} ${p}`).toBe(true);
       for (const p of [...FACETED, ...PRIVATE]) expect(allowed(agent, p), `${agent} ${p}`).toBe(false);
+    }
+  });
+
+  it('Google-Extended (Gemini Apps grounding) may use record pages', () => {
+    for (const agent of GROUNDING) {
+      for (const p of [...RECORDS, ...SHORT_RECORDS]) expect(allowed(agent, p), `${agent} ${p}`).toBe(true);
     }
   });
 
