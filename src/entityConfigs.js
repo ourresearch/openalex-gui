@@ -126,6 +126,10 @@ const entityConfigs = reactive({
             "funded_outputs_count",
             "funder_award_id",
         ],
+        // Awards have no works_count or cited_by_count, so the default metrics
+        // would render nothing and log two "no facet found" lines per page
+        // (on the server since #1689's SSR).
+        metricsToShowOnEntityPage: [],
         groupByDefaults: [
             "start_year",
             "funder.id",
