@@ -13,6 +13,7 @@ track. Nothing here has been run against production yet; every step below is for
 | Web process | no Procfile: `npm start` falls back to `node server.js` (Express) | `Procfile`: `web: node .output/server/index.mjs` (Nitro; listens on `$PORT`) |
 | Slug | 143 MB | `.output` is 92 MB and self-contained (its own traced `node_modules`); `heroku-cleanup` deletes the root `node_modules` after the build, so the slug stays about the same size |
 | Dynos | 5 x Standard-1X (512 MB) | 5 x Standard-2X (1 GB): an SSR server process reaches ~450 to 500 MB under load (trial: 490 MB RSS at 60 concurrent requests) |
+| Server-side API key | none (the server never called the API) | SSR calls api.openalex.org from the dynos. Without a key every call spends the dyno IP's free budget ($0.10/day) and then gets 429 (desk's ran out at 08:40 CT on 2026-10-15). The record-ssr track reads `NUXT_SSR_API_KEY`, falling back to `ASSISTANT_PAGES_API_KEY`, which is already set on the app; set `NUXT_SSR_API_KEY` only to give SSR its own key |
 | Sentry source maps | Public `.map` next to every JS file; Sentry fetches them via `sourceMappingURL` (nothing is uploaded: `webpack.config.js` had the Sentry upload plugin, but `vue-cli-service` never reads that file) | Same: `sourcemap.client: true` puts 118 maps (16 MB) in `/_nuxt/`, served with the same 1-year immutable cache. Server maps stay off (they caused the trial's out-of-memory build) |
 
 **Build memory.** Heroku builds can use about 12 GB ([Heroku limits](https://devcenter.heroku.com/articles/limits):
@@ -94,13 +95,15 @@ logged out and as the non-admin test account, collections, admin logged out, the
 response, then loads the page in headless Chrome at 1280 and 400 px: status, console and page
 errors, failed requests to the site and OpenAlex APIs, landmark and expected text, Vue hydration
 warnings, and screenshots side by side in `compare/`. It blocks Plausible and Sentry ingest so runs
-don't count as visits or errors, and kills any browser tab that grows past 1 GB (desk's memory is
-shared).
+don't count as visits or errors, adds `$OPENALEX_API_KEY` to the browser's api.openalex.org calls
+(the pages still run logged out; without it desk's shared keyless budget runs out mid-run and every
+page after that shows 429s), and kills any browser tab that grows past 1 GB (desk's memory is shared).
 
 ```
-npm run build && PORT=5391 node .output/server/index.mjs &   # the branch, locally
+source ~/.zshenv
+npm run build && NUXT_SSR_API_KEY=$OPENALEX_API_KEY PORT=5391 node .output/server/index.mjs &   # the branch, locally
 npm --prefix scripts/qa install                               # playwright-core, once
-source ~/.zshenv && node scripts/qa/site-qa.mjs               # prod origin vs localhost:5391
+node scripts/qa/site-qa.mjs                                   # prod origin vs localhost:5391
 ```
 
 Output: `~/ox/oxdata/search-engines-see-record-pages/qa/<CT timestamp>/report.md`, `results.json`,

@@ -9,12 +9,14 @@
 //   node scripts/qa/site-qa.mjs                                      # prod origin vs localhost:5391
 //   node scripts/qa/site-qa.mjs --targets branch=http://localhost:5391 --only work,author
 //
-// Options: --targets name=url[,name=url]  --routes file.json  --widths 1280,400
+// Options: --targets name=url[,name=url]  --routes file.json  --widths 1280,400  --keyless
 //          --only id[,id]  --out dir (default ~/ox/oxdata/search-engines-see-record-pages/qa/<CT timestamp>)
 // Needs playwright-core (`npm --prefix scripts/qa install`) and Google Chrome (CHROME_PATH).
 // Requests to a localhost target carry X-Forwarded-Proto: https (the server's SSL redirect
 // answers 301 otherwise). Plausible and Sentry ingest are blocked so QA runs don't count
-// as visits or errors. Viewer routes log in with $OPENALEX_TEST_VIEWER_API_KEY.
+// as visits or errors. Viewer routes log in with $OPENALEX_TEST_VIEWER_API_KEY. Browser calls
+// to api.openalex.org carry $QA_API_KEY or $OPENALEX_API_KEY (see apiKey below); start a local
+// server with NUXT_SSR_API_KEY set so its own server-side calls carry one too.
 // Production: read-only GETs, one page at a time, ~2 loads per route. Not a crawl.
 import fs from 'node:fs'
 import os from 'node:os'
@@ -62,6 +64,11 @@ if (args.only) { const only = new Set(String(args.only).split(',')); routes = ro
 const outDir = args.out || path.join(os.homedir(), 'ox/oxdata/search-engines-see-record-pages/qa', ctStamp())
 const chromePath = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const viewerKey = process.env.OPENALEX_TEST_VIEWER_API_KEY
+// Logged-out pages call api.openalex.org with no key, which spends the free budget of the
+// machine's IP ($0.10/day, shared by every desk session) and then answers 429 to every page.
+// So the harness adds a key to those calls at the network layer (the page still runs logged
+// out). --keyless turns this off.
+const apiKey = args.keyless ? null : (process.env.QA_API_KEY || process.env.OPENALEX_API_KEY || null)
 const BLOCK = /(^https?:\/\/(plausible\.io|[^/]*\.ingest\.(us\.)?sentry\.io)\/)/
 const isLocal = base => /^http:\/\/(localhost|127\.0\.0\.1)/.test(base)
 fs.mkdirSync(outDir, { recursive: true })
@@ -145,6 +152,9 @@ async function loadInBrowserInner(browser, target, route, width) {
   await ctx.route('**/*', (rt) => {
     const u = rt.request().url()
     if (BLOCK.test(u)) return rt.abort('blockedbyclient')
+    if (apiKey && u.startsWith('https://api.openalex.org/') && !rt.request().headers()['authorization']) {
+      return rt.continue({ headers: { ...rt.request().headers(), authorization: `Bearer ${apiKey}` } })
+    }
     if (isLocal(target.base) && u.startsWith(target.base)) {
       return rt.continue({ headers: { ...rt.request().headers(), 'x-forwarded-proto': 'https' } })
     }
