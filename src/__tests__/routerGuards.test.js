@@ -86,6 +86,35 @@ describe("navigation guards on vue-router 5", () => {
     expect(r.params.entityType).toBe("locations");
   });
 
+  // Nuxt's router plugin: the first navigation runs before our global guards are
+  // installed, then Nuxt replays the first URL with force: true on the same route
+  // record (pages/runtime/plugins/router.js). Fixups must survive that replay.
+  async function nuxtFreshLoad(url) {
+    router = createRouter({ history: createMemoryHistory(), routes, scrollBehavior });
+    setAppRouter(router);
+    await router.push(url);
+    installGuards(router, fakeStore());
+    const initial = router.currentRoute.value.fullPath === url ? { ...router.currentRoute.value } : router.resolve(url);
+    delete initial.name;
+    await router.replace({ ...initial, force: true });
+    return router.currentRoute.value;
+  }
+
+  it("on a Nuxt fresh load, location pages keep entityType (else 'Page not found')", async () => {
+    const r = await nuxtFreshLoad("/locations/doi.org%2F10.7717%2Fpeerj.4375");
+    expect(r.params).toEqual({ entityType: "locations", entityId: "doi.org/10.7717/peerj.4375" });
+  });
+
+  it("on a Nuxt fresh load, a namespaced id is still normalized", async () => {
+    const r = await nuxtFreshLoad("/keywords/keywords%2Fkelp");
+    expect(r.params).toEqual({ entityType: "keywords", entityId: "kelp" });
+  });
+
+  it("on a Nuxt fresh load, global guards apply (v2, auth)", async () => {
+    expect((await nuxtFreshLoad("/works?v2")).query).toEqual({ "data-version": "2" });
+    expect((await nuxtFreshLoad("/oauth/consent")).name).toBe("Login");
+  });
+
   it("requiresAuth sends a logged-out visitor to /login with the way back", async () => {
     const r = await go("/oauth/consent?client_id=x");
     expect(r.name).toBe("Login");

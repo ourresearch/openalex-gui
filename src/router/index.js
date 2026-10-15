@@ -148,9 +148,7 @@ export const routes = [
         path: '/locations/:entityId(.*)',
         name: 'LocationPage',
         component: EntityPage,
-        beforeEnter: (to) => {
-            to.params.entityType = 'locations';
-        }
+        // entityType is set in the global guard below (#1689: see entityRouteFixup).
     },
     {
         path: `/:entityId([waspfictg]\\d+)`,
@@ -171,23 +169,7 @@ export const routes = [
         path: `/:entityType(${entityNames})/:entityId`,
         name: 'EntityPage',
         component: EntityPage,
-        beforeEnter: (to) => {
-            // A namespaced id in the param (/keywords/keywords%2Fkelp) means an old
-            // link minted before oxjob #671's autocomplete fix — normalize it to the
-            // canonical route instead of 404ing.
-            const { entityId } = to.params;
-            if (entityId.includes('/')) {
-                const parsed = openalexId.parseId(entityId);
-                if (parsed) {
-                    return {
-                        name: 'EntityPage',
-                        params: { entityType: parsed.entityType, entityId: parsed.shortId },
-                        query: to.query,
-                        replace: true,
-                    };
-                }
-            }
-        },
+        // Namespaced ids are normalized in the global guard below (#1689: see entityRouteFixup).
     },
 
     // user pages and routes
@@ -699,6 +681,36 @@ const redirectFilterSearchToTopLevel = function (to) {
     return {...to, query: newQuery, replace: true}
 }
 
+// Entity-route fixups that used to be per-route beforeEnter guards (#1689). Nuxt
+// replays the first URL once the app is created (force: true) so the global guards
+// below run on it; vue-router skips beforeEnter when the replay lands on the same
+// route record, which undid these on a fresh load (/locations/... rendered "Page
+// not found"). As part of the global guard they run on every navigation.
+// Returns a redirect, or null after any in-place fix.
+const entityRouteFixup = function (to) {
+    if (to.name === 'LocationPage') {
+        to.params.entityType = 'locations';
+        return null;
+    }
+    if (to.name !== 'EntityPage') return null;
+    // A namespaced id in the param (/keywords/keywords%2Fkelp) means an old
+    // link minted before oxjob #671's autocomplete fix — normalize it to the
+    // canonical route instead of 404ing.
+    const { entityId } = to.params;
+    if (entityId.includes('/')) {
+        const parsed = openalexId.parseId(entityId);
+        if (parsed) {
+            return {
+                name: 'EntityPage',
+                params: { entityType: parsed.entityType, entityId: parsed.shortId },
+                query: to.query,
+                replace: true,
+            };
+        }
+    }
+    return null;
+}
+
 export function installGuards(router, store) {
 // The one live fetchUser started by the guard below (deduped across the
 // redirect-and-rerun cases of beforeEach).
@@ -707,6 +719,9 @@ let liveUserBoot = null
 // #1689: returns its result (a redirect, or nothing to carry on); vue-router 5
 // deprecates the next() callback.
 router.beforeEach(async (to) => {
+
+    const entityRedirect = entityRouteFixup(to);
+    if (entityRedirect) return entityRedirect;
 
     // Handle legacy v2 parameter - convert to data-version=2
     if (to.query.v2 !== undefined) {
