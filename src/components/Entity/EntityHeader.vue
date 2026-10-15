@@ -140,8 +140,12 @@
       <div v-if="isCollection" :class="titleClass">{{ displayTitle }}</div>
       <!-- #1689: the record's name is the page's one <h1> on the full page;
            the drawer sits on a search page, so it stays a div there. -->
-      <component
-        :is="isDrawer ? 'div' : 'h1'"
+      <div
+        v-else-if="isDrawer"
+        :class="titleClass"
+        v-html="filters.prettyTitle(displayTitle)"
+      />
+      <h1
         v-else
         :class="[titleClass, 'entity-title']"
         v-html="filters.prettyTitle(displayTitle)"

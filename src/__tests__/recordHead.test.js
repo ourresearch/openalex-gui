@@ -147,6 +147,7 @@ describe('recordHead', () => {
   it('very large author lists are capped in JSON-LD', () => {
     const big = { ...work, authorships: Array.from({ length: 3000 }, (_, i) => ({ author: { id: `https://openalex.org/A${i + 1}`, display_name: `A ${i}` } })) };
     expect(recordJsonLd('works', big).author).toHaveLength(100);
+    expect(recordDescription('works', big)).toMatch(/and 2,997 others/);
   });
 });
 

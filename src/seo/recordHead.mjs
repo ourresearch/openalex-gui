@@ -105,7 +105,7 @@ function byline(names, k) {
   if (!names.length || k < 1) return '';
   if (names.length <= k) return names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
   const rest = names.length - k;
-  return `${names.slice(0, k).join(', ')} and ${rest} other${rest === 1 ? '' : 's'}`;
+  return `${names.slice(0, k).join(', ')} and ${num(rest)} other${rest === 1 ? '' : 's'}`;
 }
 
 // ---------- URLs ----------
