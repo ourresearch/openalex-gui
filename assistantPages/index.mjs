@@ -115,28 +115,43 @@ class ApiError extends Error {
   }
 }
 
+// A 429 with Retry-After is a busy moment, not a bad request: the API's per-second cap (50/s on the
+// server key's plan) or a shed search. ChatGPT fetches up to ~90 pages in one second, so a short
+// wait is taken once, with jitter so the retries don't arrive together. A 429 without Retry-After
+// is the API refusing a paid-plan feature: a 400 below, never retried.
+const MAX_RETRY_WAIT_S = 2;
+
 function makeGetJson(env, fetchImpl) {
   return async function getJson(pathAndQuery, publicUrl) {
     const headers = { Accept: "application/json", "User-Agent": "openalex.org assistant pages (oxjob 1688)" };
     if (env.ASSISTANT_PAGES_API_KEY) headers.Authorization = `Bearer ${env.ASSISTANT_PAGES_API_KEY}`;
-    let res;
-    try {
-      res = await fetchImpl(`${API}${pathAndQuery}`, { headers, signal: AbortSignal.timeout(TIMEOUT_MS) });
-    } catch (err) {
-      throw new ApiError(502, `the API did not answer (${err.name})`, publicUrl);
+    for (let attempt = 1; ; attempt++) {
+      let res;
+      try {
+        res = await fetchImpl(`${API}${pathAndQuery}`, { headers, signal: AbortSignal.timeout(TIMEOUT_MS) });
+      } catch (err) {
+        throw new ApiError(502, `the API did not answer (${err.name})`, publicUrl);
+      }
+      const retryAfter = res.status === 429 ? res.headers.get("retry-after") : null;
+      if (retryAfter !== null && attempt === 1 && Number(retryAfter) <= MAX_RETRY_WAIT_S) {
+        await res.body?.cancel();
+        await new Promise((resolve) => setTimeout(resolve, Number(retryAfter) * 1000 + Math.random() * 500));
+        continue;
+      }
+      let body = null;
+      try {
+        body = await res.json();
+      } catch {
+        // fall through: a non-JSON answer is an error below
+      }
+      if (!res.ok || !body || body.error) {
+        if (retryAfter !== null) throw new ApiError(503, "too many requests at once", publicUrl);
+        const status = res.status === 404 ? 404 : res.status >= 400 && res.status < 500 ? 400 : 502;
+        const why = body?.message || body?.error || `HTTP ${res.status}`;
+        throw new ApiError(status, typeof why === "string" ? why : JSON.stringify(why), publicUrl);
+      }
+      return body;
     }
-    let body = null;
-    try {
-      body = await res.json();
-    } catch {
-      // fall through: a non-JSON answer is an error below
-    }
-    if (!res.ok || !body || body.error) {
-      const status = res.status === 404 ? 404 : res.status >= 400 && res.status < 500 ? 400 : 502;
-      const why = body?.message || body?.error || `HTTP ${res.status}`;
-      throw new ApiError(status, typeof why === "string" ? why : JSON.stringify(why), publicUrl);
-    }
-    return body;
   };
 }
 
