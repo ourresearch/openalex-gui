@@ -8,6 +8,7 @@ import { createApp, toNodeListener, defineEventHandler, setResponseHeader } from
 import { installFrontDoor, setDefaultCacheControl } from '../lib/front-door'
 
 const BIG_HTML = '<!DOCTYPE html><html><body>' + 'x'.repeat(5000) + '</body></html>'
+const PROXIED = '<!DOCTYPE html>' + 'abcdefghij'.repeat(200000)
 let server: http.Server
 let base: string
 const seen: string[] = []
@@ -34,11 +35,21 @@ beforeAll(async () => {
       return 'console.log(1);'.repeat(500)
     }
   }))
+  // h3's sendProxy pattern (proxy route rules): write chunks, then `return res.end()`.
+  app.use(defineEventHandler((event) => {
+    if (event.path !== '/proxied') return
+    event.node.res.setHeader('content-type', 'text/html; charset=utf-8')
+    for (let i = 0; i < PROXIED.length; i += 65536) event.node.res.write(PROXIED.slice(i, i + 65536))
+    return event.node.res.end()
+  }))
   app.use(defineEventHandler((event) => {
     setResponseHeader(event, 'content-type', 'text/html;charset=utf-8')
     return event.path === '/tiny' ? '<p>hi</p>' : BIG_HTML
   }))
   installFrontDoor(app)
+  // Stand-in for Nitro's in-process fetch (mock req carrying __unenv__).
+  app.use(defineEventHandler((event) => { if (event.node.req.headers['x-test-internal']) (event.node.req as any).__unenv__ = {} }))
+  ;(app.stack as unknown[]).unshift((app.stack as unknown[]).pop())
   server = http.createServer(toNodeListener(app))
   await new Promise<void>((r) => server.listen(0, '127.0.0.1', () => r()))
   base = `http://127.0.0.1:${(server.address() as any).port}`
@@ -83,6 +94,16 @@ describe('HTTPS redirect (heroku-ssl-redirect, production only)', () => {
   })
 })
 
+describe("Nitro's in-process requests", () => {
+  it('skip the front door: no redirect, no compression', async () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    const r = await get('/about', { Host: 'alpha.openalex.org', 'Accept-Encoding': 'gzip', 'x-test-internal': '1' })
+    expect(r.status).toBe(200)
+    expect(r.headers['content-encoding']).toBeUndefined()
+    expect(r.body.toString()).toBe(BIG_HTML)
+  })
+})
+
 describe('alpha. and analytics. subdomains', () => {
   it('sends analytics.openalex.org/ to /analytics', async () => {
     const r = await get('/', { Host: 'analytics.openalex.org' })
@@ -123,6 +144,11 @@ describe('compression (the compression package, as server.js)', () => {
   it('compresses static files and hashed assets', async () => {
     expect((await get('/_nuxt/entry.js', { 'Accept-Encoding': 'gzip' })).headers['content-encoding']).toBe('gzip')
     expect((await get('/robots.txt', { 'Accept-Encoding': 'gzip' })).headers['content-encoding']).toBe('gzip')
+  })
+  it('streams a large proxied response through whole (no stall after 16 KB)', async () => {
+    const r = await get('/proxied', { 'Accept-Encoding': 'br' })
+    expect(r.headers['content-encoding']).toBe('br')
+    expect(zlib.brotliDecompressSync(r.body).toString()).toBe(PROXIED)
   })
   it('skips bodies under 1 KB, binary types, and clients that do not ask', async () => {
     expect((await get('/tiny', { 'Accept-Encoding': 'gzip' })).headers['content-encoding']).toBeUndefined()

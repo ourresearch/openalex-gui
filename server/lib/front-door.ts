@@ -35,7 +35,21 @@ export const sslRedirect = defineEventHandler((event) => {
 
 // server.js: app.use(compression()). Same library, same defaults (gzip, deflate,
 // brotli; 1 KB threshold; compressible types only; Vary: Accept-Encoding).
-export const compress = defineEventHandler(fromNodeMiddleware(compression()))
+// One fix for h3: compression's res.end() returns its zlib stream, where Node's
+// returns res. Handlers that `return res.end()` (h3's sendProxy, so every proxy
+// route rule) would hand h3 that stream as a body to pipe back into res: the
+// response stalls after the first 16 KB. Here res.end() returns res again.
+const compressionMiddleware = compression()
+export const compress = defineEventHandler(fromNodeMiddleware((req, res, next) => {
+  compressionMiddleware(req as any, res as any, (err?: unknown) => {
+    const end = res.end
+    res.end = function (this: typeof res, ...args: any[]) {
+      end.apply(this, args as any)
+      return this
+    } as typeof res.end
+    next(err as any)
+  })
+}))
 
 // Express's req.subdomains (subdomain offset 2), e.g. ["alpha"] for alpha.openalex.org.
 function subdomains(event: H3Event): string[] {
@@ -84,11 +98,19 @@ export const assistantPages = defineEventHandler(async (event) => {
 // server.js order.
 export const FRONT_DOOR = [sslRedirect, compress, subdomainRedirect, assistantPages]
 
+// Nitro's own in-process requests (route-rule proxies such as /aboutness/viewer,
+// Nuxt's error page render) run through the same app on a mock req/res. They
+// never came from a client: no redirects for them, and compression must not
+// wrap a mock response (it hangs the request).
+export function isInternalRequest(event: H3Event): boolean {
+  return '__unenv__' in event.node.req
+}
+
 // Puts FRONT_DOOR, in order, ahead of every handler already on the app.
 export function installFrontDoor(app: App) {
   const stack = app.stack as unknown[]
   for (const handler of [...FRONT_DOOR].reverse()) {
-    app.use(handler)
+    app.use(defineEventHandler((event) => (isInternalRequest(event) ? undefined : handler(event))))
     stack.unshift(stack.pop())
   }
 }
