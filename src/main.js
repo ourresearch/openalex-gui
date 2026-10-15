@@ -1,8 +1,10 @@
 import { createApp } from 'vue';
 import { createHead } from '@unhead/vue';
 import VScrollLock from 'v-scroll-lock';
-import router from './router';
-import store from './store';
+import { createAppRouter } from './router';
+import { getAppStore } from './store';
+const store = getAppStore();
+const router = createAppRouter();
 import vuetify from './plugins/vuetify';
 import 'vuetify/styles'
 import './styles/tokens.css'  // OpenAlex design tokens (oxjob #249) — load after Vuetify base styles

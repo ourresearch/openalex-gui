@@ -1,4 +1,5 @@
-import '@mdi/font/css/materialdesignicons.css'
+// oxjob #1689 Nuxt trial: options are exported so Nuxt can create one Vuetify per app instance;
+// the mdi font CSS moved to nuxt.config css.
 
 import { createVuetify } from 'vuetify'
 // Components/directives are auto-imported per template by webpack-plugin-vuetify
@@ -9,7 +10,7 @@ const baseWeight = "lighten5";
 const darkerWeight = "lighten4";
 const darkWeight = "darken1";
 
-export default createVuetify({
+export const vuetifyOptions = {
   defaults: {
     // Global icon size default
     VIcon: {
@@ -92,4 +93,6 @@ export default createVuetify({
   icons: {
     defaultSet: 'mdi',
   }
-})
+}
+
+export default createVuetify(vuetifyOptions)

@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 import store from '@/store';
+import { hasBrowser } from '@/utils/env';
 import {getEntityConfigs} from "@/entityConfigs";
 import * as openalexId from "@/openalexId";
 import {url} from "@/url";
@@ -99,7 +100,7 @@ const redirect = (path, url) => ({
 //   'bare' — auth pages: centered card only, no chrome
 // 'site' and 'app' now render the SAME top bar; the label is kept only where a
 // route still branches on it (e.g. hiding the top bar's "Open app" button in-app).
-const routes = [
+export const routes = [
     {
         // #681 landing-page revision, shipped 2026-08-12. Keeps name 'Home' so every
         // {name:'Home'} redirect/link in the app still works.
@@ -669,10 +670,12 @@ const routes = [
 ];
 
 
-const router = createRouter({
-    history: createWebHistory(),
-    routes,
-    scrollBehavior(to, from, savedPosition) {
+// oxjob #1689 Nuxt trial: the routes, scrollBehavior and guards are exported so
+// Nuxt can build its own (per-request on the server) router from them
+// (app/router.options.ts, app/plugins/02.router-guards.ts). The default export is
+// a late-bound proxy to whichever router instance is current, so url.js, filters.js
+// and friends keep their `import router from '@/router'`.
+export function scrollBehavior(to, from, savedPosition) {
         if (to.hash) {
             return {
                 el: to.hash,
@@ -686,8 +689,7 @@ const router = createRouter({
         } else {
             return {left: 0, top: 0};
         }
-    },
-});
+}
 
 // #397: normalize a shared/legacy/API-style search URL that carries the query in a single
 // `filter=<scope>.search:<terms>` clause to the canonical `?search.*=` shape the search box
@@ -701,6 +703,7 @@ const redirectFilterSearchToTopLevel = function (to, from, next) {
     return true
 }
 
+export function installGuards(router, store) {
 // The one live fetchUser started by the guard below (deduped across the
 // redirect-and-rerun cases of beforeEach).
 let liveUserBoot = null
@@ -725,7 +728,7 @@ router.beforeEach(async (to, from, next) => {
     // role-gated routes always, requiresAuth routes only if the user is still
     // unknown, public routes never. App.vue paints as soon as this guard
     // resolves, so on public routes the shell no longer waits on users-api.
-    if (localStorage.getItem("token") && !store.getters["user/userLive"]) {
+    if (hasBrowser && localStorage.getItem("token") && !store.getters["user/userLive"]) {
         if (!store.getters["user/userId"]) {
             store.dispatch("user/restoreUserFromCache")
         }
@@ -781,5 +784,31 @@ router.beforeEach(async (to, from, next) => {
 
     next();
 });
+}
 
+let _router = null;
+let _resolver = null;
+export function setAppRouter(r) { _router = r; }
+// Server side (Nuxt SSR), a resolver returns the current request's router.
+export function setRouterResolver(fn) { _resolver = fn; }
+export function getAppRouter() {
+    const r = (_resolver && _resolver()) || _router;
+    if (!r) throw new Error("router used before it was created");
+    return r;
+}
+// Vue CLI entry (src/main.js): one browser router.
+export function createAppRouter() {
+    const r = createRouter({ history: createWebHistory(), routes, scrollBehavior });
+    installGuards(r, store);
+    setAppRouter(r);
+    return r;
+}
+
+const router = new Proxy({}, {
+    get(_t, prop) {
+        const r = getAppRouter();
+        const v = r[prop];
+        return typeof v === 'function' ? v.bind(r) : v;
+    },
+});
 export default router;

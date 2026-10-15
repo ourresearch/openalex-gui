@@ -26,3 +26,8 @@ yarn-error.log*
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# oxjob #1689 Nuxt trial
+.nuxt/
+.output/
+.trial-tools/

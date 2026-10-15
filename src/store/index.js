@@ -10,6 +10,10 @@ import { facetsByCategory } from '@/facetConfigUtils';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { api } from '@/api';
 import { NEW_OQL_FLAG, pickOql } from '@/oqlForm';
+import { hasBrowser } from '@/utils/env';
+
+// oxjob #1689 Nuxt trial: SSR-safe localStorage read (the server has none).
+const lsGet = (k) => (hasBrowser ? localStorage.getItem(k) : null);
 
 // Conversion: 1 credit = $0.0001 (10,000 credits = $1)
 const CREDIT_TO_USD = 0.0001;
@@ -59,14 +63,14 @@ const stateDefaults = function () {
         // defaults 10, table defaults 100. url.js getPerPage picks by current view;
         // a deep-link `per_page` is adopted into the active view's size as a session
         // override (persist:false) without overwriting the saved preference.
-        serpPageSize: parseInt(localStorage.getItem('serp-page-size'), 10) || 10,
-        serpTablePageSize: parseInt(localStorage.getItem('serp-table-page-size'), 10) || 100,
+        serpPageSize: parseInt(lsGet('serp-page-size'), 10) || 10,
+        serpTablePageSize: parseInt(lsGet('serp-table-page-size'), 10) || 100,
         // SERP results presentation (list vs table) — recipient-local CHROME, kept
         // OFF the URL (#492). This reactive store is the source of truth so the
         // toggle updates the UI with no navigation; persisted to localStorage
         // (key `oax.resultsView`, zd#8973). url.isTableView reads this; a legacy
         // inbound `?view=table` is seeded here then stripped (see Serp.vue).
-        serpResultsView: localStorage.getItem('oax.resultsView') === 'table' ? 'table' : 'list',
+        serpResultsView: lsGet('oax.resultsView') === 'table' ? 'table' : 'list',
         // The "Show API query" overlay (#492) — session-only chrome, never
         // persisted, off the URL. Seeded from a legacy `?view=api` link, then
         // stripped. (Replaces the vestigial `isApiEditorShowing` flag below.)
@@ -120,8 +124,10 @@ const clearPerUserStateOnLogout = (store) => {
     });
 };
 
-export default createStore({
-    state: stateDefaults(),
+// oxjob #1689 Nuxt trial: a factory, so the server can build one store per request.
+export function createAppStore() {
+return createStore({
+    state: stateDefaults,
     modules: {
         user,
         selection,
@@ -370,13 +376,13 @@ export default createStore({
             };
         },
         isLocalEnv() {
-            return window.location.hostname === "localhost";
+            return hasBrowser && window.location.hostname === "localhost";
         },
         isStagingEnv() {
-            return window.location.hostname === "staging.openalex.org";
+            return hasBrowser && window.location.hostname === "staging.openalex.org";
         },
         isProductionEnv() {
-            return window.location.hostname === "openalex.org";
+            return !hasBrowser || window.location.hostname === "openalex.org";
         },
         environment(getters) {
             if (getters.isLocalEnv) {
@@ -432,3 +438,25 @@ export default createStore({
         },
     },
 })
+}
+
+let _store = null;
+let _resolver = null;
+export function setAppStore(s) { _store = s; }
+// Server side (Nuxt SSR), a resolver returns the current request's store.
+export function setStoreResolver(fn) { _resolver = fn; }
+export function getAppStore() {
+    const s = (_resolver && _resolver()) || _store;
+    if (s) return s;
+    _store = createAppStore();   // browser: one store, created on first use
+    return _store;
+}
+// Late-bound proxy: modules that `import store from '@/store'` keep working.
+const store = new Proxy({}, {
+    get(_t, prop) {
+        const s = getAppStore();
+        const v = s[prop];
+        return typeof v === 'function' ? v.bind(s) : v;
+    },
+});
+export default store;

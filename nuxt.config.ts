@@ -1,0 +1,75 @@
+// oxjob #1689 Nuxt trial: Nuxt 4 hosting the existing Vue 3 app in src/.
+// Step 1: pure SPA (ssr: false). Step 2 flips on SSR for record routes only.
+import { fileURLToPath } from 'node:url'
+import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+
+const srcPath = fileURLToPath(new URL('./src', import.meta.url))
+
+export default defineNuxtConfig({
+  compatibilityDate: '2026-08-01',
+  devtools: { enabled: false },
+  telemetry: false,
+  ssr: false,
+  // Nuxt's own files live in app/; the existing app stays in src/ and keeps its "@" alias.
+  alias: { '@': srcPath },
+  // Don't let Nuxt auto-scan/auto-import anything from the old app.
+  components: false,
+  imports: { autoImport: false },
+  // Enable Nuxt's vue-router integration; routes come from app/router.options.ts.
+  pages: true,
+  css: [
+    '@mdi/font/css/materialdesignicons.css',
+    'vuetify/styles',
+    '@/styles/tokens.css',
+  ],
+  build: { transpile: ['vuetify'] },
+  modules: [
+    (_options, nuxt) => {
+      nuxt.hooks.hook('vite:extendConfig', (config) => {
+        // @ts-expect-error plugins exists
+        config.plugins.push(vuetify({ autoImport: true }))
+      })
+    },
+  ],
+  vite: {
+    vue: { template: { transformAssetUrls } },
+    define: {
+      __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
+    },
+    // jobs-redline.yaml was imported raw via a webpack asset/source rule.
+    assetsInclude: [],
+  },
+  app: {
+    rootId: 'app',
+    head: {
+      htmlAttrs: { lang: 'en' },
+      title: 'OpenAlex',
+      meta: [
+        { charset: 'utf-8' },
+        { 'http-equiv': 'X-UA-Compatible', content: 'IE=edge' },
+        { name: 'viewport', content: 'width=device-width,initial-scale=1.0' },
+        { name: 'format-detection', content: 'email=no' },
+      ],
+      link: [
+        { rel: 'preconnect', href: 'https://user.openalex.org', crossorigin: '' },
+        { rel: 'preconnect', href: 'https://api.openalex.org', crossorigin: '' },
+        { rel: 'dns-prefetch', href: 'https://user.openalex.org' },
+        { rel: 'dns-prefetch', href: 'https://api.openalex.org' },
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        { rel: 'icon', href: '/tricon-outlined.png', type: 'image/png' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Dosis:wght@200..800&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap' },
+      ],
+      script: [
+        { innerHTML: "(function(){var o=console.error;console.error=function(){var a=arguments;if(typeof a[0]==='string'&&a[0].indexOf('ResizeObserver loop')>-1)return;o.apply(console,a)};window.addEventListener('error',function(e){if(e.message&&e.message.indexOf('ResizeObserver loop')>-1){e.stopImmediatePropagation();e.preventDefault();return false}},true)})();" },
+        { defer: true, 'data-domain': 'openalex.org', src: 'https://plausible.io/js/script.file-downloads.outbound-links.pageview-props.tagged-events.js' },
+        { innerHTML: 'window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }' },
+        { src: 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit', async: true, defer: true },
+        { id: 'ze-snippet', src: 'https://static.zdassets.com/ekr/snippet.js?key=f448c93c-e2e1-4d7c-b344-683a586e69f7', tagPosition: 'bodyClose' },
+      ],
+      noscript: [
+        { innerHTML: '<p><strong>OpenAlex needs JavaScript to run in your browser.</strong></p><p>OpenAlex is a free and open catalog of the world\'s research. To get the data without a browser, use the OpenAlex API: <a href="https://help.openalex.org/">help.openalex.org</a> explains how, and <a href="https://help.openalex.org/llms.txt">help.openalex.org/llms.txt</a> lists every docs page.</p>', tagPosition: 'bodyOpen' },
+      ],
+    },
+  },
+})

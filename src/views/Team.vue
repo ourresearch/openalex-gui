@@ -48,6 +48,26 @@
 
 
 <script>
+// oxjob #1689 Nuxt trial: Vite has no require(); static image imports.
+import teamImg0 from '@/assets/team/jason-priem.png';
+import teamImg1 from '@/assets/team/casey-meyer.jpeg';
+import teamImg2 from '@/assets/team/kyle_headshot_thumb.jpg';
+import teamImg3 from '@/assets/team/steve-gruber.jpeg';
+import teamImg4 from '@/assets/team/rohan-mantena.jpg';
+import teamImg5 from '@/assets/team/heather-joseph.png';
+import teamImg6 from '@/assets/team/ethan-white.png';
+import teamImg7 from '@/assets/team/johanna-mcentyre.jpg';
+import teamImg8 from '@/assets/team/Juan-Pablo-Alperin.jpg';
+import teamImg9 from '@/assets/team/eric-jeangirard.png';
+import teamImg10 from '@/assets/team/richard-tankerly.jpg';
+import teamImg11 from '@/assets/team/ashley-farley.jpg';
+import teamImg12 from '@/assets/team/euan-adie.jpg';
+import teamImg13 from '@/assets/team/Amelie-Church.jpg';
+import teamImg14 from '@/assets/team/Joanna-Ball.jpg';
+import teamImg15 from '@/assets/team/Nees-Jan-van-Eck.jpg';
+import teamImg16 from '@/assets/team/Maria-Gould.jpg';
+import teamImg17 from '@/assets/team/Viviana-Martinovich.jpg';
+import teamImg18 from '@/assets/team/Gael-Bernard.jpg';
 import PersonCard from "@/components/PersonCard";
 import StaticPage from "@/components/StaticPage/StaticPage.vue";
 import StaticSection from "@/components/StaticPage/StaticSection.vue";
@@ -70,7 +90,7 @@ export default {
     people: [
       {
         name: "Jason Priem",
-        img: require("@/assets/team/jason-priem.png"),
+        img: teamImg0,
         title: "CEO",
         fte: "full-time",
         categories: ["staff", "board"],
@@ -93,7 +113,7 @@ export default {
 
       {
         name: "Casey Meyer",
-        img: require("@/assets/team/casey-meyer.jpeg"),
+        img: teamImg1,
         title: "CTO",
         fte: "full-time",
         categories: ["staff"],
@@ -108,7 +128,7 @@ export default {
 
       {
         name: "Kyle Demes",
-        img: require("@/assets/team/kyle_headshot_thumb.jpg"),
+        img: teamImg2,
         title: "COO",
         fte: "full-time",
         categories: ["staff"],
@@ -120,7 +140,7 @@ export default {
 
       {
         name: "Steve Gruber",
-        img: require("@/assets/team/steve-gruber.jpeg"),
+        img: teamImg3,
         title: "Sales",
         fte: "part-time",
         categories: ["staff"],
@@ -129,7 +149,7 @@ export default {
 
       {
         name: "Rohan Mantena",
-        img: require("@/assets/team/rohan-mantena.jpg"),
+        img: teamImg4,
         title: "Software & Data Engineer",
         fte: "full-time",
         categories: ["staff"],
@@ -140,7 +160,7 @@ export default {
 
       {
         name: "Heather Joseph",
-        img: require("@/assets/team/heather-joseph.png"),
+        img: teamImg5,
         title: "Board",
         categories: ["board"],
         fte: "volunteer",
@@ -155,7 +175,7 @@ export default {
 
       {
         name: "Ethan White",
-        img: require("@/assets/team/ethan-white.png"),
+        img: teamImg6,
         title: "Board",
         fte: "volunteer",
         categories: ["board"],
@@ -170,7 +190,7 @@ export default {
 
       {
         name: "Johanna McEntyre",
-        img: require("@/assets/team/johanna-mcentyre.jpg"),
+        img: teamImg7,
         title: "Board",
         fte: "volunteer",
         categories: ["board"],
@@ -181,7 +201,7 @@ export default {
 
       {
         name: "Juan Pablo Alperin (Chair)",
-        img: require("@/assets/team/Juan-Pablo-Alperin.jpg"),
+        img: teamImg8,
         title: "Advisory Board",
         fte: "volunteer",
         categories: ["advisory board"],
@@ -192,7 +212,7 @@ export default {
 
       {
         name: "Eric Jeangirard",
-        img: require("@/assets/team/eric-jeangirard.png"),
+        img: teamImg9,
         title: "Advisory Board",
         fte: "volunteer",
         categories: ["advisory board"],
@@ -203,7 +223,7 @@ export default {
 
       {
         name: "Richard Tankerly",
-        img: require("@/assets/team/richard-tankerly.jpg"),
+        img: teamImg10,
         title: "Advisory Board",
         fte: "volunteer",
         categories: ["advisory board"],
@@ -214,7 +234,7 @@ export default {
 
       {
         name: "Ashley Farley",
-        img: require("@/assets/team/ashley-farley.jpg"),
+        img: teamImg11,
         title: "Advisory Board",
         fte: "volunteer",
         categories: ["advisory board"],
@@ -225,7 +245,7 @@ export default {
 
       {
         name: "Euan Adie",
-        img: require("@/assets/team/euan-adie.jpg"),
+        img: teamImg12,
         title: "Advisory Board",
         fte: "volunteer",
         categories: ["advisory board"],
@@ -236,7 +256,7 @@ export default {
 
       {
         name: "Amélie Church",
-        img: require("@/assets/team/Amelie-Church.jpg"),
+        img: teamImg13,
         title: "Advisory Board",
         fte: "volunteer",
         categories: ["advisory board"],
@@ -247,7 +267,7 @@ export default {
 
       {
         name: "Joanna Ball",
-        img: require("@/assets/team/Joanna-Ball.jpg"),
+        img: teamImg14,
         title: "Advisory Board",
         fte: "volunteer",
         categories: ["advisory board"],
@@ -258,7 +278,7 @@ export default {
 
       {
         name: "Nees Jan van Eck",
-        img: require("@/assets/team/Nees-Jan-van-Eck.jpg"),
+        img: teamImg15,
         title: "Advisory Board",
         fte: "volunteer",
         categories: ["advisory board"],
@@ -269,7 +289,7 @@ export default {
 
       {
         name: "Maria Gould",
-        img: require("@/assets/team/Maria-Gould.jpg"),
+        img: teamImg16,
         title: "Advisory Board",
         fte: "volunteer",
         categories: ["advisory board"],
@@ -280,7 +300,7 @@ export default {
 
       {
         name: "Viviana Martinovich",
-        img: require("@/assets/team/Viviana-Martinovich.jpg"),
+        img: teamImg17,
         title: "Advisory Board",
         fte: "volunteer",
         categories: ["advisory board"],
@@ -291,7 +311,7 @@ export default {
 
       {
         name: "Gaël Bernard",
-        img: require("@/assets/team/Gael-Bernard.jpg"),
+        img: teamImg18,
         title: "Advisory Board",
         fte: "volunteer",
         categories: ["advisory board"],

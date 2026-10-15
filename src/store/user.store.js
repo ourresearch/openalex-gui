@@ -7,7 +7,7 @@ import {sanitizeRedirectPath} from "@/util";
 import {bootUser, readUserCache, writeUserCache, clearUserCache} from "@/store/userBoot";
 import {orcidAutoClaim} from "@/components/Entity/claimCopy.js";
 
-const shortUuid = require('short-uuid');
+import shortUuid from 'short-uuid';
 
 const apiBaseUrl = urlBase.userApi
 

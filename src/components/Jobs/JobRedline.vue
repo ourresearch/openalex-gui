@@ -59,7 +59,7 @@
 // works across inline tags (<strong>, <a>) because it walks text nodes.
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { parse } from 'yaml';
-import redlineSource from './jobs-redline.yaml';
+import redlineSource from './jobs-redline.yaml?raw';  // #1689: Vite raw import (was a webpack asset/source rule)
 
 const props = defineProps({
   page: { type: String, required: true }, // community-lead | operations-associate

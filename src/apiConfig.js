@@ -1,14 +1,12 @@
 // Send bypass_cache params on API calls
 const DISABLE_SERVER_CACHE = false;
 
-// Lazy store import to avoid circular dependency
-let _store = null;
-const getStore = () => {
-    if (!_store) {
-        _store = require('@/store').default;
-    }
-    return _store;
-};
+// oxjob #1689 Nuxt trial: Vite/Rollup has no `require`. The store default export
+// is now a late-bound proxy, so a plain (circular) import is safe at call time.
+import store from '@/store';
+import { getUiToken } from '@/uiProvenance';
+import { hasBrowser } from '@/utils/env';
+const getStore = () => store;
 
 const urlBase = {
     api: "https://api.openalex.org",
@@ -23,23 +21,24 @@ const urlBase = {
 // Example: npm run serve -- --port 8081
 
 // 8081: Local Elastic API
-if (window.location.port && parseInt(window.location.port) === 8081) {
+const devPort = hasBrowser ? window.location.port : '';
+if (devPort && parseInt(devPort) === 8081) {
     urlBase.api = "http://localhost:5006";
     console.log("Setting API base URL to local machine (dev use only): " + urlBase.api);
 
 // 8082: Staging Elastic API
-} else if (window.location.port && parseInt(window.location.port) === 8082) {
+} else if (devPort && parseInt(devPort) === 8082) {
     urlBase.api = "https://staging-jump-api.herokuapp.com";
     console.log("Setting API base URL to staging heroku (dev use only): " + urlBase.api);
 
 // 8083: Local User API
-} else if (window.location.port && parseInt(window.location.port) === 8083) {
+} else if (devPort && parseInt(devPort) === 8083) {
     urlBase.userApi = "http://localhost:5106";
     urlBase.collectionsApi = "http://localhost:5106/api";
     console.log("Setting User API base URL to local machine (dev use only): " + urlBase.userApi);
 
 // 8084: Local Elastic & User API
-} else if (window.location.port && parseInt(window.location.port) === 8084) {
+} else if (devPort && parseInt(devPort) === 8084) {
     urlBase.api = "http://localhost:5006";
     console.log("Setting API base URL to local machine (dev use only): " + urlBase.api);
     urlBase.userApi = "http://localhost:5106";
@@ -47,7 +46,7 @@ if (window.location.port && parseInt(window.location.port) === 8081) {
     console.log("Setting User API base URL to local machine (dev use only): " + urlBase.userApi);
 
 // 8085: Local CV Parse Server
-} else if (window.location.port && parseInt(window.location.port) === 8085) {
+} else if (devPort && parseInt(devPort) === 8085) {
     urlBase.cvParseApi = "http://localhost:3456";
     console.log("Setting CV Parse API base URL to local machine (dev use only): " + urlBase.cvParseApi);
 }
@@ -57,13 +56,13 @@ const axiosConfig = (options={}) => {
     const headers = {}
     if (options.userAuth) {
         // api_key (or, pre-cutover, a JWT) Bearer credential for user-API calls
-        const token = localStorage.getItem("token");
+        const token = hasBrowser ? localStorage.getItem("token") : null;
         if (token) {
             headers.Authorization = `Bearer ${token}`;
         }
 
         // Add impersonation header if impersonating (admin only)
-        const impersonatingUserId = localStorage.getItem('impersonatingUserId');
+        const impersonatingUserId = hasBrowser ? localStorage.getItem('impersonatingUserId') : null;
         if (impersonatingUserId) {
             headers['X-Impersonate-User'] = impersonatingUserId;
         }
@@ -86,7 +85,6 @@ const axiosConfig = (options={}) => {
         // (the API never gates on it — it only sets the analytics trustedUi
         // tag). Lazy-require mirrors the store import to avoid a circular dep.
         try {
-            const { getUiToken } = require('@/uiProvenance');
             const uiToken = getUiToken();
             if (uiToken) {
                 headers['X-OpenAlex-UI'] = uiToken;
