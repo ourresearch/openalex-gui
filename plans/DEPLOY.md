@@ -10,7 +10,7 @@ track. Nothing here has been run against production yet; every step below is for
 |---|---|---|
 | Build command | `npm run build` = `vue-cli-service build` (31 s) | `npm run build` = `nuxt build` with a 6 GB heap (29 s on desk, peak RSS 3.7 GB) |
 | Node / npm | `>=17.2.0` resolves to Node 24.21.0; npm 11.19.0 (Heroku default) | pinned: `engines` `node 24.x`, `npm 11.x` (npm 10 crashes installing Nuxt 4.5) |
-| Web process | no Procfile: `npm start` falls back to `node server.js` (Express) | `Procfile`: `web: node .output/server/index.mjs` (Nitro; listens on `$PORT`) |
+| Web process | no Procfile: `npm start` falls back to `node server.js` (Express) | `Procfile`: `web: NODE_OPTIONS=--max-old-space-size=512 node .output/server/index.mjs` (Nitro; listens on `$PORT`; heap cap below) |
 | Slug | 143 MB | `.output` is 92 MB and self-contained (its own traced `node_modules`); `heroku-cleanup` deletes the root `node_modules` after the build, so the slug stays about the same size |
 | Dynos | 5 x Standard-1X (512 MB) | 5 x Standard-2X (1 GB): an SSR server process reaches ~450 to 500 MB under load (trial: 490 MB RSS at 60 concurrent requests) |
 | Server-side API key | none (the server never called the API) | SSR calls api.openalex.org from the dynos. Without a key every call spends the dyno IP's free budget ($0.10/day) and then gets 429 (desk's ran out at 08:40 CT on 2026-10-15). The record-ssr track reads `NUXT_SSR_API_KEY`, falling back to `ASSISTANT_PAGES_API_KEY`, which is already set on the app; set `NUXT_SSR_API_KEY` only to give SSR its own key |
@@ -21,6 +21,16 @@ track. Nothing here has been run against production yet; every step below is for
 (`NODE_OPTIONS=--max-old-space-size=6144`, which for the build replaces the app's
 `NODE_OPTIONS=--openssl-legacy-provider`; Vite doesn't need that flag). With browser source maps on
 and server maps off, the build peaked at 3.7 GB RSS on desk. No Modal build is needed.
+
+**Server heap cap (merge track).** One Node process per dyno. Uncapped, V8 grows lazily: a 90-wide burst
+took one process to 1.1 to 1.4 GB RSS on desk (record-ssr), which on a 1 GB Standard-2X means R14 swapping.
+With `--max-old-space-size=384` the same burst peaked at 329 MB RSS with the same results. The Procfile sets
+**512 MB**: a third more old-space than the tested cap, while old-space + young generation (~32-64 MB) + code
+and buffers outside the heap (rendered HTML, compression, sockets) still leave ~400 MB of the dyno's 1,024 MB
+free, so a burst slows down in GC instead of swapping. The merge track re-measured the burst at 512 (see
+`work/build-merge.md` in the job). Admission control (`SSR_MAX_CONCURRENT_RENDERS`, 12) bounds the rest.
+A Heroku `NODE_OPTIONS` config var (the app had `--openssl-legacy-provider` for webpack) is overridden by
+the Procfile's inline value at runtime; the build sets its own (6 GB).
 
 **Server checked standalone.** A copy of `.output` in `/tmp` (no `node_modules` anywhere above it) served:
 work page 200 with the record in the HTML, home 200, `/W2741809807` 301 to `/works/W2741809807`,
@@ -33,19 +43,18 @@ old `public/index.html`; parity ported its boot skeleton and Zendesk setup). `np
 `eslint` directly; `npm run dev` / `serve` run `nuxt dev` on port 8080 as before (8081 to 8085 still
 switch API hosts: `npm run dev -- --port 8081`).
 
-**Left for one cleanup commit after the five tracks merge** (it rewrites `package-lock.json`, which
-would conflict with every track that touches dependencies):
-
-```
-npx -y npm@11 uninstall @vue/cli-plugin-babel @vue/cli-plugin-eslint @vue/cli-plugin-router \
-  @vue/cli-plugin-vuex @vue/cli-service @babel/plugin-proposal-optional-chaining \
-  @sentry/webpack-plugin webpack-bundle-analyzer webpack-plugin-vuetify sass-loader \
-  express heroku-ssl-redirect @achrinza/node-ipc core-js @unhead/ssr unhead
-npx -y npm@11 install -D @babel/preset-env   # eslint's parser config names it; it came via @vue/cli-plugin-babel
-```
-
-Keep `compression` (the parity track's front door uses it). Before running it, `git grep` each name
-on the merged branch; then `npx vitest run`, `npm run build` and the QA harness (section 4).
+**Vue CLI packages removed (merge track, after the five tracks merged).** Run with npm 11.21
+(`npx -y npm@11 uninstall --package-lock-only ...`, then `npm ci` into a fresh `node_modules`):
+removed `@vue/cli-plugin-babel @vue/cli-plugin-eslint @vue/cli-plugin-router @vue/cli-plugin-vuex
+@vue/cli-service @babel/plugin-proposal-optional-chaining @sentry/webpack-plugin webpack-bundle-analyzer
+webpack-plugin-vuetify sass-loader express heroku-ssl-redirect @achrinza/node-ipc core-js @unhead/ssr unhead`;
+added `@babel/preset-env@^7` (eslint's parser config names it; v8 needs `@babel/core` 8) and
+**`unplugin@^3.4.0`**: `@nuxt/vite-builder` 4.5.2 imports `unplugin` without declaring it, and `nuxt build`
+failed with "Cannot find package 'unplugin'" once the Vue CLI packages stopped hoisting `unplugin@1` to the
+root. Kept `compression` (the front door uses it). Both notes are in `package.json` `//deps-notes`.
+npm 11.21 no longer runs dependencies' install scripts unless allowed (`esbuild`, `fsevents`,
+`@parcel/watcher` are listed as skipped); the build and the server work without them (checked from a clean
+`npm ci`). If Heroku's npm 11.x behaves differently, the build log will show it.
 
 ## 2. Ship steps
 
