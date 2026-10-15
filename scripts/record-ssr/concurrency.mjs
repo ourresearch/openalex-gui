@@ -55,7 +55,9 @@ function verify(rec, res, html) {
   const render = res.headers.get('x-openalex-render') || ''
   if (!render.startsWith('ssr')) problems.push(`render "${render}"`)
   const title = (html.match(/<title>([^<]*)<\/title>/) || [])[1] || ''
-  if (rec.name && !title.startsWith(esc(rec.name).slice(0, 40)) && !title.startsWith(rec.name.slice(0, 40))) problems.push(`title "${title.slice(0, 60)}" != "${rec.name.slice(0, 60)}"`)
+  // The head collapses runs of whitespace in names (src/seo/recordHead.mjs plain()).
+  const name = rec.name ? rec.name.replace(/\s+/g, ' ').trim() : rec.name
+  if (name && !title.startsWith(esc(name).slice(0, 40)) && !title.startsWith(name.slice(0, 40))) problems.push(`title "${title.slice(0, 60)}" != "${rec.name.slice(0, 60)}"`)
   // devalue writes "/" as \u002F inside the payload JSON.
   const keys = [...html.matchAll(/"entity:([a-z-]+(?:\/|\\u002F)[^"]+)"/g)].map((m) => m[1].replace('\\u002F', '/'))
   const want = rec.path.slice(1)
