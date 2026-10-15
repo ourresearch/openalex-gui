@@ -439,6 +439,8 @@ import { api } from '@/api';
 import { url } from '@/url';
 import { getEntityConfig } from '@/entityConfigs';
 import { createSimpleFilter, filtersAsUrlStr } from '@/filterConfigs';
+import { getFacetConfig } from '@/facetConfigUtils';
+import { recordHead } from '@/seo/recordHead.mjs';
 
 import EntityNew from '@/components/Entity/EntityNew.vue';
 import EntityHeader from '@/components/Entity/EntityHeader.vue';
@@ -800,9 +802,13 @@ const handleDisplayNameUpdate = async (newName) => {
   }
 };
 
-useHead(() => ({
-  title: entityData.value?.display_name
-}));
+// #1689: title, description, canonical, robots, link previews and JSON-LD come from
+// one function, the same on the server render and in the browser (src/seo/recordHead.mjs).
+const shownAbstract = computed(() => {
+  if (myEntityType.value !== 'works' || !entityData.value) return '';
+  return (getFacetConfig('works', 'abstract')?.extractFn(entityData.value) || '').trim();
+});
+useHead(() => recordHead(myEntityType.value, entityData.value, { abstract: shownAbstract.value }));
 
 onMounted(() => {
   console.log('EntityPage mounted', route.params.entityType, route.params.entityId);

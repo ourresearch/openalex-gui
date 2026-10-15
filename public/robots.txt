@@ -1,2 +1,123 @@
+# openalex.org robots.txt (oxjob #1689). OpenAlex data is free and CC0:
+# use the API or the snapshot, https://developers.openalex.org/
+#
+# A crawler obeys only the most specific group that names it (RFC 9309), so each
+# group repeats the rules it needs. Paths are case-sensitive. Thin records are kept
+# out of search indexes with a noindex meta tag, not here.
+# Tests: src/__tests__/robotsTxt.test.js
+
+# Search engines: record pages and company pages; not faceted search or list URLs.
 User-agent: *
+Disallow: /works?
+Disallow: /authors?
+Disallow: /sources?
+Disallow: /institutions?
+Disallow: /topics?
+Disallow: /keywords?
+Disallow: /publishers?
+Disallow: /funders?
+Disallow: /awards?
+Disallow: /concepts?
+Disallow: /subfields?
+Disallow: /fields?
+Disallow: /domains?
+Disallow: /sdgs?
+Disallow: /countries?
+Disallow: /continents?
+Disallow: /languages?
+Disallow: /types?
+Disallow: /source-types?
+Disallow: /institution-types?
+Disallow: /licenses?
+Disallow: /oa-statuses?
+Disallow: /indexes?
+Disallow: /source-lists?
+Disallow: /study-designs?
+Disallow: /locations?
+Disallow: /q?
+Disallow: /admin
+Disallow: /settings
+Disallow: /me/
+Disallow: /me$
+Disallow: /login/magic-token/
+Disallow: /oauth/
+Disallow: /verify-email
+Disallow: /orcid-callback
 Allow: /
+
+# AI assistants fetching a page for a person: everything a person can open.
+User-agent: ChatGPT-User
+User-agent: Claude-User
+User-agent: Perplexity-User
+User-agent: MistralAI-User
+Disallow: /admin
+Disallow: /settings
+Disallow: /me/
+Disallow: /me$
+Disallow: /login/magic-token/
+Disallow: /oauth/
+Disallow: /verify-email
+Disallow: /orcid-callback
+Allow: /
+
+# AI training: company pages yes; record and list pages no. Short record URLs
+# (/W123) too; lower-case ones that share a letter with a company page (/a123)
+# redirect to a record path disallowed here. Google-Extended is left out on
+# purpose: it also controls grounding in Gemini Apps, which is assistant
+# traffic we want (oxjob #1689).
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: CCBot
+User-agent: Applebot-Extended
+User-agent: meta-externalagent
+Disallow: /works
+Disallow: /authors
+Disallow: /sources
+Disallow: /institutions
+Disallow: /topics
+Disallow: /keywords
+Disallow: /publishers
+Disallow: /funders
+Disallow: /awards
+Disallow: /concepts
+Disallow: /subfields
+Disallow: /fields
+Disallow: /domains
+Disallow: /sdgs
+Disallow: /countries
+Disallow: /continents
+Disallow: /languages
+Disallow: /types
+Disallow: /source-types
+Disallow: /institution-types
+Disallow: /licenses
+Disallow: /oa-statuses
+Disallow: /indexes
+Disallow: /source-lists
+Disallow: /study-designs
+Disallow: /locations
+Disallow: /q?
+Disallow: /q$
+Disallow: /W
+Disallow: /A
+Disallow: /S
+Disallow: /I
+Disallow: /P
+Disallow: /F
+Disallow: /C
+Disallow: /T
+Disallow: /G
+Disallow: /w
+Disallow: /f
+Disallow: /g
+Disallow: /admin
+Disallow: /settings
+Disallow: /me/
+Disallow: /me$
+Disallow: /login/magic-token/
+Disallow: /oauth/
+Disallow: /verify-email
+Disallow: /orcid-callback
+Allow: /
+
+Sitemap: https://openalex.org/sitemap.xml

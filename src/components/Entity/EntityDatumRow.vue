@@ -1,6 +1,13 @@
 <template>
   <div v-if="data && isDisplayed && isRawValueValid">
-    
+    <!-- #1689: the whole value is always in the HTML (search engines and AI
+         fetchers read the server render). Long values are clamped visually with a
+         CSS line clamp, never cut or hidden, and the toggle below expands them. -->
+    <div
+      ref="clampEl"
+      :class="{ 'datum-clamp': isValueTruncated }"
+      :style="isValueTruncated ? { '--datum-clamp-lines': clampLines } : null"
+    >
     <span class="font-weight-bold">
       <template v-if="isValueAnArray">
           {{ filters.pluralize(filters.capitalize(filterConfig.displayName), pluralizeCount) }}:
@@ -80,7 +87,7 @@
     </span>
 
     <span v-else-if="valueString">
-      <span>{{ valueString }}{{ isValueTruncated ? "..." : "" }}</span>
+      <span>{{ valueString }}</span>
     </span>
 
     <span v-else-if="valueWorksCount !== null">
@@ -111,32 +118,25 @@
     <span v-else-if="showMissing && !valueEntityLinks" class="text-grey">
       none
     </span>
+    </div>
 
-    <a
-      v-if="isValueTruncated"
-      @click="isTruncateSet = false"
-      class="font-weight-bold text-primary"
+    <button
+      v-if="showClampToggle"
+      type="button"
+      class="datum-clamp-toggle font-weight-bold text-primary"
+      :aria-expanded="isValueTruncated ? 'false' : 'true'"
+      @click="isTruncateSet = !isTruncateSet"
     >
-      <template v-if="isValueAnArray">
-        +{{ filters.toPrecision(valueLength - maxLen.array) }} more
-      </template>
-      <template v-else>
-        more
-      </template>
-    </a>
-    <a
-      v-if="isValueSubjectToTruncation && !isValueTruncated"
-      @click="isTruncateSet = true"
-      class="font-weight-bold"
-    >
-      (less)
-    </a>
+      <template v-if="!isValueTruncated">(less)</template>
+      <template v-else-if="isValueAnArray">show all {{ filters.toPrecision(valueLength) }}</template>
+      <template v-else>more</template>
+    </button>
 
   </div>
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue';
+import { ref, computed, inject, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 
 import ISO6391 from 'iso-639-1';
 
@@ -226,6 +226,31 @@ const isValueSubjectToTruncation = computed(() => {
 });
 const isValueTruncated = computed(() => isValueSubjectToTruncation.value && isTruncateSet.value);
 
+// #1689: clamp height in lines (abstract: 3; lists such as authors: 2). The server
+// can't measure, so it shows the toggle by length alone; in the browser the toggle
+// goes away when the clamped value turns out to fit.
+const clampLines = computed(() => (isValueAnArray.value ? 2 : 3));
+const clampEl = ref(null);
+const clampOverflows = ref(null); // null until measured in the browser
+function measureClamp() {
+  const el = clampEl.value;
+  if (!el || !isValueTruncated.value) return;
+  clampOverflows.value = el.scrollHeight > el.clientHeight + 1;
+}
+const showClampToggle = computed(() =>
+  isValueSubjectToTruncation.value && (!isValueTruncated.value || clampOverflows.value !== false)
+);
+let clampObserver = null;
+onMounted(() => {
+  measureClamp();
+  if (typeof ResizeObserver !== 'undefined' && clampEl.value) {
+    clampObserver = new ResizeObserver(() => measureClamp());
+    clampObserver.observe(clampEl.value);
+  }
+});
+onBeforeUnmount(() => clampObserver?.disconnect());
+watch([rawValue, isValueTruncated], () => nextTick(measureClamp));
+
 const isDisplayed = computed(() => {
   // If showMissing is true, always display the row
   if (props.showMissing) {
@@ -236,9 +261,7 @@ const isDisplayed = computed(() => {
 });
 
 const valueEntityLinks = computed(() => {
-  const items = entityDatumValues.entityLinkItems(rawValue.value);
-  if (!items) return null;
-  return isValueTruncated.value ? items.slice(0, maxLen.value.array) : items;
+  return entityDatumValues.entityLinkItems(rawValue.value);
 });
 
 const valueListOfStrings = computed(() => {
@@ -247,8 +270,7 @@ const valueListOfStrings = computed(() => {
   const items = entityDatumValues.stringItems(rawValue.value, {
     stripIdPrefix: !!filterConfig.value?.isId,
   });
-  if (!items) return null;
-  return isValueTruncated.value ? items.slice(0, maxLen.value.array) : items;
+  return items;
 });
 
 const valueString = computed(() => {
@@ -262,9 +284,7 @@ const valueString = computed(() => {
       displayValue = languageName || rawValue.value; // Fallback to code if not found
     }
     
-    return isValueTruncated.value
-      ? displayValue.substring(0, maxLen.value.string)
-      : displayValue;
+    return displayValue;
   }
   return null;
 });
@@ -343,6 +363,26 @@ const filterKeyForMakingLinks = computed(() => {
 <style scoped lang="scss">
 a {
   text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.datum-clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--datum-clamp-lines);
+  line-clamp: var(--datum-clamp-lines);
+  overflow: hidden;
+}
+
+.datum-clamp-toggle {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
 
   &:hover {
     text-decoration: underline;
