@@ -120,4 +120,4 @@ Disallow: /verify-email
 Disallow: /orcid-callback
 Allow: /
 
-Sitemap: https://openalex.org/sitemaps/index.xml
+Sitemap: https://openalex.org/sitemap.xml

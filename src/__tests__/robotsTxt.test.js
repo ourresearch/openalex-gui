@@ -90,7 +90,7 @@ describe('robots.txt', () => {
       ASSISTANTS.map((a) => a.toLowerCase()),
       TRAINING.map((a) => a.toLowerCase()),
     ]);
-    expect(robots.sitemaps).toEqual(['https://openalex.org/sitemaps/index.xml']);
+    expect(robots.sitemaps).toEqual(['https://openalex.org/sitemap.xml']);
   });
 
   it('search crawlers: record pages and short record URLs open, faceted list URLs closed', () => {
