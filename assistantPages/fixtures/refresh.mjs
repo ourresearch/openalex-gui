@@ -1,6 +1,8 @@
 // Re-records the API responses the assistant-page tests read (oxjob #1688).
 // Run from the repo root: ASSISTANT_PAGES_API_KEY=... node assistantPages/fixtures/refresh.mjs
 // The key goes in the Authorization header only, so it never lands in a fixture file.
+// The record files (works-W2741809807.json, authors-A5048491430.json, ...) are no longer pages here
+// (records are server-rendered, #1689); src/__tests__/recordHead.test.js reads them, so they stay as they are.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,14 +10,6 @@ import { assistantPage } from "../index.mjs";
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 export const FIXTURE_PAGES = [
-  "/W2741809807",
-  "/authors/A5048491430",
-  "/sources/S1983995261",
-  "/institutions/I136199984",
-  "/topics/T13607",
-  "/funders/F4320306076",
-  "/publishers/P4310320595",
-  "/keywords/open-access",
   "/works?page=1&search.title_and_abstract=meta+results&sort=relevance_score:desc",
   "/authors?search=Said+Alvarado-Marin",
 ];

@@ -72,7 +72,8 @@ export const subdomainRedirect = defineEventHandler((event) => {
   return sendRedirect(event, 'https://openalex.org' + url, 302)
 })
 
-// server.js (#1688): readable pages for verified AI assistants. Cloudflare sets
+// server.js (#1688): readable list and search pages for verified AI assistants (record
+// pages are server-rendered for everyone and pass through here). Cloudflare sets
 // X-OpenAlex-Verified-Assistant to a secret on verified "AI Assistant" requests;
 // assistantPage() checks it in constant time against VERIFIED_ASSISTANT_TOKEN,
 // picks HTML or Markdown by Accept, and marks the page noindex. With the token

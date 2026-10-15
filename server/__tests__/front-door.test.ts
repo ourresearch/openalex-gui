@@ -198,16 +198,17 @@ describe('Cache-Control (#860)', () => {
 
 describe('assistant pages (#1688)', () => {
   const TOKEN = 'test-secret-token'
-  const work = { id: 'https://openalex.org/W2741809807', display_name: 'The state of OA', publication_year: 2018, type: 'article', authorships: [], cited_by_count: 1 }
+  const LIST = '/works?search=state+of+oa'
+  const results = { meta: { count: 1 }, results: [{ id: 'https://openalex.org/W2741809807', display_name: 'The state of OA', publication_year: 2018, cited_by_count: 1 }] }
   function stubApi() {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(work), { status: 200, headers: { 'content-type': 'application/json' } })))
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(results), { status: 200, headers: { 'content-type': 'application/json' } })))
   }
   afterEach(() => vi.unstubAllGlobals())
 
-  it('serves a verified assistant a plain HTML page, noindex, ahead of everything else', async () => {
+  it('serves a verified assistant a plain HTML list page, noindex, ahead of everything else', async () => {
     vi.stubEnv('VERIFIED_ASSISTANT_TOKEN', TOKEN)
     stubApi()
-    const r = await get('/works/W2741809807', { 'X-OpenAlex-Verified-Assistant': TOKEN })
+    const r = await get(LIST, { 'X-OpenAlex-Verified-Assistant': TOKEN })
     expect(r.status).toBe(200)
     expect(r.headers['content-type']).toMatch(/^text\/html/)
     expect(r.headers['x-robots-tag']).toBe('noindex')
@@ -219,23 +220,29 @@ describe('assistant pages (#1688)', () => {
   it('serves Markdown when Accept asks for it', async () => {
     vi.stubEnv('VERIFIED_ASSISTANT_TOKEN', TOKEN)
     stubApi()
-    const r = await get('/W2741809807', { 'X-OpenAlex-Verified-Assistant': TOKEN, Accept: 'text/markdown' })
+    const r = await get(LIST, { 'X-OpenAlex-Verified-Assistant': TOKEN, Accept: 'text/markdown' })
     expect(r.headers['content-type']).toMatch(/^text\/markdown/)
     expect(r.body.toString()).toContain('The state of OA')
+  })
+  it('a record page goes to the server-rendered page, even for a verified assistant', async () => {
+    vi.stubEnv('VERIFIED_ASSISTANT_TOKEN', TOKEN)
+    stubApi()
+    expect((await get('/works/W2741809807', { 'X-OpenAlex-Verified-Assistant': TOKEN })).body.toString()).toBe(BIG_HTML)
+    expect(fetch).not.toHaveBeenCalled()
   })
   it('a wrong token, no token configured, or no header gets the normal site', async () => {
     stubApi()
     vi.stubEnv('VERIFIED_ASSISTANT_TOKEN', TOKEN)
-    expect((await get('/works/W2741809807', { 'X-OpenAlex-Verified-Assistant': 'wrong' })).body.toString()).toBe(BIG_HTML)
-    expect((await get('/works/W2741809807')).body.toString()).toBe(BIG_HTML)
+    expect((await get(LIST, { 'X-OpenAlex-Verified-Assistant': 'wrong' })).body.toString()).toBe(BIG_HTML)
+    expect((await get(LIST)).body.toString()).toBe(BIG_HTML)
     vi.stubEnv('VERIFIED_ASSISTANT_TOKEN', '')
-    expect((await get('/works/W2741809807', { 'X-OpenAlex-Verified-Assistant': TOKEN })).body.toString()).toBe(BIG_HTML)
+    expect((await get(LIST, { 'X-OpenAlex-Verified-Assistant': TOKEN })).body.toString()).toBe(BIG_HTML)
     expect(fetch).not.toHaveBeenCalled()
   })
   it('an API failure still answers the assistant (error page), never the shell', async () => {
     vi.stubEnv('VERIFIED_ASSISTANT_TOKEN', TOKEN)
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('down') }))
-    const r = await get('/works/W2741809807', { 'X-OpenAlex-Verified-Assistant': TOKEN })
+    const r = await get(LIST, { 'X-OpenAlex-Verified-Assistant': TOKEN })
     expect(r.status).toBe(502)
     expect(r.headers['x-robots-tag']).toBe('noindex')
   })
