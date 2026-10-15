@@ -15,16 +15,35 @@ import {getEntityConfig} from "@/entityConfigs";
 import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
 import store from "@/store";
 import {edgeOn, edgeSupports, edgeRows} from "@/edgeAutocomplete";
+import {isServerRender} from "@/utils/env";
 
+// Response cache for this browser tab. Never used on the server (#1689): a
+// module-level cache there would be shared by every visitor and grow forever.
 const cache = {};
 
 const getFromCache = function (url) {
-    if (!cache[url]) { return; }
+    if (isServerRender || !cache[url]) { return; }
     return cloneDeep(cache[url]);
 }
 
 const stockCache = function (url, ret) {
+    if (isServerRender) { return; }
     cache[url] = cloneDeep(ret);
+}
+
+// #1689: this module never calls the API during a server render. Record pages get
+// their data from the Nitro record middleware (server/middleware/02.records.ts);
+// anything else (group-bys, counts, display-name lookups) is the browser's job, so
+// on the server the call stays pending, exactly like the browser's first render
+// before its fetch returns, and the hydrated page then fetches it for real.
+const serverCallsSeen = new Set();
+const pendingOnServer = function (url) {
+    const shape = String(url).split("?")[0];
+    if (serverCallsSeen.size < 200 && !serverCallsSeen.has(shape)) {
+        serverCallsSeen.add(shape);
+        console.warn("[record-ssr] API call skipped on the server:", shape);
+    }
+    return new Promise(() => {});
 }
 
 const api = (function () {
@@ -76,6 +95,8 @@ const api = (function () {
         if (store.state.useV2) {
             url += url.includes('?') ? '&data-version=2' : '?data-version=2';
         }
+
+        if (isServerRender) { return pendingOnServer(url); }
 
         const cachedResponse = getFromCache(url);
         if (cachedResponse) {
@@ -182,7 +203,7 @@ const api = (function () {
 
     const getEntityFromCache = function(id) {
         const myUrl = makeUrl(id);
-        return cloneDeep(cache[myUrl]);
+        return getFromCache(myUrl);
     };
 
     const getEntityDisplayName = async function (entityName, id) {
