@@ -433,7 +433,7 @@ import { ref, computed, watch, onMounted, mergeProps, provide } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
-import { useAsyncData } from '#app';  // #1689 Nuxt trial: record data fetched on the server, reused on hydration
+import { useAsyncData, useRequestEvent } from '#app';  // #1689 Nuxt trial: record data fetched on the server, reused on hydration
 
 import { api } from '@/api';
 import { url } from '@/url';
@@ -522,17 +522,34 @@ const massageEntity = (data) => {
   return data;
 };
 
+// #1689: on the server, the record and the first works page come from the record
+// middleware (server/middleware/02.records.ts: the server's key, a timeout, 404/301
+// handled before render). This component never calls the API on the server.
+const ssrRecord = import.meta.server ? useRequestEvent()?.context?.oxRecord : null;
+const ssrRecordFor = (path) => {
+  if (!ssrRecord || ssrRecord.apiPath !== path) {
+    // Not reachable: the middleware turns SSR off for any record URL it didn't load.
+    throw new Error(`record SSR: no prefetched record for ${path}`);
+  }
+  if (ssrRecord.notFound) {
+    throw Object.assign(new Error('Record not found'), { statusCode: 404 });
+  }
+  return ssrRecord;
+};
+
 const {
   data: entityAsync,
   error: entityAsyncError,
   status: entityAsyncStatus,
 } = useAsyncData(
   () => `entity:${apiPath.value}`,
-  async () => massageEntity(await api.get(apiPath.value)),
+  async () => massageEntity(import.meta.server ? ssrRecordFor(apiPath.value).data : await api.get(apiPath.value)),
 );
 const entityData = computed(() => entityAsync.value ?? null);
 // Bad/unknown id: show the failure state instead of a blank page (oxjob #671).
 const entityLoadFailed = computed(() => !!entityAsyncError.value);
+// #1689: the not-found page (status 404 from the server) says so in its title.
+useHead(() => (entityLoadFailed.value ? { title: 'Page not found' } : {}));
 watch(entityAsyncStatus, (st) => {
   if (typeof window !== 'undefined') store.state.isLoading = st === 'pending';
 }, { immediate: true });
@@ -572,9 +589,18 @@ const worksSelectable = computed(() => isAuthorOwner.value);
 // and the shared selection store. oxjob #187.
 // #1689: the first page of the works list is fetched with the record (server
 // side too); "show more" pages are appended in the browser.
-const { data: worksFirstPage } = useAsyncData(
+// On the server the list is trimmed to what a row shows (src/ssr/recordRoutes.js);
+// if it was slow, the server sends `{deferred: true}` and the browser fetches it
+// after hydration (onMounted below).
+const { data: worksFirstPage, refresh: refreshWorksFirstPage } = useAsyncData(
   () => `entity-works:${apiPath.value}`,
-  async () => (await fetchWorksPage(1)) ?? {},
+  async () => {
+    if (import.meta.server) {
+      if (!ssrRecord?.works || ssrRecord.apiPath !== apiPath.value || !showEntityPageStats.value) return {};
+      return (await ssrRecord.works) ?? { deferred: true };
+    }
+    return (await fetchWorksPage(1)) ?? {};
+  },
   { default: () => ({}) },
 );
 const worksMore = ref(null);
@@ -781,6 +807,7 @@ useHead(() => ({
 onMounted(() => {
   console.log('EntityPage mounted', route.params.entityType, route.params.entityId);
   store.state.entityType = route.params.entityType;
+  if (worksFirstPage.value?.deferred) refreshWorksFirstPage();
 });
 
 watch(apiPath, async () => {

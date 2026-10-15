@@ -41,6 +41,7 @@ import { useRouter } from 'vue-router';
 
 import filters from '@/filters';
 import * as openalexId from '@/openalexId';
+import { canonicalRecordId } from '@/ssr/recordRoutes';
 import { createSimpleFilter } from '@/filterConfigs';
 import { url } from '@/url';
 
@@ -83,7 +84,7 @@ const entityLink = computed(() => {
   if (!parsed) return null;
   return {
     name: 'EntityPage',
-    params: { entityType: parsed.entityType, entityId: parsed.shortId },
+    params: { entityType: parsed.entityType, entityId: canonicalRecordId(parsed.entityType, parsed.shortId) },  // #1689: no 301
   };
 });
 

@@ -2,6 +2,7 @@
 // Step 1: pure SPA (ssr: false). Step 2 flips on SSR for record routes only.
 import { fileURLToPath } from 'node:url'
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+import { RECORD_TYPE_NAMES } from './src/ssr/recordRoutes.js'
 
 const srcPath = fileURLToPath(new URL('./src', import.meta.url))
 
@@ -19,11 +20,11 @@ export default defineNuxtConfig({
   ssr: true,
   routeRules: {
     '/**': { ssr: false },
-    '/works/**': { ssr: true },
-    '/authors/**': { ssr: true },
+    // #1689: every record page type (/works/W123, /keywords/x, ...). The record
+    // middleware (server/middleware/02.records.ts) 301s short forms (/W123) and
+    // non-canonical ids, and turns SSR off per request for anything it can't load.
     // `/x/**` also matches `/x` itself (the search page), which stays client-rendered.
-    '/works': { ssr: false },
-    '/authors': { ssr: false },
+    ...Object.fromEntries(RECORD_TYPE_NAMES.flatMap((t) => [[`/${t}/**`, { ssr: true }], [`/${t}`, { ssr: false }]])),
     // server.js ports (#1558 aboutness viewer; caching as #860: HTML no-cache).
     '/aboutness/viewer': { proxy: '/aboutness-viewer.html' },
   },
@@ -44,6 +45,14 @@ export default defineNuxtConfig({
   ],
   build: { transpile: ['vuetify'] },
   modules: [
+    // #1689: a failed server render of a record page falls back to the SPA shell
+    // (server/lib/ssrFallback.ts) before Nuxt's error page handler runs.
+    (_options, nuxt) => {
+      nuxt.hook('nitro:config', (cfg) => {
+        const rest = [cfg.errorHandler].flat().filter(Boolean) as string[]
+        cfg.errorHandler = [fileURLToPath(new URL('./server/lib/ssrFallback.ts', import.meta.url)), ...rest]
+      })
+    },
     (_options, nuxt) => {
       nuxt.hooks.hook('vite:extendConfig', (config) => {
         // @ts-expect-error plugins exists

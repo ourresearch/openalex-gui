@@ -6,6 +6,7 @@ import {reactive} from "vue";
 import countryCodeLookup from "country-code-lookup";
 import * as openalexId from "@/openalexId";
 import {getEntityIdentity, onCatalogUpdated} from "@/metaCatalog";
+import {canonicalRecordId} from "@/ssr/recordRoutes";
 
 // Entity identity labels (displayName, displayNameSingular) derive from the
 // server /meta catalog — see the merge below the literal (oxjob #424). An
@@ -1032,7 +1033,7 @@ const urlPartsFromId = function (id) {
     }
     return {
         entityType: parsed.entityType,
-        entityId: parsed.shortId,
+        entityId: canonicalRecordId(parsed.entityType, parsed.shortId),  // #1689: canonical case, no 301
     };
 }
 

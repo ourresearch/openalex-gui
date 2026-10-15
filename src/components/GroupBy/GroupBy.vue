@@ -586,6 +586,10 @@ const getGroups = async () => {
   // fetch retries.
   const prevSignature = lastGroupsSignature;
   lastGroupsSignature = signature;
+  // #1689: on the server, stop here. The server HTML then shows the loading state,
+  // which is what the browser's first (hydrating) render shows too; the browser
+  // fetches the groups. (No group_by calls on the server.)
+  if (!hasBrowser) return;
   // OQL mode: aggregate against the live OQL query via POST-OQO (non-lossy for
   // arbitrary nested boolean trees). Flag-off: legacy GET with the ?filter= context.
   let result;
@@ -668,9 +672,8 @@ watch(
   // by the same guard, so a store-driven edit fetches each widget exactly once.
   () => [route.params, route.query.filter, store.state.query.editEpoch,
          groupsRequestSignature()],
-  // #1689: browser only. On the server this fired un-awaited API calls that the
-  // render never used; the server HTML shows the loading state, as the client does.
-  () => { if (hasBrowser) getGroups(); },
+  // #1689: on the server getGroups only sets the loading state (see the guard in it).
+  getGroups,
   { immediate: true, deep: true }
 );
 watch(isDialogOpen, (to) => {

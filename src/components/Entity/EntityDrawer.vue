@@ -88,6 +88,7 @@ import { useDisplay } from 'vuetify';
 
 import { api } from '@/api';
 import * as openalexId from '@/openalexId';
+import { canonicalRecordId } from '@/ssr/recordRoutes';
 import EntityNew from '@/components/Entity/EntityNew.vue';
 import EntityHeader from '@/components/Entity/EntityHeader.vue';
 import EntityMetrics from '@/components/Entity/EntityMetrics.vue';
@@ -138,7 +139,7 @@ const fullPageRoute = computed(() => {
   if (!parsed) return null;
   return {
     name: 'EntityPage',
-    params: { entityType: parsed.entityType, entityId: parsed.shortId },
+    params: { entityType: parsed.entityType, entityId: canonicalRecordId(parsed.entityType, parsed.shortId) },  // #1689: no 301
   };
 });
 

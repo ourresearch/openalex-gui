@@ -8,6 +8,7 @@ import {createSimpleFilter} from "./filterConfigs";
 import {entityConfigs} from "@/entityConfigs";
 import {toPrecision} from "./util";
 import * as openalexId from "@/openalexId";
+import {canonicalRecordId} from "@/ssr/recordRoutes";
 
 // Entity-page route target for a parsed OpenAlex id (oxjob #852). Component
 // entities (locations) route by PATH, not the named EntityPage route: their
@@ -19,9 +20,12 @@ const entityPageTarget = (parsed) => {
   if (openalexId.isComponentEntityType(parsed.entityType)) {
     return { path: `/${parsed.entityType}/${parsed.shortId}` };
   }
+  // #1689: link the canonical id (/works/W123, /countries/US). Record pages 301
+  // any other case there, so a lowercase link costs crawlers a redirect per hop.
+  const entityId = canonicalRecordId(parsed.entityType, parsed.shortId);
   return {
     name: "EntityPage",
-    params: { entityType: parsed.entityType, entityId: parsed.shortId },
+    params: { entityType: parsed.entityType, entityId },
   };
 };
 
