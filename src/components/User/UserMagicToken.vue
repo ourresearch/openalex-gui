@@ -12,7 +12,7 @@
       <!-- An AI agent asked for this key (oxjob #1697): the person decides, knowing what it is. -->
       <p v-if="isActivation" class="text-body-2 text-medium-emphasis mb-8">
         Only activate it if you, or an assistant you use, asked for it. If you didn't, close this page:
-        the key stops working in 7 days.
+        the key never works unless it's activated.
       </p>
       <!-- Cloudflare Turnstile, invisible unless Cloudflare asks for a click: activating a key an agent asked for
            needs it (users-api), since the agent's call couldn't solve one. -->
@@ -99,7 +99,7 @@ const copy = computed(() => {
   if (isActivation.value) return {
     icon: 'mdi-key-outline',
     title: 'Activate your API key',
-    text: 'An AI assistant or app asked for a free OpenAlex API key for your email address. Activating it raises the key from $0.10 to $1 a day of free usage, and signs you in.',
+    text: 'An AI assistant or app asked for a free OpenAlex API key for your email address. Activating it lets the key start working, with $1 a day of free usage, and signs you in.',
     button: 'Activate my API key',
   };
   if (isInvite.value) return {

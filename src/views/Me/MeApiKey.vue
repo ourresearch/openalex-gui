@@ -50,7 +50,6 @@
               Revoke
             </v-btn>
             <template v-else>
-              <span class="text-body-2">Its requests will start failing.</span>
               <v-btn size="small" variant="flat" color="error" :loading="revoking" @click="revokeAgentKey">Revoke</v-btn>
               <v-btn size="small" variant="text" @click="confirmingRevoke = false">Cancel</v-btn>
             </template>
@@ -106,6 +105,8 @@ const agentKeyStatus = computed(() => ({
   revoked: { label: 'Revoked', color: 'grey' },
 }[agentKey.value?.status] || { label: agentKey.value?.status || '', color: 'grey' }));
 const agentKeyDescription = computed(() => {
+  // While confirming, the question goes on the left, so the buttons alone sit on the right (no squeezed column).
+  if (confirmingRevoke.value) return 'Revoke this key? Requests that use it will start failing.';
   const who = agentKey.value?.agent ? agentKey.value.agent : 'An AI assistant';
   const when = formatDate(agentKey.value?.requested_at);
   return `${who} asked for this key on ${when}. It reads data from the API with your daily budget; it can't sign in to openalex.org.`;
