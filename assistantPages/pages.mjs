@@ -507,19 +507,39 @@ export function listPage(r, pageUrl, data, apiUrl) {
   };
 }
 
+// A removed or merged id (about 1 in 60 ChatGPT record fetches, #1686) gets a page that says
+// what probably happened and how to find the record, not a link to the dead API URL.
+function findIt(type) {
+  const searchable = Object.values(NATIVE).includes(type);
+  return {
+    heading: "How to find it",
+    blocks: [
+      ...(searchable ? [{ p: [`Search ${type}: `, { code: `${API}/${type}?search=<${type === "works" ? "title" : "name"} words>` }, " (free)"] }] : []),
+      { p: ["Docs for agents: ", url(DOCS)] },
+    ],
+  };
+}
+
 export function errorPage(r, pageUrl, err) {
   const what = r.kind === "entity" ? `${SINGULAR[r.type]} ${r.id}` : `this ${r.type} list`;
   const reason = err.message.length > 300 ? `${err.message.slice(0, 300)}...` : err.message;
-  const intro = err.status === 404
-    ? `OpenAlex has no ${what}.`
+  const notFound = err.status === 404;
+  const intro = notFound
+    ? r.kind === "entity"
+      ? `OpenAlex has no ${what}. It may have been removed or merged into another record.`
+      : `OpenAlex has no ${what}.`
     : err.status === 400
       ? sentences([`The OpenAlex API could not run ${what}: ${reason}`])
       : `The OpenAlex API did not answer for ${what} just now (${err.message}). Try again in a moment.`;
+  // A 404's API URL answers with an HTML 404 too, so it is no use as structured data.
+  const sections = notFound
+    ? r.kind === "entity" ? [findIt(r.type)] : []
+    : err.apiUrl ? [structured(err.apiUrl)] : [];
   return {
-    title: err.status === 404 ? "Not found" : "Could not load this page",
+    title: notFound ? "Not found" : "Could not load this page",
     canonical: pageUrl.href,
-    apiUrl: err.apiUrl,
+    apiUrl: notFound ? undefined : err.apiUrl,
     intro,
-    sections: err.apiUrl ? [structured(err.apiUrl)] : [],
+    sections,
   };
 }

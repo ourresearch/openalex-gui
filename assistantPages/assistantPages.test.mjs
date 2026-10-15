@@ -305,8 +305,21 @@ describe("API errors become plain pages", () => {
     const f = fixtureFetch({ "https://api.openalex.org/works/W1": () => jsonResponse({ error: "Not found" }, 404) });
     const { page } = await render("/W1", { accept: "text/markdown" }, f);
     expect(page.status).toBe(404);
-    expect(page.body).toContain("OpenAlex has no work W1.");
-    expect(page.body).toContain("https://api.openalex.org/works/W1");
+    expect(page.body).toContain("OpenAlex has no work W1. It may have been removed or merged into another record.");
+    expect(page.body).toContain("Search works: `https://api.openalex.org/works?search=<title words>` (free)");
+    expect(page.body).toContain("Docs for agents: https://help.openalex.org/llms.txt");
+    // The dead API URL answers with an HTML 404, so the page doesn't offer it as structured data.
+    expect(page.body).not.toContain("https://api.openalex.org/works/W1");
+    expect(page.body).not.toContain("Structured data");
+  });
+
+  it("404 HTML page names the author search and keeps status 404", async () => {
+    const f = fixtureFetch({ "https://api.openalex.org/authors/A1": () => jsonResponse({ error: "Not found" }, 404) });
+    const { page } = await render("/authors/A1", {}, f);
+    expect(page.status).toBe(404);
+    expect(page.body).toContain("OpenAlex has no author A1. It may have been removed or merged into another record.");
+    expect(page.body).toContain("<code>https://api.openalex.org/authors?search=&lt;name words&gt;</code>");
+    expect(page.body).not.toContain('href="https://api.openalex.org/authors/A1"');
   });
 
   it("400 (a bad filter) -> 400 page with the API's reason", async () => {
