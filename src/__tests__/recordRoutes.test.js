@@ -2,9 +2,10 @@
 import { describe, it, expect } from 'vitest';
 import {
     RECORD_TYPES, RECORD_TYPE_NAMES, parseRecordPath, isUnderRecordPrefix, pathFromApiId,
-    worksListPlan, worksListApiPath, trimWorkForList, trimWorksList, WORKS_LIST_PER_PAGE,
+    worksListPlan, worksListApiPath, trimWorkForList, trimWorksList, WORKS_LIST_PER_PAGE, canonicalRecordId,
 } from '@/ssr/recordRoutes';
-import { getEntityConfigs } from '@/entityConfigs';
+
+import { getEntityConfigs, urlPartsFromId } from '@/entityConfigs';
 
 describe('parseRecordPath', () => {
     it('parses long forms and canonicalizes id case', () => {
@@ -42,6 +43,18 @@ describe('parseRecordPath', () => {
         expect(isUnderRecordPrefix('/keywords/a%2Fb')).toBe(true);
         expect(isUnderRecordPrefix('/works')).toBe(false);
         expect(isUnderRecordPrefix('/settings/x')).toBe(false);
+    });
+});
+
+describe('canonical links', () => {
+    it('writes record ids the way record URLs canonicalize them (no 301 per internal link)', () => {
+        expect(canonicalRecordId('works', 'w123')).toBe('W123');
+        expect(canonicalRecordId('countries', 'us')).toBe('US');
+        expect(canonicalRecordId('keywords', 'machine-learning')).toBe('machine-learning');
+        expect(canonicalRecordId('locations', 'doi:10.1/X')).toBe('doi:10.1/X');
+        // filters.js entityPageTarget (every record link) uses the same helper.
+        expect(urlPartsFromId('authors/a5023888391')).toEqual({ entityType: 'authors', entityId: 'A5023888391' });
+        expect(urlPartsFromId('https://openalex.org/W2741809807')).toEqual({ entityType: 'works', entityId: 'W2741809807' });
     });
 });
 

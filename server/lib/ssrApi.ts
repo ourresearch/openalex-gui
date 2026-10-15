@@ -8,8 +8,8 @@
 //   record data fetched with the service key (nothing per visitor), and it saves the
 //   second fetch when a non-canonical URL 301s to its canonical one. It holds JSON
 //   text, parsed per request, so no two renders ever share (and mutate) one object.
-//   shortcut: whole-entry LRU by insertion order with a byte budget; fine at a few
-//   hundred entries, use lru-cache if it ever needs to be bigger.
+//   shortcut: first-in-first-out eviction under a byte and entry budget, 60 s TTL;
+//   use lru-cache if hit rates ever matter more than that.
 
 export const SSR_USER_AGENT = 'openalex.org ssr (oxjob 1689)'
 const API_BASE = 'https://api.openalex.org/'
@@ -19,6 +19,7 @@ export const LIST_TIMEOUT_MS = Number(process.env.SSR_LIST_TIMEOUT_MS) || 1500
 const CACHE_TTL_MS = 60_000
 const CACHE_MAX_BYTES = 32 * 1024 * 1024
 const CACHE_MAX_ENTRY_BYTES = 2 * 1024 * 1024
+const CACHE_MAX_ENTRIES = 5000 // bounds a flood of distinct unknown ids (404s are tiny)
 
 type Cached = { status: 'ok', text: string } | { status: 'notfound' }
 type CacheEntry = { at: number, bytes: number, value: Cached }
@@ -53,7 +54,7 @@ function cachePut(key: string, value: Cached, bytes: number) {
   cache.set(key, { at: Date.now(), bytes, value })
   cacheBytes += bytes
   for (const [k, e] of cache) {
-    if (cacheBytes <= CACHE_MAX_BYTES) break
+    if (cacheBytes <= CACHE_MAX_BYTES && cache.size <= CACHE_MAX_ENTRIES) break
     cache.delete(k)
     cacheBytes -= e.bytes
   }

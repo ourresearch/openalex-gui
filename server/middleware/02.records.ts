@@ -18,11 +18,10 @@ import { apiGet, LIST_TIMEOUT_MS, RECORD_TIMEOUT_MS } from '../lib/ssrApi'
 
 export const SPA_FALLBACK_HEADER = 'x-openalex-ssr-fallback'
 
-// Cache-Control. The rendered HTML is the same for every visitor (login is applied in
-// the browser after hydration), so the edge may cache it. The exact value for the
-// rendered page is track seo-content's call; parity's default (no-cache) applies
-// wherever this doesn't set one.
-const CACHE_RENDERED = 'public, max-age=0, s-maxage=86400, stale-while-revalidate=86400'
+// Cache-Control for the responses this middleware ends or reroutes. A successfully
+// server-rendered page gets its caching headers (ETag, Cache-Control,
+// CDN-Cache-Control) from track seo-content's render:response hook; anything left
+// unset gets the server's default (no-cache).
 const CACHE_NOT_FOUND = 'public, max-age=0, s-maxage=3600'
 const CACHE_REDIRECT = 'public, max-age=3600, s-maxage=86400'
 // The SPA fallback (slow API) must never be cached, or crawlers keep getting it.
@@ -100,5 +99,4 @@ export default defineEventHandler(async (event) => {
     works: earlyList || (plan ? fetchWorksList(plan, ref.id) : null),
   }
   setResponseHeader(event, 'x-openalex-render', 'ssr')
-  setResponseHeader(event, 'cache-control', CACHE_RENDERED)
 })

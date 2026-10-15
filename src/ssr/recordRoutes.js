@@ -105,6 +105,15 @@ export function parseRecordPath(pathname) {
     };
 }
 
+/**
+ * The id as a record page URL writes it (W123, US, machine-learning), for links:
+ * record pages 301 any other case, so every internal link should use this.
+ * Ids that aren't record ids come back unchanged.
+ */
+export function canonicalRecordId(type, shortId) {
+    return parseRecordPath(`/${type}/${shortId}`)?.id ?? shortId;
+}
+
 /** True for paths under a record type's prefix (/works/..., /W123) that parseRecordPath rejected. */
 export function isUnderRecordPrefix(pathname) {
     if (SHORT_FORM.test(pathname)) return true;

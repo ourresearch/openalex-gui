@@ -73,6 +73,7 @@ async function check(path, width, loggedIn) {
   const { targetId } = await send('Target.createTarget', { url: 'about:blank' })
   const { sessionId } = await send('Target.attachToTarget', { targetId, flatten: true })
   const messages = []
+  const apiCalls = [] // browser calls to api.openalex.org after load (e.g. group-bys)
   let renderHeader = null, status = null, loaded = false
   const docUrl = base + path
   listeners.set(sessionId, (method, p) => {
@@ -83,6 +84,7 @@ async function check(path, width, loggedIn) {
       status = p.response.status
       renderHeader = p.response.headers['x-openalex-render'] || p.response.headers['X-Openalex-Render'] || null
     } else if (method === 'Page.loadEventFired') loaded = true
+    else if (method === 'Network.requestWillBeSent' && /api\.openalex\.org/.test(p.request.url)) apiCalls.push(p.request.url.replace(/[?&]mailto=[^&]*/, ''))
     else if (method === 'Fetch.requestPaused') {
       // The local production server 301s to https unless X-Forwarded-Proto says https;
       // add it to requests for the local server only (cross-origin API calls would fail CORS).
@@ -123,7 +125,7 @@ async function check(path, width, loggedIn) {
   await send('Target.closeTarget', { targetId })
   const mismatches = messages.filter((m) => MISMATCH.test(m.text))
   const errors = messages.filter((m) => (m.type === 'error' || m.type === 'exception' || m.type === 'log-error') && !MISMATCH.test(m.text))
-  return { path, width, loggedIn, status, renderHeader, ms: Date.now() - t0, ...result.value, mismatches, errors }
+  return { path, width, loggedIn, status, renderHeader, ms: Date.now() - t0, ...result.value, mismatches, errors, apiCalls }
 }
 
 const jobs = []
