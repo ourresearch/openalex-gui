@@ -15,7 +15,11 @@ export default defineNuxtPlugin({
         nuxtApp.payload.vuex = JSON.parse(JSON.stringify(store.state))
       })
     } else {
-      setHydrating(nuxtApp.isHydrating)
+      // #1689 parity: only server-rendered HTML is hydrated. Nuxt's isHydrating is
+      // also true while a client-rendered page boots; treating that as hydration
+      // skipped the router guard's user boot, so a logged-in visitor opening
+      // /settings directly was sent to /login.
+      setHydrating(nuxtApp.isHydrating && !!nuxtApp.payload.serverRendered)
       nuxtApp.hooks.hook('app:suspense:resolve', () => setHydrating(false))
       if (nuxtApp.payload.vuex) store.replaceState({ ...store.state, ...nuxtApp.payload.vuex })
       setAppStore(store)

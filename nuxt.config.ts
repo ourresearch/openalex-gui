@@ -6,6 +6,27 @@ import { RECORD_TYPE_NAMES } from './src/ssr/recordRoutes.js'
 
 const srcPath = fileURLToPath(new URL('./src', import.meta.url))
 
+// Master's public/index.html, after the Zendesk snippet (#1689 parity).
+const ZENDESK_SETUP = `
+    // Zendesk Widget Setup
+    window.zE = window.zE || function() { (zE.q = zE.q || []).push(arguments); };
+    // Wait for the widget to load before setting user details
+    zE('webWidget:on', 'open', function() {
+        zE('webWidget', 'identify', {
+        name: vm.$store.state.user.name,
+        email: vm.$store.state.user.email,
+        });
+    });
+    zE('webWidget', 'updateSettings', {
+        webWidget: {
+            contactForm: {
+                attachments: false,
+                title: { '*': "Send us Feedback"},
+            }
+        }
+    });
+`
+
 export default defineNuxtConfig({
   compatibilityDate: '2026-08-01',
   devtools: { enabled: false },
@@ -52,6 +73,13 @@ export default defineNuxtConfig({
     '@/styles/tokens.css',
   ],
   build: { transpile: ['vuetify'] },
+  hooks: {
+    // #1689 parity: master's HTML had no <link rel="prefetch"> hints; Nuxt adds one
+    // per lazy chunk (~170), so every cold visit downloaded the whole app at idle.
+    'build:manifest': (manifest) => {
+      for (const chunk of Object.values(manifest)) chunk.prefetch = false
+    },
+  },
   modules: [
     // #1689: a failed server render of a record page falls back to the SPA shell
     // (server/lib/ssrFallback.ts) before Nuxt's error page handler runs.
@@ -81,7 +109,10 @@ export default defineNuxtConfig({
     rootId: 'app',
     head: {
       htmlAttrs: { lang: 'en' },
-      title: 'OpenAlex',
+      // No `title` here (#1689 parity): an app-level title is a head entry that
+      // App.vue's titleTemplate turns into "OpenAlex | OpenAlex" on pages without
+      // their own title. The client-rendered shell gets master's plain
+      // <title>OpenAlex</title> from server/lib/page-shell.ts instead.
       meta: [
         { charset: 'utf-8' },
         { 'http-equiv': 'X-UA-Compatible', content: 'IE=edge' },
@@ -104,6 +135,9 @@ export default defineNuxtConfig({
         { innerHTML: 'window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }' },
         { src: 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit', async: true, defer: true },
         { id: 'ze-snippet', src: 'https://static.zdassets.com/ekr/snippet.js?key=f448c93c-e2e1-4d7c-b344-683a586e69f7', tagPosition: 'bodyClose' },
+        // #1689 parity: master's Zendesk widget setup, verbatim (note `vm` is undefined
+        // there too, so the identify call has never run; changing that is a separate call).
+        { innerHTML: ZENDESK_SETUP, tagPosition: 'bodyClose' },
       ],
       noscript: [
         { innerHTML: '<p><strong>OpenAlex needs JavaScript to run in your browser.</strong></p><p>OpenAlex is a free and open catalog of the world\'s research. To get the data without a browser, use the OpenAlex API: <a href="https://help.openalex.org/">help.openalex.org</a> explains how, and <a href="https://help.openalex.org/llms.txt">help.openalex.org/llms.txt</a> lists every docs page.</p>', tagPosition: 'bodyOpen' },

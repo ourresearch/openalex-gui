@@ -16,7 +16,7 @@ export default defineNuxtPlugin({
       navigation.setRouter(router)
       // Logged-in boot deferred past hydration (see installGuards): re-run the
       // guard's user boot by replaying the current route once hydration is done.
-      if (nuxtApp.isHydrating) {
+      if (nuxtApp.isHydrating && nuxtApp.payload.serverRendered) {
         nuxtApp.hooks.hook('app:suspense:resolve', () => {
           const store: any = nuxtApp.$store
           if (localStorage.getItem('token') && !store.getters['user/userLive']) {
