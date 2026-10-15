@@ -4,27 +4,29 @@
 // don't run JavaScript, so the single-page app gives them an empty shell. Cloudflare
 // knows which requests come from a verified AI assistant: a Transform Rule sets
 // X-OpenAlex-Verified-Assistant to a secret on those requests only (SHIP.md in the job
-// folder). For them, and for an entity or list URL, this module builds a plain page from
+// folder). For them, and for a list or search URL, this module builds a plain page from
 // api.openalex.org: HTML by default, Markdown when the Accept header asks for it.
 // Everything else, and everyone else, gets the normal site (assistantPage returns null).
+//
+// Record pages (/works/W1, /W1, /authors/A1, ...) are not answered here: since #1689
+// (2026-10-15) the server renders them for everyone, and assistants read that same page
+// (Jason, 2026-10-15: one page for people, search engines and models, not a bot-only one).
+// Lists and searches are still a client-side page, so they stay here until they are
+// server-rendered too; then this module, its Transform Rule and secret go.
 //
 // Framework-free on purpose: server.js adapts it to Express, tests call it directly.
 
 import crypto from "node:crypto";
 import { toHtml, toMarkdown } from "./format.mjs";
-import { entityPage, listPage, errorPage, knownWorksFilter, worksFilterOf, listSelect, API, NATIVE, SINGULAR, SEARCH_LABEL } from "./pages.mjs";
+import { listPage, errorPage, listSelect, API, SINGULAR, SEARCH_LABEL } from "./pages.mjs";
 
 export const HEADER = "x-openalex-verified-assistant";
 const PER_PAGE = 25;
-const TOP_WORKS = 10;
 const RERANK_WINDOW = 100; // the website reranks searches whose page starts inside the top 100 (url.js)
 const TIMEOUT_MS = 10000;
 
-// Native ids have a one-letter prefix; the website accepts /W123 too.
-const PREFIX = Object.fromEntries(Object.entries(NATIVE).map(([k, v]) => [v, k]));
 const ENTITY_TYPES = new Set(Object.keys(SINGULAR));
 export const SEARCH_KEYS = Object.keys(SEARCH_LABEL); // one is used at a time
-const TOP_WORKS_SELECT = "id,display_name,publication_year,cited_by_count,primary_location";
 
 // Query strings readable by a person or a model: only what must be escaped is.
 export function queryString(params) {
@@ -37,28 +39,7 @@ export function queryString(params) {
 // Which page a website URL is, or null for anything this module doesn't handle.
 export function route(url) {
   const path = url.pathname.replace(/\/+$/, "") || "/";
-  let m = path.match(/^\/([a-z])(\d+)$/i);
-  if (m && NATIVE[m[1].toLowerCase()]) {
-    return { kind: "entity", type: NATIVE[m[1].toLowerCase()], id: m[1].toUpperCase() + m[2] };
-  }
-  m = path.match(/^\/([a-z-]+)\/([^/]+)$/);
-  if (m && ENTITY_TYPES.has(m[1])) {
-    const type = m[1];
-    let id;
-    try {
-      id = decodeURIComponent(m[2]);
-    } catch {
-      return null;
-    }
-    if (PREFIX[type]) {
-      if (!/^[a-z]\d+$/i.test(id) || id[0].toLowerCase() !== PREFIX[type]) return null;
-      id = id.toUpperCase();
-    } else if (!/^[\w.-]+$/.test(id)) {
-      return null;
-    }
-    return { kind: "entity", type, id };
-  }
-  m = path.match(/^\/([a-z-]+)$/);
+  const m = path.match(/^\/([a-z-]+)$/);
   if (m && ENTITY_TYPES.has(m[1])) return { kind: "list", type: m[1], ...listQuery(m[1], url.searchParams) };
   return null;
 }
@@ -155,19 +136,6 @@ function makeGetJson(env, fetchImpl) {
   };
 }
 
-// The record, and for anything but a work its 10 most-cited works: both at once when the works
-// filter is known from the id, else after the record (from its works_api_url). A failed works list
-// costs the section, not the page.
-async function buildEntity(r, getJson) {
-  const apiPath = `/${r.type}/${encodeURIComponent(r.id)}`;
-  const publicUrl = `${API}${apiPath}`;
-  const topWorks = (filter) =>
-    filter ? getJson(`/works?${queryString({ filter, sort: "cited_by_count:desc", per_page: TOP_WORKS, select: TOP_WORKS_SELECT })}`, publicUrl).catch(() => null) : null;
-  const known = knownWorksFilter(r.type, r.id);
-  const [record, top] = await Promise.all([getJson(apiPath, publicUrl), topWorks(known)]);
-  return entityPage(r.type, record, known ? top : await topWorks(worksFilterOf(record)));
-}
-
 // Paid-plan features (created/updated-date filters and sorts) are refused by the API itself: the server
 // key has no paid plan (SHIP.md), so an assistant gets the answer a free user gets.
 async function buildList(r, url, getJson) {
@@ -189,7 +157,7 @@ export async function assistantPage(req, env, fetchImpl = fetch) {
   let page;
   let status = 200;
   try {
-    page = r.kind === "entity" ? await buildEntity(r, getJson) : await buildList(r, req.url, getJson);
+    page = await buildList(r, req.url, getJson);
   } catch (err) {
     if (!(err instanceof ApiError)) throw err;
     status = err.status;
