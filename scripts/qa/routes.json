@@ -12,7 +12,8 @@
     { "id": "support", "class": "company", "path": "/support", "landmark": "h1" },
     { "id": "events", "class": "company", "path": "/events", "landmark": "h1" },
 
-    { "id": "works-list-filter", "class": "list", "path": "/works?page=1&filter=publication_year:2024,title_and_abstract.search:kelp", "landmark": ".v-main", "text": "kelp" },
+    { "id": "works-list-filter", "class": "list", "path": "/works?page=1&filter=publication_year:2024,type:article", "landmark": ".v-main" },
+    { "id": "works-list-year-search", "class": "list", "path": "/works?page=1&filter=publication_year:2024,title_and_abstract.search:kelp", "landmark": ".v-main", "note": "2026-10-15: this URL grows the browser tab past 1 GB on production too (pre-Nuxt bug); the harness's memory guard kills it" },
     { "id": "works-list-search", "class": "list", "path": "/works?search=open%20access%20citation%20advantage", "landmark": ".v-main" },
     { "id": "authors-list", "class": "list", "path": "/authors?page=1&filter=default.search:priem", "landmark": ".v-main", "text": "Priem" },
     { "id": "sources-list", "class": "list", "path": "/sources?page=1&filter=is_oa:true", "landmark": ".v-main" },

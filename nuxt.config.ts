@@ -8,13 +8,16 @@ const srcPath = fileURLToPath(new URL('./src', import.meta.url))
 export default defineNuxtConfig({
   compatibilityDate: '2026-08-01',
   devtools: { enabled: false },
+  // Same dev port as Vue CLI had: cypress expects 8080, and apiConfig.js switches API
+  // hosts on 8081-8085 (`npm run dev -- --port 8081`).
+  devServer: { port: 8080 },
   telemetry: false,
   // Browser source maps stay public, as under Vue CLI: Sentry fetches each file's
   // sourceMappingURL to symbolicate (nothing is uploaded). Server maps stay off: they
   // are what pushed the Nitro bundling step past a 1.8 GB heap in the trial (#1689 build-qa).
   sourcemap: { server: false, client: true },
   // Pre-compress /_nuxt/ and public/ files (gzip + brotli) at build time; Nitro serves
-  // them by Accept-Encoding. Replaces server.js's compression() for static files.
+  // them by Accept-Encoding. Replaces the old server.js compression() for static files.
   nitro: { compressPublicAssets: true },
   // Default inlines every eagerly imported component's CSS (~104 KB) into each HTML
   // response, SPA shells included; link the CSS files instead (cacheable).

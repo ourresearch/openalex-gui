@@ -20,6 +20,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { createRequire } from 'node:module'
+import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -65,6 +66,29 @@ const BLOCK = /(^https?:\/\/(plausible\.io|[^/]*\.ingest\.(us\.)?sentry\.io)\/)/
 const isLocal = base => /^http:\/\/(localhost|127\.0\.0\.1)/.test(base)
 fs.mkdirSync(outDir, { recursive: true })
 
+// Desk memory guard: desk's RAM is shared by ~20 Claude sessions. A page that runs away
+// (one SERP grew a renderer to 2.8 GB in the first run) gets its renderer killed once it
+// passes QA_RENDERER_MB, and the route is reported as such. Pages also get a hard time budget.
+const RENDERER_MB = Number(process.env.QA_RENDERER_MB || 1000)
+const PAGE_BUDGET_MS = Number(process.env.QA_PAGE_BUDGET_MS || 60000)
+const guardKills = []
+let browserPid = null
+function guardTick() {
+  let lines
+  try { lines = execFileSync('ps', ['-axo', 'pid=,ppid=,rss=,command='], { encoding: 'utf8', maxBuffer: 16e6 }).split('\n') } catch { return }
+  if (!browserPid) {
+    const own = lines.find(l => l.includes(`--qa-run=${process.pid}`) && !l.includes('Helper'))
+    if (own) browserPid = Number(own.trim().split(/\s+/)[0])
+    if (!browserPid) return
+  }
+  for (const l of lines) {
+    const [pid, ppid, rss] = l.trim().split(/\s+/).map(Number)
+    if (ppid === browserPid && rss / 1024 > RENDERER_MB) {
+      try { process.kill(pid, 'SIGKILL'); guardKills.push({ pid, mb: Math.round(rss / 1024), at: Date.now() }) } catch {}
+    }
+  }
+}
+
 // What a crawler that doesn't run JavaScript gets: status, redirect, title, canonical,
 // description, <h1> and the route's text in the raw HTML.
 async function rawCheck(target, route) {
@@ -94,6 +118,25 @@ async function rawCheck(target, route) {
 }
 
 async function loadInBrowser(browser, target, route, width) {
+  const killsBefore = guardKills.length
+  let timer
+  const budget = new Promise(res => { timer = setTimeout(() => res('budget'), PAGE_BUDGET_MS) })
+  const work = loadInBrowserInner(browser, target, route, width)
+  const r = await Promise.race([work.catch(e => ({ crashed: String(e.message || e).slice(0, 200) })), budget])
+  clearTimeout(timer)
+  const kills = guardKills.slice(killsBefore)
+  const base = { status: null, finalUrl: null, redirects: [], loadMs: null, landmarkFound: false, dom: {}, consoleErrors: [], consoleWarnings: [], pageErrors: [], failed: [], hydration: [], shot: null }
+  if (r === 'budget') {
+    work.then(x => x?.ctx?.close().catch(() => {}), () => {})
+    return { ...base, pageErrors: [`QA: page exceeded its ${PAGE_BUDGET_MS / 1000} s budget` + (kills.length ? `; renderer killed at ${kills[0].mb} MB` : '')] }
+  }
+  if (r.crashed) return { ...base, pageErrors: ['QA: ' + r.crashed + (kills.length ? `; renderer killed by the memory guard at ${kills[0].mb} MB` : '')] }
+  delete r.ctx
+  if (kills.length) r.pageErrors.push(`QA: renderer killed by the memory guard at ${kills[0].mb} MB`)
+  return r
+}
+
+async function loadInBrowserInner(browser, target, route, width) {
   const height = width >= 1000 ? 900 : 860
   const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 })
   if (route.auth === 'viewer' && viewerKey) {
@@ -117,6 +160,7 @@ async function loadInBrowser(browser, target, route, width) {
     else if (m.type() === 'warning') consoleWarnings.push(t)
   })
   page.on('pageerror', e => pageErrors.push(String(e).replace(/\s+/g, ' ').slice(0, 300)))
+  page.on('crash', () => pageErrors.push('QA: renderer crashed'))
   page.on('requestfailed', rq => {
     const f = rq.failure()?.errorText || ''
     if (BLOCK.test(rq.url())) return
@@ -189,7 +233,7 @@ async function composites(browser, results) {
     const cells = []
     for (const w of widths) for (const t of targets) {
       const r = results[t.name]?.[route.id]?.widths?.[w]
-      if (!r) continue
+      if (!r || !r.shot || !fs.existsSync(path.join(outDir, r.shot))) continue
       const src = 'data:image/png;base64,' + fs.readFileSync(path.join(outDir, r.shot)).toString('base64')
       const scale = w >= 1000 ? 0.5 : 1
       cells.push(`<figure><figcaption>${t.name} · ${w}px · ${r.status ?? 'ERR'} · err ${r.consoleErrors.length + r.pageErrors.length} · hyd ${r.hydration.length}</figcaption><img src="${src}" style="width:${Math.round(w * scale)}px"></figure>`)
@@ -256,7 +300,8 @@ function report(results) {
 }
 
 const { chromium } = loadPlaywright()
-const browser = await chromium.launch({ executablePath: chromePath, headless: true })
+const browser = await chromium.launch({ executablePath: chromePath, headless: true, args: [`--qa-run=${process.pid}`] })
+const guard = setInterval(guardTick, 1000)
 const results = {}
 try {
   await Promise.all(targets.map(async t => { results[t.name] = await runTarget(browser, t) }))
@@ -264,6 +309,7 @@ try {
   await composites(browser, results)
   report(results)
 } finally {
+  clearInterval(guard)
   await browser.close()
 }
 console.log('report: ' + path.join(outDir, 'report.md'))
