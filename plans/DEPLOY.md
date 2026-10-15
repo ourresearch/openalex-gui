@@ -28,7 +28,8 @@ work page 200 with the record in the HTML, home 200, `/W2741809807` 301 to `/wor
 `cache-control: public, max-age=31536000, immutable`.
 
 **Removed in this branch:** `vue.config.js`, `webpack.config.js`, `babel.config.js`, `server.js`
-(the Nitro server replaces it; the parity track ported its behaviours). `npm run lint` now calls
+(the Nitro server replaces it; the parity track ported its behaviours) and `vuecli-index.html` (the
+old `public/index.html`; parity ported its boot skeleton and Zendesk setup). `npm run lint` now calls
 `eslint` directly; `npm run dev` / `serve` run `nuxt dev` on port 8080 as before (8081 to 8085 still
 switch API hosts: `npm run dev -- --port 8081`).
 
@@ -41,7 +42,6 @@ npx -y npm@11 uninstall @vue/cli-plugin-babel @vue/cli-plugin-eslint @vue/cli-pl
   @sentry/webpack-plugin webpack-bundle-analyzer webpack-plugin-vuetify sass-loader \
   express heroku-ssl-redirect @achrinza/node-ipc core-js @unhead/ssr unhead
 npx -y npm@11 install -D @babel/preset-env   # eslint's parser config names it; it came via @vue/cli-plugin-babel
-git rm vuecli-index.html                       # parity ported its boot skeleton and Zendesk setup
 ```
 
 Keep `compression` (the parity track's front door uses it). Before running it, `git grep` each name
