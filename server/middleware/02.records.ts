@@ -34,6 +34,34 @@ function spaShell(event: any, why: string) {
   setResponseHeader(event, 'cache-control', CACHE_FALLBACK)
 }
 
+// Admission control: at most this many server renders in flight per process; a
+// request waits up to RENDER_WAIT_MS for a slot, else gets the SPA shell. Bounds the
+// server's memory under a crawler burst (a 90-wide burst took one process to ~1.1 GB
+// RSS on desk without it). shortcut: per process, not per dyno pool.
+const MAX_RENDERS = Number(process.env.SSR_MAX_CONCURRENT_RENDERS) || 12
+const RENDER_WAIT_MS = 1000
+let rendersInFlight = 0
+const renderWaiters: Array<() => void> = []
+
+function acquireRenderSlot(): Promise<boolean> {
+  if (rendersInFlight < MAX_RENDERS) { rendersInFlight++; return Promise.resolve(true) }
+  return new Promise((resolve) => {
+    const grant = () => { clearTimeout(timer); rendersInFlight++; resolve(true) }
+    const timer = setTimeout(() => {
+      const i = renderWaiters.indexOf(grant)
+      if (i >= 0) renderWaiters.splice(i, 1)
+      resolve(false)
+    }, RENDER_WAIT_MS)
+    renderWaiters.push(grant)
+  })
+}
+
+function releaseRenderSlot() {
+  rendersInFlight--
+  const next = renderWaiters.shift()
+  if (next) next()
+}
+
 function redirect(event: any, location: string) {
   setResponseHeader(event, 'cache-control', CACHE_REDIRECT)
   return sendRedirect(event, location, 301)
@@ -88,6 +116,15 @@ export default defineEventHandler(async (event) => {
   if (canonical !== pathname) return redirect(event, canonical + search)
 
   const plan = earlyPlan ? null : worksListPlan(ref.type, rec.data)
+  if (!(await acquireRenderSlot())) {
+    console.warn('[record-ssr] SPA fallback', ref.apiPath, 'busy')
+    return spaShell(event, 'busy')
+  }
+  let released = false
+  const release = () => { if (!released) { released = true; releaseRenderSlot() } }
+  event.node.res.once('close', release)
+  event.node.res.once('finish', release)
+
   // Test hook for the render-error fallback (unset in production): this id's record
   // throws when the page reads its title.
   if (process.env.NUXT_SSR_TEST_FAULT_ID && process.env.NUXT_SSR_TEST_FAULT_ID === ref.id) {

@@ -548,6 +548,8 @@ const {
 const entityData = computed(() => entityAsync.value ?? null);
 // Bad/unknown id: show the failure state instead of a blank page (oxjob #671).
 const entityLoadFailed = computed(() => !!entityAsyncError.value);
+// #1689: the not-found page (status 404 from the server) says so in its title.
+useHead(() => (entityLoadFailed.value ? { title: 'Page not found' } : {}));
 watch(entityAsyncStatus, (st) => {
   if (typeof window !== 'undefined') store.state.isLoading = st === 'pending';
 }, { immediate: true });

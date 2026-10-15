@@ -56,16 +56,22 @@ function verify(rec, res, html) {
   if (!render.startsWith('ssr')) problems.push(`render "${render}"`)
   const title = (html.match(/<title>([^<]*)<\/title>/) || [])[1] || ''
   if (rec.name && !title.startsWith(esc(rec.name).slice(0, 40)) && !title.startsWith(rec.name.slice(0, 40))) problems.push(`title "${title.slice(0, 60)}" != "${rec.name.slice(0, 60)}"`)
-  const keys = [...html.matchAll(/"entity:([a-z-]+\/[^"]+)"/g)].map((m) => m[1])
+  // devalue writes "/" as \u002F inside the payload JSON.
+  const keys = [...html.matchAll(/"entity:([a-z-]+(?:\/|\\u002F)[^"]+)"/g)].map((m) => m[1].replace('\\u002F', '/'))
   const want = rec.path.slice(1)
   if (!keys.includes(want)) problems.push(`payload lacks entity:${want}`)
   const others = keys.filter((k) => k !== want)
   if (others.length) problems.push(`payload has other records: ${others.join(',')}`)
   for (const other of records) {
-    if (other.path !== rec.path && html.includes(`"entity:${other.path.slice(1)}"`)) problems.push(`leak of ${other.path}`)
+    const k = other.path.slice(1)
+    if (other.path !== rec.path && (html.includes(`"entity:${k}"`) || html.includes(`"entity:${k.replace('/', '\\u002F')}"`))) problems.push(`leak of ${other.path}`)
   }
   return problems
 }
+
+// 1b. Warm the server's API cache (sequentially, under the API's 50 requests/s per
+// key), so the burst below measures render isolation, not the API's rate limit.
+for (const rec of records) await fetch(base + rec.path, req).then((r) => r.text()).catch(() => {})
 
 // 2. Concurrency.
 const batch = Array.from({ length: PARALLEL }, (_, i) => records[i % records.length]).sort(() => Math.random() - 0.5)
@@ -77,13 +83,16 @@ const results = await Promise.all(batch.map(async (rec) => {
     const html = await res.text()
     return { rec, ms: Date.now() - s, bytes: html.length, problems: verify(rec, res, html) }
   } catch (e) {
-    return { rec, ms: Date.now() - s, problems: [`fetch failed: ${e}`] }
+    return { rec, ms: Date.now() - s, problems: [`fetch failed: ${e} ${e?.cause?.code || e?.cause || ''}`] }
   }
 }))
-const wrong = results.filter((r) => r.problems.length)
+// A record the API was too slow for / rate-limited on gets the SPA shell on purpose:
+// counted apart from wrong pages.
+const fellBack = results.filter((r) => r.problems.some((p) => p.startsWith('render "spa')))
+const wrong = results.filter((r) => r.problems.length && !fellBack.includes(r))
 const lat = results.map((r) => r.ms).sort((a, b) => a - b)
 const pct = (a, p) => a[Math.min(a.length - 1, Math.floor(p * a.length))]
-console.log(`\nconcurrency: ${results.length} parallel requests over ${records.length} records in ${Date.now() - t0} ms; wrong pages: ${wrong.length}; latency p50 ${pct(lat, 0.5)} ms, p95 ${pct(lat, 0.95)} ms, max ${lat.at(-1)} ms`)
+console.log(`\nconcurrency: ${results.length} parallel requests over ${records.length} records in ${Date.now() - t0} ms; wrong pages: ${wrong.length}; SPA fallbacks: ${fellBack.length}; latency p50 ${pct(lat, 0.5)} ms, p95 ${pct(lat, 0.95)} ms, max ${lat.at(-1)} ms`)
 for (const w of wrong.slice(0, 20)) console.log('  WRONG', w.rec.path, w.problems.join('; '))
 
 // 3. Render time per type (sequential, warm).
