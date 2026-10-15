@@ -249,6 +249,7 @@
 </template>
 
 <script setup>
+import { hasBrowser } from '@/utils/env';
 import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
@@ -667,7 +668,9 @@ watch(
   // by the same guard, so a store-driven edit fetches each widget exactly once.
   () => [route.params, route.query.filter, store.state.query.editEpoch,
          groupsRequestSignature()],
-  getGroups,
+  // #1689: browser only. On the server this fired un-awaited API calls that the
+  // render never used; the server HTML shows the loading state, as the client does.
+  () => { if (hasBrowser) getGroups(); },
   { immediate: true, deep: true }
 );
 watch(isDialogOpen, (to) => {

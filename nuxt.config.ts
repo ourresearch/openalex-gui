@@ -24,6 +24,8 @@ export default defineNuxtConfig({
     // `/x/**` also matches `/x` itself (the search page), which stays client-rendered.
     '/works': { ssr: false },
     '/authors': { ssr: false },
+    // server.js ports (#1558 aboutness viewer; caching as #860: HTML no-cache).
+    '/aboutness/viewer': { proxy: '/aboutness-viewer.html' },
   },
   // Lets useNuxtApp() find the current request's app after an await, so the old
   // module-level store/router imports can resolve per request (server only).

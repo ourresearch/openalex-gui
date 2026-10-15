@@ -442,12 +442,19 @@ return createStore({
 
 let _store = null;
 let _resolver = null;
+let _serverFallbacks = 0;
 export function setAppStore(s) { _store = s; }
 // Server side (Nuxt SSR), a resolver returns the current request's store.
 export function setStoreResolver(fn) { _resolver = fn; }
 export function getAppStore() {
     const s = (_resolver && _resolver()) || _store;
     if (s) return s;
+    if (!hasBrowser) {
+        // #1689: on the server a module-level store would be shared by every request.
+        _serverFallbacks++;
+        if (_serverFallbacks <= 3) console.warn('[ox-store] no request store in context; using a throwaway store', new Error().stack.split('\n').slice(2, 6).join(' <- '));
+        return createAppStore();
+    }
     _store = createAppStore();   // browser: one store, created on first use
     return _store;
 }
