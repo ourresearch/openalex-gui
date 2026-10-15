@@ -31,3 +31,6 @@ yarn-error.log*
 .nuxt/
 .output/
 .trial-tools/
+
+# oxjob #1689 QA harness tools (npm --prefix scripts/qa install)
+/scripts/qa/node_modules/

@@ -9,8 +9,13 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-08-01',
   devtools: { enabled: false },
   telemetry: false,
-  // Source maps for the ~150K-line app pushed the Nitro bundling step past a 1.8 GB heap.
-  sourcemap: { server: false, client: false },
+  // Browser source maps stay public, as under Vue CLI: Sentry fetches each file's
+  // sourceMappingURL to symbolicate (nothing is uploaded). Server maps stay off: they
+  // are what pushed the Nitro bundling step past a 1.8 GB heap in the trial (#1689 build-qa).
+  sourcemap: { server: false, client: true },
+  // Pre-compress /_nuxt/ and public/ files (gzip + brotli) at build time; Nitro serves
+  // them by Accept-Encoding. Replaces server.js's compression() for static files.
+  nitro: { compressPublicAssets: true },
   // Default inlines every eagerly imported component's CSS (~104 KB) into each HTML
   // response, SPA shells included; link the CSS files instead (cacheable).
   features: { inlineStyles: false },
