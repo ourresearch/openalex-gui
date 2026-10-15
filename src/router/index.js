@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 import store from '@/store';
-import { hasBrowser } from '@/utils/env';
+import { hasBrowser, isHydrating } from '@/utils/env';
 import {getEntityConfigs} from "@/entityConfigs";
 import * as openalexId from "@/openalexId";
 import {url} from "@/url";
@@ -728,7 +728,9 @@ router.beforeEach(async (to, from, next) => {
     // role-gated routes always, requiresAuth routes only if the user is still
     // unknown, public routes never. App.vue paints as soon as this guard
     // resolves, so on public routes the shell no longer waits on users-api.
-    if (hasBrowser && localStorage.getItem("token") && !store.getters["user/userLive"]) {
+    // #1689: while hydrating server HTML the app must stay logged out (the server
+    // can't see localStorage); the Nuxt router plugin runs this boot after hydration.
+    if (hasBrowser && !isHydrating() && localStorage.getItem("token") && !store.getters["user/userLive"]) {
         if (!store.getters["user/userId"]) {
             store.dispatch("user/restoreUserFromCache")
         }

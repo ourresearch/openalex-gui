@@ -18,7 +18,8 @@ let userInFlight = null
 
 export default {
     namespaced: true,
-    state: {
+    // #1689: a function, so each store instance (one per SSR request) gets its own state.
+    state: () => ({
         id: "",
         name: "",
         email: "",
@@ -59,7 +60,7 @@ export default {
         activeSearchId: null,
         impersonatingUserId: null,
         impersonatingUserName: null,
-    },
+    }),
     mutations: {
         setToken(state, token) {
             // A new token means a (possibly different) account: never let the

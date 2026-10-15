@@ -433,6 +433,7 @@ import { ref, computed, watch, onMounted, mergeProps, provide } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
+import { useAsyncData } from '#app';  // #1689 Nuxt trial: record data fetched on the server, reused on hydration
 
 import { api } from '@/api';
 import { url } from '@/url';
@@ -461,10 +462,7 @@ const store = useStore();
 const route = useRoute();
 const router = useRouter();
 
-const entityData = ref(null);
-const entityLoadFailed = ref(false);
 const myEntityType = ref(route.params.entityType);
-const worksResultObject = ref({});
 const worksPage = ref(1);
 const worksLoadingMore = ref(false);
 // Non-default tabs: 'locations' (works pages), 'harvest' (repository sources, #836).
@@ -498,6 +496,48 @@ const myWorksFilter = computed(() => {
 
 const apiPath = computed(() => `${route.params.entityType}/${route.params.entityId}`);
 
+// #1689 Nuxt trial: the record comes from useAsyncData (runs on the server for
+// SSR'd routes, serialized into the Nuxt payload, reused by the browser on
+// hydration; refetches when the key changes on client-side navigation).
+const massageEntity = (data) => {
+  // For locations, massage the data to create entity objects for better rendering
+  if (route.params.entityType === 'locations' && data) {
+    if (!data.id) {
+      data.id = route.params.entityId;
+    }
+    if (data.source_id && data.source_name) {
+      data.source = {
+        id: data.source_id,
+        display_name: data.source_name
+      };
+    }
+    if (data.work_id) {
+      const shortId = data.work_id.replace('https://openalex.org/', '');
+      data.work = {
+        id: data.work_id,
+        display_name: shortId // Show as "works/W12345" format
+      };
+    }
+  }
+  return data;
+};
+
+const {
+  data: entityAsync,
+  error: entityAsyncError,
+  status: entityAsyncStatus,
+} = useAsyncData(
+  () => `entity:${apiPath.value}`,
+  async () => massageEntity(await api.get(apiPath.value)),
+);
+const entityData = computed(() => entityAsync.value ?? null);
+// Bad/unknown id: show the failure state instead of a blank page (oxjob #671).
+const entityLoadFailed = computed(() => !!entityAsyncError.value);
+watch(entityAsyncStatus, (st) => {
+  if (typeof window !== 'undefined') store.state.isLoading = st === 'pending';
+}, { immediate: true });
+
+
 // Repository sources get the Harvest tab (oxjob #836). Null-tolerant:
 // entityData is null until the fetch resolves.
 const isRepositorySource = computed(() =>
@@ -530,6 +570,15 @@ const worksSelectable = computed(() => isAuthorOwner.value);
 
 // Owner-only add/remove-works curation, layered on the existing works list
 // and the shared selection store. oxjob #187.
+// #1689: the first page of the works list is fetched with the record (server
+// side too); "show more" pages are appended in the browser.
+const { data: worksFirstPage } = useAsyncData(
+  () => `entity-works:${apiPath.value}`,
+  async () => (await fetchWorksPage(1)) ?? {},
+  { default: () => ({}) },
+);
+const worksMore = ref(null);
+const worksResultObject = computed(() => worksMore.value ?? worksFirstPage.value ?? {});
 const addMenuOpen = ref(false);
 const worksCuration = useAuthorWorksCuration({
   authorId: computed(() => (isAuthorOwner.value ? entityData.value?.id || '' : '')),
@@ -641,53 +690,7 @@ const allLocations = computed(() => {
   return locations;
 });
 
-const getEntityData = async () => {
-  store.state.isLoading = true;
-  entityLoadFailed.value = false;
-  // Clear old data first to prevent mixing location and work data
-  entityData.value = null;
-
-  let data;
-  try {
-    data = await api.get(apiPath.value);
-  } catch (e) {
-    // Bad/unknown id: without this the page stays blank with the loading bar
-    // stuck on forever (oxjob #671).
-    entityLoadFailed.value = true;
-    store.state.isLoading = false;
-    return;
-  }
-
-  // For locations, massage the data to create entity objects for better rendering
-  if (myEntityType.value === 'locations' && data) {
-    // Add the id field from the route params
-    if (!data.id) {
-      data.id = route.params.entityId;
-    }
-    
-    // Transform source_name + source_id into a source object
-    if (data.source_id && data.source_name) {
-      data.source = {
-        id: data.source_id,
-        display_name: data.source_name
-      };
-    }
-    
-    // Transform work_id into a work object
-    if (data.work_id) {
-      const shortId = data.work_id.replace('https://openalex.org/', '');
-      data.work = {
-        id: data.work_id,
-        display_name: shortId // Show as "works/W12345" format
-      };
-    }
-  }
-  
-  entityData.value = data;
-  store.state.isLoading = false;
-};
-
-const fetchWorksPage = async (page) => {
+async function fetchWorksPage(page) {
   if (myEntityType.value === 'works') return null;
   if (!myEntityConfig.value) return null;
   if (isComponentEntity.value) return null; // no works rollup (oxjob #852)
@@ -705,13 +708,11 @@ const fetchWorksPage = async (page) => {
   }, true);
 
   return api.getResultsList(apiUrl);
-};
+}
 
 const getWorks = async () => {
-  worksResultObject.value = {};
+  worksMore.value = null;
   worksPage.value = 1;
-  const resp = await fetchWorksPage(1);
-  if (resp) worksResultObject.value = resp;
 };
 
 const showMoreWorks = async () => {
@@ -721,7 +722,7 @@ const showMoreWorks = async () => {
     const nextPage = worksPage.value + 1;
     const resp = await fetchWorksPage(nextPage);
     if (resp?.results?.length) {
-      worksResultObject.value = {
+      worksMore.value = {
         ...resp,
         results: [...(worksResultObject.value.results || []), ...resp.results],
       };
@@ -784,15 +785,18 @@ onMounted(() => {
 
 watch(apiPath, async () => {
   myEntityType.value = route.params.entityType;
-  await getEntityData();
   // The 'harvest' tab only exists on repository sources; landing anywhere else
   // with ?tab=harvest (stale link, cross-entity navigation) would render an
   // empty window. Fall back to details.
-  if (activeTab.value === 'harvest' && !isRepositorySource.value) {
+  // (#1689: the record may still be loading here; the watcher below re-checks.)
+  if (activeTab.value === 'harvest' && entityData.value && !isRepositorySource.value) {
     activeTab.value = 'details';
   }
   await getWorks();
 }, { immediate: true });
+watch(entityData, (d) => {
+  if (d && activeTab.value === 'harvest' && !isRepositorySource.value) activeTab.value = 'details';
+});
 
 // Sync activeTab to URL query parameter
 watch(activeTab, (newTab) => {

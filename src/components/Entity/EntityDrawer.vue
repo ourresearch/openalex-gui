@@ -102,7 +102,8 @@ const { smAndDown } = useDisplay();
 
 const entityData = ref(null);
 const isLoading = ref(false);
-const windowWidth = ref(window.innerWidth);
+// #1689: no window on the server; a fixed width until mounted keeps hydration in step.
+const windowWidth = ref(1280);
 
 const zoomId = computed(() => store.getters['zoomId']);
 const setZoomId = (val) => store.commit('setZoomId', val);
@@ -191,6 +192,7 @@ watch(
 );
 
 onMounted(() => {
+  handleResize();
   window.addEventListener('resize', handleResize);
 });
 

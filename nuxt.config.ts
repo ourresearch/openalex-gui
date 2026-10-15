@@ -9,7 +9,25 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-08-01',
   devtools: { enabled: false },
   telemetry: false,
-  ssr: false,
+  // Source maps for the ~150K-line app pushed the Nitro bundling step past a 1.8 GB heap.
+  sourcemap: { server: false, client: false },
+  // Default inlines every eagerly imported component's CSS (~104 KB) into each HTML
+  // response, SPA shells included; link the CSS files instead (cacheable).
+  features: { inlineStyles: false },
+  // Step 2: SSR on, but only record routes render on the server; everything else
+  // gets Nuxt's SPA shell (nuxt.com/docs/4.x/guide/concepts/rendering#route-rules).
+  ssr: true,
+  routeRules: {
+    '/**': { ssr: false },
+    '/works/**': { ssr: true },
+    '/authors/**': { ssr: true },
+    // `/x/**` also matches `/x` itself (the search page), which stays client-rendered.
+    '/works': { ssr: false },
+    '/authors': { ssr: false },
+  },
+  // Lets useNuxtApp() find the current request's app after an await, so the old
+  // module-level store/router imports can resolve per request (server only).
+  experimental: { asyncContext: true },
   // Nuxt's own files live in app/; the existing app stays in src/ and keeps its "@" alias.
   alias: { '@': srcPath },
   // Don't let Nuxt auto-scan/auto-import anything from the old app.
@@ -32,9 +50,10 @@ export default defineNuxtConfig({
     },
   ],
   vite: {
+    build: { minify: process.env.TRIAL_NOMINIFY ? false : undefined },
     vue: { template: { transformAssetUrls } },
     define: {
-      __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
+      __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'true',
     },
     // jobs-redline.yaml was imported raw via a webpack asset/source rule.
     assetsInclude: [],

@@ -74,7 +74,8 @@ function clearEntityCollectionsCache() {
 
 export default {
     namespaced: true,
-    state: {
+    // #1689: a function, so each store instance (one per SSR request) gets its own state.
+    state: () => ({
         // The caller's own collections.
         collections: [],
         loaded: false,
@@ -92,7 +93,7 @@ export default {
         // Used by ExpertSerp to gate the Remove menu's visibility — only
         // surface it when at least one visible row has at least one collection.
         pageCollectionsByEntity: {},
-    },
+    }),
     mutations: {
         setCollections(state, collections) {
             state.collections = collections || [];

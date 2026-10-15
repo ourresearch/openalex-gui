@@ -114,7 +114,7 @@ const chrome = computed(() => {
 // real chrome is decided — the real bar has just rendered underneath it at the
 // same geometry (or the page is 'bare' and wants no bar at all).
 watch(chrome, (value) => {
-  if (value) document.getElementById('boot-skeleton')?.remove();
+  if (value && typeof document !== 'undefined') document.getElementById('boot-skeleton')?.remove();  // #1689: no document on the server
 }, { immediate: true });
 
 // Height of the in-flow chrome above <v-main>: the 56px top bar (on every
