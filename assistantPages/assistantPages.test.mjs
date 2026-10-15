@@ -325,6 +325,51 @@ describe("API errors become plain pages", () => {
     expect(page.status).toBe(400);
     expect(page.body).toContain("requires a Premium, Institutional, or Partner plan. See https://openalex.org/pricing for details.");
     expect(page.body).not.toContain("details..");
+    expect(f.calls).toHaveLength(1);
+  });
+
+  describe("a busy API (429 with Retry-After)", () => {
+    const WORK = "https://api.openalex.org/works/W2741809807";
+    const busy = (retryAfter = "1") =>
+      new Response(JSON.stringify({ error: "Rate limit exceeded", message: "Rate limit exceeded: 50 requests per second. Please slow down." }), {
+        status: 429,
+        headers: { "Content-Type": "application/json", "Retry-After": retryAfter },
+      });
+    // Only setTimeout is faked: AbortSignal.timeout keeps real time.
+    async function renderWaiting(target, f) {
+      vi.useFakeTimers({ toFake: ["setTimeout"] });
+      try {
+        const pending = render(target, { accept: "text/markdown" }, f);
+        await vi.advanceTimersByTimeAsync(2000);
+        return await pending;
+      } finally {
+        vi.useRealTimers();
+      }
+    }
+
+    it("is waited out once, and the page is served", async () => {
+      let n = 0;
+      const f = fixtureFetch({ [WORK]: () => (++n === 1 ? busy() : jsonResponse(fixture(WORK))) });
+      const { page } = await renderWaiting("/W2741809807", f);
+      expect(page.status).toBe(200);
+      expect(page.body).toContain("# The state of OA");
+      expect(f.calls).toHaveLength(2);
+    });
+
+    it("still busy after the wait -> 503, try again", async () => {
+      const f = fixtureFetch({ [WORK]: () => busy() });
+      const { page } = await renderWaiting("/W2741809807", f);
+      expect(page.status).toBe(503);
+      expect(page.body).toContain("did not answer for work W2741809807 just now (too many requests at once). Try again in a moment.");
+      expect(f.calls).toHaveLength(2);
+    });
+
+    it("a long Retry-After (a shed search) -> 503 at once", async () => {
+      const f = fixtureFetch({ [WORK]: () => busy("15") });
+      const { page } = await render("/W2741809807", { accept: "text/markdown" }, f);
+      expect(page.status).toBe(503);
+      expect(f.calls).toHaveLength(1);
+    });
   });
 
   it("network failure -> 502, never an exception", async () => {
