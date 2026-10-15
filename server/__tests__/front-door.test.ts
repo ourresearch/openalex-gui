@@ -12,11 +12,17 @@ const PROXIED = '<!DOCTYPE html>' + 'abcdefghij'.repeat(200000)
 let server: http.Server
 let base: string
 const seen: string[] = []
+// The assistant header as the handlers after the front door see it (#1689's agent notice reads it).
+const assistantHeaderSeen: string[] = []
 
 beforeAll(async () => {
   const app = createApp({ onBeforeResponse: (event) => setDefaultCacheControl(event) })
   // Stand-ins for what Nitro registers before plugins run.
-  app.use(defineEventHandler((event) => { seen.push('route-rules:' + event.path) }))
+  app.use(defineEventHandler((event) => {
+    seen.push('route-rules:' + event.path)
+    const h = event.node.req.headers['x-openalex-verified-assistant']
+    if (h) assistantHeaderSeen.push(String(h))
+  }))
   app.use(defineEventHandler((event) => {
     if (event.path === '/brand-assets/openalex-lockup.png') {
       setResponseHeader(event, 'content-type', 'image/png')
@@ -71,6 +77,7 @@ afterAll(() => server.close())
 afterEach(() => {
   vi.unstubAllEnvs()
   seen.length = 0
+  assistantHeaderSeen.length = 0
 })
 
 // Raw HTTP (fetch would follow redirects, decompress, and refuse to set Host).
@@ -224,11 +231,12 @@ describe('assistant pages (#1688)', () => {
     expect(r.headers['content-type']).toMatch(/^text\/markdown/)
     expect(r.body.toString()).toContain('The state of OA')
   })
-  it('a record page goes to the server-rendered page, even for a verified assistant', async () => {
+  it('a record page goes to the server-rendered page, even for a verified assistant, header intact', async () => {
     vi.stubEnv('VERIFIED_ASSISTANT_TOKEN', TOKEN)
     stubApi()
     expect((await get('/works/W2741809807', { 'X-OpenAlex-Verified-Assistant': TOKEN })).body.toString()).toBe(BIG_HTML)
     expect(fetch).not.toHaveBeenCalled()
+    expect(assistantHeaderSeen).toEqual([TOKEN])
   })
   it('a wrong token, no token configured, or no header gets the normal site', async () => {
     stubApi()
