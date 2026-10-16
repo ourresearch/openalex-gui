@@ -16,6 +16,7 @@ import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
 import store from "@/store";
 import {edgeOn, edgeSupports, edgeRows} from "@/edgeAutocomplete";
 import {isServerRender} from "@/utils/env";
+import {shortThrottleWaitMs} from "@/throttleRetry";
 
 // Response cache for this browser tab. Never used on the server (#1689): a
 // module-level cache there would be shared by every visitor and grow forever.
@@ -105,19 +106,30 @@ const api = (function () {
         }
 
         let res;
-        try {
-            //console.log(`GET ${url}`);
-            res = await axios.get(url, config);
-            // console.log(`api GET ${url} success:`, res.data)
-        } catch (e) {
-            // Deliberate aborts (stale autocomplete keystrokes) aren't failures.
-            if (e?.code === "ERR_CANCELED") throw e;
-            // https://gist.github.com/fgilio/230ccd514e9381fafa51608fcf137253
-            console.log("api GET failure:", e.response);
-            if (e.response?.status === 429 && !store.state.user.id) {
-                store.commit('showCreditLimitDialog');
+        for (let attempt = 0; ; attempt++) {
+            try {
+                //console.log(`GET ${url}`);
+                res = await axios.get(url, config);
+                // console.log(`api GET ${url} success:`, res.data)
+                break;
+            } catch (e) {
+                // Deliberate aborts (stale autocomplete keystrokes) aren't failures.
+                if (e?.code === "ERR_CANCELED") throw e;
+                // A per-second throttle (e.g. one semantic search a second) clears in
+                // about a second: wait it out and try once more, so a burst the page
+                // made itself never shows as an error. Not the daily limit.
+                const throttleWaitMs = shortThrottleWaitMs(e.response);
+                if (throttleWaitMs !== null && attempt === 0) {
+                    await new Promise(resolve => setTimeout(resolve, throttleWaitMs));
+                    continue;
+                }
+                // https://gist.github.com/fgilio/230ccd514e9381fafa51608fcf137253
+                console.log("api GET failure:", e.response);
+                if (e.response?.status === 429 && throttleWaitMs === null && !store.state.user.id) {
+                    store.commit('showCreditLimitDialog');
+                }
+                throw e
             }
-            throw e
         }
         stockCache(url, res.data);
         return res.data;
