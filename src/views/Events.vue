@@ -13,7 +13,7 @@
       </p>
 
       <h3 class="subsection-header">Upcoming webinars</h3>
-      <ul class="section-list">
+      <ul v-if="upcomingWebinars.length" class="section-list">
         <li v-for="w in upcomingWebinars" :key="w.title">
           <strong>{{ w.title }}</strong><br>
           {{ w.date }}
@@ -24,6 +24,9 @@
           </template>
         </li>
       </ul>
+      <p v-else class="section-body">
+        No webinars are scheduled right now. New ones will be listed here.
+      </p>
       <p class="section-body">
         If you have ideas for webinars you'd like to see, send your suggestions to
         <a href="mailto:support@openalex.org">support@openalex.org</a>.
@@ -102,16 +105,7 @@ const sections = [
   { id: 'conferences', label: 'Conferences' },
 ];
 
-const upcomingWebinars = ref([
-  {
-    title: 'Searching OpenAlex: the new search, query builder and OQL',
-    date: 'Friday 16 October 2026, 7:00am Pacific (10am Eastern, 3pm UK, 4pm Central Europe)',
-    links: [
-      { name: 'Register', href: 'https://zoom.us/webinar/register/WN_kyXXUNnCSuexelEYZB5wMw' },
-      { name: 'OQL guide', href: 'https://help.openalex.org/access/oql/' },
-    ],
-  },
-]);
+const upcomingWebinars = ref([]);
 
 const pastWebinars = ref([
   {
@@ -358,6 +352,14 @@ const pastWebinars = ref([
     links: [
       { name: 'Video', href: 'https://youtu.be/GeiaUVwjcpA' },
       { name: 'Background', href: 'https://blog.openalex.org/should-openalex-publish-a-novelty-score-a-vibe-check/' },
+    ],
+  },
+  {
+    title: 'Searching OpenAlex: the new search, query builder and OQL',
+    date: 'October 16, 2026',
+    links: [
+      { name: 'Video', href: 'https://youtu.be/n6jSDrEFanY' },
+      { name: 'OQL guide', href: 'https://help.openalex.org/access/oql/' },
     ],
   },
 ]);
