@@ -358,7 +358,7 @@ const pastWebinars = ref([
     title: 'Searching OpenAlex: the new search, query builder and OQL',
     date: 'October 16, 2026',
     links: [
-      { name: 'Video', href: 'https://youtu.be/n6jSDrEFanY' },
+      { name: 'Video', href: 'https://youtu.be/G1JJwNhkYME' },
       { name: 'OQL guide', href: 'https://help.openalex.org/access/oql/' },
     ],
   },
