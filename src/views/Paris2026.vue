@@ -85,7 +85,7 @@
                             <li><strong>Henri Bretel</strong> (Universit&eacute; Paris-Saclay) &mdash; OpenAlex for institutional benchmarking and research strategy: a CRISalid approach</li>
                             <li><strong>Guillaume Godet</strong> (Nantes Universit&eacute;) &mdash; Druid: an institutional directory and dashboard powering research analytics with OpenAlex</li>
                             <li><strong>Bruna Santanach L&oacute;pez and Maia Francisco Borruel</strong> (Universitat Oberta de Catalunya) &mdash; UOC&rsquo;s journey with OpenAlex: data analysis, workflows and transparency from an institutional perspective</li>
-                            <li><strong>Nicolas Alarcon and colleagues</strong> (Sorbonne Universit&eacute;) &mdash; Sorbobot: turning OpenAlex&rsquo;s ontology into a conversational expert-finder</li>
+                            <li><strong>Nicolas Alarcon and colleagues</strong> (Sorbonne Universit&eacute;) &mdash; Sorbobot: turning OpenAlex&rsquo;s ontology into a conversational expert-finder (<a href="https://docs.google.com/presentation/d/1pqRTrkd7Yw02SnTmnPAKr77klfV6bTCGzO1YdqmYXE8/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li class="placeholder">One more talk to be confirmed</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
@@ -104,7 +104,7 @@
                         <h4>Session 2: National monitors and funder intelligence</h4>
                         <p>OpenAlex at national and funder scale: building a national research output database, a national open science monitor, a funder's research intelligence stack, and tracing who funds the infrastructure research depends on.</p>
                         <ul class="speaker-list">
-                            <li><strong>Patrick Peiffer</strong> (Biblioth&egrave;que nationale du Luxembourg) &mdash; Observations from a study for creating a national output database</li>
+                            <li><strong>Patrick Peiffer</strong> (Biblioth&egrave;que nationale du Luxembourg) &mdash; Observations from a study for creating a national output database (<a href="https://docs.google.com/presentation/d/1Cdc4Zh-xPH4dQCHoVe6en6FMgIYMv4i1PlELrTxaLHM/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Chifumi Nishioka</strong> (Kyoto University and National Institute of Informatics) &mdash; Watching Japan&rsquo;s open science through OpenAlex: a university repository pipeline and a national monitor</li>
                             <li><strong>Andrew Knowles and Jorge Gomez Magenti</strong> (Cancer Research UK and Magenti Methodologies) &mdash; OpenAlex as the research intelligence foundation for Cancer Research UK</li>
                             <li><strong>Sarah Lippincott</strong> (Invest in Open Infrastructure) &mdash; Who pays for the plumbing? Tracing research infrastructure funding with OpenAlex</li>
@@ -129,7 +129,7 @@
                         <ul class="speaker-list">
                             <li><strong>Michel de Moura</strong> (Universit&eacute; de Versailles Saint-Quentin-en-Yvelines) &mdash; How the UVSQ libraries use the OpenAlex API to support research</li>
                             <li><strong>Paloma Garc&iacute;a Bl&aacute;zquez</strong> (University of Salamanca) &mdash; Mapping research excellence with OpenAlex: from scholarly data to strategic research intelligence</li>
-                            <li><strong>Patricia Ranoarisoa</strong> (Inist-CNRS) &mdash; LODEX template for OpenAlex: turnkey interactive bibliometrics</li>
+                            <li><strong>Patricia Ranoarisoa</strong> (Inist-CNRS) &mdash; LODEX template for OpenAlex: turnkey interactive bibliometrics (<a href="https://docs.google.com/presentation/d/1xRi_qhSfm9ih8tw4ScCMubWuMmPN5BBHS7ZNiKLOjd4/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Jack Culbert</strong> (GESIS) &mdash; The Open Research Converter</li>
                             <li><strong>Ma&iuml;ca Poirier Murphy</strong> (Higher Education Strategy Associates) &mdash; Articuler une identit&eacute; institutionnelle dans un syst&egrave;me marqu&eacute; par l&rsquo;isomorphie</li>
                         </ul>
@@ -143,7 +143,7 @@
                         <p>Maps of science and patents, technology foresight, and early-warning signals in research output, all computed from OpenAlex.</p>
                         <ul class="speaker-list">
                             <li><strong>Shruti Agarwal</strong> (Center for Security and Emerging Technology) &mdash; Building Map of Science and Map of Patents</li>
-                            <li><strong>Melanie Martini</strong> (Fraunhofer FKIE) &mdash; KATI and OpenAlex: open science intelligence for technology foresight</li>
+                            <li><strong>Melanie Martini</strong> (Fraunhofer FKIE) &mdash; KATI and OpenAlex: open science intelligence for technology foresight (<a href="https://drive.google.com/drive/folders/1l-FCc7Io9HQUEMZpYY8bIE3aMGQncuoq?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>G&eacute;raldine Geoffroy</strong> (SmartBibl.IA Solutions) &mdash; Research Signal Radar: an OSINT-style situation room for research output on OpenAlex</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
