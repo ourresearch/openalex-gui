@@ -84,7 +84,7 @@
                         <ul class="speaker-list">
                             <li><strong>Henri Bretel</strong> (Universit&eacute; Paris-Saclay) &mdash; OpenAlex for institutional benchmarking and research strategy: a CRISalid approach</li>
                             <li><strong>Guillaume Godet</strong> (Nantes Universit&eacute;) &mdash; Druid: an institutional directory and dashboard powering research analytics with OpenAlex</li>
-                            <li><strong>Bruna Santanach L&oacute;pez and Maia Francisco Borruel</strong> (Universitat Oberta de Catalunya) &mdash; UOC&rsquo;s journey with OpenAlex: data analysis, workflows and transparency from an institutional perspective</li>
+                            <li><strong>Bruna Santanach L&oacute;pez and Maia Francisco Borruel</strong> (Universitat Oberta de Catalunya) &mdash; UOC&rsquo;s journey with OpenAlex: data analysis, workflows and transparency from an institutional perspective (<a href="https://docs.google.com/presentation/d/1YcDzT6yvPxV9MzxoRvZBw2tTJGId7mKq/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Nicolas Alarcon and colleagues</strong> (Sorbonne Universit&eacute;) &mdash; Sorbobot: turning OpenAlex&rsquo;s ontology into a conversational expert-finder (<a href="https://docs.google.com/presentation/d/1pqRTrkd7Yw02SnTmnPAKr77klfV6bTCGzO1YdqmYXE8/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Kumar Guha</strong> (Inria) &mdash; Benchmarking contributions to top cybersecurity conferences with DBLP and OpenAlex</li>
                         </ul>
