@@ -82,7 +82,7 @@
                         <h4>Session 1: Running an institution on open data</h4>
                         <p>Universities that have built their research information on OpenAlex: institutional directories and CRIS systems, expert finders built on the topic ontology, benchmarking against the Leiden Ranking Open Edition, and what it takes to keep the data right.</p>
                         <ul class="speaker-list">
-                            <li><strong>Henri Bretel</strong> (Universit&eacute; Paris-Saclay) &mdash; OpenAlex for institutional benchmarking and research strategy: a CRISalid approach</li>
+                            <li><strong>Henri Bretel</strong> (Universit&eacute; Paris-Saclay) &mdash; OpenAlex for institutional benchmarking and research strategy: a CRISalid approach (<a href="https://docs.google.com/presentation/d/1YWN5CaJsZpu7l8K-KPiajAsUi4qMoM4RIMYUVJyeaXw/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Guillaume Godet</strong> (Nantes Universit&eacute;) &mdash; Druid: an institutional directory and dashboard powering research analytics with OpenAlex</li>
                             <li><strong>Bruna Santanach L&oacute;pez and Maia Francisco Borruel</strong> (Universitat Oberta de Catalunya) &mdash; UOC&rsquo;s journey with OpenAlex: data analysis, workflows and transparency from an institutional perspective (<a href="https://docs.google.com/presentation/d/1YcDzT6yvPxV9MzxoRvZBw2tTJGId7mKq/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Nicolas Alarcon and colleagues</strong> (Sorbonne Universit&eacute;) &mdash; Sorbobot: turning OpenAlex&rsquo;s ontology into a conversational expert-finder (<a href="https://docs.google.com/presentation/d/1pqRTrkd7Yw02SnTmnPAKr77klfV6bTCGzO1YdqmYXE8/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
@@ -131,7 +131,7 @@
                             <li><strong>Paloma Garc&iacute;a Bl&aacute;zquez</strong> (University of Salamanca) &mdash; Mapping research excellence with OpenAlex: from scholarly data to strategic research intelligence</li>
                             <li><strong>Patricia Ranoarisoa</strong> (Inist-CNRS) &mdash; LODEX template for OpenAlex: turnkey interactive bibliometrics (<a href="https://docs.google.com/presentation/d/1xRi_qhSfm9ih8tw4ScCMubWuMmPN5BBHS7ZNiKLOjd4/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Jack Culbert</strong> (GESIS) &mdash; The Open Research Converter</li>
-                            <li><strong>Ma&iuml;ca Poirier Murphy</strong> (Higher Education Strategy Associates) &mdash; Articuler une identit&eacute; institutionnelle dans un syst&egrave;me marqu&eacute; par l&rsquo;isomorphie</li>
+                            <li><strong>Ma&iuml;ca Poirier Murphy</strong> (Higher Education Strategy Associates) &mdash; Articuler une identit&eacute; institutionnelle dans un syst&egrave;me marqu&eacute; par l&rsquo;isomorphie (<a href="https://docs.google.com/presentation/d/1RAZJF7xCnWMm2ANkmH9dIpYy_XDyTYC0VJRR4aihM9Q/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                         </ul>
                         <span class="f26-tag tag-presentation">lightning</span>
                     </div>
@@ -163,7 +163,7 @@
                         <p>What affiliation and coverage checks reveal, and what national repositories and heritage collections could add to the record.</p>
                         <ul class="speaker-list">
                             <li><strong>Jack Culbert</strong> (GESIS) &mdash; Comparing affiliations in OpenAlex to the Competence Network for Bibliometrics&rsquo; infrastructure</li>
-                            <li><strong>Sitthida Samath and colleagues</strong> (Pers&eacute;e, CNRS and ENS de Lyon) &mdash; Through the OpenAlex looking-glass, and what Pers&eacute;e found there</li>
+                            <li><strong>Sitthida Samath and colleagues</strong> (Pers&eacute;e, CNRS and ENS de Lyon) &mdash; Through the OpenAlex looking-glass, and what Pers&eacute;e found there (<a href="https://docs.google.com/presentation/d/1oBh36tBEDv1t19Iah_cIJtoS5paw64wo8t7TKp9jNd4/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Yannick Barborini</strong> (CNRS, CCSD) &mdash; How OpenAlex can benefit from HAL metadata richness</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
@@ -218,7 +218,7 @@
                         <p>Four talks chosen because each one opens a question the room picks up after lunch: running a research office or a library on OpenAlex, systematic searching with open indexes, building institutional indicators without a data team, and what OpenAlex reveals about journal quality. Fifteen minutes per talk including questions.</p>
                         <ul class="speaker-list">
                             <li><strong>Abdesslam Chai-allah and colleagues</strong> (INRAE) &mdash; OpenAlex at INRAE: what works, what doesn&rsquo;t, and what&rsquo;s next</li>
-                            <li><strong>Elke Hausner</strong> (IQWiG) &mdash; A practical assessment of OpenAlex and Lens for systematic literature searches</li>
+                            <li><strong>Elke Hausner</strong> (IQWiG) &mdash; A practical assessment of OpenAlex and Lens for systematic literature searches (<a href="https://docs.google.com/presentation/d/12y7Xa_HmI_K1C3nsgOS53P_mifbfhd_Bcncw5Fv3MTQ/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>H&eacute;lo&iuml;se Gazeau</strong> (Universit&eacute; de Strasbourg) &mdash; Building institutional indicators without being a data analyst, or knowing how to code</li>
                             <li><strong>Abdelghani Maddi</strong> (GEMASS, CNRS and Sorbonne Universit&eacute;) &mdash; When quality signals come late: what OpenAlex reveals about journal discontinuation</li>
                         </ul>
