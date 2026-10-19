@@ -8,7 +8,7 @@
             <a href="#week">The week</a>
             <a href="#day1">Day 1</a>
             <a href="#day2">Day 2</a>
-            <a href="#breakouts">Breakouts</a>
+            <a href="#discussion">Discussion groups</a>
             <a href="#venues">Venues</a>
             <a href="#register">Register</a>
         </div>
@@ -19,14 +19,14 @@
         <!-- HEADER -->
         <header id="top">
             <h1>OpenAlex Users Meeting, Paris 2026</h1>
-            <p class="subtitle">The first in-person gathering of people who build with, run on, and study with OpenAlex. Two days, two hosts: a day of community talks at CNRS, then a day of demos, discussion and hands-on breakouts with the OpenAlex team at Sorbonne Universit&eacute;.</p>
+            <p class="subtitle">The first in-person gathering of people who build with, run on, and study with OpenAlex. Two days: a day of community talks at CNRS, then a day of talks, live demos and discussion with the OpenAlex team at Le Totem in the 13th.</p>
             <div class="meta">
                 <span class="meta-tag">Paris, France</span>
                 <span class="meta-tag">Tuesday 20 &amp; Wednesday 21 October 2026</span>
-                <span class="meta-tag">Hosted by CNRS and Sorbonne Universit&eacute;</span>
+                <span class="meta-tag">Tuesday hosted by CNRS</span>
                 <span class="meta-tag">Registration closed</span>
             </div>
-            <p class="intro-note">Registration is closed. Programme updated 19 October. Most talks are confirmed and listed below; we will fill the last few slots as speakers confirm. Times and breakout topics may still move a little.</p>
+            <p class="intro-note">Registration is closed. Programme updated 19 October. <strong>Wednesday has moved</strong> from Sorbonne Universit&eacute; to <strong>Le Totem</strong>, 11 place Nationale, 75013 Paris, and its programme has changed: see Day 2 below. Wednesday now ends at 15:30.</p>
         </header>
 
         <!-- THE WEEK -->
@@ -45,9 +45,9 @@
                     <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-break">social</span>
                 </div>
                 <div class="f26-card">
-                    <h4>Wednesday 21 October, Sorbonne</h4>
-                    <p class="card-text">Fewer talks, more conversation. A short set of morning talks chosen to open discussion, an update from the OpenAlex team on what we are building, then an afternoon of breakouts in small rooms. In French and English. Lunch provided.</p>
-                    <span class="f26-tag tag-discuss">discussion</span><span class="f26-tag tag-hands-on">hands-on</span>
+                    <h4>Wednesday 21 October, Le Totem</h4>
+                    <p class="card-text">Fewer talks, more conversation. Four morning talks chosen to open discussion, live demos from the OpenAlex team, then small-group discussion and a conversation about what OpenAlex should do next. In French and English. Breakfast and lunch provided. Ends at 15:30.</p>
+                    <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-hands-on">demos</span><span class="f26-tag tag-discuss">discussion</span>
                 </div>
             </div>
         </div>
@@ -190,33 +190,32 @@
 
         <!-- DAY 2 -->
         <div class="section" id="day2">
-            <h2 class="section-header">Day 2: Wednesday 21 October at Sorbonne Universit&eacute;</h2>
-            <p class="section-subtitle">Undergraduate Library co-working space, Campus Pierre et Marie Curie, 4 place Jussieu, 75005 Paris. A main room for everyone and eight small rooms for breakouts. Sessions run in French and English, with colleagues from Sorbonne Universit&eacute; helping with translation.</p>
+            <h2 class="section-header">Day 2: Wednesday 21 October at Le Totem</h2>
+            <p class="section-subtitle">Le Totem, 11 place Nationale, 75013 Paris. Everything happens in one auditorium, with breakfast and lunch in the hall next to it. Sessions run in French and English. We need to leave the building by 15:30.</p>
 
             <div class="day-card">
                 <h3>Programme</h3>
-                <p class="day-theme">A different flavour from Tuesday: fewer talks, chosen to open conversations, then an afternoon working in small groups with the OpenAlex team.</p>
+                <p class="day-theme">A different flavour from Tuesday: fewer talks, OpenAlex shown live on screen, and plenty of time to tell us what we should do next.</p>
 
                 <div class="sched-block">
                     <div class="sched-time">09:30 &ndash; 10:00</div>
                     <div class="sched-content">
-                        <h4>Arrival and coffee</h4>
+                        <h4>Arrival and breakfast</h4>
                         <span class="f26-tag tag-break">break</span>
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">10:00 &ndash; 10:10</div>
+                    <div class="sched-time">10:00 &ndash; 10:05</div>
                     <div class="sched-content">
                         <h4>Welcome</h4>
-                        <p>From Sorbonne Universit&eacute; and OpenAlex.</p>
                         <span class="f26-tag tag-discuss">welcome</span>
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">10:10 &ndash; 11:25</div>
+                    <div class="sched-time">10:05 &ndash; 11:05</div>
                     <div class="sched-content">
                         <h4>Talks to start the conversation</h4>
-                        <p>A short set of talks chosen because each one opens a question the room will pick up in the afternoon: what it looks like to run a research office or a library on OpenAlex after leaving a proprietary database, building institutional indicators without a data team, and systematic searching with open indexes. Colleagues from Sorbonne Universit&eacute; and other French institutions will share their own work alongside. Same format as Tuesday: fifteen minutes per talk including questions.</p>
+                        <p>Four talks chosen because each one opens a question the room picks up after lunch: running a research office or a library on OpenAlex, systematic searching with open indexes, building institutional indicators without a data team, and what OpenAlex reveals about journal quality. Fifteen minutes per talk including questions.</p>
                         <ul class="speaker-list">
                             <li><strong>Abdesslam Chai-allah and colleagues</strong> (INRAE) &mdash; OpenAlex at INRAE: what works, what doesn&rsquo;t, and what&rsquo;s next</li>
                             <li><strong>Elke Hausner</strong> (IQWiG) &mdash; A practical assessment of OpenAlex and Lens for systematic literature searches</li>
@@ -227,17 +226,33 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">11:25 &ndash; 11:40</div>
+                    <div class="sched-time">11:05 &ndash; 11:20</div>
                     <div class="sched-content">
-                        <h4>Break</h4>
+                        <h4>Coffee</h4>
                         <span class="f26-tag tag-break">break</span>
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">11:40 &ndash; 12:30</div>
+                    <div class="sched-time">11:20 &ndash; 11:40</div>
                     <div class="sched-content">
-                        <h4>OpenAlex: recent releases, ongoing work and priorities</h4>
-                        <p>The OpenAlex team on what has shipped this year, what is in progress, and what we think matters next. This sets up the afternoon: each of the things we show is something you can dig into in a breakout, with the people who built it.</p>
+                        <h4>Live: the query builder, OQL and affiliation curation</h4>
+                        <p>Kyle Demes (OpenAlex) on screen: building and sharing searches with the query builder and OQL, pasting a strategy from another database, and fixing your institution&rsquo;s records in the affiliation editor.</p>
+                        <span class="f26-tag tag-hands-on">live demo</span>
+                    </div>
+                </div>
+                <div class="sched-block">
+                    <div class="sched-time">11:40 &ndash; 12:00</div>
+                    <div class="sched-content">
+                        <h4>Live: vibe-coding a dashboard on OpenAlex</h4>
+                        <p>Jason Priem (OpenAlex) builds a working page from the OpenAlex API with AI-assisted coding, live.</p>
+                        <span class="f26-tag tag-hands-on">live demo</span>
+                    </div>
+                </div>
+                <div class="sched-block">
+                    <div class="sched-time">12:00 &ndash; 12:30</div>
+                    <div class="sched-content">
+                        <h4>What&rsquo;s next for OpenAlex, part 1</h4>
+                        <p>Jason Priem on what the team is working on now and where OpenAlex is heading, and the questions we want your help with this afternoon.</p>
                         <span class="f26-tag tag-presentation">openalex team</span>
                     </div>
                 </div>
@@ -250,106 +265,62 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">13:30 &ndash; 14:40</div>
+                    <div class="sched-time">13:30 &ndash; 14:15</div>
                     <div class="sched-content">
-                        <h4>Breakouts, round 1</h4>
-                        <p>One hands-on training session in the main room and several discussion circles in the small rooms. See the list below.</p>
-                        <span class="f26-tag tag-hands-on">hands-on</span><span class="f26-tag tag-discuss">discussion</span>
-                    </div>
-                </div>
-                <div class="sched-block">
-                    <div class="sched-time">14:40 &ndash; 15:40</div>
-                    <div class="sched-content">
-                        <h4>Breakouts, round 2</h4>
-                        <p>A second round, so everyone can do one training and one discussion, or two discussions.</p>
-                        <span class="f26-tag tag-hands-on">hands-on</span><span class="f26-tag tag-discuss">discussion</span>
-                    </div>
-                </div>
-                <div class="sched-block">
-                    <div class="sched-time">15:40 &ndash; 16:00</div>
-                    <div class="sched-content">
-                        <h4>Report-back and close</h4>
-                        <p>Two minutes from each group on what they want OpenAlex to hear, and a few words on where we go from here.</p>
+                        <h4>Discussion groups</h4>
+                        <p>Small groups in the auditorium, one for each of the morning&rsquo;s talks, with the speaker. Each group takes the same question: what should OpenAlex prioritise? See the groups below.</p>
                         <span class="f26-tag tag-discuss">discussion</span>
+                    </div>
+                </div>
+                <div class="sched-block">
+                    <div class="sched-time">14:15 &ndash; 15:15</div>
+                    <div class="sched-content">
+                        <h4>What&rsquo;s next for OpenAlex, part 2</h4>
+                        <p>Each group reports back, then an open conversation with Jason and the team about priorities.</p>
+                        <span class="f26-tag tag-discuss">discussion</span>
+                    </div>
+                </div>
+                <div class="sched-block">
+                    <div class="sched-time">15:15 &ndash; 15:30</div>
+                    <div class="sched-content">
+                        <h4>Close</h4>
+                        <span class="f26-tag tag-discuss">close</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- BREAKOUTS -->
-        <div class="section" id="breakouts">
-            <h2 class="section-header">Breakouts</h2>
-            <p class="section-subtitle">These are our suggestions. When you register you can tell us which ones you would join, and we will settle the final list with the group based on interest. Every group has the same underlying question: what should OpenAlex do next, and what would make it more useful to you?</p>
-
-            <h3 class="sub-header">Hands-on training</h3>
-            <p class="sub-note">Run in the main room by members of the OpenAlex team. Bring a laptop.</p>
-            <div class="grid-3">
-                <div class="f26-card">
-                    <h4>Build a dashboard on OpenAlex data</h4>
-                    <p class="card-text">From an API query to a working page in an hour, using AI-assisted coding. No prior coding experience needed; some will help.</p>
-                    <span class="f26-tag tag-hands-on">training</span>
-                </div>
-                <div class="f26-card">
-                    <h4>Affiliation curation clinic</h4>
-                    <p class="card-text">How institution matching works, how to use the affiliation editor, and how to fix your own institution's records. Bring your worst cases.</p>
-                    <span class="f26-tag tag-hands-on">training</span>
-                </div>
-                <div class="f26-card">
-                    <h4>The query builder</h4>
-                    <p class="card-text">Building the queries you could not build before: grouping, filtering and reporting on any entity with the new query language and the interface on top of it.</p>
-                    <span class="f26-tag tag-hands-on">training</span>
-                </div>
-            </div>
-
-            <h3 class="sub-header" style="margin-top: 2rem;">Discussion circles</h3>
-            <p class="sub-note">Small groups of about six in the side rooms, each with someone from the OpenAlex team in the room to listen and answer.</p>
+        <!-- DISCUSSION GROUPS -->
+        <div class="section" id="discussion">
+            <h2 class="section-header">Discussion groups</h2>
+            <p class="section-subtitle">After lunch the auditorium splits into small groups, one around each morning talk with its speaker, plus someone from the OpenAlex team to listen. Join whichever conversation you want; every group takes the same underlying question: what should OpenAlex prioritise, and what would make it more useful to you?</p>
             <div class="discussion-grid">
                 <div class="discussion-card">
-                    <h3>Life after Web of Science or Scopus</h3>
+                    <h3>Running an institution on OpenAlex</h3>
                     <ul>
-                        <li>What broke when you switched, and what you built instead</li>
-                        <li>What you still cannot do with OpenAlex</li>
-                        <li>What would have made the move easier</li>
-                    </ul>
-                </div>
-                <div class="discussion-card">
-                    <h3>Curating in OpenAlex: how it works now and what should be next</h3>
-                    <ul>
-                        <li>Your experience with the affiliation editor and curation requests</li>
-                        <li>Provenance: knowing where a value came from</li>
-                        <li>What community curation could look like at scale</li>
+                        <li>With the INRAE team</li>
+                        <li>What works, what does not, and what you built instead</li>
                     </ul>
                 </div>
                 <div class="discussion-card">
                     <h3>Systematic searching and discovery</h3>
                     <ul>
-                        <li>Using OpenAlex for systematic reviews and evidence synthesis</li>
-                        <li>Where search syntax and coverage fall short</li>
-                        <li>What the new search features change</li>
+                        <li>With Elke Hausner</li>
+                        <li>Where search syntax and coverage fall short, and what the new search features change</li>
                     </ul>
                 </div>
                 <div class="discussion-card">
-                    <h3>Institutional indicators, benchmarking and rankings</h3>
+                    <h3>Institutional indicators without a data team</h3>
                     <ul>
-                        <li>Comparing yourself with peers on open data</li>
-                        <li>Topics, fields and the Leiden Ranking Open Edition</li>
-                        <li>Indicators you trust, and ones you do not</li>
+                        <li>With H&eacute;lo&iuml;se Gazeau</li>
+                        <li>Indicators you trust, and the tools that would make them easier</li>
                     </ul>
                 </div>
                 <div class="discussion-card">
-                    <h3>French research infrastructure and OpenAlex <span class="lang-note">(en fran&ccedil;ais)</span></h3>
+                    <h3>Journal quality and source data</h3>
                     <ul>
-                        <li>HAL, scanR, CRISalid, Pers&eacute;e and the national open science monitor</li>
-                        <li>How French metadata could flow into OpenAlex, and back</li>
-                        <li>What French institutions need from an open index</li>
-                    </ul>
-                </div>
-                <div class="discussion-card">
-                    <h3>Funding and awards data</h3>
-                    <ul>
-                        <li>Funders and awards as first-class entities in OpenAlex</li>
-                        <li>Linking works to grants: what you need and what you have tried</li>
-                        <li>Funding analyses you would run if the data were there</li>
+                        <li>With Abdelghani Maddi</li>
+                        <li>Discontinued journals, journal lists and what quality signals OpenAlex should carry</li>
                     </ul>
                 </div>
             </div>
@@ -358,7 +329,7 @@
         <!-- VENUES -->
         <div class="section" id="venues">
             <h2 class="section-header">Venues and getting around</h2>
-            <p class="section-subtitle">The two venues are on metro line 10, about twenty-five minutes apart. If you are choosing where to stay, anywhere near Jussieu in the 5th puts you within walking distance of Wednesday and a direct ride from Tuesday.</p>
+            <p class="section-subtitle">Tuesday is in the 16th and Wednesday is in the 13th. Allow about forty minutes on the metro between them.</p>
 
             <div class="grid-2">
                 <div class="f26-card">
@@ -366,21 +337,21 @@
                     <p class="card-text">Auditorium, 3 rue Michel-Ange, 75016 Paris.<br>Metro <strong>Michel-Ange&ndash;Auteuil</strong> (lines 9 and 10). Wifi via eduroam. A registrant list goes to the reception desk in advance, so please register under the name on your ID.</p>
                 </div>
                 <div class="f26-card">
-                    <h4>Wednesday: Sorbonne Universit&eacute;</h4>
-                    <p class="card-text">Undergraduate Library, Campus Pierre et Marie Curie, 4 place Jussieu, 75005 Paris.<br>Metro <strong>Jussieu</strong> (lines 7 and 10). A campus map will be sent to registrants.</p>
+                    <h4>Wednesday: Le Totem</h4>
+                    <p class="card-text">11 place Nationale, 75013 Paris.<br>Metro <strong>Nationale</strong> (line 6) or <strong>Olympiades</strong> (line 14), each a few minutes&rsquo; walk. The auditorium is step-free, with wheelchair spaces.</p>
                 </div>
             </div>
 
             <div class="f26-card" style="margin-top: 1rem;">
                 <h4>Arriving from the airports</h4>
-                <p class="card-text">From Charles de Gaulle, RER B runs direct to Saint-Michel Notre-Dame, a fifteen-minute walk or one metro stop from Jussieu, in about forty-five minutes. From Orly, take the Orlyval or the new line 14 to the centre and change to line 7 or 10. Allow about an hour from either airport.</p>
+                <p class="card-text">From Charles de Gaulle, take RER B to Ch&acirc;telet&ndash;Les Halles and change to line 14 for Olympiades (Wednesday). From Orly, line 14 runs direct to Olympiades. Allow about an hour from either airport.</p>
             </div>
         </div>
 
         <!-- REGISTER -->
         <div class="section" id="register">
             <h2 class="section-header">Registration</h2>
-            <p class="section-subtitle">Attendance is free, and OpenAlex covers coffee and lunch on both days. The evening drinks are informal: everyone pays for their own drinks and food. You cover your own travel and accommodation.</p>
+            <p class="section-subtitle">Attendance is free, and OpenAlex covers coffee and lunch on both days, and breakfast on Wednesday. The evening drinks are informal: everyone pays for their own drinks and food. You cover your own travel and accommodation.</p>
             <div class="invite-note">
                 <strong>Registration is now closed.</strong> Thank you to everyone who signed up. We will email registrants with the practical details for each day.
                 <br>Questions about your registration? Write to <a href="mailto:support@openalex.org">support@openalex.org</a>.
@@ -388,7 +359,7 @@
         </div>
 
         <footer class="f26-footer">
-            OpenAlex Users Meeting, Paris, 20&ndash;21 October 2026 &mdash; hosted by CNRS and Sorbonne Universit&eacute;
+            OpenAlex Users Meeting, Paris, 20&ndash;21 October 2026 &mdash; CNRS and Le Totem
         </footer>
     </div>
   </div>
