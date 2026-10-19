@@ -161,7 +161,7 @@
                         <h4>Session 4: Coverage, comparisons and quality</h4>
                         <p>What affiliation and coverage checks reveal, and what national repositories and heritage collections could add to the record.</p>
                         <ul class="speaker-list">
-                            <li><strong>Jack Culbert</strong> (GESIS) &mdash; Comparing affiliations in OpenAlex to the Competence Network for Bibliometrics&rsquo; infrastructure</li>
+                            <li><strong>Jack Culbert</strong> (GESIS) &mdash; Comparing affiliations in OpenAlex to the Competence Network for Bibliometrics&rsquo; infrastructure (<a href="https://docs.google.com/presentation/d/1OE6AmTGPPp8LugMroxmdQRtMPpKcqfV41t43i5nin60/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Sitthida Samath and colleagues</strong> (Pers&eacute;e, CNRS and ENS de Lyon) &mdash; Through the OpenAlex looking-glass, and what Pers&eacute;e found there (<a href="https://docs.google.com/presentation/d/1oBh36tBEDv1t19Iah_cIJtoS5paw64wo8t7TKp9jNd4/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Yannick Barborini</strong> (CNRS, CCSD) &mdash; How OpenAlex can benefit from HAL metadata richness (<a href="https://docs.google.com/presentation/d/1gvDk50QkbzZDIs2CbEpbfg7KEdYna2b0GPbGUOf2h5w/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                         </ul>
