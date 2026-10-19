@@ -222,7 +222,6 @@
                             <li><strong>Elke Hausner</strong> (IQWiG) &mdash; A practical assessment of OpenAlex and Lens for systematic literature searches</li>
                             <li><strong>H&eacute;lo&iuml;se Gazeau</strong> (Universit&eacute; de Strasbourg) &mdash; Building institutional indicators without being a data analyst, or knowing how to code</li>
                             <li><strong>Abdelghani Maddi</strong> (GEMASS, CNRS and Sorbonne Universit&eacute;) &mdash; When quality signals come late: what OpenAlex reveals about journal discontinuation</li>
-                            <li class="placeholder">One more talk to be confirmed</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span>
                     </div>
