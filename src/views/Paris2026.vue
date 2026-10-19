@@ -107,7 +107,7 @@
                             <li><strong>Chifumi Nishioka</strong> (Kyoto University and National Institute of Informatics) &mdash; Watching Japan&rsquo;s open science through OpenAlex: a university repository pipeline and a national monitor</li>
                             <li><strong>Andrew Knowles and Jorge Gomez Magenti</strong> (Cancer Research UK and Magenti Methodologies) &mdash; OpenAlex as the research intelligence foundation for Cancer Research UK (<a href="https://docs.google.com/presentation/d/1FdRyc8qFBalEFplREusYkZZqWlYzxiQzVcXn1S5Tk4s/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Sarah Lippincott</strong> (Invest in Open Infrastructure) &mdash; Who pays for the plumbing? Tracing research infrastructure funding with OpenAlex (<a href="https://docs.google.com/presentation/d/1tBoP4Pa0ur1XrXfinaccFesa1AJbIdA6q5kZCLBrmzA/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
-                            <li><strong>Thomas Eidens</strong> (EMBO) &mdash; We placed 2,200 EMBO Members on a map with OpenAlex</li>
+                            <li><strong>Thomas Eidens</strong> (EMBO) &mdash; We placed 2,200 EMBO Members on a map with OpenAlex (<a href="https://docs.google.com/presentation/d/19vpyZP5Dps6NkWtT_BcScQXs4gmQ1r6Asc3d43AtlXA/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
                     </div>
@@ -143,7 +143,7 @@
                         <ul class="speaker-list">
                             <li><strong>Shruti Agarwal</strong> (Center for Security and Emerging Technology) &mdash; Building Map of Science and Map of Patents</li>
                             <li><strong>Melanie Martini</strong> (Fraunhofer FKIE) &mdash; KATI and OpenAlex: open science intelligence for technology foresight (<a href="https://drive.google.com/drive/folders/1l-FCc7Io9HQUEMZpYY8bIE3aMGQncuoq?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
-                            <li><strong>G&eacute;raldine Geoffroy</strong> (SmartBibl.IA Solutions) &mdash; Research Signal Radar: an OSINT-style situation room for research output on OpenAlex</li>
+                            <li><strong>G&eacute;raldine Geoffroy</strong> (SmartBibl.IA Solutions) &mdash; Research Signal Radar: an OSINT-style situation room for research output on OpenAlex (<a href="https://docs.google.com/presentation/d/1QU5rCbLZj8yoSOIMUUQxEgRS7YYsM-VU/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
                     </div>
@@ -163,7 +163,7 @@
                         <ul class="speaker-list">
                             <li><strong>Jack Culbert</strong> (GESIS) &mdash; Comparing affiliations in OpenAlex to the Competence Network for Bibliometrics&rsquo; infrastructure</li>
                             <li><strong>Sitthida Samath and colleagues</strong> (Pers&eacute;e, CNRS and ENS de Lyon) &mdash; Through the OpenAlex looking-glass, and what Pers&eacute;e found there (<a href="https://docs.google.com/presentation/d/1oBh36tBEDv1t19Iah_cIJtoS5paw64wo8t7TKp9jNd4/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
-                            <li><strong>Yannick Barborini</strong> (CNRS, CCSD) &mdash; How OpenAlex can benefit from HAL metadata richness</li>
+                            <li><strong>Yannick Barborini</strong> (CNRS, CCSD) &mdash; How OpenAlex can benefit from HAL metadata richness (<a href="https://docs.google.com/presentation/d/1gvDk50QkbzZDIs2CbEpbfg7KEdYna2b0GPbGUOf2h5w/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
                     </div>
