@@ -26,7 +26,7 @@
                 <span class="meta-tag">Hosted by CNRS and Sorbonne Universit&eacute;</span>
                 <span class="meta-tag">Registration closed</span>
             </div>
-            <p class="intro-note">Registration is closed. Programme updated 11 October. Most talks are confirmed and listed below; we will fill the last few slots as speakers confirm. Times and breakout topics may still move a little.</p>
+            <p class="intro-note">Registration is closed. Programme updated 19 October. Most talks are confirmed and listed below; we will fill the last few slots as speakers confirm. Times and breakout topics may still move a little.</p>
         </header>
 
         <!-- THE WEEK -->
@@ -36,7 +36,7 @@
             <div class="grid-3">
                 <div class="f26-card">
                     <h4>Monday 19 October, evening</h4>
-                    <p class="card-text">Informal drinks near Jussieu for anyone already in town. No programme, just a chance to meet each other and the OpenAlex team before things start. Everyone orders and pays for their own drinks and food. Venue to be announced to registrants.</p>
+                    <p class="card-text">Informal drinks from 19:00 at <strong>La Bobine</strong>, 60 rue des &Eacute;coles, 75005 Paris (upstairs room; metro Cluny&ndash;La Sorbonne or Maubert&ndash;Mutualit&eacute;), for anyone already in town. No programme, just a chance to meet each other and the OpenAlex team before things start. Everyone orders and pays for their own drinks and food; the kitchen is open until 23:00.</p>
                     <span class="f26-tag tag-break">social</span>
                 </div>
                 <div class="f26-card">
@@ -86,7 +86,7 @@
                             <li><strong>Guillaume Godet</strong> (Nantes Universit&eacute;) &mdash; Druid: an institutional directory and dashboard powering research analytics with OpenAlex</li>
                             <li><strong>Bruna Santanach L&oacute;pez and Maia Francisco Borruel</strong> (Universitat Oberta de Catalunya) &mdash; UOC&rsquo;s journey with OpenAlex: data analysis, workflows and transparency from an institutional perspective</li>
                             <li><strong>Nicolas Alarcon and colleagues</strong> (Sorbonne Universit&eacute;) &mdash; Sorbobot: turning OpenAlex&rsquo;s ontology into a conversational expert-finder (<a href="https://docs.google.com/presentation/d/1pqRTrkd7Yw02SnTmnPAKr77klfV6bTCGzO1YdqmYXE8/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
-                            <li class="placeholder">One more talk to be confirmed</li>
+                            <li><strong>Kumar Guha</strong> (Inria) &mdash; Benchmarking contributions to top cybersecurity conferences with DBLP and OpenAlex</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
                     </div>
@@ -178,10 +178,10 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">17:30 onwards</div>
+                    <div class="sched-time">17:45 &ndash; 20:30</div>
                     <div class="sched-content">
                         <h4>Drinks</h4>
-                        <p>Informal drinks at a bar a few minutes&rsquo; walk from CNRS. Everyone orders and pays for their own drinks and food. Venue to be announced to registrants.</p>
+                        <p>Informal drinks at <strong>Le Comptoir du 16</strong>, 24 boulevard Exelmans, 75016 Paris, a few minutes&rsquo; walk from CNRS (terrace or inside). Everyone orders and pays for their own drinks and food. The bar needs the space back at 20:30.</p>
                         <span class="f26-tag tag-break">social</span>
                     </div>
                 </div>
