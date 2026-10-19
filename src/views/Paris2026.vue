@@ -107,7 +107,7 @@
                             <li><strong>Patrick Peiffer</strong> (Biblioth&egrave;que nationale du Luxembourg) &mdash; Observations from a study for creating a national output database (<a href="https://docs.google.com/presentation/d/1Cdc4Zh-xPH4dQCHoVe6en6FMgIYMv4i1PlELrTxaLHM/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Chifumi Nishioka</strong> (Kyoto University and National Institute of Informatics) &mdash; Watching Japan&rsquo;s open science through OpenAlex: a university repository pipeline and a national monitor</li>
                             <li><strong>Andrew Knowles and Jorge Gomez Magenti</strong> (Cancer Research UK and Magenti Methodologies) &mdash; OpenAlex as the research intelligence foundation for Cancer Research UK</li>
-                            <li><strong>Sarah Lippincott</strong> (Invest in Open Infrastructure) &mdash; Who pays for the plumbing? Tracing research infrastructure funding with OpenAlex</li>
+                            <li><strong>Sarah Lippincott</strong> (Invest in Open Infrastructure) &mdash; Who pays for the plumbing? Tracing research infrastructure funding with OpenAlex (<a href="https://docs.google.com/presentation/d/1tBoP4Pa0ur1XrXfinaccFesa1AJbIdA6q5kZCLBrmzA/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Thomas Eidens</strong> (EMBO) &mdash; We placed 2,200 EMBO Members on a map with OpenAlex</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
