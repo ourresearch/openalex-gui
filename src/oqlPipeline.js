@@ -37,6 +37,14 @@ export function isPipelineOqo(oqo) {
   );
 }
 
+// The works a calculation is computed from (its "starting set"): the query with its
+// calculations, splits and order taken off. Feeds the NL page's Works tab and its chart views
+// of a works list (oxjob #1745); every other key (filters, corpus, sample) stays.
+export function startingSetOqo(oqo) {
+  const { calculate, group_by, sort_by, ...rest } = oqo || {}; // eslint-disable-line no-unused-vars
+  return rest;
+}
+
 // Percent measures print with a % sign; everything else is a plain number.
 const PERCENT_MEASURES = new Set(["percent", "percent_of_those"]);
 

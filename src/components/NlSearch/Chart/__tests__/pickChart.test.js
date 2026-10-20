@@ -4,8 +4,44 @@ import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "fs";
 import path from "path";
 import { pickChart, chartOptions, CHART } from "../pickChart";
-import { chartData, DIM } from "../chartData";
+import { chartData, DIM, groupFilterRows } from "../chartData";
 import { shortLabels } from "../chartStyle";
+
+describe("groupFilterRows: from a group back to its works", () => {
+  it("things, countries, years, statuses, yes/no", () => {
+    // Ids filter by their short form, as the facets do (the API takes either case).
+    const inst = chartData(answer("rank_institutions"));
+    expect(groupFilterRows(inst, [{ level: 0, key: "https://openalex.org/I19820366" }]))
+      .toEqual([{ column_id: "authorships.institutions.lineage", value: "i19820366" }]);
+    const ctry = chartData(answer("countries"));
+    expect(groupFilterRows(ctry, [{ level: 0, key: "https://openalex.org/countries/US" }]))
+      .toEqual([{ column_id: "authorships.countries", value: "us" }]);
+    const yr = chartData(answer("year_oa_status"));
+    expect(groupFilterRows(yr, [{ level: 0, key: "2020" }, { level: 1, key: "gold" }])).toEqual([
+      { column_id: "publication_year", value: 2020 },
+      { column_id: "open_access.oa_status", value: "gold" },
+    ]);
+    const yn = chartData(answer("is_oa_yesno"));
+    expect(groupFilterRows(yn, [{ level: 0, key: "1" }])).toEqual([{ column_id: "open_access.is_oa", value: true }]);
+  });
+
+  it("bins become ranges; searches use their own filter row; unknowns can't be drilled", () => {
+    const bins = chartData(answer("citation_bins"));
+    // Edges come from the query's own bins (at 1, 10, 100).
+    expect(groupFilterRows(bins, [{ level: 0, key: "10-99" }])).toEqual([
+      { column_id: "cited_by_count", value: 10, operator: ">=" },
+      { column_id: "cited_by_count", value: 100, operator: "<" },
+    ]);
+    expect(groupFilterRows(bins, [{ level: 0, key: "0" }])).toEqual([
+      { column_id: "cited_by_count", value: 0, operator: ">=" },
+      { column_id: "cited_by_count", value: 1, operator: "<" },
+    ]);
+    expect(groupFilterRows(bins, [{ level: 0, key: "100+" }])).toEqual([{ column_id: "cited_by_count", value: 100, operator: ">=" }]);
+    const s = chartData(answer("compare_searches_year"));
+    expect(groupFilterRows(s, [{ level: 0, key: '"deep learning"' }])[0]).toMatchObject({ value: '"deep learning"', operator: "has" });
+    expect(groupFilterRows(chartData(answer("countries")), [{ level: 0, key: "https://openalex.org/countries/unknown" }])).toBe(null);
+  });
+});
 
 describe("shortLabels", () => {
   it("cuts names that would collide in the middle, keeping their ends", () => {

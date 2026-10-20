@@ -88,11 +88,21 @@ function findRefinementIndex(filterRows, columnId, operator = OP_IS) {
   return (filterRows || []).findIndex((r) => isRefinementRowFor(r, columnId, operator));
 }
 
-// The scalar values currently selected for `columnId` at the top level (for the
-// widget's selected/checked state). Compared as strings by the caller.
+// The scalar values currently selected for `columnId` at the top level, as stored. To ask
+// whether one value is selected, use hasSelectedValue (it ignores case).
 export function selectedValues(filterRows, columnId, operator = OP_IS) {
   const idx = findRefinementIndex(filterRows, columnId, operator);
   return idx === -1 ? [] : rowValues(filterRows[idx]);
+}
+
+// OpenAlex ids are case-insensitive, and the API echoes them upper-case ("T10643") while
+// facets carry them lower-case ("t10643"), so values match ignoring case (oxjob #1745:
+// a typed or echoed filter showed its facet unticked, and a click added a duplicate).
+const sameValue = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
+
+// Whether `value` is selected in `columnId`'s refinement.
+export function hasSelectedValue(filterRows, columnId, value, operator = OP_IS) {
+  return selectedValues(filterRows, columnId, operator).some((v) => sameValue(v, value));
 }
 
 // Toggle a single scalar `value` in `columnId`'s refinement (the multi-select
@@ -102,10 +112,9 @@ export function toggleRefinementValue(filterRows, { columnId, value, operator = 
   const rows = [...(filterRows || [])];
   const idx = findRefinementIndex(rows, columnId, operator);
   const current = idx === -1 ? [] : rowValues(rows[idx]);
-  const sval = String(value);
-  const has = current.some((v) => String(v) === sval);
+  const has = current.some((v) => sameValue(v, value));
   const nextVals = has
-    ? current.filter((v) => String(v) !== sval)
+    ? current.filter((v) => !sameValue(v, value))
     : [...current, value];
   const nextRow = makeRefinementRow(columnId, nextVals, operator);
   if (idx === -1) {

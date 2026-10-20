@@ -50,6 +50,7 @@
     <div v-if="title" class="nl-chart__head">
       <div class="nl-chart__title">{{ title }}</div>
       <div v-if="note" class="nl-chart__note">{{ note }}</div>
+      <div v-if="canDrill" class="nl-chart__hint">Click a group to see its works.</div>
     </div>
 
     <div v-if="type === CHART.NUMBER && tiles.length" class="nl-chart__tiles">
@@ -70,14 +71,19 @@
 // answer's shape (pickChart.js), offers the others that fit, and a measure picker when the
 // answer has several. Plot and the map load only when a chart is drawn.
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch, nextTick } from "vue";
-import { chartData, plural, capitalize } from "./chartData";
+import { chartData, plural, capitalize, groupFilterRows } from "./chartData";
 import { CHART, CHART_INFO, chartOptions, defaultMeasure, knownCount } from "./pickChart";
 import { formatValue } from "./chartStyle";
+import { startingSetOqo } from "@/oqlPipeline";
 
 const props = defineProps({
   oql: { type: String, default: "" },
   resultsObject: { type: Object, default: null },
+  // The page can show a group's works: clicking a group emits `drill` with the filter rows
+  // that pick its works out of the query's starting set (drill-through, as in Metabase).
+  drillable: { type: Boolean, default: false },
 });
+const emit = defineEmits(["drill"]);
 
 // Group-bys offered for a plain list of works (each one API call, priced like the list).
 const LIST_VIEWS = [
@@ -112,6 +118,14 @@ const safe = (fn, fallback) => {
 
 const baseData = computed(() => safe(() => chartData(props.resultsObject), null));
 const isWorksList = computed(() => baseData.value?.kind === "list" && baseData.value.rowsEntity === "works" && Boolean(baseData.value.oqo?.get_rows));
+// Only a calculation's groups drill (a works list already is the works); `canDrill` is
+// whether the chart drawn has clickable groups (renderChart reports it).
+const drillOn = computed(() => props.drillable && baseData.value?.kind === "groups");
+const canDrill = ref(false);
+function onPick(nodes) {
+  const rows = groupFilterRows(data.value, nodes);
+  if (rows) emit("drill", { rows, label: nodes.map((n) => n.name).join(" · ") });
+}
 const data = computed(() => (isWorksList.value ? safe(() => (listResponse.value ? chartData(listResponse.value) : null), null) : baseData.value));
 const choices = computed(() => safe(() => (data.value ? chartOptions(data.value, measureKey.value) : []), []));
 // "Each measure" and the number tiles already show every measure: no picker.
@@ -154,8 +168,7 @@ async function loadListView() {
   const d = baseData.value;
   const view = LIST_VIEWS.find((v) => v.id === listView.value);
   if (!isWorksList.value || !view || typeof window === "undefined") return; // never during server render
-  const { calculate, sort_by, group_by, sample, seed, ...rows } = d.oqo; // eslint-disable-line no-unused-vars
-  const oqo = { ...rows, group_by: [{ column_id: view.column }] };
+  const oqo = { ...startingSetOqo(d.oqo), group_by: [{ column_id: view.column }] };
   busy.value = true;
   message.value = "";
   try {
@@ -186,6 +199,7 @@ async function draw() {
   const el = plotEl.value;
   const d = data.value;
   if (!el) return;
+  canDrill.value = false;
   if (!d || !type.value) {
     el.replaceChildren();
     title.value = "";
@@ -207,11 +221,19 @@ async function draw() {
     if (type.value === CHART.MAP) world = await (await import("./worldMap")).loadWorld();
     const { renderChart } = await import("./renderChart");
     if (seq !== drawSeq) return; // a newer draw started while this one loaded
-    const out = renderChart(PlotModule, { data: d, type: type.value, measureKey: measureKey.value, width: width.value || el.clientWidth || 640, world });
+    const out = renderChart(PlotModule, {
+      data: d,
+      type: type.value,
+      measureKey: measureKey.value,
+      width: width.value || el.clientWidth || 640,
+      world,
+      onPick: drillOn.value ? onPick : null,
+    });
     if (!out?.node) throw new Error(`no chart for ${type.value}`);
     el.replaceChildren(out.node);
     title.value = out.title;
     note.value = out.note;
+    canDrill.value = out.pickable;
   } catch (e) {
     if (seq !== drawSeq) return;
     console.warn("[NlResultChart] draw", e);
@@ -330,6 +352,11 @@ onBeforeUnmount(() => {
 .nl-chart__note {
   font-size: 12px;
   color: #52514e;
+  margin-top: 2px;
+}
+.nl-chart__hint {
+  font-size: 12px;
+  color: #898781;
   margin-top: 2px;
 }
 .nl-chart__plot {

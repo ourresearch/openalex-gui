@@ -17,11 +17,14 @@
         </v-btn>
       </div>
       <div class="nl-col-body">
-        <div v-if="isPipeline" class="nl-facets-note">
-          Facets break down a list. This query is already a calculation; ask the chat to split it
-          another way.
+        <!-- On a calculation the facets filter the works the groups are counted from, as
+             Scopus, Web of Science, Dimensions and Tableau's dimension filters do (prior art:
+             oxjob #1745 work/prior_art_works_and_groups.md). A click narrows the starting set
+             and the groups regroup; the splits and calculations stay. -->
+        <div v-if="isPipeline && !isSemanticSearch" class="nl-facets-note">
+          Filter the works these groups are counted from.
         </div>
-        <group-by-sidebar v-else-if="!isSemanticSearch" :results-object="resultsObject" />
+        <group-by-sidebar v-if="!isSemanticSearch" :results-object="resultsObject" />
       </div>
     </aside>
     <button v-else type="button" class="nl-rail" aria-label="Show the facets" @click="toggle('facets')">
@@ -231,8 +234,8 @@ onMounted(() => { loadPickChart(); });
   padding: 10px 10px 32px;
 }
 .nl-facets-note {
-  padding: 16px;
-  font-size: 13.5px;
+  padding: 12px 16px 0;
+  font-size: 13px;
   line-height: 1.5;
   color: rgba(0, 0, 0, 0.55);
 }

@@ -27,7 +27,7 @@ import { api } from '@/api';
 import filters from '@/filters';
 import { createSimpleFilter, setStringIsNegated } from '@/filterConfigs';
 import { getEntityConfig } from '@/entityConfigs';
-import { selectedValues as oqoSelectedValues } from '@/components/Oql/refinements';
+import { hasSelectedValue } from '@/components/Oql/refinements';
 
 defineOptions({ name: 'GroupByTableRow' });
 
@@ -57,9 +57,7 @@ const index = computed(() => url.findFilterIndex(route, entityType.value, props.
 const isApplied = computed({
   get() {
     if (oqlMode.value) {
-      return oqoSelectedValues(store.getters['query/queryFilterRows'], props.filterKey)
-        .map(String)
-        .includes(String(props.value));
+      return hasSelectedValue(store.getters['query/queryFilterRows'], props.filterKey, props.value);
     }
     if (route.name === 'EntityPage') return false;
     return url.isFilterOptionApplied(route, entityType.value, props.filterKey, props.value);
@@ -68,9 +66,7 @@ const isApplied = computed({
     if (oqlMode.value) {
       // toggleRefinementValue flips membership; only dispatch when the desired
       // state differs from the current one (defensive — clickRow already flips).
-      const has = oqoSelectedValues(store.getters['query/queryFilterRows'], props.filterKey)
-        .map(String)
-        .includes(String(props.value));
+      const has = hasSelectedValue(store.getters['query/queryFilterRows'], props.filterKey, props.value);
       if (to !== has) {
         store.dispatch('query/toggleRefinementValue', { columnId: props.filterKey, value: props.value });
       }

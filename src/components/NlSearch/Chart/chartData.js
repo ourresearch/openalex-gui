@@ -9,6 +9,7 @@
 // Plain JS, no Vue, so the picker and its tests can run in node.
 
 import pluralize from "pluralize";
+import { getShortId } from "@/openalexId";
 
 // What a split's values are, which decides the chart (see pickChart.js).
 export const DIM = {
@@ -75,6 +76,7 @@ const FIELD_LABELS = {
 export const OA_ORDER = ["diamond", "gold", "green", "hybrid", "bronze", "closed"];
 
 const isYesNoKey = (k) => ["0", "1", "true", "false"].includes(String(k).toLowerCase());
+const isYesKey = (k) => ["1", "true"].includes(String(k).toLowerCase());
 
 function dimKind(columnId, kind, groups) {
   const id = columnId || "";
@@ -113,7 +115,7 @@ const isUnknownGroup = (g) =>
 function groupName(g, kind, dimLabel) {
   const raw = g.key_display_name ?? g.key;
   if (kind === DIM.YESNO) {
-    const yes = ["1", "true"].includes(String(g.key).toLowerCase());
+    const yes = isYesKey(g.key);
     return yes ? capitalize(dimLabel) : `Not ${dimLabel}`;
   }
   if (kind === DIM.NAMED) return String(raw).replace(/^"(.*)"$/, "$1");
@@ -211,7 +213,7 @@ export function chartData(resultsObject) {
     if (d.kind === DIM.COUNTRY) n.code = countryCode(g.key);
     if (d.kind === DIM.YEAR) n.year = Number(g.key);
     if (d.kind === DIM.OA_STATUS) n.status = String(g.key).toLowerCase();
-    if (d.kind === DIM.YESNO) n.yes = ["1", "true"].includes(String(g.key).toLowerCase());
+    if (d.kind === DIM.YESNO) n.yes = isYesKey(g.key);
     n.unknown = isUnknownGroup(g);
     return n;
   };
@@ -246,6 +248,53 @@ export function chartData(resultsObject) {
     outer,
     sort,
   };
+}
+
+// ---- from a group back to its works (drill-through) --------------------------------------
+
+// A bin as filter rows: from its lower edge (the label's first number) up to the query's next
+// edge (`bins.at`), so "10-99" with edges (1, 10, 100) is >= 10 and < 100, "100+" is >= 100.
+// Without edges (equal-width bins), the label's own upper number closes it.
+function binRows(columnId, key, edges) {
+  const k = String(key);
+  const lo = parseFloat(k);
+  if (!Number.isFinite(lo)) return null;
+  const rows = [{ column_id: columnId, value: lo, operator: ">=" }];
+  const next = Array.isArray(edges) ? edges.find((e) => e > lo) : undefined;
+  const labelHi = /^-?[\d.]+-(-?[\d.]+)$/.exec(k);
+  if (next != null) rows.push({ column_id: columnId, value: next, operator: "<" });
+  else if (labelHi) rows.push({ column_id: columnId, value: Number(labelHi[1]), operator: "<=" });
+  else if (!k.endsWith("+")) rows.push({ column_id: columnId, value: lo, operator: "<=" });
+  return rows;
+}
+
+// The filter rows that pick out one group's works, to AND onto the query's starting set
+// (Metabase "See these records", Excel "Show Details"). `nodes`: [{level, key}] for one or
+// more splits. Null when a group can't be filtered to (unknown, an "Other" fold).
+export function groupFilterRows(data, nodes) {
+  const rows = [];
+  for (const { level, key } of nodes || []) {
+    const d = data?.dims?.[level];
+    const spec = (data?.oqo?.group_by || [])[level] || {};
+    if (!d || isUnknownGroup({ key }) || key === "__other") return null;
+    if (d.kind === DIM.YEAR) rows.push({ column_id: d.columnId, value: Number(key) });
+    else if (d.kind === DIM.YESNO) rows.push({ column_id: d.columnId, value: isYesKey(key) });
+    else if (d.kind === DIM.BINS) {
+      const b = binRows(d.columnId, key, spec.bins?.at);
+      if (!b) return null;
+      rows.push(...b);
+    } else if (Array.isArray(spec.values) && spec.values.some((v) => v && typeof v === "object")) {
+      // A comparison of searches or of different fields: each item is its own filter row.
+      const item = spec.values.find((v) => v && typeof v === "object" && String(v.value) === String(key));
+      if (!item) return null;
+      rows.push(item);
+    } else {
+      // An id ("https://openalex.org/I63966007", ".../countries/US") filters by its short form,
+      // as the facets do (filterConfigs createFilterValue); the API takes either case.
+      rows.push({ column_id: d.columnId, value: getShortId(key) || String(key) });
+    }
+  }
+  return rows.length ? rows : null;
 }
 
 // "institution" -> "institutions", for "top 15 of 32,864 institutions".

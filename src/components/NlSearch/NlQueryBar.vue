@@ -173,7 +173,7 @@ const chipsRepresentable = computed(() => {
 const chipsShown = computed(() => hasFiltersAvailable.value && !isPipeline.value && chipsRepresentable.value);
 const chipsNote = computed(() => {
   if (isLoading.value) return 'Shortcut filters load with the results.';
-  if (isPipeline.value) return 'This query calculates over groups, so shortcut filters are off. Edit the OQL, or ask the chat.';
+  if (isPipeline.value) return 'To filter the works behind these groups, use the facets, edit the OQL, or ask the chat.';
   if (!hasFiltersAvailable.value) return 'No shortcut filters for this kind of thing.';
   return 'This query has more logic than shortcut filters can show. Edit the OQL, or ask the chat.';
 });

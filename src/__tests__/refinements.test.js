@@ -8,7 +8,20 @@ import {
   setRefinementValue,
   setRefinementValues,
   removeRefinement,
+  hasSelectedValue,
 } from '@/components/Oql/refinements';
+
+// oxjob #1745: the API echoes ids upper-case, facets carry them lower-case.
+describe('ids match ignoring case', () => {
+  const echoed = [{ column_id: 'primary_topic.id', value: 'T10643' }];
+  it('a facet value is selected when the echoed row has it in another case', () => {
+    expect(hasSelectedValue(echoed, 'primary_topic.id', 't10643')).toBe(true);
+    expect(hasSelectedValue(echoed, 'primary_topic.id', 't99999')).toBe(false);
+  });
+  it('toggling it off removes it instead of adding a duplicate', () => {
+    expect(toggleRefinementValue(echoed, { columnId: 'primary_topic.id', value: 't10643' })).toEqual([]);
+  });
+});
 
 // oxjob #528 — the stats-widget "refine results" model: a facet click adds a
 // TOP-LEVEL AND clause to filter_rows (OR within a facet, AND across facets),

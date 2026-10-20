@@ -19,7 +19,30 @@ import {
   refusalMessage,
   formatCost,
   isTextMeasure,
+  startingSetOqo,
 } from "@/oqlPipeline";
+
+// oxjob #1745: the NL page's Works tab lists the works a calculation is computed from.
+describe("startingSetOqo", () => {
+  it("takes off the calculations, splits and order; keeps filters, corpus and sample", () => {
+    const oqo = {
+      get_rows: "works",
+      corpus: "all",
+      filter_rows: [{ column_id: "publication_year", value: 2020 }],
+      group_by: [{ column_id: "authorships.countries" }],
+      calculate: [{ measure: "count" }],
+      sort_by: [{ column_id: "count", direction: "desc" }],
+      sample: 500,
+    };
+    expect(startingSetOqo(oqo)).toEqual({
+      get_rows: "works",
+      corpus: "all",
+      filter_rows: [{ column_id: "publication_year", value: 2020 }],
+      sample: 500,
+    });
+    expect(startingSetOqo(null)).toEqual({});
+  });
+});
 
 const MEAN_FWCI = { key: "mean_fwci", measure: "mean", column_id: "fwci", oql: "mean FWCI" };
 const PCT_OA = { key: "percent_open_access_is_oa", measure: "percent", column_id: "open_access.is_oa", oql: "percent open access" };

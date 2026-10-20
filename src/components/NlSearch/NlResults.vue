@@ -16,7 +16,14 @@
         @update:model-value="(f) => emit('update:format', f)"
       >
         <v-btn value="table" size="small" class="text-none" prepend-icon="mdi-table">Table</v-btn>
-        <v-btn value="list" size="small" class="text-none" prepend-icon="mdi-format-list-bulleted">List</v-btn>
+        <!-- On a calculation the middle tab is the works the groups are counted from
+             (Splunk's Events tab, Tableau's Full Data; oxjob #1745). -->
+        <v-btn
+          value="list"
+          size="small"
+          class="text-none"
+          :prepend-icon="isPipeline ? 'mdi-file-document-multiple-outline' : 'mdi-format-list-bulleted'"
+        >{{ isPipeline ? 'Works' : 'List' }}</v-btn>
         <v-btn value="chart" size="small" class="text-none" prepend-icon="mdi-chart-bar">Chart</v-btn>
       </v-btn-toggle>
     </div>
@@ -30,6 +37,8 @@
         v-if="chartComponent && resultsObject"
         :oql="shownOql"
         :results-object="resultsObject"
+        :drillable="isPipeline"
+        @drill="onDrill"
       />
       <div v-else-if="!chartComponent" class="nl-empty">
         <v-icon size="28" class="mb-2" color="grey">mdi-chart-box-outline</v-icon>
@@ -37,12 +46,9 @@
       </div>
     </v-card>
 
-    <!-- A calculation: groups and calculated columns. -->
+    <!-- A calculation: groups and calculated columns (its Works tab is kept below). -->
     <template v-else-if="isPipeline">
       <oql-pipeline-results v-if="format === 'table'" :results-object="resultsObject" />
-      <v-card v-else variant="outlined" class="bg-white">
-        <nl-group-list :results-object="resultsObject" />
-      </v-card>
     </template>
 
     <!-- A list of things: today's table and list rows. -->
@@ -89,6 +95,17 @@
       />
     </v-card>
 
+    <!-- A calculation's works: mounted the first time the tab opens, then kept, so moving
+         between Table, Works and Chart never refetches them. -->
+    <v-card
+      v-if="isPipeline && !searchError && worksOpened"
+      v-show="format === 'list'"
+      variant="outlined"
+      class="bg-white"
+    >
+      <nl-works-list :results-object="resultsObject" :drill="drill" @clear-drill="drill = null" />
+    </v-card>
+
     <add-filter v-if="format === 'table'" ref="columnFilterRef" headless />
   </div>
 </template>
@@ -113,7 +130,7 @@ import AddColumn from '@/components/Results/Table/AddColumn.vue';
 import SerpResultsKebab from '@/components/Serp/SerpResultsKebab.vue';
 import SerpDownloadButton from '@/components/Serp/SerpDownloadButton.vue';
 import OqlPipelineResults from '@/components/Serp/OqlPipelineResults.vue';
-import NlGroupList from '@/components/NlSearch/NlGroupList.vue';
+import NlWorksList from '@/components/NlSearch/NlWorksList.vue';
 
 defineOptions({ name: 'NlResults' });
 
@@ -172,6 +189,21 @@ const page = computed({
 });
 
 useSelectionContext(() => props.resultsObject);
+
+// A group clicked in the chart: the Works tab shows that group's works until it's cleared
+// or the answer changes. A new answer unmounts an unopened Works tab, so it never fetches
+// works nobody looks at.
+const drill = ref(null);
+const worksOpened = ref(false);
+watch(() => props.format, (f) => { if (f === 'list') worksOpened.value = true; }, { immediate: true });
+watch(() => props.resultsObject, () => {
+  drill.value = null;
+  worksOpened.value = props.format === 'list';
+});
+function onDrill(d) {
+  drill.value = d;
+  emit('update:format', 'list');
+}
 
 const columnFilterRef = ref(null);
 function onColumnFilter(baseKey) {

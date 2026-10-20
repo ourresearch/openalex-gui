@@ -22,6 +22,28 @@ const STYLE = { fontFamily: FONT, fontSize: "12px", color: INK.secondary, backgr
 const HALO = { stroke: INK.surface, strokeWidth: 3, paintOrder: "stroke" };
 
 const num = (v) => typeof v === "number" && Number.isFinite(v);
+
+// Click a group to see its works (drill-through, as in Metabase, Excel and Splunk). Plot sets
+// `.value` on the chart to the datum under the pointer; `toNodes` turns that datum into
+// [{level, key, name}], one per split (groupFilterRows refuses unknowns and the "Other" fold).
+// `onPickGroup` is set by renderChart for the duration of one synchronous draw, and
+// `madePickable` tells it whether this chart type wired any clicks.
+let onPickGroup = null;
+let madePickable = false;
+function pickable(node, toNodes) {
+  if (!onPickGroup || !node) return node;
+  const pick = onPickGroup;
+  madePickable = true;
+  node.addEventListener("input", () => {
+    node.style.cursor = node.value != null ? "pointer" : "";
+  });
+  node.addEventListener("click", () => {
+    const nodes = node.value != null && toNodes(node.value);
+    if (nodes) pick(nodes);
+  });
+  return node;
+}
+const oneGroup = (r) => [{ level: 0, key: r.key, name: r.name }];
 const measureOf = (data, key) => data.measures.find((m) => m.key === key) || data.measures[0];
 
 // Tooltip text: the group's name, then every measure (the chosen one first).
@@ -117,7 +139,7 @@ function bars(Plot, data, m, width) {
     y: { domain: shown.map((r) => String(r.key)), label: null, tickSize: 0, tickFormat: (k) => labelOf.get(k), tickPadding: 6 },
     marks,
   });
-  return { node, title: `${m.label} by ${d.label}`, note: rankNote(data, d, shown.length, all.length, m) };
+  return { node: pickable(node, oneGroup), title: `${m.label} by ${d.label}`, note: rankNote(data, d, shown.length, all.length, m) };
 }
 
 function line(Plot, data, m, width, height = 380) {
@@ -152,7 +174,7 @@ function line(Plot, data, m, width, height = 380) {
       Plot.tip(rows, Plot.pointerX({ x: "year", y: "value", title: tip })),
     ].filter(Boolean),
   });
-  return { node, title: `${m.label} per year`, note: joinNotes(yearNotes(m, rows, future)) };
+  return { node: pickable(node, oneGroup), title: `${m.label} per year`, note: joinNotes(yearNotes(m, rows, future)) };
 }
 
 function columns(Plot, data, m, width) {
@@ -187,7 +209,7 @@ function columns(Plot, data, m, width) {
   });
   const notes = d.kind === DIM.YEAR ? yearNotes(m, rows, future) : [];
   const title = d.kind === DIM.YEAR ? `${m.label} per year` : `${m.label} by ${d.label}`;
-  return { node, title, note: joinNotes(notes) };
+  return { node: pickable(node, oneGroup), title, note: joinNotes(notes) };
 }
 
 function map(Plot, data, m, width, world) {
@@ -231,7 +253,7 @@ function map(Plot, data, m, width, world) {
     missing > 0 ? `${missing} ${plural("country", missing)} too small for this map; see Bars` : "",
     m.additive ? "A work counts for every country among its authors" : "",
   ]);
-  return { node, title: `${m.label} by country`, note };
+  return { node: pickable(node, (f) => (f.row ? oneGroup(f.row) : null)), title: `${m.label} by country`, note };
 }
 
 // Shares of a whole: one 100% bar, with a legend that names every part and its share.
@@ -283,7 +305,7 @@ function shares(Plot, data, m, width, doc) {
     legend.append(item);
   }
   const node = doc.createElement("div");
-  node.append(bar, legend);
+  node.append(pickable(bar, oneGroup), legend);
   const overlap = !d.partition && d.kind !== DIM.OA_STATUS && d.kind !== DIM.YESNO;
   return { node, title: `${m.label} by ${d.label}`, note: overlap ? "Works can sit in more than one group" : "" };
 }
@@ -342,7 +364,7 @@ function scatter(Plot, data, m, width) {
   const node = Plot.plot(options(labelled));
   const all = d.more ? d.groupsCount : rows.length;
   const note = all > rows.length ? `The ${rows.length} ${plural(d.noun, rows.length)} with the most works, of ${all.toLocaleString("en-US")}` : "";
-  return { node, title: `${yM.label} and ${xM.label.toLowerCase()} by ${d.label}`, note };
+  return { node: pickable(node, oneGroup), title: `${yM.label} and ${xM.label.toLowerCase()} by ${d.label}`, note };
 }
 
 // "Each measure": one panel per measure the answer asked for, never a dual axis. Over years the
@@ -412,7 +434,7 @@ function measurePanels(Plot, data, width, doc) {
       ].filter(Boolean),
     });
     const panel = doc.createElement("div");
-    panel.append(head(m.label, left), node);
+    panel.append(head(m.label, left), pickable(node, oneGroup));
     wrap.append(panel);
   });
   return { node: wrap, title: `${listOf(ms.map((m) => m.label))} by ${d.label}`, note: rankNote(data, d, shown.length, all.length, lead) };
@@ -564,7 +586,12 @@ function smallMultiples(Plot, data, m, width, doc) {
         Plot.tip(mine, Plot.pointerX({ x: "year", y: "value", title: (r) => `${names[i]}\n${r.year}${m.additive && r.year === CURRENT_YEAR ? " (so far)" : ""}: ${formatValue(m, r.value)}` })),
       ].filter(Boolean),
     });
-    panel.append(name, plot);
+    // A click picks this panel's series in that year.
+    const toNodes = (r) => [
+      { level: 1 - yi, key: s.key, name: names[i] },
+      { level: yi, key: String(r.year), name: String(r.year) },
+    ];
+    panel.append(name, pickable(plot, toNodes));
     grid.append(panel);
   });
   const notes = [];
@@ -700,7 +727,20 @@ function heatmap(Plot, data, m, width) {
 
 // ---- entry -----------------------------------------------------------------------------
 
-export function renderChart(Plot, { data, type, measureKey, width, world, document: doc = globalThis.document }) {
+// `onPick(nodes)`, when given, makes groups clickable: [{level, key, name}] per split. The
+// result's `pickable` says whether this chart type has clickable groups (lines don't).
+export function renderChart(Plot, { onPick = null, ...opts }) {
+  onPickGroup = onPick;
+  madePickable = false;
+  try {
+    const out = drawChart(Plot, opts);
+    return out && { ...out, pickable: madePickable };
+  } finally {
+    onPickGroup = null;
+  }
+}
+
+function drawChart(Plot, { data, type, measureKey, width, world, document: doc = globalThis.document }) {
   const m = measureOf(data, measureKey);
   const w = Math.max(320, Math.round(width || 640));
   switch (type) {
