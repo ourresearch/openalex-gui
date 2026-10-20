@@ -8,7 +8,7 @@
             <a href="#week">The week</a>
             <a href="#day1">Day 1</a>
             <a href="#day2">Day 2</a>
-            <a href="#discussion">Discussion groups</a>
+            <a href="#discussion">Breakout groups</a>
             <a href="#venues">Venues</a>
             <a href="#register">Register</a>
         </div>
@@ -19,14 +19,14 @@
         <!-- HEADER -->
         <header id="top">
             <h1>OpenAlex Users Meeting, Paris 2026</h1>
-            <p class="subtitle">The first in-person gathering of people who build with, run on, and study with OpenAlex. Two days: a day of community talks at CNRS, then a day of talks, live demos and discussion with the OpenAlex team at Le Totem in the 13th.</p>
+            <p class="subtitle">The first in-person gathering of people who build with, run on, and study with OpenAlex. Two days: a day of community talks at CNRS, then a day of talks and breakout groups with the OpenAlex team at Le Totem in the 13th.</p>
             <div class="meta">
                 <span class="meta-tag">Paris, France</span>
                 <span class="meta-tag">Tuesday 20 &amp; Wednesday 21 October 2026</span>
                 <span class="meta-tag">Tuesday hosted by CNRS</span>
                 <span class="meta-tag">Registration closed</span>
             </div>
-            <p class="intro-note">Registration is closed. Programme updated 19 October. <strong>Wednesday has moved</strong> from Sorbonne Universit&eacute; to <strong>Le Totem</strong>, 11 place Nationale, 75013 Paris, and its programme has changed: see Day 2 below. Wednesday now ends at 15:30.</p>
+            <p class="intro-note">Registration is closed. Programme updated 20 October. <strong>Wednesday has moved</strong> from Sorbonne Universit&eacute; to <strong>Le Totem</strong>, 11 place Nationale, 75013 Paris, and its programme has changed: see Day 2 below. Wednesday now ends at 15:30.</p>
         </header>
 
         <!-- THE WEEK -->
@@ -46,8 +46,8 @@
                 </div>
                 <div class="f26-card">
                     <h4>Wednesday 21 October, Le Totem</h4>
-                    <p class="card-text">Fewer talks, more conversation. Four morning talks chosen to open discussion, live demos from the OpenAlex team, then small-group discussion and a conversation about what OpenAlex should do next. In French and English. Breakfast and lunch provided. Ends at 15:30.</p>
-                    <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-hands-on">demos</span><span class="f26-tag tag-discuss">discussion</span>
+                    <p class="card-text">Fewer talks, more conversation. Four morning talks, then Jason Priem on the past and future of OpenAlex. In the afternoon, two rounds of breakout groups, on data quality and on coverage, each making the case for what OpenAlex should take on next. In French and English. Breakfast and lunch provided. Ends at 15:30.</p>
+                    <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">breakouts</span>
                 </div>
             </div>
         </div>
@@ -194,7 +194,7 @@
 
             <div class="day-card">
                 <h3>Programme</h3>
-                <p class="day-theme">A different flavour from Tuesday: fewer talks, OpenAlex shown live on screen, and plenty of time to tell us what we should do next.</p>
+                <p class="day-theme">A different flavour from Tuesday: fewer talks, the story of OpenAlex and where it is going, and an afternoon of small groups telling us what to fix and what to add next.</p>
 
                 <div class="sched-block">
                     <div class="sched-time">09:30 &ndash; 10:00</div>
@@ -214,7 +214,7 @@
                     <div class="sched-time">10:05 &ndash; 11:05</div>
                     <div class="sched-content">
                         <h4>Talks to start the conversation</h4>
-                        <p>Four talks chosen because each one opens a question the room picks up after lunch: running a research office or a library on OpenAlex, systematic searching with open indexes, building institutional indicators without a data team, and what OpenAlex reveals about journal quality. Fifteen minutes per talk including questions.</p>
+                        <p>Four talks from people who use OpenAlex every day: running a research office or a library on OpenAlex, systematic searching with open indexes, building institutional indicators without a data team, and what OpenAlex reveals about journal quality. Fifteen minutes per talk including questions.</p>
                         <ul class="speaker-list">
                             <li><strong>Abdesslam Chai-allah and Soizic Messiaen</strong> (INRAE) &mdash; OpenAlex at INRAE: what works, what doesn&rsquo;t, and what&rsquo;s next (<a href="https://docs.google.com/presentation/d/1SooYcU3og7DlhN0xA0FcNFj5BNhojE0-ZAicJrr8B0I/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Elke Hausner</strong> (IQWiG) &mdash; A practical assessment of OpenAlex and Lens for systematic literature searches (<a href="https://docs.google.com/presentation/d/12y7Xa_HmI_K1C3nsgOS53P_mifbfhd_Bcncw5Fv3MTQ/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
@@ -225,33 +225,25 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">11:05 &ndash; 11:20</div>
+                    <div class="sched-time">11:05 &ndash; 11:30</div>
                     <div class="sched-content">
                         <h4>Coffee</h4>
                         <span class="f26-tag tag-break">break</span>
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">11:20 &ndash; 11:40</div>
+                    <div class="sched-time">11:30 &ndash; 12:00</div>
                     <div class="sched-content">
-                        <h4>Live: the query builder, OQL and affiliation curation</h4>
-                        <p>Kyle Demes (OpenAlex) on screen: building and sharing searches with the query builder and OQL, pasting a strategy from another database, and fixing your institution&rsquo;s records in the affiliation editor.</p>
-                        <span class="f26-tag tag-hands-on">live demo</span>
-                    </div>
-                </div>
-                <div class="sched-block">
-                    <div class="sched-time">11:40 &ndash; 12:00</div>
-                    <div class="sched-content">
-                        <h4>Live: vibe-coding a dashboard on OpenAlex</h4>
-                        <p>Jason Priem (OpenAlex) builds a working page from the OpenAlex API with AI-assisted coding, live.</p>
-                        <span class="f26-tag tag-hands-on">live demo</span>
+                        <h4>The past of OpenAlex</h4>
+                        <p>Jason Priem (OpenAlex) on how OpenAlex got here: why we built it, what changed along the way, and what we learned.</p>
+                        <span class="f26-tag tag-presentation">openalex team</span>
                     </div>
                 </div>
                 <div class="sched-block">
                     <div class="sched-time">12:00 &ndash; 12:30</div>
                     <div class="sched-content">
-                        <h4>What&rsquo;s next for OpenAlex, part 1</h4>
-                        <p>Jason Priem on what the team is working on now and where OpenAlex is heading, and the questions we want your help with this afternoon.</p>
+                        <h4>The future of OpenAlex</h4>
+                        <p>Jason Priem on where OpenAlex is heading, and what we want your help deciding this afternoon.</p>
                         <span class="f26-tag tag-presentation">openalex team</span>
                     </div>
                 </div>
@@ -264,19 +256,19 @@
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">13:30 &ndash; 14:15</div>
+                    <div class="sched-time">13:30 &ndash; 14:20</div>
                     <div class="sched-content">
-                        <h4>Discussion groups</h4>
-                        <p>Small groups in the auditorium, one for each of the morning&rsquo;s talks, with the speaker. Each group takes the same question: what should OpenAlex prioritise? See the groups below.</p>
-                        <span class="f26-tag tag-discuss">discussion</span>
+                        <h4>Breakout groups, round 1: data quality</h4>
+                        <p>We put up the suggested groups (see below). You tell us what we missed and what nobody wants, and we settle the list. Then the room splits up, and each group comes back with a two-minute pitch to OpenAlex: why this should be a priority, and what doing it well would look like.</p>
+                        <span class="f26-tag tag-discuss">breakouts</span>
                     </div>
                 </div>
                 <div class="sched-block">
-                    <div class="sched-time">14:15 &ndash; 15:15</div>
+                    <div class="sched-time">14:20 &ndash; 15:15</div>
                     <div class="sched-content">
-                        <h4>What&rsquo;s next for OpenAlex, part 2</h4>
-                        <p>Each group reports back, then an open conversation with Jason and the team about priorities.</p>
-                        <span class="f26-tag tag-discuss">discussion</span>
+                        <h4>Breakout groups, round 2: coverage</h4>
+                        <p>Same format, on what OpenAlex is missing: the kinds of research, sources and metadata we don&rsquo;t yet cover well.</p>
+                        <span class="f26-tag tag-discuss">breakouts</span>
                     </div>
                 </div>
                 <div class="sched-block">
@@ -291,35 +283,92 @@
 
         <!-- DISCUSSION GROUPS -->
         <div class="section" id="discussion">
-            <h2 class="section-header">Discussion groups</h2>
-            <p class="section-subtitle">After lunch the auditorium splits into small groups, one around each morning talk with its speaker, plus someone from the OpenAlex team to listen. Join whichever conversation you want; every group takes the same underlying question: what should OpenAlex prioritise, and what would make it more useful to you?</p>
+            <h2 class="section-header">Breakout groups</h2>
+            <p class="section-subtitle">Two rounds after lunch: data quality, then coverage. Each round starts from the suggested groups below, which come from what people write to us about most. Tell us what we missed and we&rsquo;ll add it; a group nobody wants to join gets dropped. Each group then makes its pitch to OpenAlex: why this should be a priority, who it matters to, and what doing it well would look like.</p>
+
+            <h3 class="sub-header">Round 1: data quality</h3>
+            <p class="sub-note">What OpenAlex gets wrong today.</p>
             <div class="discussion-grid">
                 <div class="discussion-card">
-                    <h3>Running an institution on OpenAlex</h3>
+                    <h3>Author profiles</h3>
                     <ul>
-                        <li>With the INRAE team</li>
-                        <li>What works, what does not, and what you built instead</li>
+                        <li>One researcher split across several profiles, or several researchers merged into one</li>
+                        <li>What should authors, institutions and ORCID be able to fix themselves?</li>
                     </ul>
                 </div>
                 <div class="discussion-card">
-                    <h3>Systematic searching and discovery</h3>
+                    <h3>Affiliations and institutions</h3>
                     <ul>
-                        <li>With Elke Hausner</li>
-                        <li>Where search syntax and coverage fall short, and what the new search features change</li>
+                        <li>Affiliation strings matched to the wrong institution, or to none</li>
+                        <li>Institution hierarchies, mergers and name changes, and how curation should work</li>
                     </ul>
                 </div>
                 <div class="discussion-card">
-                    <h3>Institutional indicators without a data team</h3>
+                    <h3>Open access status</h3>
                     <ul>
-                        <li>With H&eacute;lo&iuml;se Gazeau</li>
-                        <li>Indicators you trust, and the tools that would make them easier</li>
+                        <li>Works marked open that aren&rsquo;t, and the reverse</li>
+                        <li>Diamond, gold, hybrid and bronze labels, and full-text links that break</li>
                     </ul>
                 </div>
                 <div class="discussion-card">
-                    <h3>Journal quality and source data</h3>
+                    <h3>Journals and sources</h3>
                     <ul>
-                        <li>With Abdelghani Maddi</li>
-                        <li>Discontinued journals, journal lists and what quality signals OpenAlex should carry</li>
+                        <li>Works filed under the wrong journal, duplicate source records, missing publishers and ISSNs</li>
+                        <li>Which journal quality signals should OpenAlex carry?</li>
+                    </ul>
+                </div>
+                <div class="discussion-card">
+                    <h3>Work types, versions and duplicates</h3>
+                    <ul>
+                        <li>Preprints and published versions, books, chapters and reviews mixed up, working papers counted as articles</li>
+                        <li>Retractions, and duplicate records that inflate counts</li>
+                    </ul>
+                </div>
+                <div class="discussion-card">
+                    <h3>Topics and fields</h3>
+                    <ul>
+                        <li>Topics that miss the mark, especially outside biomedicine</li>
+                        <li>What classification would actually serve your analyses?</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 class="sub-header round-header">Round 2: coverage</h3>
+            <p class="sub-note">What OpenAlex is missing.</p>
+            <div class="discussion-grid">
+                <div class="discussion-card">
+                    <h3>Journals outside the big indexes</h3>
+                    <ul>
+                        <li>Regional and non-English journals, journals without DOIs, OJS journals</li>
+                        <li>How should OpenAlex find them, and decide what gets in?</li>
+                    </ul>
+                </div>
+                <div class="discussion-card">
+                    <h3>Repositories and national archives</h3>
+                    <ul>
+                        <li>Institutional repositories, HAL and other national open archives, preprint servers</li>
+                        <li>Getting records in, and linking them to the published version</li>
+                    </ul>
+                </div>
+                <div class="discussion-card">
+                    <h3>Books and the humanities</h3>
+                    <ul>
+                        <li>Monographs, edited volumes and chapters, and humanities and social science journals</li>
+                        <li>Older and digitised literature, from heritage collections like Pers&eacute;e</li>
+                    </ul>
+                </div>
+                <div class="discussion-card">
+                    <h3>Beyond the journal article</h3>
+                    <ul>
+                        <li>Theses, conference proceedings, reports and working papers, datasets and software</li>
+                        <li>Which of these matter most for your work?</li>
+                    </ul>
+                </div>
+                <div class="discussion-card">
+                    <h3>What each record holds</h3>
+                    <ul>
+                        <li>Abstracts, reference lists, full text, funding data, subject headings such as MeSH</li>
+                        <li>Which gaps block your searches and your citation analyses?</li>
                     </ul>
                 </div>
             </div>
@@ -578,6 +627,7 @@ defineOptions({
     transition: border-color 0.15s ease;
 }
 .discussion-card:hover { border-color: var(--f26-border-strong); }
+.round-header { margin-top: 2.5rem; }
 .discussion-card h3 {
     font-size: 0.92rem;
     font-weight: 600;
