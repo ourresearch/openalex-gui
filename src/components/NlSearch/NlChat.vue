@@ -259,6 +259,7 @@ async function ask(text) {
   const context = currentQuery.value;
   let msg;
   try {
+    await waitForApiKey();
     const answer = await askQueryText({ text, currentQuery: context, history });
     msg = {
       role: 'assistant',
@@ -285,6 +286,17 @@ async function ask(text) {
   messages.value.push(msg);
   scrollToEnd();
   if (msg.shownOql && runOql(msg.shownOql)) emit('answer', msg);
+}
+
+// On a fresh load the cached sign-in restores the user before their API key, which comes with
+// the live /users/me a moment later; a question sent before it reads "Sign in" (seen 09:40 CT
+// with a ?ask= link). Wait for the key, up to about five seconds.
+async function waitForApiKey() {
+  if (store.state.user.apiKey) return;
+  await store.dispatch('user/ensureUser');
+  for (let i = 0; i < 25 && !store.state.user.apiKey; i++) {
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
 }
 
 // Set the page to a query; true when that navigated (an answer equal to the page's query
