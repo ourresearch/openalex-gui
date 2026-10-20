@@ -130,7 +130,7 @@ import { url } from '@/url';
 import filters from '@/filters';
 import HiringMarkdown from '@/components/Hiring/HiringMarkdown.vue';
 import {
-  askQueryText, oqlForAnswer, answerAsides, QUERY_ROUTES, loadThread, saveThread,
+  askQueryText, oqlForAnswer, answerAsides, buildHistory, QUERY_ROUTES, loadThread, saveThread,
 } from '@/components/NlSearch/nlChat';
 import { EXAMPLE_QUESTIONS } from '@/components/NlSearch/nlExamples';
 
@@ -219,6 +219,7 @@ function send() {
 
 async function ask(text) {
   if (asking.value) return;
+  const history = buildHistory(messages.value);
   messages.value.push({ role: 'user', text });
   asking.value = true;
   startClock();
@@ -226,7 +227,7 @@ async function ask(text) {
   const context = currentQuery.value;
   let msg;
   try {
-    const answer = await askQueryText({ text, currentQuery: context });
+    const answer = await askQueryText({ text, currentQuery: context, history });
     msg = {
       role: 'assistant',
       route: answer.route,

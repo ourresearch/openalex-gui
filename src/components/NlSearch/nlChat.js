@@ -16,10 +16,12 @@ import { api } from '@/api';
 // Routes whose answer is a query to run (the help desk answers in words instead).
 export const QUERY_ROUTES = new Set(['query', 'title', 'search_string']);
 
-/** Ask the model. Resolves to the answer; rejects with an Error whose message is fit to show. */
-export async function askQueryText({ text, currentQuery = null }) {
+/** Ask the model. Resolves to the answer; rejects with an Error whose message is fit to show.
+ *  `history` is context only (#1494 reads it so); `currentQuery` is what a follow-up edits. */
+export async function askQueryText({ text, currentQuery = null, history = [] }) {
   const body = { text };
   if (currentQuery) body.current_query = currentQuery;
+  if (history.length) body.history = history;
   try {
     const resp = await axios.post(`${urlBase.api}/query/text`, body, axiosConfig());
     return resp.data;
@@ -78,6 +80,22 @@ export async function oqlForAnswer(oql, sort, getQuery = api.getQuery) {
     } catch (e) { /* fall through: unsorted new form */ }
   }
   return first?.x_new_oql || first?.oql || oql;
+}
+
+/**
+ * The earlier turns, for the model's context (agreed with #1494, 2026-10-20): oldest first, the
+ * last `max`, each {text, oql} where oql is the query that turn set (new form, with names) or
+ * null when it answered in words or failed.
+ */
+export function buildHistory(messages, max = 6) {
+  const turns = [];
+  for (let i = 0; i < messages.length; i++) {
+    const m = messages[i];
+    if (m?.role !== 'user') continue;
+    const reply = messages[i + 1]?.role === 'assistant' ? messages[i + 1] : null;
+    turns.push({ text: m.text, oql: reply?.shownOql || null });
+  }
+  return turns.slice(-max);
 }
 
 /** The lines the chat shows under an answer's note: what was left out, out of reach, how-to. */

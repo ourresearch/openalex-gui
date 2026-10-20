@@ -10,7 +10,7 @@ vi.mock('@/api', () => ({ api: { getQuery: vi.fn() } }));
 
 import axios from 'axios';
 import {
-  askQueryText, friendlyError, sortToSortBy, oqlForAnswer, answerAsides, loadThread, saveThread,
+  askQueryText, friendlyError, sortToSortBy, oqlForAnswer, answerAsides, buildHistory, loadThread, saveThread,
 } from '../components/NlSearch/nlChat';
 import { defaultFormat } from '../components/NlSearch/nlChart';
 
@@ -95,6 +95,35 @@ describe('oqlForAnswer', () => {
     expect(await oqlForAnswer(OLD, 'cited_by_count:desc', sortFails)).toBe('get works about CRISPR');
     const allFail = vi.fn().mockRejectedValue(new Error('down'));
     expect(await oqlForAnswer(OLD, 'cited_by_count:desc', allFail)).toBe(OLD);
+  });
+});
+
+describe('buildHistory (context for the model, agreed with #1494)', () => {
+  it('pairs each question with the query its answer set, oldest first, last 6', () => {
+    const msgs = [];
+    for (let i = 0; i < 8; i++) {
+      msgs.push({ role: 'user', text: `q${i}` });
+      msgs.push(i === 3
+        ? { role: 'assistant', route: 'help_desk', answer: 'words' }
+        : { role: 'assistant', route: 'query', shownOql: `get works about x${i}` });
+    }
+    const h = buildHistory(msgs);
+    expect(h).toHaveLength(6);
+    expect(h[0]).toEqual({ text: 'q2', oql: 'get works about x2' });
+    expect(h[1]).toEqual({ text: 'q3', oql: null });
+    expect(h[5]).toEqual({ text: 'q7', oql: 'get works about x7' });
+  });
+  it('a question still waiting on its answer counts with no oql; an empty thread is no history', () => {
+    expect(buildHistory([{ role: 'user', text: 'a' }])).toEqual([{ text: 'a', oql: null }]);
+    expect(buildHistory([])).toEqual([]);
+  });
+  it('askQueryText sends history only when there is some', async () => {
+    axios.post.mockReset();
+    axios.post.mockResolvedValue({ data: {} });
+    await askQueryText({ text: 'b', history: [{ text: 'a', oql: 'get works' }] });
+    expect(axios.post.mock.calls[0][1]).toEqual({ text: 'b', history: [{ text: 'a', oql: 'get works' }] });
+    await askQueryText({ text: 'c', history: [] });
+    expect(axios.post.mock.calls[1][1]).toEqual({ text: 'c' });
   });
 });
 
