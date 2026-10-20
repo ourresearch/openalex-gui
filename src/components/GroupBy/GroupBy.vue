@@ -260,7 +260,7 @@ import filters from '@/filters';
 import { facetConfigs } from '@/facetConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
 import { filtersFromUrlStr, createSimpleFilter } from '@/filterConfigs';
-import { selectedValues as oqoSelectedValues } from '@/components/Oql/refinements';
+import { selectedValues as oqoSelectedValues, sameValue } from '@/components/Oql/refinements';
 import { exportArrayToCsv } from '@/utils/csvExport';
 
 import BarGraph from '@/components/BarGraph.vue';
@@ -479,7 +479,8 @@ watch(
 );
 
 const toggleSelection = (value) => {
-  const index = localSelection.value.indexOf(value);
+  // Ignore case: the selection seeds from the API's echo ("T10643"), the rows carry "t10643".
+  const index = localSelection.value.findIndex((v) => sameValue(v, value));
   if (index === -1) {
     localSelection.value.push(value);
   } else {

@@ -41,6 +41,7 @@ import { url } from '@/url';
 import { api } from '@/api';
 import { getEntityConfig } from '@/entityConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
+import { sameValue } from '@/components/Oql/refinements';
 
 defineOptions({name: "FilterSelectEditRow"});
 
@@ -78,7 +79,8 @@ const index = computed(() =>
 const isApplied = computed({
   get() {
     if (props.deferUpdates && props.localSelection) {
-      return props.localSelection.includes(props.value);
+      // Ignore case: ids echo upper-case from the API and lower-case in the rows.
+      return props.localSelection.some((v) => sameValue(v, props.value));
     }
     return url.isFilterOptionApplied(route, entityType.value, props.filterKey, props.value);
   },

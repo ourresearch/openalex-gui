@@ -98,7 +98,8 @@ export function selectedValues(filterRows, columnId, operator = OP_IS) {
 // OpenAlex ids are case-insensitive, and the API echoes them upper-case ("T10643") while
 // facets carry them lower-case ("t10643"), so values match ignoring case (oxjob #1745:
 // a typed or echoed filter showed its facet unticked, and a click added a duplicate).
-const sameValue = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
+// Exported for the facets' "More…" dialog (GroupBy, FilterSelectEditRow), which keeps its own list.
+export const sameValue = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
 
 // Whether `value` is selected in `columnId`'s refinement.
 export function hasSelectedValue(filterRows, columnId, value, operator = OP_IS) {

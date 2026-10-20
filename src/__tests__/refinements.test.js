@@ -9,7 +9,18 @@ import {
   setRefinementValues,
   removeRefinement,
   hasSelectedValue,
+  sameValue,
 } from '@/components/Oql/refinements';
+
+// oxjob #1744: the facets' "More…" dialog keeps its own list seeded from the echo, so it
+// compares with the same rule.
+describe('sameValue', () => {
+  it('ignores case, so an echoed id matches its facet row', () => {
+    expect(sameValue('T10643', 't10643')).toBe(true);
+    expect(sameValue('t10643', 't10644')).toBe(false);
+    expect(['T10643'].some((v) => sameValue(v, 't10643'))).toBe(true);
+  });
+});
 
 // oxjob #1745: the API echoes ids upper-case, facets carry them lower-case.
 describe('ids match ignoring case', () => {
