@@ -284,6 +284,9 @@ onMounted(() => { loadPickChart(); });
 .nl-serp--stacked .nl-col-body {
   overflow: visible;
 }
+.nl-serp--stacked .nl-col-body--main {
+  padding: 12px 12px 32px;
+}
 .nl-serp--stacked .nl-rail {
   flex-direction: row;
   padding: 8px 16px;

@@ -182,8 +182,9 @@ function onColumnFilter(baseKey) {
 <style scoped>
 .nl-results-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px 8px;
   margin: 14px 0 8px;
 }
 .nl-results-count {
