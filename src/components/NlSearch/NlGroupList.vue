@@ -3,7 +3,7 @@
        number drawn as a bar so the order reads at a glance. Table shows every column. -->
   <ol class="nl-group-list">
     <li v-for="(row, i) in rows" :key="row.id" class="nl-group">
-      <span class="nl-group-rank">{{ i + 1 }}</span>
+      <span v-if="!byYear" class="nl-group-rank">{{ i + 1 }}</span>
       <div class="nl-group-main">
         <div class="nl-group-name">
           <template v-for="(g, j) in row.path" :key="j">
@@ -41,11 +41,21 @@ const props = defineProps({
 const meta = computed(() => props.resultsObject?.meta || {});
 const depth = computed(() => (meta.value.splits || []).length);
 const measures = computed(() => (depth.value ? meta.value.measures || [] : wholeSetMeasures(meta.value.measures)));
+const YEAR = /^(1[5-9]|20)\d\d$/;
 const rows = computed(() => {
-  if (depth.value) return flatRows(props.resultsObject?.group_by, depth.value);
-  const all = props.resultsObject?.summary?.all;
-  return all ? [{ id: 'all', path: [], group: all }] : [];
+  if (!depth.value) {
+    const all = props.resultsObject?.summary?.all;
+    return all ? [{ id: 'all', path: [], group: all }] : [];
+  }
+  const out = flatRows(props.resultsObject?.group_by, depth.value);
+  // A breakdown by year reads in year order, not by size (the API ranks groups by count).
+  if (depth.value === 1 && out.length > 1 && out.every((r) => YEAR.test(String(r.path[0]?.key)))) {
+    return [...out].sort((a, b) => Number(a.path[0].key) - Number(b.path[0].key));
+  }
+  return out;
 });
+const byYear = computed(() => depth.value === 1 && rows.value.length > 1
+  && rows.value.every((r) => YEAR.test(String(r.path[0]?.key))));
 const shownMeasures = computed(() => measures.value.slice(0, 3));
 // The bar follows the first numeric measure.
 const lead = computed(() => measures.value.find((m) => !isTextMeasure(m, rows.value)) || null);
