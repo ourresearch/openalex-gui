@@ -6,6 +6,8 @@
 // the current results), so the swap and anything that rewrites the OQL can't drift apart.
 
 export const NEW_OQL_FLAG = 'new_oql';
+// The one-mode search page (oxjob #1744) shows the new form too.
+export const NL_SEARCH_FLAG = 'nl_search';
 
 /** The canonical OQL to show from anything carrying `oql` (and `x_new_oql`): an execute
  *  response's meta.x_query, a /query or /validate response. With the flag on, the new form

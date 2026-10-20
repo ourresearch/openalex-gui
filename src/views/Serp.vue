@@ -1,13 +1,16 @@
 <template>
   <div style="min-height: 80vh">
-    <oql-serp v-if="oqlFlag" :results-object="resultsObject" :search-error="searchError" />
+    <!-- The one-mode page (chat, editable OQL, three formats), behind `nl_search` (oxjob #1744).
+         It runs on the oql path below, so it needs the oql flag too (on for all but legacy_ui). -->
+    <nl-serp v-if="oqlFlag && nlSearch" :results-object="resultsObject" :search-error="searchError" />
+    <oql-serp v-else-if="oqlFlag" :results-object="resultsObject" :search-error="searchError" />
     <expert-serp v-else :results-object="resultsObject" :search-error="searchError" />
   </div>
 </template>
 
 <script setup>
 import { capitalize } from 'lodash-es';
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, defineAsyncComponent } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import { useHead } from '@unhead/vue';
@@ -23,6 +26,8 @@ import { refusalMessage } from '@/oqlPipeline';
 
 import ExpertSerp from '@/components/ExpertSerp.vue';
 import OqlSerp from '@/components/OqlSerp.vue';
+// Flag-gated (oxjob #1744): its own chunk, so nobody without the flag downloads it.
+const NlSerp = defineAsyncComponent(() => import('@/components/NlSearch/NlSerp.vue'));
 
 defineOptions({ name: 'Serp' });
 
@@ -77,6 +82,7 @@ useHead({
 const userId = computed(() => store.getters['user/userId']);
 const userSavedSearches = computed(() => store.getters['user/userSavedSearches']);
 const oqlFlag = computed(() => !!store.getters.featureFlags['oql']);
+const nlSearch = computed(() => store.getters.nlSearch);
 
 watch(
   effectiveEntityType,

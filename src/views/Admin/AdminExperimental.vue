@@ -53,6 +53,7 @@ const store = useStore();
 // UI-defined feature flags that may not yet exist in the backend
 const UI_DEFINED_FLAGS = [
   { name: 'new_oql', description: 'Show the new OQL (get / rank / break down) wherever the site shows a query\'s OQL, instead of today\'s form. The API returns both until the switch-over (oxjob #1555).' },
+  { name: 'nl_search', description: 'The one-mode search page: ask in plain words in a chat, see and edit the OQL at the top, get the answer as a table, list or chart. Facets left, results middle, chat right, each collapsible. Shows the new OQL (oxjob #1744).' },
   { name: 'edge_autocomplete_off', description: 'Turn OFF edge autocomplete (on for everyone since 2026-10-04, oxjob #1529): suggestions from today\'s /autocomplete endpoints, debounced, instead of the Cloudflare edge.' },
 ];
 

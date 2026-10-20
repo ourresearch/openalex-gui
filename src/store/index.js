@@ -9,7 +9,7 @@ import { entityConfigs } from '@/entityConfigs';
 import { facetsByCategory } from '@/facetConfigUtils';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { api } from '@/api';
-import { NEW_OQL_FLAG, pickOql } from '@/oqlForm';
+import { NEW_OQL_FLAG, NL_SEARCH_FLAG, pickOql } from '@/oqlForm';
 import { hasBrowser } from '@/utils/env';
 
 // oxjob #1689 Nuxt trial: SSR-safe localStorage read (the server has none).
@@ -428,8 +428,14 @@ return createStore({
             return flags;
         },
         // The new OQL (oxjob #1555): show `x_new_oql` wherever the site shows canonical OQL.
+        // The one-mode search page (`nl_search`, oxjob #1744) always shows it: it reads like
+        // English and carries the sort (", most cited first"), which today's form drops.
         newOql(state, getters) {
-            return !!getters.featureFlags[NEW_OQL_FLAG];
+            return !!getters.featureFlags[NEW_OQL_FLAG] || !!getters.featureFlags[NL_SEARCH_FLAG];
+        },
+        // The one-mode search page: chat, editable OQL, three formats (oxjob #1744).
+        nlSearch(state, getters) {
+            return !!getters.featureFlags[NL_SEARCH_FLAG];
         },
         // The canonical OQL to show for the current results (see oqlForm.js); every display
         // and the URL projection read this, so a rewrite and the flag can't drift apart.
