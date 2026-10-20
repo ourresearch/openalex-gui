@@ -160,7 +160,8 @@ watch(messages, (m) => saveThread(m), { deep: true });
 const currentQuery = computed(() => {
   const q = route.query;
   const hasQuery = q.oql || q.filter || Object.keys(q).some((k) => k.startsWith('search'));
-  return hasQuery ? (store.getters.shownOql || null) : null;
+  // The URL's OQL keeps entity names, which help the model; the execute echo drops them.
+  return hasQuery ? (q.oql || store.getters.shownOql || null) : null;
 });
 
 function collapse(s) {

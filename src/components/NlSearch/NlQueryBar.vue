@@ -83,13 +83,10 @@ const isLoading = computed(() => !!store.state.isLoading);
 const status = computed(() => (isLoading.value ? 'querying' : null));
 
 // ---- the text: follows the page's query until someone edits it --------------------------
-// The URL carries the query collapsed onto one line; the settled response carries the
-// canonical (new-form) OQL. Show the URL's while it runs, the canonical once it lands.
-const seed = computed(() => {
-  const shown = store.getters.shownOql;
-  const fromUrl = route.query.oql || '';
-  return isLoading.value ? (fromUrl || shown || '') : (shown || fromUrl || '');
-});
+// The URL's ?oql= first: it keeps entity names ([MIT](I63966007)), which the execute echo
+// (shownOql) drops. The editor's own validate pass then swaps in the tidy canonical form.
+// A classic URL (/works?filter=...) has no ?oql=, so it shows the echo.
+const seed = computed(() => route.query.oql || store.getters.shownOql || '');
 const text = ref('');
 const baseline = ref('');
 const validation = ref(null);
