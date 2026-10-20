@@ -11,7 +11,7 @@ vi.mock('@/components/OqlPlayground/oqlEditorApi', () => ({
   ]),
   getParseContext: vi.fn(async (q, pos) => {
     if (q.slice(0, pos).endsWith('from ')) {
-      return { entity: 'works', context: { category: 'core', slot: 'works-slot', prefix: '', replace_range: { start: pos, end: pos },
+      return { entity: 'works', context: { category: 'core', slot: 'entity', prefix: '', replace_range: { start: pos, end: pos },
         suggestions: [{ value: 'both', kind: 'keyword', detail: 'works from every place' }],
         autocomplete_entities: ['institutions', 'countries'] } };
     }
@@ -111,7 +111,8 @@ describe('autocomplete', () => {
   it('after a slot word and a space: a name prompt plus the grammar\'s words', async () => {
     const doc = 'get works from ';
     const r = await complete(doc, doc.length);
-    expect(r.options.map((o) => o.label)).toEqual(['Type a name: institution, country…', 'both']);
+    const shown = [...r.options].sort((a, b) => a.section.rank - b.section.rank || b.boost - a.boost);
+    expect(shown.map((o) => o.label)).toEqual(['Type a name: institution, country…', 'both']);
   });
   it('a bare name in a link slot searches entities and keeps the keywords', async () => {
     const doc = 'get works from stan';

@@ -379,11 +379,14 @@ async function oqlCompletions(ctx) {
     if (prefix.trim().length >= 2) {
       return entityResult(ctx, kinds, prefix.replace(/^\[/, ""), from, to, options);
     }
-    options.unshift({
+    // first where a name is what goes here (`from `, `funded by `); last where it's one
+    // option among many (`get ` also takes `[MIT](I63966007)'s works`)
+    const nameFirst = c.slot === "entity" || !options.length;
+    options.push({
       label: `Type a name: ${kinds.slice(0, 3).map((k) => kindLabel(k).toLowerCase()).join(", ")}…`,
       type: "search",
-      boost: 100,
-      section: { name: "Matching names", rank: 0 },
+      boost: nameFirst ? 100 : -1,
+      section: { name: "Matching names", rank: nameFirst ? 0 : 3 },
       apply: (view, completion, f, tt) => {
         view.dispatch({
           ...insertCompletionText(view.state, "[]", f, tt),
@@ -464,6 +467,7 @@ function phraseDom(entry) {
 }
 
 const oqlHover = hoverTooltip((view, pos) => {
+  if (completionStatus(view.state)) return null;   // the dropdown has the floor
   const { links } = view.state.field(linkField);
   const l = links.find((x) => pos >= x.from && pos <= x.to);
   if (l) return { pos: l.nameFrom, end: l.nameTo, above: true, create: () => ({ dom: cardDom(l) }) };
@@ -478,7 +482,7 @@ const oqlHover = hoverTooltip((view, pos) => {
 }, { hoverTime: 300, hideOnChange: true });
 
 // --- clicks ------------------------------------------------------------------------------------
-const CHOICE_KINDS = new Set(["order", "measure", "split", "noun", "year"]);
+const CHOICE_KINDS = new Set(["order", "measure", "split", "noun"]);
 
 const clicks = EditorView.domEventHandlers({
   mousedown(event, view) {
