@@ -218,6 +218,7 @@ import { getColumnExportSpecs } from '@/components/Results/Table/columnConfig';
 import { resolveExportSelection, idsOpenAlexFilter } from '@/utils/selectionExport';
 import ColumnEditorPanel from '@/components/Results/Table/ColumnEditorPanel.vue';
 import { isPipelineResponse, exportRows, exportCredits, calculationExportFile } from '@/oqlPipeline';
+import { pickOql } from '@/oqlForm';
 
 const props = defineProps({
   // Fixed query from outside the search page: { filter, count }, and optionally
@@ -289,7 +290,10 @@ const exportSelection = computed(() =>
 // This covers every OQL shape, including ones with no classic-URL equivalent
 // (nested boolean trees, corpus selector).
 const isOqlMode = computed(() => !props.scope && !!route.query.oql);
-const canonicalOql = computed(() => store.state.resultsObject?.meta?.x_query?.oql ?? null);
+// the form the site shows: the new one under `new_oql` / `nl_search` (Jason 2026-10-20: the flag
+// uses the new OQL for everything; the API reads both forms, cursor paging included; oxjob #1555)
+const canonicalOql = computed(
+  () => pickOql(store.state.resultsObject?.meta?.x_query, store.getters.newOql) ?? null);
 // Defensive: the dialog only opens once results (and their x_query echo) have
 // landed, so a missing canonical OQL should be unreachable — but if it ever
 // happens we must block rather than fall through to an unfiltered request.

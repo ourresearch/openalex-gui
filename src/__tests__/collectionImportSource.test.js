@@ -32,3 +32,12 @@ describe('limits and types', () => {
     expect(isCollectibleEntityType('raw-affiliation-strings')).toBe(false);
   });
 });
+
+describe('importSource with the new OQL (oxjob #1555)', () => {
+  const ro = { meta: { x_query: { url: null, oql: 'get works where title has (kelp)', x_new_oql: 'get works with kelp in the title' } } };
+  it('sends the form the site shows: new under the flag, else today\'s', () => {
+    expect(importSource(ro, {}, 'works', true)).toEqual({ oql: 'get works with kelp in the title' });
+    expect(importSource(ro, {}, 'works', false)).toEqual({ oql: 'get works where title has (kelp)' });
+    expect(importSource(ro, {}, 'works')).toEqual({ oql: 'get works where title has (kelp)' });
+  });
+});

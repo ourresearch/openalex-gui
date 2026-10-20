@@ -896,7 +896,7 @@ const enumerationBlocked = computed(() => {
 });
 // "Select all" adds the search's results on the server (ZD#22369, oxjob #1527).
 const collectionImportSource = computed(() =>
-  importSource(props.resultsObject, route.query, entityType.value)
+  importSource(props.resultsObject, route.query, entityType.value, store.getters.newOql)
 );
 function onCollectionsApplied() {
   store.commit('selection/deselectAll');

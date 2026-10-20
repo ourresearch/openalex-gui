@@ -74,8 +74,10 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { useStore } from 'vuex';
 
 import { api } from '@/api';
+import { pickOql } from '@/oqlForm';
 import {
   flatRows, sortRows, formatMeasure, formatCost, groupLink, wholeSetMeasures, exportRows, isTextMeasure,
 } from '@/oqlPipeline';
@@ -88,6 +90,7 @@ const props = defineProps({
 });
 
 const route = useRoute();
+const store = useStore();
 
 // One split with more groups than came back (`meta.more_groups`) holds only the top
 // page, so a sort on a calculated column asks the API for the top page by that column
@@ -142,7 +145,8 @@ async function onSort(col) {
     serverSorted.value = null;
     return;
   }
-  const oql = props.resultsObject.meta.x_query?.oql || route.query.oql;
+  // the form the site shows (the new one under `new_oql` / `nl_search`; oxjob #1555)
+  const oql = pickOql(props.resultsObject.meta.x_query, store.getters.newOql) || route.query.oql;
   const asked = sort.value;
   sorting.value = true;
   try {

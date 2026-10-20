@@ -7,6 +7,7 @@
 // Responses from the legacy GET path carry neither, so the route builds the URL.
 
 import { searchParamKeys } from '@/searchParamKeys';
+import { pickOql } from '@/oqlForm';
 
 // The API URL for the route's filter, searches and sort (the legacy path).
 export function legacyApiUrl(routeQuery, entityType) {
@@ -20,11 +21,12 @@ export function legacyApiUrl(routeQuery, entityType) {
   return `https://api.openalex.org/${entityType}${qs ? '?' + qs : ''}`;
 }
 
-// {query} or {oql}, for POST /collections/{id}/imports.
-export function importSource(resultsObject, routeQuery, entityType) {
+// {query} or {oql}, for POST /collections/{id}/imports. `newOql`: the form the site shows
+// (the store's `newOql` getter; oxjob #1555), which the API reads like the old one.
+export function importSource(resultsObject, routeQuery, entityType, newOql = false) {
   const xq = resultsObject?.meta?.x_query;
   if (xq?.url) return { query: `https://api.openalex.org${xq.url}` };
-  const oql = xq?.oql || routeQuery?.oql;
+  const oql = pickOql(xq, newOql) || routeQuery?.oql;
   if (oql) return { oql };
   return { query: legacyApiUrl(routeQuery || {}, entityType) };
 }

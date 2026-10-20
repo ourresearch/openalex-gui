@@ -234,7 +234,8 @@ function openSaveAsCollection() {
     openLogin('To save results as a collection, please log in or sign up.');
     return;
   }
-  saveAsCollectionSource.value = importSource(store.state.resultsObject, route.query, entityType.value);
+  saveAsCollectionSource.value = importSource(store.state.resultsObject, route.query, entityType.value,
+    store.getters.newOql);
   isDialogOpen.saveAsCollection = true;
 }
 
