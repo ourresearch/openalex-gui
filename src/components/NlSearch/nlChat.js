@@ -131,6 +131,32 @@ export function buildHistory(messages, max = 6) {
   return turns.slice(-max);
 }
 
+/**
+ * One quiet line on how the model got its answer, from meta.steps (#1494, 2026-10-20: [{tool, detail, ms}],
+ * tool "find_entity" (detail "<type>: <name>") or "run_oql" (detail = a draft query, not shown)):
+ * "Looked up University of Cape Town · tried 1 query · 11.6 s". With no steps (a pasted title, or the
+ * live version before steps), just the time. Null when there's nothing to say.
+ */
+export function stepsLine(meta) {
+  if (!meta) return null;
+  const steps = Array.isArray(meta.steps) ? meta.steps : [];
+  const names = steps
+    .filter((s) => s?.tool === 'find_entity' && s.detail)
+    .map((s) => String(s.detail).replace(/^[^:]*:\s*/, ''));
+  const queries = steps.filter((s) => s?.tool === 'run_oql').length;
+  const parts = [];
+  if (names.length) {
+    const shown = names.slice(0, 2).join(', ');
+    parts.push(`Looked up ${shown}${names.length > 2 ? ` and ${names.length - 2} more` : ''}`);
+  }
+  if (queries) parts.push(`tried ${queries} ${queries === 1 ? 'query' : 'queries'}`);
+  const ms = Number(meta.elapsed_ms);
+  if (Number.isFinite(ms) && ms > 0) parts.push(`${(ms / 1000).toFixed(1)} s`);
+  if (!parts.length) return null;
+  const line = parts.join(' · ');
+  return line.charAt(0).toUpperCase() + line.slice(1);
+}
+
 /** The lines the chat shows under an answer's note: what was left out, out of reach, how-to. */
 export function answerAsides(answer) {
   const out = [];

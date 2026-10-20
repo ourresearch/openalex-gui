@@ -86,6 +86,9 @@
               </span>
             </span>
           </div>
+          <div v-if="m.how" class="nl-how">
+            <v-icon size="13" class="mr-1">mdi-magnify-scan</v-icon>{{ m.how }}
+          </div>
           <div v-if="m.stale" class="nl-aside">
             This query is in an older form of OQL that no longer runs. Ask the question again to rebuild it.
           </div>
@@ -142,7 +145,7 @@ import filters from '@/filters';
 import HiringMarkdown from '@/components/Hiring/HiringMarkdown.vue';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import {
-  askQueryText, oqlForAnswer, oqlForPageUrl, answerAsides, buildHistory, QUERY_ROUTES, loadThread, saveThread,
+  askQueryText, oqlForAnswer, oqlForPageUrl, answerAsides, buildHistory, stepsLine, QUERY_ROUTES, loadThread, saveThread,
 } from '@/components/NlSearch/nlChat';
 import { EXAMPLE_QUESTIONS } from '@/components/NlSearch/nlExamples';
 
@@ -264,6 +267,7 @@ async function ask(text) {
       count: answer.count ?? null,
       oql: answer.oql || null,
       sort: answer.sort || null,
+      how: stepsLine(answer.meta),
     };
     if (QUERY_ROUTES.has(answer.route) && answer.oql) {
       msg.shownOql = await oqlForAnswer(answer.oql, answer.sort);
@@ -421,6 +425,13 @@ defineExpose({ ask });
 }
 .nl-aside-label {
   font-weight: 600;
+}
+.nl-how {
+  margin-top: 6px;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
 }
 .nl-md :deep(p:last-child) {
   margin-bottom: 4px;

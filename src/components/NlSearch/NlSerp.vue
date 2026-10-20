@@ -75,7 +75,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue';
+import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify';
@@ -154,7 +154,10 @@ watch([() => props.resultsObject, () => store.state.isLoading], ([r, loading]) =
   if (!pendingAnswerOql.value || !r || loading) return;
   format.value = defaultFormat(r, store.getters.shownOql);
   pendingAnswerOql.value = null;
+  // On a phone the columns stack and the answer lands below the chat: bring it into view.
+  if (stacked.value) nextTick(() => mainBody.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
 });
+const mainBody = ref(null);
 // A failed run ends the wait too, so a later unrelated query doesn't inherit it.
 watch(() => props.searchError, (e) => { if (e) pendingAnswerOql.value = null; });
 
@@ -266,6 +269,11 @@ onMounted(() => { loadPickChart(); });
 }
 .nl-serp--stacked .nl-col {
   flex: 0 0 auto;
+}
+/* Phone: ask first, then the query and its results; facets (a long list) last. */
+.nl-serp--stacked .nl-col--facets,
+.nl-serp--stacked .nl-rail:first-child {
+  order: 1;
 }
 .nl-serp--stacked .nl-col--chat {
   order: -1;

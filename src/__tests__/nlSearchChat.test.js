@@ -12,7 +12,7 @@ vi.mock('@/components/OqlPlayground/oqlEditorApi', () => ({ validateOql: vi.fn(a
 import axios from 'axios';
 import {
   askQueryText, friendlyError, sortToSortBy, oqlForAnswer, oqlForPageUrl, answerAsides, buildHistory, loadThread, saveThread,
-  retryShortThrottle,
+  retryShortThrottle, stepsLine,
 } from '../components/NlSearch/nlChat';
 import { defaultFormat } from '../components/NlSearch/nlChart';
 
@@ -129,6 +129,37 @@ describe('retryShortThrottle', () => {
     const fn = vi.fn().mockRejectedValue(daily);
     await expect(retryShortThrottle(fn)).rejects.toBe(daily);
     expect(fn).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('stepsLine (how the model got there, from #1494 meta.steps)', () => {
+  it('names what it looked up and counts its tries (real B2 steps)', () => {
+    const meta = {
+      elapsed_ms: 19600,
+      steps: [
+        { tool: 'find_entity', detail: 'institutions: University of Michigan', ms: 4214 },
+        { tool: 'run_oql', detail: 'get authors at [University of Michigan](I27837315) ...', ms: 6206 },
+        { tool: 'run_oql', detail: 'get authors who published works where ...', ms: 9403 },
+      ],
+    };
+    expect(stepsLine(meta)).toBe('Looked up University of Michigan · tried 2 queries · 19.6 s');
+  });
+  it('caps the names; one query reads singular', () => {
+    const meta = {
+      elapsed_ms: 11700,
+      steps: [
+        { tool: 'find_entity', detail: 'authors: Jennifer Doudna' },
+        { tool: 'find_entity', detail: 'sources: Science' },
+        { tool: 'find_entity', detail: 'institutions: UC Berkeley' },
+        { tool: 'run_oql', detail: 'get works where ...' },
+      ],
+    };
+    expect(stepsLine(meta)).toBe('Looked up Jennifer Doudna, Science and 1 more · tried 1 query · 11.7 s');
+  });
+  it('with no steps it gives the time; with nothing, null', () => {
+    expect(stepsLine({ elapsed_ms: 8495 })).toBe('8.5 s');
+    expect(stepsLine({})).toBeNull();
+    expect(stepsLine(undefined)).toBeNull();
   });
 });
 
