@@ -9,7 +9,7 @@
 
 import { DIM, OA_ORDER, plural } from "./chartData";
 import { CHART, MAX_LINES, MAX_SHARES, panelMeasures } from "./pickChart";
-import { INK, SERIES, OTHER, RAMP, OA_COLORS, FONT, formatValue, tickFormat, truncate, textWidth, joinNotes } from "./chartStyle";
+import { INK, SERIES, OTHER, RAMP, OA_COLORS, FONT, formatValue, tickFormat, truncate, textWidth, joinNotes, shortLabels } from "./chartStyle";
 
 const TOP_BARS = 15;
 const TOP_PANELS = 12;
@@ -89,7 +89,7 @@ function bars(Plot, data, m, width) {
   const all = ordered(oneDimRows(data, m), d, data, m);
   const shown = all.length <= 20 ? all : all.slice(0, TOP_BARS); // never "top 15 of 17"
   const labelMax = Math.max(20, Math.min(56, Math.floor((width * 0.4) / 7.2)));
-  const labelOf = new Map(shown.map((r) => [String(r.key), truncate(r.name, labelMax)]));
+  const labelOf = shortLabels(shown, labelMax);
   const marginLeft = Math.min(width * 0.42, Math.max(48, ...shown.map((r) => textWidth(labelOf.get(String(r.key))))) + 14);
   const valueText = (r) => formatValue(m, r.value, { short: true });
   const marginRight = Math.max(...shown.map((r) => textWidth(valueText(r)))) + 18;
@@ -379,7 +379,7 @@ function measurePanels(Plot, data, width, doc) {
   const shown = all.length <= 20 ? all : all.slice(0, TOP_BARS);
   const keys = shown.map((r) => String(r.key));
   const labelMax = Math.max(18, Math.min(44, Math.floor((width * 0.34) / 7.2)));
-  const labelOf = new Map(shown.map((r) => [String(r.key), truncate(r.name, labelMax)]));
+  const labelOf = shortLabels(shown, labelMax);
   const labelW = Math.min(width * 0.38, Math.max(48, ...[...labelOf.values()].map((l) => textWidth(l))) + 14);
   const gap = 16;
   const plotW = Math.max(120, Math.floor((width - labelW - gap * (ms.length - 1)) / ms.length));
@@ -634,7 +634,7 @@ function stackedBars(Plot, data, m, width) {
   const { nameOf, names, colors } = partsOf(data, 1);
   const keepOuter = new Set(outer.map((o) => o.key));
   const labelMax = Math.max(18, Math.min(48, Math.floor((width * 0.36) / 7.2)));
-  const labelOf = new Map(outer.map((o) => [String(o.key), truncate(o.name, labelMax)]));
+  const labelOf = shortLabels(outer, labelMax);
   const rows = data.rows
     .filter((r) => keepOuter.has(r.path[0].key) && !r.path[1].unknown && num(r.values[m.key]))
     .map((r) => ({ outer: String(r.path[0].key), oname: r.path[0].name, part: nameOf.get(r.path[1].key) || "Other", value: r.values[m.key] }));
@@ -667,7 +667,7 @@ function heatmap(Plot, data, m, width) {
   const rows = data.rows
     .filter((r) => ok.has(r.path[0].key) && ik.has(r.path[1].key) && num(r.values[m.key]))
     .map((r) => ({ o: String(r.path[0].key), i: String(r.path[1].key), oname: r.path[0].name, iname: r.path[1].name, value: r.values[m.key] }));
-  const oLabel = new Map(outer.map((o) => [String(o.key), truncate(o.name, width < 700 ? 20 : 30)]));
+  const oLabel = shortLabels(outer, width < 700 ? 20 : 30);
   const iLabel = new Map(inner.map((o) => [String(o.key), truncate(o.name, 14)]));
   const marginLeft = Math.min(width * 0.35, Math.max(48, ...[...oLabel.values()].map((l) => textWidth(l))) + 12);
   const cellW = (width - marginLeft - 16) / Math.max(1, inner.length);

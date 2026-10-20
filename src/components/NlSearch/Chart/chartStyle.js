@@ -56,6 +56,23 @@ export function truncate(s, n) {
   return t.length > n ? `${t.slice(0, n - 1).trimEnd()}…` : t;
 }
 
+// Short labels for a set of names: cut at the end, but where two cut names would read the same
+// ("Indian Institute of Techn…" for Delhi and Bombay) cut those in the middle to keep the ends.
+export function shortLabels(items, n) {
+  const out = new Map(items.map((r) => [String(r.key), truncate(r.name, n)]));
+  const seen = new Map();
+  for (const l of out.values()) seen.set(l, (seen.get(l) || 0) + 1);
+  for (const r of items) {
+    const k = String(r.key);
+    const name = String(r.name ?? "");
+    if (seen.get(out.get(k)) > 1 && name.length > n) {
+      const tail = Math.floor((n - 1) * 0.45);
+      out.set(k, `${name.slice(0, n - 1 - tail).trimEnd()}…${name.slice(-tail).trimStart()}`);
+    }
+  }
+  return out;
+}
+
 // Approximate rendered width of a label at 12 px (no DOM needed).
 export const textWidth = (s, px = 12) => String(s ?? "").length * px * 0.6;
 

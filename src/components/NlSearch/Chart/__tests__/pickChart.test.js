@@ -5,6 +5,21 @@ import { readFileSync, readdirSync } from "fs";
 import path from "path";
 import { pickChart, chartOptions, CHART } from "../pickChart";
 import { chartData, DIM } from "../chartData";
+import { shortLabels } from "../chartStyle";
+
+describe("shortLabels", () => {
+  it("cuts names that would collide in the middle, keeping their ends", () => {
+    const items = [
+      { key: "a", name: "Indian Institute of Technology Delhi" },
+      { key: "b", name: "Indian Institute of Technology Bombay" },
+      { key: "c", name: "Indian Institute of Science Bangalore" },
+    ];
+    const l = shortLabels(items, 24);
+    expect(new Set(l.values()).size).toBe(3);
+    expect(l.get("a").endsWith("Delhi")).toBe(true);
+    expect(l.get("b").endsWith("Bombay")).toBe(true);
+  });
+});
 
 const dir = path.join(__dirname, "../__fixtures__");
 const fixture = (name) => JSON.parse(readFileSync(path.join(dir, `${name}.json`), "utf8"));
