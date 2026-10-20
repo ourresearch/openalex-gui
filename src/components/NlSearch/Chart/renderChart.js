@@ -295,10 +295,15 @@ function scatter(Plot, data, m, width) {
   const rows = oneDimRows(data, yM).filter((r) => num(r.values[xM.key]) && num(r.values[yM.key]));
   const xs = rows.map((r) => r.values[xM.key]).filter((v) => v > 0);
   const xLog = xM.additive && xs.length && Math.max(...xs) / Math.min(...xs) > 50;
-  // Label the standouts (highest up the side, furthest along), placed so no two collide.
-  const byY = [...rows].sort((a, b) => b.values[yM.key] - a.values[yM.key]);
+  // A log axis ticks and grids at powers of ten only (every minor tick is noise).
+  const logTicks = [];
+  if (xLog) for (let p = 10 ** Math.floor(Math.log10(Math.min(...xs))); p <= Math.max(...xs); p *= 10) logTicks.push(p);
+  // Label the standouts: the biggest, then the highest among the bigger half (a mean over a
+  // handful of works swings wildly, so tiny groups don't get names), placed so none collide.
   const byX = [...rows].sort((a, b) => b.values[xM.key] - a.values[xM.key]);
-  const candidates = [...new Map([byY[0], byX[0], byY[1], byX[1], byY[2], byY[3], byX[2], byY[4]].filter(Boolean).map((r) => [r.key, r])).values()];
+  const bigHalf = byX.slice(0, Math.max(5, Math.ceil(byX.length / 2)));
+  const byY = [...bigHalf].sort((a, b) => b.values[yM.key] - a.values[yM.key]);
+  const candidates = [...new Map([byX[0], byY[0], byX[1], byY[1], byX[2], byY[2], byY[3], byX[3]].filter(Boolean).map((r) => [r.key, r])).values()];
   const base = wholeValue(data, yM);
   const options = (labelled) => ({
     width,
@@ -308,11 +313,11 @@ function scatter(Plot, data, m, width) {
     marginTop: 24,
     marginBottom: 40,
     style: STYLE,
-    x: { type: xLog ? "log" : "linear", grid: true, label: `${xM.label} →`, labelAnchor: "right", tickFormat: tickFormat(xM), ticks: Math.floor(width / 120) },
+    x: { type: xLog ? "log" : "linear", grid: true, label: `${xM.label} →`, labelAnchor: "right", tickFormat: tickFormat(xM), ticks: xLog ? logTicks : Math.floor(width / 120) },
     y: { grid: true, nice: true, label: `↑ ${yM.label}`, tickFormat: tickFormat(yM), ...(yM.percent ? { domain: [0, 100] } : {}) },
     marks: [
       base != null ? Plot.ruleY([base], { stroke: INK.primary, strokeOpacity: 0.55 }) : null,
-      base != null ? Plot.text([base], { y: (v) => v, frameAnchor: "right", dx: 4, textAnchor: "start", text: (v) => `All works ${formatValue(yM, v)}`, fill: INK.secondary, ...HALO }) : null,
+      base != null ? Plot.text([base], { y: (v) => v, frameAnchor: "left", dx: 4, dy: -8, textAnchor: "start", text: (v) => `All works ${formatValue(yM, v)}`, fill: INK.secondary, ...HALO }) : null,
       Plot.dot(rows, { x: (r) => r.values[xM.key], y: (r) => r.values[yM.key], r: 4.5, fill: SERIES[0], fillOpacity: 0.85, stroke: INK.surface, strokeWidth: 1.5 }),
       Plot.text(labelled, { x: (r) => r.values[xM.key], y: (r) => r.values[yM.key], text: (r) => truncate(r.name, 26), dx: 8, textAnchor: "start", fill: INK.secondary, ...HALO }),
       Plot.tip(rows, Plot.pointer({ x: (r) => r.values[xM.key], y: (r) => r.values[yM.key], title: (r) => tipText(r.name, r.values, data, yM) })),
