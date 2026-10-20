@@ -46,7 +46,7 @@
                 </div>
                 <div class="f26-card">
                     <h4>Wednesday 21 October, Le Totem</h4>
-                    <p class="card-text">Fewer talks, more conversation. Four morning talks, then Jason Priem on the past and future of OpenAlex. In the afternoon, two rounds of breakout groups, on data quality and on coverage, each making the case for what OpenAlex should take on next. In French and English. Breakfast and lunch provided. Ends at 15:30.</p>
+                    <p class="card-text">Fewer talks, more conversation. Four morning talks, then Jason Priem on the past and future of OpenAlex. In the afternoon, two rounds of breakout groups, on accuracy and on coverage, each making the case for what OpenAlex should take on next. In French and English. Breakfast and lunch provided. Ends at 15:30.</p>
                     <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">breakouts</span>
                 </div>
             </div>
@@ -258,7 +258,7 @@
                 <div class="sched-block">
                     <div class="sched-time">13:30 &ndash; 14:20</div>
                     <div class="sched-content">
-                        <h4>Breakout groups, round 1: data quality</h4>
+                        <h4>Breakout groups, round 1: accuracy</h4>
                         <p>We put up the suggested groups (see below). You tell us what we missed and what nobody wants, and we settle the list. Then the room splits up, and each group comes back with a two-minute pitch to OpenAlex: why this should be a priority, and what doing it well would look like.</p>
                         <span class="f26-tag tag-discuss">breakouts</span>
                     </div>
@@ -267,7 +267,7 @@
                     <div class="sched-time">14:20 &ndash; 15:15</div>
                     <div class="sched-content">
                         <h4>Breakout groups, round 2: coverage</h4>
-                        <p>Same format, on what OpenAlex is missing: the kinds of research, sources and metadata we don&rsquo;t yet cover well.</p>
+                        <p>Same format, on what OpenAlex is missing: works we don&rsquo;t index at all, and fields missing from the works we do.</p>
                         <span class="f26-tag tag-discuss">breakouts</span>
                     </div>
                 </div>
@@ -284,9 +284,9 @@
         <!-- DISCUSSION GROUPS -->
         <div class="section" id="discussion">
             <h2 class="section-header">Breakout groups</h2>
-            <p class="section-subtitle">Two rounds after lunch: data quality, then coverage. Each round starts from the suggested groups below, which come from what people write to us about most. Tell us what we missed and we&rsquo;ll add it; a group nobody wants to join gets dropped. Each group then makes its pitch to OpenAlex: why this should be a priority, who it matters to, and what doing it well would look like.</p>
+            <p class="section-subtitle">Two rounds after lunch: accuracy, then coverage. Each round starts from the suggested groups below, which come from what people write to us about and what we heard on Tuesday. Tell us what we missed and we&rsquo;ll add it; a group nobody wants to join gets dropped. Each group then makes its pitch to OpenAlex: why this should be a priority, who it matters to, and what doing it well would look like.</p>
 
-            <h3 class="sub-header">Round 1: data quality</h3>
+            <h3 class="sub-header">Round 1: accuracy</h3>
             <p class="sub-note">What OpenAlex gets wrong today.</p>
             <div class="discussion-grid">
                 <div class="discussion-card">
@@ -334,7 +334,9 @@
             </div>
 
             <h3 class="sub-header round-header">Round 2: coverage</h3>
-            <p class="sub-note">What OpenAlex is missing.</p>
+            <p class="sub-note">What OpenAlex is missing. That comes in two kinds: works we don&rsquo;t index at all, and gaps in the records of works we do.</p>
+
+            <h4 class="group-kind">Missing works</h4>
             <div class="discussion-grid">
                 <div class="discussion-card">
                     <h3>Journals outside the big indexes</h3>
@@ -364,11 +366,43 @@
                         <li>Which of these matter most for your work?</li>
                     </ul>
                 </div>
+            </div>
+
+            <h4 class="group-kind">Incomplete records</h4>
+            <div class="discussion-grid">
                 <div class="discussion-card">
-                    <h3>What each record holds</h3>
+                    <h3>Abstracts and full text</h3>
                     <ul>
-                        <li>Abstracts, reference lists, full text, funding data, subject headings such as MeSH</li>
-                        <li>Which gaps block your searches and your citation analyses?</li>
+                        <li>Works with no abstract, or no full text to search</li>
+                        <li>What do your searches and text mining need?</li>
+                    </ul>
+                </div>
+                <div class="discussion-card">
+                    <h3>References</h3>
+                    <ul>
+                        <li>Works with missing or partial reference lists, and the citation counts that depend on them</li>
+                        <li>Where do the gaps hurt your citation analyses most?</li>
+                    </ul>
+                </div>
+                <div class="discussion-card">
+                    <h3>Authors and affiliations</h3>
+                    <ul>
+                        <li>Works with no affiliations, no ORCIDs, or incomplete author lists</li>
+                        <li>Which sources could fill them in?</li>
+                    </ul>
+                </div>
+                <div class="discussion-card">
+                    <h3>Funding</h3>
+                    <ul>
+                        <li>Funders and grant numbers: which works have them, and which don&rsquo;t</li>
+                        <li>What would make funding data good enough to rely on?</li>
+                    </ul>
+                </div>
+                <div class="discussion-card">
+                    <h3>Subject headings and other traits</h3>
+                    <ul>
+                        <li>MeSH and other subject headings, keywords, language, licences</li>
+                        <li>Which traits should every record carry?</li>
                     </ul>
                 </div>
             </div>
@@ -628,6 +662,14 @@ defineOptions({
 }
 .discussion-card:hover { border-color: var(--f26-border-strong); }
 .round-header { margin-top: 2.5rem; }
+.group-kind {
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--f26-text-secondary);
+    margin: 1.25rem 0 0.75rem;
+}
 .discussion-card h3 {
     font-size: 0.92rem;
     font-weight: 600;
