@@ -142,7 +142,7 @@
                         <p>Maps of science and patents, technology foresight, and early-warning signals in research output, all computed from OpenAlex.</p>
                         <ul class="speaker-list">
                             <li><strong>Shruti Agarwal</strong> (Center for Security and Emerging Technology) &mdash; Building Map of Science and Map of Patents (<a href="https://docs.google.com/presentation/d/1A3N7Ro7-fj_6ztXnQM-Hz0Px0AvGgprk29wmNc-qmJc/edit?usp=sharing" target="_blank" rel="noopener">slides</a>, <a href="https://sciencemap.eto.tech/" target="_blank" rel="noopener">live demo</a>)</li>
-                            <li><strong>Melanie Martini</strong> (Fraunhofer FKIE) &mdash; KATI and OpenAlex: open science intelligence for technology foresight (<a href="https://drive.google.com/drive/folders/1l-FCc7Io9HQUEMZpYY8bIE3aMGQncuoq?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
+                            <li><strong>Melanie Martini</strong> (Fraunhofer FKIE) &mdash; KATI and OpenAlex: open science intelligence for technology foresight (<a href="https://docs.google.com/presentation/d/1y0mjuVpHubohogfTyIX-IRjbLJ5V4HjHhWCqWhIk0bg/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>G&eacute;raldine Geoffroy</strong> (SmartBibl.IA Solutions) &mdash; Research Signal Radar: an OSINT-style situation room for research output on OpenAlex (<a href="https://docs.google.com/presentation/d/1QU5rCbLZj8yoSOIMUUQxEgRS7YYsM-VU/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
