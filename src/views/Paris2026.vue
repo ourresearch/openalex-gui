@@ -218,7 +218,7 @@
                         <ul class="speaker-list">
                             <li><strong>Abdesslam Chai-allah and colleagues</strong> (INRAE) &mdash; OpenAlex at INRAE: what works, what doesn&rsquo;t, and what&rsquo;s next</li>
                             <li><strong>Elke Hausner</strong> (IQWiG) &mdash; A practical assessment of OpenAlex and Lens for systematic literature searches (<a href="https://docs.google.com/presentation/d/12y7Xa_HmI_K1C3nsgOS53P_mifbfhd_Bcncw5Fv3MTQ/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
-                            <li><strong>H&eacute;lo&iuml;se Gazeau</strong> (Universit&eacute; de Strasbourg) &mdash; Building institutional indicators without being a data analyst, or knowing how to code</li>
+                            <li><strong>H&eacute;lo&iuml;se Gazeau</strong> (Universit&eacute; de Strasbourg) &mdash; Building institutional indicators without being a data analyst, or knowing how to code (<a href="https://docs.google.com/presentation/d/1wiZ_8somexF6AXAigyJlTT-4KwxM5Yed_kuIqvAl5ts/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Abdelghani Maddi</strong> (GEMASS, CNRS and Sorbonne Universit&eacute;) &mdash; When quality signals come late: what OpenAlex reveals about journal discontinuation</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span>
