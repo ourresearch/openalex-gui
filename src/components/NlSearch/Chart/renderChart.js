@@ -290,8 +290,10 @@ function shares(Plot, data, m, width, doc) {
 
 function scatter(Plot, data, m, width) {
   const d = data.dims[0];
-  const xM = data.measures.find((x) => x.additive && x.key !== m.key) || data.measures.find((x) => x.key !== m.key);
-  const yM = m.key === xM.key ? data.measures.find((x) => x.key !== xM.key) : m;
+  const pool = panelMeasures(data); // never a count against its own share
+  const mm = pool.find((x) => x.key === m.key) || pool[pool.length - 1];
+  const xM = pool.find((x) => x.additive && x.key !== mm.key) || pool.find((x) => x.key !== mm.key);
+  const yM = mm.key === xM.key ? pool.find((x) => x.key !== xM.key) : mm;
   const rows = oneDimRows(data, yM).filter((r) => num(r.values[xM.key]) && num(r.values[yM.key]));
   const xs = rows.map((r) => r.values[xM.key]).filter((v) => v > 0);
   const xLog = xM.additive && xs.length && Math.max(...xs) / Math.min(...xs) > 50;

@@ -55,6 +55,7 @@ const EXPECTED = {
   compare_institutions_oa: [CHART.STACKED_BARS, CHART.HEATMAP],
   countries_sdg: [CHART.HEATMAP],
   rank_journals_retracted: [CHART.BARS],
+  sdg_with_share: [CHART.BARS],
 };
 
 describe("pickChart on real answers", () => {
@@ -137,6 +138,18 @@ describe("chartOptions follows the measure", () => {
     expect(chartOptions(d, "percent_open_access_is_oa")).toEqual([CHART.MEASURES, CHART.LINE, CHART.COLUMNS]);
     const c = chartData(answer("compare_institutions_year"));
     expect(chartOptions(c, "mean_fwci")).toEqual([CHART.LINES, CHART.SMALL]);
+  });
+
+  it("a count with its own share offers no scatter and no panels", () => {
+    const r = answer("sdg_with_share");
+    const share = { key: "percent_of_those", measure: "percent_of_those", column_id: null, oql: "percent of those works" };
+    const total = r.group_by.reduce((s, g) => s + g.count, 0);
+    const withShare = {
+      ...r,
+      meta: { ...r.meta, measures: [...r.meta.measures, share] },
+      group_by: r.group_by.map((g) => ({ ...g, percent_of_those: (100 * g.count) / total })),
+    };
+    expect(pickChart(withShare).options).toEqual([CHART.BARS]);
   });
 
   it("empty and odd answers never throw", () => {

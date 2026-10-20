@@ -89,7 +89,8 @@ export function chartOptions(data, measureKey) {
   if (!data.measures.length) return [];
   const measure = data.measures.find((m) => m.key === measureKey) || defaultMeasure(data);
   const add = measure.additive;
-  const many = data.measures.length >= 2;
+  // Two measures that aren't one another scaled (a share of works is the count over the total).
+  const many = panelMeasures(data).length >= 2;
 
   if (data.kind === "number") return [CHART.NUMBER];
 
