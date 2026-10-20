@@ -1,7 +1,11 @@
 import { defineNuxtPlugin } from '#app'
 // oxjob #1689 Nuxt trial: the browser-only half of src/main.js.
 import VScrollLock from 'v-scroll-lock'
+import axios from 'axios'
 import tracking from '@/tracking.js'
+import { getAppStore } from '@/store/index.js'
+import { urlBase } from '@/apiConfig.js'
+import { installKeyWait } from '@/keyWait.js'
 
 export default defineNuxtPlugin({
   name: 'ox-boot',
@@ -19,6 +23,8 @@ export default defineNuxtPlugin({
       }
     }
     tracking.setupJavaScriptErrorTracking()
+    // Before the first page fetch: a signed-in first load waits for its API key (oxjob #1744).
+    installKeyWait(axios, getAppStore(), urlBase.api)
     app.use(VScrollLock)
     app.config.globalProperties.config = {}
     ;(window as any).OpenAlex = app

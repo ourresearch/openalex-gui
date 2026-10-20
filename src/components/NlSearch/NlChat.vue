@@ -147,6 +147,7 @@ import { url } from '@/url';
 import filters from '@/filters';
 import HiringMarkdown from '@/components/Hiring/HiringMarkdown.vue';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
+import { waitForApiKey } from '@/keyWait';
 import {
   askQueryText, oqlForAnswer, oqlForPageUrl, answerAsides, buildHistory, stepsLine, QUERY_ROUTES, loadThread, saveThread,
 } from '@/components/NlSearch/nlChat';
@@ -259,7 +260,7 @@ async function ask(text) {
   const context = currentQuery.value;
   let msg;
   try {
-    await waitForApiKey();
+    await waitForKey();
     const answer = await askQueryText({ text, currentQuery: context, history });
     msg = {
       role: 'assistant',
@@ -290,14 +291,8 @@ async function ask(text) {
 
 // On a fresh load the cached sign-in restores the user before their API key, which comes with
 // the live /users/me a moment later; a question sent before it reads "Sign in" (seen 09:40 CT
-// with a ?ask= link). Wait for the key, up to about five seconds.
-async function waitForApiKey() {
-  if (store.state.user.apiKey) return;
-  await store.dispatch('user/ensureUser');
-  for (let i = 0; i < 25 && !store.state.user.apiKey; i++) {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-  }
-}
+// with a ?ask= link). Wait for the key, up to about five seconds (shared helper, @/keyWait).
+const waitForKey = () => waitForApiKey(store);
 
 // Set the page to a query; true when that navigated (an answer equal to the page's query
 // changes nothing).
