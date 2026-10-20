@@ -145,6 +145,18 @@ describe('applying a suggestion', () => {
   });
 });
 
+describe('vocabulary', () => {
+  it('asks again after a failed fetch', async () => {
+    vi.resetModules();
+    const mod = await import('@/components/OqlPlayground/oqlIde');
+    const api = await import('@/components/OqlPlayground/oqlEditorApi');
+    api.getVocabulary.mockRejectedValueOnce(new Error('429'));
+    await mod._internal.loadVocabulary();
+    await mod._internal.loadVocabulary();
+    expect(api.getVocabulary.mock.calls.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
 describe('code points', () => {
   it('converts both ways around astral characters', () => {
     const s = 'a😀b';

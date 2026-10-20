@@ -240,11 +240,15 @@ export function getEntityRecord(kind, id) {
 }
 
 // The grammar's phrases with plain-English help ({value, kind, detail, doc}), from the same
-// tables the parser reads (GET /oql-vocabulary). null when this API doesn't serve it yet.
-// The caller (oqlIde's loadVocabulary) asks once per page.
+// tables the parser reads (GET /oql-vocabulary). null when this API doesn't serve it (404);
+// any other failure throws, so the caller (oqlIde's loadVocabulary) can ask again. A fresh
+// page load can send this before the user's API key arrives, and a keyless call can 429.
 export function getVocabulary() {
   const url = `${urlBase.api}/oql-vocabulary?${MAILTO}`;
   return axios.get(url, axiosConfig())
     .then((r) => (Array.isArray(r.data?.phrases) ? r.data.phrases : null))
-    .catch(() => null);
+    .catch((e) => {
+      if (e?.response?.status === 404) return null;
+      throw e;
+    });
 }

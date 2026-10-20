@@ -64,6 +64,8 @@ function loadVocabulary() {
       }
       vocab.keywords = keywords;
       vocab.served = true;
+    }).catch(() => {
+      vocabPromise = null;   // a failed fetch (a keyless 429 on a fresh load) is asked again
     });
   }
   return vocabPromise;
@@ -694,11 +696,16 @@ export function oqlIde() {
 
 // Load the vocabulary and recolor an editor once it lands (keywords from the parser); warm the
 // edge autocomplete so the first name lookup isn't cold.
-export function warmIde(view) {
+export function warmIde(view, retries = 3) {
   edgeWarm("mix");
   loadVocabulary().then(() => {
-    if (!view || !vocab.served) return;
-    view.dispatch({ effects: languageSlot.reconfigure(coreLanguage()) });
+    if (!view) return;
+    if (vocab.served) {
+      view.dispatch({ effects: languageSlot.reconfigure(coreLanguage()) });
+    } else if (!vocabPromise && retries > 0) {
+      // failed (not "not served"): try again once the user's key has had time to arrive
+      setTimeout(() => warmIde(view, retries - 1), 2000);
+    }
   });
 }
 
