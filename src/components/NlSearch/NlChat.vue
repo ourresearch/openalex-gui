@@ -334,6 +334,9 @@ onMounted(() => {
     const query = { ...route.query };
     delete query.ask;
     router.replace({ name: route.name, params: route.params, query });
+    // A question arriving this way (a link, the homepage box) starts its own conversation.
+    messages.value = [];
+    expanded.value = new Set();
     if (signedIn.value) ask(q);
     else draft.value = q;
   } else {

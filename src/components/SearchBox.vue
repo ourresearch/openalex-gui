@@ -1256,6 +1256,14 @@ async function submitSearch(forceEntityType) {
   // Typed-not-pasted OQL submitted with Enter/magnifier also routes (#598).
   if (await tryOqlRoute()) return;
 
+  // The new search (`nl_search`, oxjob #1744): a question typed on the homepage opens the chat
+  // with it instead of running as keywords (plain keywords still answer there, as a search).
+  // DOIs, ORCIDs, database strategies and OQL above route as before; no other box changes.
+  if (store.getters.nlSearch && route.name === 'Home') {
+    url.pushToRoute(router, { name: 'Serp', params: { entityType: 'works' }, query: { ask: searchString.value } });
+    return;
+  }
+
   // For semantic search, do a single route push that also cleans incompatible filters/group_by
   if (searchMode.value === 'semantic') {
     const semanticAllowedKeys = new Set(
