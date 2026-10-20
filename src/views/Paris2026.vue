@@ -172,7 +172,7 @@
                     <div class="sched-time">16:30 &ndash; 17:00</div>
                     <div class="sched-content">
                         <h4>What we heard</h4>
-                        <p>The OpenAlex team responds to the day: the themes that came up across sessions, what we can act on, and what we want to dig into on Wednesday.</p>
+                        <p>The OpenAlex team responds to the day: the themes that came up across sessions, what we can act on, and what we want to dig into on Wednesday. (<a href="https://docs.google.com/presentation/d/16CtyRyxfVqo5gfYVgW2ufXJsCc8ZzLmtkxhHycz17eU/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</p>
                         <span class="f26-tag tag-discuss">discussion</span>
                     </div>
                 </div>
