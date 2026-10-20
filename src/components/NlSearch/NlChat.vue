@@ -81,10 +81,13 @@
                 class="nl-oql-more"
                 @click.stop="toggleExpanded(i)"
               >{{ expanded.has(i) ? 'Show less' : 'Show all' }}</button>
-              <span v-if="!isCurrent(m)" class="nl-oql-snippet-use">
+              <span v-if="!isCurrent(m) && !m.stale" class="nl-oql-snippet-use">
                 <v-icon size="14">mdi-arrow-u-left-top</v-icon> Show again
               </span>
             </span>
+          </div>
+          <div v-if="m.stale" class="nl-aside">
+            This query is in an older form of OQL that no longer runs. Ask the question again to rebuild it.
           </div>
         </div>
       </template>
@@ -137,6 +140,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { url } from '@/url';
 import filters from '@/filters';
 import HiringMarkdown from '@/components/Hiring/HiringMarkdown.vue';
+import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import {
   askQueryText, oqlForAnswer, oqlForPageUrl, answerAsides, buildHistory, QUERY_ROUTES, loadThread, saveThread,
 } from '@/components/NlSearch/nlChat';
@@ -286,8 +290,18 @@ function runOql(oql) {
   return true;
 }
 
-function useQuery(m) {
-  if (isCurrent(m)) return;
+// "Show again" re-runs an earlier answer's query. The language moves (#1555 retired `rank` /
+// `break down` as input on 2026-10-20), and the thread outlives a page load, so check it still
+// reads before navigating; a query that no longer does says so instead of opening an error.
+async function useQuery(m) {
+  if (isCurrent(m) || m.stale) return;
+  try {
+    const v = await validateOql(oqlForPageUrl(m.shownOql));
+    if (v && v.valid === false) {
+      m.stale = true;
+      return;
+    }
+  } catch (e) { /* can't check: try it anyway */ }
   if (runOql(m.shownOql)) emit('answer', m);
 }
 
