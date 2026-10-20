@@ -15,6 +15,10 @@ vi.mock('@/components/OqlPlayground/oqlEditorApi', () => ({
         suggestions: [{ value: 'both', kind: 'keyword', detail: 'works from every place' }],
         autocomplete_entities: ['institutions', 'countries'] } };
     }
+    if (q.slice(0, pos).endsWith('kelp ')) {
+      return { entity: 'works', context: { category: 'core', slot: 'works-slot', prefix: '', replace_range: { start: pos, end: pos },
+        suggestions: [{ value: 'most cited first', insert: ', most cited first', kind: 'order', detail: 'order' }], autocomplete_entities: [] } };
+    }
     if (q.slice(0, pos).endsWith('from stan')) {
       return { entity: 'works', context: { category: 'core', slot: 'works-slot', prefix: 'stan', replace_range: { start: pos - 4, end: pos },
         suggestions: [], autocomplete_entities: ['institutions', 'countries'] } };
@@ -126,6 +130,17 @@ describe('autocomplete', () => {
     expect(getParseContext).toHaveBeenLastCalledWith(doc, doc.length);
     expect(r.options.map((o) => o.label)).toEqual(['about']);
     expect(r.filter).toBe(false);
+  });
+});
+
+describe('applying a suggestion', () => {
+  it('a mid-phrase `, order` eats the space before it', async () => {
+    const doc = 'get works about kelp ';
+    const r = await complete(doc, doc.length);
+    const opt = r.options.find((o) => o.label === 'most cited first');
+    const v = fakeView(make(doc, doc.length));
+    opt.apply(v, opt, r.from, r.to);
+    expect(v.state.doc.toString()).toBe('get works about kelp, most cited first');
   });
 });
 

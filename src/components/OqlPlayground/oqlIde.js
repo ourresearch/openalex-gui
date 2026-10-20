@@ -314,14 +314,18 @@ function serverOption(s, i) {
   const insert = s.insert || s.value;
   const cursor = typeof s.cursor === "number" ? s.cursor : null;
   const endish = s.kind === "order" || /[)"]$/.test(insert) || cursor != null;
+  const apply = applyText(insert, { space: !endish, reopen: s.kind !== "order", cursor });
   return {
     label: s.value,
     detail: s.detail || undefined,
-    info: s.doc || undefined,
+    info: s.doc ? () => docNode(s.doc, "cm-oql-info") : undefined,
     type: s.kind || "keyword",
     boost: 60 - Math.min(59, i),
     section: { name: s.current ? "Current" : "Suggestions", rank: s.current ? 1 : 2 },
-    apply: applyText(insert, { space: !endish, reopen: s.kind !== "order", cursor }),
+    // `, most cited first` / `. Show ...` offered mid-phrase: swallow the space before it
+    apply: /^[,.]/.test(insert)
+      ? (view, c, from, to) => apply(view, c, view.state.doc.sliceString(from - 1, from) === " " ? from - 1 : from, to)
+      : apply,
   };
 }
 
@@ -456,13 +460,22 @@ function cardDom(l) {
   return dom;
 }
 
+// Help text from the grammar: `backticked` spans are OQL examples, shown as code.
+function docNode(text, cls = "cm-oql-card__doc") {
+  const box = el("div", cls);
+  String(text).split("`").forEach((part, i) => {
+    if (part) box.append(i % 2 ? el("code", "cm-oql-code", part) : document.createTextNode(part));
+  });
+  return box;
+}
+
 function phraseDom(entry) {
   const dom = el("div", "cm-oql-card cm-oql-card--phrase");
   const head = el("div", "cm-oql-card__kicker");
   head.append(el("i", `mdi ${KIND_ICONS[entry.kind] || "mdi-code-braces"}`),
     document.createTextNode(" " + (entry.detail || entry.kind || "")));
   dom.append(head, el("div", "cm-oql-card__title cm-oql-card__title--mono", entry.value));
-  if (entry.doc) dom.append(el("div", "cm-oql-card__doc", entry.doc));
+  if (entry.doc) dom.append(docNode(entry.doc));
   return dom;
 }
 
@@ -482,7 +495,28 @@ const oqlHover = hoverTooltip((view, pos) => {
 }, { hoverTime: 300, hideOnChange: true });
 
 // --- clicks ------------------------------------------------------------------------------------
-const CHOICE_KINDS = new Set(["order", "measure", "split", "noun"]);
+const CHOICE_KINDS = new Set(["order", "measure", "split", "noun", "adjective"]);
+
+// A plain click on a name, a choice phrase (`most cited first`, `mean FWCI`) or a year opens
+// its dropdown, like a select. Runs on the click (after mouseup): a dropdown started on
+// mousedown is reset by the selection the mouseup makes.
+function clickOpensDropdown(view) {
+  const sel = view.state.selection.main;
+  if (!sel.empty || completionStatus(view.state)) return;
+  const { links } = view.state.field(linkField);
+  let open = !!linkAtName(links, sel.head);
+  if (!open) {
+    const line = view.state.doc.lineAt(sel.head);
+    const at = sel.head - line.from;
+    const word = /[\w-]*$/.exec(line.text.slice(0, at))[0] + /^[\w-]*/.exec(line.text.slice(at))[0];
+    const hit = vocab.phrases.size ? phraseAt(line.text, at, vocab.phrases) : null;
+    open = (hit && CHOICE_KINDS.has(hit.entry.kind)) || (vocab.served && /^\d{4}$/.test(word));
+  }
+  if (open) {
+    view.dispatch({ effects: closeHoverTooltips });
+    startCompletion(view);
+  }
+}
 
 const clicks = EditorView.domEventHandlers({
   mousedown(event, view) {
@@ -509,26 +543,11 @@ const clicks = EditorView.domEventHandlers({
     view.dom.classList.remove("cm-oql-mod");
     return false;
   },
-});
-
-// A plain click on a name or on a choice phrase (`most cited first`) opens its dropdown.
-const clickOpens = EditorView.updateListener.of((u) => {
-  if (!u.transactions.some((tr) => tr.isUserEvent("select.pointer"))) return;
-  const sel = u.state.selection.main;
-  if (!sel.empty || completionStatus(u.state)) return;
-  const { links } = u.state.field(linkField);
-  let open = !!linkAtName(links, sel.head);
-  if (!open && vocab.phrases.size) {
-    const line = u.state.doc.lineAt(sel.head);
-    const hit = phraseAt(line.text, sel.head - line.from, vocab.phrases);
-    open = !!(hit && CHOICE_KINDS.has(hit.entry.kind));
-  }
-  if (open) {
-    setTimeout(() => {
-      u.view.dispatch({ effects: closeHoverTooltips });
-      startCompletion(u.view);
-    }, 0);
-  }
+  click(event, view) {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.detail > 1) return false;
+    setTimeout(() => clickOpensDropdown(view), 0);
+    return false;
+  },
 });
 
 // --- look ----------------------------------------------------------------------------------------
@@ -633,6 +652,14 @@ const tooltipTheme = EditorView.theme({
   ".cm-oql-card__line": { fontSize: "13px", color: "#334155", marginTop: "2px" },
   ".cm-oql-card__stats": { fontSize: "12px", color: "#64748b", marginTop: "4px" },
   ".cm-oql-card__doc": { fontSize: "13px", color: "#334155", marginTop: "4px", lineHeight: "1.45" },
+  ".cm-oql-code": {
+    fontFamily: "'JetBrains Mono','SF Mono',Menlo,monospace",
+    fontSize: "12px",
+    background: "#f1f5f9",
+    borderRadius: "4px",
+    padding: "1px 4px",
+    color: "#0f172a",
+  },
   ".cm-oql-card__foot": {
     display: "flex", alignItems: "center", gap: "10px", marginTop: "8px",
     paddingTop: "6px", borderTop: "1px solid rgba(0,0,0,0.07)",
@@ -664,7 +691,6 @@ export function oqlIde() {
     }),
     oqlHover,
     clicks,
-    clickOpens,
     ideTheme,
     tooltipTheme,
     typeof document !== "undefined" ? tooltips({ parent: document.body }) : [],
