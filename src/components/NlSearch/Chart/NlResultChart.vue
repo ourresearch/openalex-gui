@@ -114,7 +114,8 @@ const baseData = computed(() => safe(() => chartData(props.resultsObject), null)
 const isWorksList = computed(() => baseData.value?.kind === "list" && baseData.value.rowsEntity === "works" && Boolean(baseData.value.oqo?.get_rows));
 const data = computed(() => (isWorksList.value ? safe(() => (listResponse.value ? chartData(listResponse.value) : null), null) : baseData.value));
 const choices = computed(() => safe(() => (data.value ? chartOptions(data.value, measureKey.value) : []), []));
-const measureChoices = computed(() => (type.value === CHART.NUMBER ? [] : data.value?.measures || []));
+// "Each measure" and the number tiles already show every measure: no picker.
+const measureChoices = computed(() => ([CHART.NUMBER, CHART.MEASURES].includes(type.value) ? [] : data.value?.measures || []));
 
 // A new answer: open on its suggested chart and measure.
 watch(
@@ -374,6 +375,21 @@ onBeforeUnmount(() => {
   font-variant-numeric: tabular-nums;
   min-width: 48px;
   text-align: right;
+}
+.nl-chart__plot :deep(.nl-chart-panels--row) {
+  display: flex;
+  overflow-x: auto;
+}
+.nl-chart__plot :deep(.nl-chart-panels--stack) {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.nl-chart__plot :deep(.nl-chart-panel__name) {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0b0b0b;
+  margin-top: 4px;
 }
 .nl-chart__plot :deep(.nl-chart-grid) {
   display: grid;

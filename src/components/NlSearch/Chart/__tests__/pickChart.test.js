@@ -17,7 +17,7 @@ const EXPECTED = {
   number_count: [CHART.NUMBER],
   number_count_pct: [CHART.NUMBER],
   year_count: [CHART.LINE, CHART.COLUMNS],
-  year_count_pct: [CHART.LINE, CHART.COLUMNS],
+  year_count_pct: [CHART.MEASURES, CHART.LINE, CHART.COLUMNS],
   oa_status: [CHART.SHARES, CHART.BARS],
   is_oa_yesno: [CHART.SHARES, CHART.BARS],
   type: [CHART.BARS],
@@ -25,12 +25,12 @@ const EXPECTED = {
   sdg: [CHART.BARS],
   topics: [CHART.BARS],
   citation_bins: [CHART.COLUMNS, CHART.BARS, CHART.SHARES],
-  rank_institutions: [CHART.BARS, CHART.SCATTER],
-  rank_authors: [CHART.BARS, CHART.SCATTER],
+  rank_institutions: [CHART.MEASURES, CHART.BARS, CHART.SCATTER],
+  rank_authors: [CHART.MEASURES, CHART.BARS, CHART.SCATTER],
   rank_sources: [CHART.BARS],
   rank_funders: [CHART.BARS],
-  countries: [CHART.MAP, CHART.BARS, CHART.SCATTER],
-  compare_institutions: [CHART.BARS],
+  countries: [CHART.MAP, CHART.MEASURES, CHART.BARS, CHART.SCATTER],
+  compare_institutions: [CHART.MEASURES, CHART.BARS],
   year_oa_status: [CHART.SHARES_TIME, CHART.STACKED, CHART.LINES],
   year_type: [CHART.SMALL, CHART.LINES],
   compare_institutions_year: [CHART.LINES, CHART.SMALL],
@@ -114,7 +114,7 @@ describe("chartData", () => {
 describe("chartOptions follows the measure", () => {
   it("no shares or stacks for a mean or a percent", () => {
     const d = chartData(answer("year_count_pct"));
-    expect(chartOptions(d, "percent_open_access_is_oa")).toEqual([CHART.LINE, CHART.COLUMNS]);
+    expect(chartOptions(d, "percent_open_access_is_oa")).toEqual([CHART.MEASURES, CHART.LINE, CHART.COLUMNS]);
     const c = chartData(answer("compare_institutions_year"));
     expect(chartOptions(c, "mean_fwci")).toEqual([CHART.LINES, CHART.SMALL]);
   });

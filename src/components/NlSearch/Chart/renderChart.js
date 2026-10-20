@@ -8,7 +8,7 @@
 // two or more series, a tooltip on every chart. Labels are API data: Plot sets them as text.
 
 import { DIM, OA_ORDER, plural } from "./chartData";
-import { CHART, MAX_LINES, MAX_SHARES } from "./pickChart";
+import { CHART, MAX_LINES, MAX_SHARES, panelMeasures } from "./pickChart";
 import { INK, SERIES, OTHER, RAMP, OA_COLORS, FONT, formatValue, tickFormat, truncate, textWidth, joinNotes } from "./chartStyle";
 
 const TOP_BARS = 15;
@@ -120,7 +120,7 @@ function bars(Plot, data, m, width) {
   return { node, title: `${m.label} by ${d.label}`, note: rankNote(data, d, shown.length, all.length, m) };
 }
 
-function line(Plot, data, m, width) {
+function line(Plot, data, m, width, height = 380) {
   const d = data.dims[0];
   const { rows, future } = yearsOnly(ordered(oneDimRows(data, m), d, data, m));
   const partial = m.additive && rows.length > 1 && rows[rows.length - 1].year === CURRENT_YEAR;
@@ -131,7 +131,7 @@ function line(Plot, data, m, width) {
   const tip = (r) => tipText(String(r.year), r.values, data, m, r.year === CURRENT_YEAR && m.additive ? " (so far)" : "");
   const node = Plot.plot({
     width,
-    height: 380,
+    height,
     marginLeft: 52,
     marginRight: 40,
     marginTop: 24,
@@ -336,6 +336,79 @@ function scatter(Plot, data, m, width) {
   const all = d.more ? d.groupsCount : rows.length;
   const note = all > rows.length ? `The ${rows.length} ${plural(d.noun, rows.length)} with the most works, of ${all.toLocaleString("en-US")}` : "";
   return { node, title: `${yM.label} and ${xM.label.toLowerCase()} by ${d.label}`, note };
+}
+
+// "Each measure": one panel per measure the answer asked for, never a dual axis. Over years the
+// panels stack and share the year axis; across groups, bar panels sit side by side on the same
+// rows (names on the first panel only), each read against the whole set where that applies.
+const lowerFirst = (s) => s.charAt(0).toLowerCase() + s.slice(1);
+const listOf = (labels) =>
+  labels.map((l, i) => (i ? lowerFirst(l) : l)).join(", ").replace(/, ([^,]*)$/, " and $1");
+
+function measurePanels(Plot, data, width, doc) {
+  const d = data.dims[0];
+  const ms = panelMeasures(data);
+  const wrap = doc.createElement("div");
+  const head = (text, pad) => {
+    const h = doc.createElement("div");
+    h.className = "nl-chart-panel__name";
+    h.textContent = text;
+    h.style.paddingLeft = `${pad}px`;
+    return h;
+  };
+  if (d.kind === DIM.YEAR) {
+    wrap.className = "nl-chart-panels nl-chart-panels--stack";
+    let note = "";
+    ms.forEach((m, i) => {
+      const out = line(Plot, data, m, width, 200);
+      if (i === 0 || !note) note = out.note;
+      const panel = doc.createElement("div");
+      panel.append(head(m.label, 52), out.node);
+      wrap.append(panel);
+    });
+    return { node: wrap, title: `${listOf(ms.map((m) => m.label))} per year`, note };
+  }
+
+  const lead = ms.find((m) => m.key === data.sort?.key) || ms[0];
+  const all = ordered(oneDimRows(data, lead), d, data, lead);
+  const shown = all.length <= 20 ? all : all.slice(0, TOP_BARS);
+  const keys = shown.map((r) => String(r.key));
+  const labelMax = Math.max(18, Math.min(44, Math.floor((width * 0.34) / 7.2)));
+  const labelOf = new Map(shown.map((r) => [String(r.key), truncate(r.name, labelMax)]));
+  const labelW = Math.min(width * 0.38, Math.max(48, ...[...labelOf.values()].map((l) => textWidth(l))) + 14);
+  const gap = 16;
+  const plotW = Math.max(120, Math.floor((width - labelW - gap * (ms.length - 1)) / ms.length));
+  wrap.className = "nl-chart-panels nl-chart-panels--row";
+  wrap.style.columnGap = `${gap}px`;
+  ms.forEach((m, i) => {
+    const vals = shown.map((r) => ({ ...r, value: r.values[m.key] })).filter((r) => num(r.value));
+    const base = wholeValue(data, m);
+    const valueText = (r) => formatValue(m, r.value, { short: true });
+    const left = i === 0 ? labelW : 4;
+    const node = Plot.plot({
+      width: plotW + left,
+      height: shown.length * 30 + 56,
+      marginLeft: left,
+      marginRight: Math.max(24, ...vals.map((r) => textWidth(valueText(r)))) + 10,
+      marginTop: 26,
+      marginBottom: 30,
+      style: STYLE,
+      x: { grid: true, nice: true, label: null, tickFormat: tickFormat(m), ticks: Math.max(2, Math.floor(plotW / 90)), ...(m.percent ? { domain: [0, 100] } : {}) },
+      y: { domain: keys, label: null, tickSize: 0, axis: i === 0 ? "left" : null, tickFormat: (k) => labelOf.get(k), tickPadding: 6 },
+      marks: [
+        Plot.barX(vals, { x: "value", y: (r) => String(r.key), fill: SERIES[0], rx2: 4, insetTop: 4, insetBottom: 4 }),
+        Plot.ruleX([0], { stroke: INK.baseline }),
+        base != null ? Plot.ruleX([base], { stroke: INK.primary, strokeOpacity: 0.55 }) : null,
+        Plot.text(vals, { x: "value", y: (r) => String(r.key), text: valueText, dx: 6, textAnchor: "start", fill: INK.secondary, ...HALO }),
+        base != null ? Plot.text([base], { x: (v) => v, frameAnchor: "top", dy: -14, text: (v) => `All works ${formatValue(m, v)}`, fill: INK.secondary, ...HALO }) : null,
+        Plot.tip(vals, Plot.pointerY({ x: "value", y: (r) => String(r.key), title: (r) => tipText(r.name, r.values, data, m) })),
+      ].filter(Boolean),
+    });
+    const panel = doc.createElement("div");
+    panel.append(head(m.label, left), node);
+    wrap.append(panel);
+  });
+  return { node: wrap, title: `${listOf(ms.map((m) => m.label))} by ${d.label}`, note: rankNote(data, d, shown.length, all.length, lead) };
 }
 
 // ---- two splits ------------------------------------------------------------------------
@@ -646,6 +719,8 @@ export function renderChart(Plot, { data, type, measureKey, width, world, docume
       return stackedYears(Plot, data, m, w, false);
     case CHART.STACKED_BARS:
       return stackedBars(Plot, data, m, w);
+    case CHART.MEASURES:
+      return measurePanels(Plot, data, w, doc);
     case CHART.HEATMAP:
       return heatmap(Plot, data, m, w);
     default:

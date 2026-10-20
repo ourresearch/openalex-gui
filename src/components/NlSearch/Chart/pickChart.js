@@ -25,6 +25,7 @@ export const CHART = {
   STACKED_BARS: "stacked_bars",
   HEATMAP: "heatmap",
   SCATTER: "scatter",
+  MEASURES: "each_measure",
 };
 
 // Names and icons for the chooser (mdi icon classes, loaded app-wide by @mdi/font).
@@ -42,7 +43,14 @@ export const CHART_INFO = {
   [CHART.STACKED_BARS]: { label: "Stacked bars", icon: "mdi-view-sequential-outline mdi-rotate-90" },
   [CHART.HEATMAP]: { label: "Heatmap", icon: "mdi-grid" },
   [CHART.SCATTER]: { label: "Scatter", icon: "mdi-chart-scatter-plot" },
+  [CHART.MEASURES]: { label: "Each measure", icon: "mdi-view-split-vertical" },
 };
+
+// The measures an answer asks about, side by side (a group's share of the whole repeats the
+// count, so it sits out). Two or three make an "each measure" chart; never a dual axis.
+export function panelMeasures(data) {
+  return (data?.measures || []).filter((m) => m.measure !== "percent_of_those").slice(0, 3);
+}
 
 // Series past these fold away: lines past six are spaghetti; shares past seven blur.
 export const MAX_LINES = 6;
@@ -91,13 +99,19 @@ export function chartOptions(data, measureKey) {
     if (n === 0) return [];
     if (n === 1 && d.kind !== DIM.YEAR) return [CHART.NUMBER];
     const scatter = many && n >= 5 && [DIM.THING, DIM.COUNTRY, DIM.NAMED, DIM.CATEGORY].includes(d.kind);
+    // Asked for two or three measures: show them all at once, in panels (a map stays first).
+    const panels = panelMeasures(data).length >= 2 && ![DIM.OA_STATUS, DIM.YESNO].includes(d.kind);
+    if (panels && d.kind !== DIM.COUNTRY) {
+      const rest = chartOptions({ ...data, measures: data.measures.filter((x) => x.key === measure.key) }, measure.key);
+      return [CHART.MEASURES, ...rest, ...(scatter ? [CHART.SCATTER] : [])];
+    }
     const out = [];
     switch (d.kind) {
       case DIM.YEAR:
         out.push(...(n >= 3 ? [CHART.LINE, CHART.COLUMNS] : [CHART.COLUMNS, CHART.LINE]));
         break;
       case DIM.COUNTRY:
-        out.push(CHART.MAP, CHART.BARS);
+        out.push(CHART.MAP, ...(panels ? [CHART.MEASURES] : []), CHART.BARS);
         break;
       case DIM.BINS:
         out.push(CHART.COLUMNS, CHART.BARS);
