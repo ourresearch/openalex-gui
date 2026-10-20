@@ -21,7 +21,8 @@ describe("shortLabels", () => {
   });
 });
 
-const dir = path.join(__dirname, "../__fixtures__");
+// CHART_FIXTURES=<dir> reruns every expectation on freshly fetched answers (an API change check).
+const dir = process.env.CHART_FIXTURES || path.join(__dirname, "../__fixtures__");
 const fixture = (name) => JSON.parse(readFileSync(path.join(dir, `${name}.json`), "utf8"));
 const answer = (name) => fixture(name).response;
 
