@@ -575,9 +575,10 @@ const tooltipTheme = EditorView.theme({
     boxShadow: "0 8px 24px rgba(15, 23, 42, 0.14)",
     background: "#fff",
     padding: "4px 0",
-    overflow: "hidden",
+    // no overflow clip here: the help panel (.cm-completionInfo) is drawn beside the list
   },
   ".cm-tooltip.cm-tooltip-autocomplete > ul": {
+    borderRadius: "8px",
     fontFamily: "'JetBrains Mono','SF Mono',Menlo,monospace",
     fontSize: "13px",
     maxHeight: "320px",
