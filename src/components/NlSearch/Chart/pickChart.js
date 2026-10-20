@@ -49,10 +49,18 @@ export const MAX_LINES = 6;
 export const MAX_SHARES = 7;
 const MAX_TANGLE = 4; // more series than this open on small multiples
 
-// The measure a chart opens on: the one the query sorts by, else the first.
+// The measure a chart opens on: the one the query sorts by; else, over years, the measure asked
+// for beside the count ("count and percent open access" by year is a question about the share;
+// the chat lists count first by habit); else the first.
 export function defaultMeasure(data) {
   if (!data?.measures?.length) return null;
-  return data.measures.find((m) => m.key === data.sort?.key) || data.measures[0];
+  const sorted = data.measures.find((m) => m.key === data.sort?.key);
+  if (sorted) return sorted;
+  if (data.dims?.some((d) => d.kind === DIM.YEAR)) {
+    const asked = data.measures.find((m) => m.measure !== "count" && m.measure !== "percent_of_those");
+    if (asked) return asked;
+  }
+  return data.measures[0];
 }
 
 // The groups a chart draws at one split: unknowns drop out of rankings and maps (they

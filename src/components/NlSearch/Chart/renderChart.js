@@ -18,6 +18,8 @@ const TOP_HEAT_COLS = 10;
 export const CURRENT_YEAR = new Date().getFullYear();
 
 const STYLE = { fontFamily: FONT, fontSize: "12px", color: INK.secondary, background: "transparent", overflow: "visible" };
+// A ring of page colour behind value labels, so a gridline or baseline never runs through them.
+const HALO = { stroke: INK.surface, strokeWidth: 3, paintOrder: "stroke" };
 
 const num = (v) => typeof v === "number" && Number.isFinite(v);
 const measureOf = (data, key) => data.measures.find((m) => m.key === key) || data.measures[0];
@@ -86,7 +88,7 @@ function bars(Plot, data, m, width) {
   const d = data.dims[0];
   const all = ordered(oneDimRows(data, m), d, data, m);
   const shown = all.length <= 20 ? all : all.slice(0, TOP_BARS); // never "top 15 of 17"
-  const labelMax = width < 700 ? 24 : width < 880 ? 36 : 44;
+  const labelMax = Math.max(20, Math.min(56, Math.floor((width * 0.4) / 7.2)));
   const labelOf = new Map(shown.map((r) => [String(r.key), truncate(r.name, labelMax)]));
   const marginLeft = Math.min(width * 0.42, Math.max(48, ...shown.map((r) => textWidth(labelOf.get(String(r.key))))) + 14);
   const valueText = (r) => formatValue(m, r.value, { short: true });
@@ -96,12 +98,12 @@ function bars(Plot, data, m, width) {
   const marks = [
     Plot.barX(shown, { x: "value", y: (r) => String(r.key), fill, rx2: 4, insetTop: 4, insetBottom: 4 }),
     Plot.ruleX([0], { stroke: INK.baseline }),
-    Plot.text(shown, { x: "value", y: (r) => String(r.key), text: valueText, dx: 6, textAnchor: "start", fill: INK.secondary }),
+    Plot.text(shown, { x: "value", y: (r) => String(r.key), text: valueText, dx: 6, textAnchor: "start", fill: INK.secondary, ...HALO }),
     Plot.tip(shown, Plot.pointerY({ x: "value", y: (r) => String(r.key), title: (r) => tipText(r.name, r.values, data, m) })),
   ];
   if (base != null) {
     marks.splice(2, 0, Plot.ruleX([base], { stroke: INK.primary, strokeOpacity: 0.55 }));
-    marks.push(Plot.text([base], { x: (v) => v, frameAnchor: "top", dy: -14, text: (v) => `All works ${formatValue(m, v)}`, fill: INK.secondary }));
+    marks.push(Plot.text([base], { x: (v) => v, frameAnchor: "top", dy: -14, text: (v) => `All works ${formatValue(m, v)}`, fill: INK.secondary, ...HALO }));
   }
   const node = Plot.plot({
     width,
@@ -144,7 +146,7 @@ function line(Plot, data, m, width) {
       Plot.lineY(tail, { x: "year", y: "value", stroke: c, strokeWidth: 2, strokeDasharray: "2,4", strokeLinecap: "round" }),
       Plot.dot(last ? [last] : [], { x: "year", y: "value", r: 4, fill: c, stroke: INK.surface, strokeWidth: 2 }),
       Plot.dot(partial ? [rows[rows.length - 1]] : [], { x: "year", y: "value", r: 4, fill: INK.surface, stroke: c, strokeWidth: 2 }),
-      Plot.text(last ? [last] : [], { x: "year", y: "value", text: (r) => formatValue(m, r.value, { short: true }), dy: -14, fill: INK.primary, fontWeight: 600 }),
+      Plot.text(last ? [last] : [], { x: "year", y: "value", text: (r) => formatValue(m, r.value, { short: true }), dy: -14, fill: INK.primary, fontWeight: 600, ...HALO }),
       Plot.ruleX(rows, Plot.pointerX({ x: "year", stroke: INK.baseline })),
       Plot.dot(rows, Plot.pointerX({ x: "year", y: "value", r: 4, fill: c, stroke: INK.surface, strokeWidth: 2 })),
       Plot.tip(rows, Plot.pointerX({ x: "year", y: "value", title: tip })),
@@ -179,7 +181,7 @@ function columns(Plot, data, m, width) {
     marks: [
       Plot.barY(rows, { x: (r) => String(r.key), y: "value", fill: SERIES[0], fillOpacity: (r) => (String(r.key) === partialKey ? 0.45 : 1), ry2: 4, insetLeft: inset, insetRight: inset }),
       Plot.ruleY([0], { stroke: INK.baseline }),
-      labelCaps ? Plot.text(rows, { x: (r) => String(r.key), y: "value", text: (r) => formatValue(m, r.value, { short: true }), dy: -8, fill: INK.secondary }) : null,
+      labelCaps ? Plot.text(rows, { x: (r) => String(r.key), y: "value", text: (r) => formatValue(m, r.value, { short: true }), dy: -8, fill: INK.secondary, ...HALO }) : null,
       Plot.tip(rows, Plot.pointerX({ x: (r) => String(r.key), y: "value", title: (r) => tipText(r.name, r.values, data, m, String(r.key) === partialKey ? " (so far)" : "") })),
     ].filter(Boolean),
   });
@@ -310,9 +312,9 @@ function scatter(Plot, data, m, width) {
     y: { grid: true, nice: true, label: `↑ ${yM.label}`, tickFormat: tickFormat(yM), ...(yM.percent ? { domain: [0, 100] } : {}) },
     marks: [
       base != null ? Plot.ruleY([base], { stroke: INK.primary, strokeOpacity: 0.55 }) : null,
-      base != null ? Plot.text([base], { y: (v) => v, frameAnchor: "right", dx: 4, textAnchor: "start", text: (v) => `All works ${formatValue(yM, v)}`, fill: INK.secondary }) : null,
+      base != null ? Plot.text([base], { y: (v) => v, frameAnchor: "right", dx: 4, textAnchor: "start", text: (v) => `All works ${formatValue(yM, v)}`, fill: INK.secondary, ...HALO }) : null,
       Plot.dot(rows, { x: (r) => r.values[xM.key], y: (r) => r.values[yM.key], r: 4.5, fill: SERIES[0], fillOpacity: 0.85, stroke: INK.surface, strokeWidth: 1.5 }),
-      Plot.text(labelled, { x: (r) => r.values[xM.key], y: (r) => r.values[yM.key], text: (r) => truncate(r.name, 26), dx: 8, textAnchor: "start", fill: INK.secondary }),
+      Plot.text(labelled, { x: (r) => r.values[xM.key], y: (r) => r.values[yM.key], text: (r) => truncate(r.name, 26), dx: 8, textAnchor: "start", fill: INK.secondary, ...HALO }),
       Plot.tip(rows, Plot.pointer({ x: (r) => r.values[xM.key], y: (r) => r.values[yM.key], title: (r) => tipText(r.name, r.values, data, yM) })),
     ].filter(Boolean),
   });
@@ -423,7 +425,7 @@ function lines(Plot, data, m, width) {
       Plot.lineY(solid, { x: "year", y: "value", z: "series", stroke: "series", strokeWidth: 2, strokeLinejoin: "round", strokeLinecap: "round" }),
       Plot.lineY(tail, { x: "year", y: "value", z: "series", stroke: "series", strokeWidth: 2, strokeDasharray: "2,4", strokeLinecap: "round" }),
       Plot.dot(lastPoints, { x: "year", y: "value", fill: "series", r: 4, stroke: INK.surface, strokeWidth: 2 }),
-      endLabels ? Plot.text(ends, { x: "year", y: "value", text: endText, dx: 8, textAnchor: "start", fill: INK.secondary }) : null,
+      endLabels ? Plot.text(ends, { x: "year", y: "value", text: endText, dx: 8, textAnchor: "start", fill: INK.secondary, ...HALO }) : null,
       Plot.ruleX(byYear, Plot.pointerX({ x: "year", stroke: INK.baseline })),
       Plot.tip(byYear, Plot.pointerX({ x: "year", y: "top", title: "title" })),
     ].filter(Boolean),
@@ -434,46 +436,62 @@ function lines(Plot, data, m, width) {
   return { node, title: `${m.label} per year, by ${sd.label}`, note: joinNotes(notes) };
 }
 
-function smallMultiples(Plot, data, m, width) {
+// One small chart per series, in a grid. Panels share one scale so heights compare, unless one
+// series dwarfs the rest (English among languages), when each panel gets its own and says so.
+function smallMultiples(Plot, data, m, width, doc) {
   const yi = data.dims.findIndex((d) => d.kind === DIM.YEAR);
   const sd = data.dims[1 - yi];
   const all = seriesOf(data, 1 - yi);
   const top = all.slice(0, TOP_PANELS);
-  const cols = width < 720 ? 2 : width < 980 ? 3 : 4;
-  const idx = new Map(top.map((s, i) => [s.key, i]));
   const names = uniqueNames(top);
-  const rows = yearSeriesRows(data, m, new Set(idx.keys())).map((r) => {
-    const i = idx.get(r.skey);
-    return { ...r, series: names[i], fx: i % cols, fy: Math.floor(i / cols) };
-  });
-  const panels = top.map((s, i) => ({ name: truncate(names[i], Math.floor(width / cols / 7.5)), fx: i % cols, fy: Math.floor(i / cols) }));
+  const rows = yearSeriesRows(data, m, new Set(top.map((s) => s.key)));
   const years = [...new Set(rows.map((r) => r.year))].sort((a, b) => a - b);
-  const nRows = Math.ceil(top.length / cols);
-  const node = Plot.plot({
-    width,
-    height: nRows * 132 + 36,
-    marginLeft: 44,
-    marginRight: 12,
-    marginTop: 22,
-    marginBottom: 28,
-    style: STYLE,
-    fx: { axis: null, paddingInner: 0.14 },
-    fy: { axis: null, paddingInner: 0.32 },
-    x: { label: null, tickFormat: (y) => String(y), ticks: years.length ? [years[0], years[years.length - 1]] : [] },
-    y: { grid: true, nice: true, label: null, ticks: 3, zero: m.additive, tickFormat: tickFormat(m), ...(m.percent ? { domain: [0, 100] } : {}) },
-    marks: [
-      Plot.frame({ stroke: INK.grid, strokeWidth: 1, anchor: "bottom" }),
-      m.additive ? Plot.areaY(rows, { x: "year", y: "value", fx: "fx", fy: "fy", fill: SERIES[0], fillOpacity: 0.1 }) : null,
-      Plot.lineY(rows, { x: "year", y: "value", fx: "fx", fy: "fy", stroke: SERIES[0], strokeWidth: 1.5 }),
-      Plot.text(panels, { fx: "fx", fy: "fy", text: "name", frameAnchor: "top-left", dy: -16, fill: INK.primary, fontWeight: 600 }),
-      Plot.tip(rows, Plot.pointerX({ x: "year", y: "value", fx: "fx", fy: "fy", title: (r) => `${r.series}\n${r.year}: ${formatValue(m, r.value)}` })),
-    ].filter(Boolean),
+  const cols = width < 560 ? 1 : width < 760 ? 2 : width < 1040 ? 3 : 4;
+  const gap = 20;
+  const panelW = Math.floor((width - gap * (cols - 1)) / cols);
+  const peaks = top.map((s) => Math.max(0, ...rows.filter((r) => r.skey === s.key).map((r) => r.value)));
+  const sortedPeaks = [...peaks].sort((a, b) => b - a);
+  const median = sortedPeaks[Math.floor(sortedPeaks.length / 2)] || 0;
+  const own = !m.percent && sortedPeaks.length > 2 && sortedPeaks[0] > 4 * Math.max(median, 1e-9);
+  const yMax = Math.max(...peaks, 0);
+
+  const grid = doc.createElement("div");
+  grid.className = "nl-chart-grid";
+  grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+  grid.style.columnGap = `${gap}px`;
+  top.forEach((s, i) => {
+    const mine = rows.filter((r) => r.skey === s.key);
+    const panel = doc.createElement("div");
+    const name = doc.createElement("div");
+    name.className = "nl-chart-grid__name";
+    name.textContent = names[i];
+    name.title = names[i];
+    const plot = Plot.plot({
+      width: panelW,
+      height: 118,
+      marginLeft: 40,
+      marginRight: 10,
+      marginTop: 8,
+      marginBottom: 22,
+      style: STYLE,
+      x: { label: null, domain: [years[0], years[years.length - 1]], tickFormat: (y) => String(y), ticks: years.length ? [years[0], years[years.length - 1]] : [] },
+      y: { grid: true, nice: true, label: null, ticks: 3, zero: m.additive, tickFormat: tickFormat(m), ...(m.percent ? { domain: [0, 100] } : own ? {} : { domain: [0, yMax] }) },
+      marks: [
+        m.additive ? Plot.areaY(mine, { x: "year", y: "value", fill: SERIES[0], fillOpacity: 0.1 }) : null,
+        m.additive ? Plot.ruleY([0], { stroke: INK.baseline }) : null,
+        Plot.lineY(mine, { x: "year", y: "value", stroke: SERIES[0], strokeWidth: 1.5 }),
+        Plot.ruleX(mine, Plot.pointerX({ x: "year", stroke: INK.baseline })),
+        Plot.tip(mine, Plot.pointerX({ x: "year", y: "value", title: (r) => `${names[i]}\n${r.year}${m.additive && r.year === CURRENT_YEAR ? " (so far)" : ""}: ${formatValue(m, r.value)}` })),
+      ].filter(Boolean),
+    });
+    panel.append(name, plot);
+    grid.append(panel);
   });
   const notes = [];
-  if (all.length > top.length) notes.push(`Top ${top.length} of ${(sd.more ? sd.groupsCount : all.length).toLocaleString("en-US")} ${plural(sd.noun, all.length)} by works; same scale in every panel`);
-  else notes.push("Same scale in every panel");
+  if (all.length > top.length) notes.push(`Top ${top.length} of ${(sd.more ? sd.groupsCount : all.length).toLocaleString("en-US")} ${plural(sd.noun, all.length)} by works`);
+  notes.push(own ? "each panel has its own scale" : "same scale in every panel");
   notes.push(...yearNotes(m, rows, 0));
-  return { node, title: `${m.label} per year, by ${sd.label}`, note: joinNotes(notes) };
+  return { node: grid, title: `${m.label} per year, by ${sd.label}`, note: joinNotes(notes) };
 }
 
 // The parts of a whole at a split, in their colours; past MAX_SHARES the tail folds to Other.
@@ -537,7 +555,7 @@ function stackedBars(Plot, data, m, width) {
   const outer = seriesOf(data, 0).slice(0, TOP_BARS);
   const { nameOf, names, colors } = partsOf(data, 1);
   const keepOuter = new Set(outer.map((o) => o.key));
-  const labelMax = width < 700 ? 22 : 34;
+  const labelMax = Math.max(18, Math.min(48, Math.floor((width * 0.36) / 7.2)));
   const labelOf = new Map(outer.map((o) => [String(o.key), truncate(o.name, labelMax)]));
   const rows = data.rows
     .filter((r) => keepOuter.has(r.path[0].key) && !r.path[1].unknown && num(r.values[m.key]))
@@ -621,7 +639,7 @@ export function renderChart(Plot, { data, type, measureKey, width, world, docume
     case CHART.LINES:
       return lines(Plot, data, m, w);
     case CHART.SMALL:
-      return smallMultiples(Plot, data, m, w);
+      return smallMultiples(Plot, data, m, w, doc);
     case CHART.SHARES_TIME:
       return stackedYears(Plot, data, m, w, true);
     case CHART.STACKED:

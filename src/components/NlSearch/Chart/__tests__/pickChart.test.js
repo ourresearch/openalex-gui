@@ -103,6 +103,12 @@ describe("chartData", () => {
     expect(pickChart(sorted).measure).toBe("mean_fwci");
     expect(pickChart(r).measure).toBe("count");
   });
+
+  it("over years, opens on the measure asked for beside the count", () => {
+    expect(pickChart(answer("year_count_pct")).measure).toBe("percent_open_access_is_oa");
+    expect(pickChart(answer("compare_institutions_year")).measure).toBe("mean_fwci");
+    expect(pickChart(answer("year_count")).measure).toBe("count");
+  });
 });
 
 describe("chartOptions follows the measure", () => {

@@ -375,6 +375,20 @@ onBeforeUnmount(() => {
   min-width: 48px;
   text-align: right;
 }
+.nl-chart__plot :deep(.nl-chart-grid) {
+  display: grid;
+  row-gap: 14px;
+  margin-top: 6px;
+}
+.nl-chart__plot :deep(.nl-chart-grid__name) {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0b0b0b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 40px;
+}
 .nl-chart__tiles {
   display: flex;
   flex-wrap: wrap;
