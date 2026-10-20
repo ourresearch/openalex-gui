@@ -12,6 +12,7 @@
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { api } from '@/api';
+import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 
 // Routes whose answer is a query to run (the help desk answers in words instead).
 export const QUERY_ROUTES = new Set(['query', 'title', 'search_string']);
@@ -60,11 +61,21 @@ export function sortToSortBy(sort) {
 }
 
 /**
- * The OQL the page should run for an answer: the new form, with the answer's sort folded in.
- * Falls back to the answer's own OQL on any failure (it still runs, just in today's form and
- * unsorted), so the chat never strands an answer. `getQuery` is injectable for tests.
+ * The page's ?oql=: whitespace collapsed onto one line, entity names KEPT. The site's
+ * url.oqlForUrl strips `[name]` annotations (#603), which in the new form leaves bare codes
+ * such as `versus(BY)` that the parser reads as a keyword; the parser ignores names, so
+ * keeping them is safe and the link reads. Compare queries with url.oqlForUrl on both sides.
  */
-export async function oqlForAnswer(oql, sort, getQuery = api.getQuery) {
+export function oqlForPageUrl(oql) {
+  return String(oql ?? '').replace(/\s*[\r\n]+\s*/g, ' ').trim();
+}
+
+/**
+ * The OQL the page should run for an answer: the new form, with the answer's sort folded in,
+ * provided it re-reads; else today's canonical form; else the answer's own OQL. Never strands
+ * an answer. `getQuery` and `validate` are injectable for tests.
+ */
+export async function oqlForAnswer(oql, sort, getQuery = api.getQuery, validate = validateOql) {
   if (!oql) return null;
   let first;
   try {
@@ -72,14 +83,21 @@ export async function oqlForAnswer(oql, sort, getQuery = api.getQuery) {
   } catch (e) {
     return oql;
   }
+  let candidate = first?.x_new_oql || null;
   const sortBy = sortToSortBy(sort);
   if (sortBy && first?.oqo) {
     try {
       const sorted = await getQuery({ oqo: { ...first.oqo, sort_by: sortBy } });
-      if (sorted?.x_new_oql) return sorted.x_new_oql;
-    } catch (e) { /* fall through: unsorted new form */ }
+      if (sorted?.x_new_oql) candidate = sorted.x_new_oql;
+    } catch (e) { /* keep the unsorted new form */ }
   }
-  return first?.x_new_oql || first?.oql || oql;
+  if (candidate) {
+    try {
+      const v = await validate(oqlForPageUrl(candidate));
+      if (v?.valid) return candidate;
+    } catch (e) { /* treat as not re-reading */ }
+  }
+  return first?.oql || oql;
 }
 
 /**

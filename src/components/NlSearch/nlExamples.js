@@ -1,10 +1,12 @@
-// Questions the chat offers on an empty thread (oxjob #1744). Each is checked against the live
-// /query/text before it goes here (work/demo_questions.md in the job): they span finding,
-// measuring and mapping, and most land on a chart.
+// Questions the chat offers on an empty thread (oxjob #1744). Each one was run against the live
+// /query/text, folded and executed on Tue 20 Oct 2026 and rated great (the job's
+// work/demo_questions.md shortlist): finding, measuring, comparing and checking, most landing
+// on a chart, all answering in about 6-15 s. Keep the wording: it is what was tested.
 export const EXAMPLE_QUESTIONS = [
-  'Which countries publish most on CRISPR since 2020?',
-  'Most cited papers on CRISPR base editing',
-  'How has open access to climate change research grown since 2010?',
-  'Which institutions in France publish most on artificial intelligence?',
-  'Top journals for machine learning papers since 2022',
+  'How has research on large language models grown each year since 2018?',
+  'Quantum computing output broken down by country',
+  'Which journals had the most retracted papers in 2023?',
+  'Which countries lead research on perovskite solar cells since 2015, ranked by number of papers, with their mean FWCI?',
+  'How many papers has the University of Cape Town published under each Sustainable Development Goal since 2015?',
+  'Papers about CRISPR with at least 1000 citations',
 ];

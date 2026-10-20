@@ -62,6 +62,7 @@ import NoviceFilterChips from '@/components/NoviceFilterChips.vue';
 import SearchErrorAlert from '@/components/SearchErrorAlert.vue';
 import OqlStatusChip from '@/components/OqlPlayground/OqlStatusChip.vue';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
+import { oqlForPageUrl } from '@/components/NlSearch/nlChat';
 
 const OqlEditor = defineAsyncComponent(() => import('@/components/OqlPlayground/OqlEditor.vue'));
 
@@ -140,8 +141,9 @@ async function submit() {
     canonical = pickOql(res, store.getters.newOql);
   }
   setText(canonical);
-  const next = url.oqlForUrl(canonical);
-  if (next === (route.query.oql || '')) return;
+  // Names stay in the URL (see oqlForPageUrl); compare without them.
+  const next = oqlForPageUrl(canonical);
+  if (url.oqlForUrl(next) === url.oqlForUrl(route.query.oql || '')) return;
   store.commit('setOqlSubmitError', null);
   url.pushToRoute(router, { name: 'OqlQuery', query: { oql: next } });
 }

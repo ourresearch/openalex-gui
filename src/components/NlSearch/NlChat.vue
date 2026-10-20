@@ -130,7 +130,7 @@ import { url } from '@/url';
 import filters from '@/filters';
 import HiringMarkdown from '@/components/Hiring/HiringMarkdown.vue';
 import {
-  askQueryText, oqlForAnswer, answerAsides, buildHistory, QUERY_ROUTES, loadThread, saveThread,
+  askQueryText, oqlForAnswer, oqlForPageUrl, answerAsides, buildHistory, QUERY_ROUTES, loadThread, saveThread,
 } from '@/components/NlSearch/nlChat';
 import { EXAMPLE_QUESTIONS } from '@/components/NlSearch/nlExamples';
 
@@ -257,8 +257,8 @@ async function ask(text) {
 // Set the page to a query; true when that navigated (an answer equal to the page's query
 // changes nothing).
 function runOql(oql) {
-  const next = collapse(oql);
-  if (!next || next === (route.query.oql || '')) return false;
+  const next = oqlForPageUrl(oql);
+  if (!next || collapse(next) === collapse(route.query.oql || '')) return false;
   store.commit('setOqlSubmitError', null);
   url.pushToRoute(router, { name: 'OqlQuery', query: { oql: next } });
   return true;

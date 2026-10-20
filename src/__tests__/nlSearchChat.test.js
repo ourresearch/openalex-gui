@@ -7,10 +7,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('axios', () => ({ default: { post: vi.fn() } }));
 vi.mock('@/apiConfig', () => ({ urlBase: { api: 'https://api.test' }, axiosConfig: () => ({ headers: {} }) }));
 vi.mock('@/api', () => ({ api: { getQuery: vi.fn() } }));
+vi.mock('@/components/OqlPlayground/oqlEditorApi', () => ({ validateOql: vi.fn(async () => ({ valid: true })) }));
 
 import axios from 'axios';
 import {
-  askQueryText, friendlyError, sortToSortBy, oqlForAnswer, answerAsides, buildHistory, loadThread, saveThread,
+  askQueryText, friendlyError, sortToSortBy, oqlForAnswer, oqlForPageUrl, answerAsides, buildHistory, loadThread, saveThread,
 } from '../components/NlSearch/nlChat';
 import { defaultFormat } from '../components/NlSearch/nlChart';
 
@@ -95,6 +96,25 @@ describe('oqlForAnswer', () => {
     expect(await oqlForAnswer(OLD, 'cited_by_count:desc', sortFails)).toBe('get works about CRISPR');
     const allFail = vi.fn().mockRejectedValue(new Error('down'));
     expect(await oqlForAnswer(OLD, 'cited_by_count:desc', allFail)).toBe(OLD);
+  });
+
+  it("uses today's form when the new form doesn't re-read (production, 03:14 CT: `versus(BY)`)", async () => {
+    const getQuery = vi.fn().mockResolvedValueOnce({
+      oql: 'get works where ...; then, compare country [Belarus](BY) versus [Belgium](BE) using count',
+      x_new_oql: 'compare country [Belarus](BY) versus [Belgium](BE) ...',
+      oqo: OQO,
+    });
+    const validate = vi.fn(async () => ({ valid: false }));
+    expect(await oqlForAnswer('x', null, getQuery, validate))
+      .toBe('get works where ...; then, compare country [Belarus](BY) versus [Belgium](BE) using count');
+    expect(validate).toHaveBeenCalledWith('compare country [Belarus](BY) versus [Belgium](BE) ...');
+  });
+});
+
+describe('oqlForPageUrl', () => {
+  it('collapses the layout onto one line and keeps entity names', () => {
+    expect(oqlForPageUrl("get [MIT](I63966007)'s works\n  about (kelp)\n")).toBe("get [MIT](I63966007)'s works about (kelp)");
+    expect(oqlForPageUrl('versus [Belarus](BY)')).toBe('versus [Belarus](BY)');
   });
 });
 
