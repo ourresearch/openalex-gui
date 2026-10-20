@@ -13,6 +13,7 @@ import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { api } from '@/api';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
+import { shortThrottleWaitMs } from '@/throttleRetry';
 
 // Routes whose answer is a query to run (the help desk answers in words instead).
 export const QUERY_ROUTES = new Set(['query', 'title', 'search_string']);
@@ -79,7 +80,7 @@ export async function oqlForAnswer(oql, sort, getQuery = api.getQuery, validate 
   if (!oql) return null;
   let first;
   try {
-    first = await getQuery({ oql });
+    first = await retryShortThrottle(() => getQuery({ oql }));
   } catch (e) {
     return oql;
   }
@@ -87,17 +88,31 @@ export async function oqlForAnswer(oql, sort, getQuery = api.getQuery, validate 
   const sortBy = sortToSortBy(sort);
   if (sortBy && first?.oqo) {
     try {
-      const sorted = await getQuery({ oqo: { ...first.oqo, sort_by: sortBy } });
+      const sorted = await retryShortThrottle(() => getQuery({ oqo: { ...first.oqo, sort_by: sortBy } }));
       if (sorted?.x_new_oql) candidate = sorted.x_new_oql;
     } catch (e) { /* keep the unsorted new form */ }
   }
   if (candidate) {
     try {
-      const v = await validate(oqlForPageUrl(candidate));
+      const v = await retryShortThrottle(() => validate(oqlForPageUrl(candidate)));
       if (v?.valid) return candidate;
     } catch (e) { /* treat as not re-reading */ }
   }
   return first?.oql || oql;
+}
+
+// These calls come in a burst right after the answer, so a per-second throttle (429 with a
+// Retry-After of about a second) is likely; wait it out once, as api.get does (Kyle, 2026-10-16).
+// Seen live 2026-10-20 05:12 CT: the sort fold 429'd and the order was nearly lost.
+export async function retryShortThrottle(fn) {
+  try {
+    return await fn();
+  } catch (e) {
+    const waitMs = shortThrottleWaitMs(e?.response);
+    if (waitMs === null) throw e;
+    await new Promise((resolve) => setTimeout(resolve, waitMs));
+    return fn();
+  }
 }
 
 /**

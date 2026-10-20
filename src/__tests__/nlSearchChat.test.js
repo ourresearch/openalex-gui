@@ -12,6 +12,7 @@ vi.mock('@/components/OqlPlayground/oqlEditorApi', () => ({ validateOql: vi.fn(a
 import axios from 'axios';
 import {
   askQueryText, friendlyError, sortToSortBy, oqlForAnswer, oqlForPageUrl, answerAsides, buildHistory, loadThread, saveThread,
+  retryShortThrottle,
 } from '../components/NlSearch/nlChat';
 import { defaultFormat } from '../components/NlSearch/nlChart';
 
@@ -108,6 +109,26 @@ describe('oqlForAnswer', () => {
     expect(await oqlForAnswer('x', null, getQuery, validate))
       .toBe('get works where ...; then, compare country [Belarus](BY) versus [Belgium](BE) using count');
     expect(validate).toHaveBeenCalledWith('compare country [Belarus](BY) versus [Belgium](BE) ...');
+  });
+});
+
+describe('retryShortThrottle', () => {
+  const throttled = () => Object.assign(new Error('429'), { response: { status: 429, headers: { 'retry-after': '0' } } });
+
+  it('waits out a per-second throttle once, so the sort fold keeps the order', async () => {
+    const getQuery = vi.fn()
+      .mockResolvedValueOnce({ oql: 'get works', x_new_oql: 'get works about CRISPR', oqo: { get_rows: 'works' } })
+      .mockRejectedValueOnce(throttled())
+      .mockResolvedValueOnce({ x_new_oql: 'get works about CRISPR, most cited first' });
+    expect(await oqlForAnswer('get works', 'cited_by_count:desc', getQuery)).toBe('get works about CRISPR, most cited first');
+    expect(getQuery).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not wait on the daily limit (a long Retry-After) or other errors', async () => {
+    const daily = Object.assign(new Error('429'), { response: { status: 429, headers: { 'retry-after': '36000' } } });
+    const fn = vi.fn().mockRejectedValue(daily);
+    await expect(retryShortThrottle(fn)).rejects.toBe(daily);
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 });
 
