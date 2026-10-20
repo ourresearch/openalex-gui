@@ -1,6 +1,6 @@
 <template>
   <span>
-    <!-- Claimed (approved) by another user -->
+    <!-- Claimed (approved): by the viewer, or by another user -->
     <v-tooltip v-if="showClaimedBadge" location="bottom" :text="claimedTooltip">
       <template v-slot:activator="{ props: tooltipProps }">
         <v-icon
@@ -245,7 +245,9 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig.js';
-import { copy, reasonText, claimView, orcidAuthorizeUrl, sameOrcid, bareOrcid, shortId, ORCID_CLIENT_ID } from './claimCopy.js';
+import {
+  copy, reasonText, claimView, claimBadge, ownsProfile, orcidAuthorizeUrl, sameOrcid, bareOrcid, shortId, ORCID_CLIENT_ID,
+} from './claimCopy.js';
 import OrcidIcon from '@/components/Orcid/OrcidIcon.vue';
 
 defineOptions({ name: 'EntityHeaderClaimProfileButton' });
@@ -263,6 +265,7 @@ const hasAnyClaim = computed(() => store.getters['user/hasAnyClaim']);
 const pendingClaim = computed(() => store.getters['user/pendingClaim']);
 const isAdmin = computed(() => store.getters['user/isAdmin']);
 const userClaim = computed(() => store.getters['user/userClaim']);
+const userAuthorId = computed(() => store.getters['user/userAuthorId']);
 const claimEligibility = computed(() => store.getters['user/claimEligibility']);
 const claimedByUser = ref(null);
 const pollTimedOut = ref(false);
@@ -299,7 +302,9 @@ const isLoading = ref(false);
 const evidence = ref('');
 const errorMessage = ref('');
 const claimStatusKnown = ref(false);
-const claimedByOther = ref(false);
+// Approved claim by ANYONE on this author (public claim-status), which
+// can't tell the viewer's own claim from a stranger's: ownsHere does.
+const claimedByAnyone = ref(false);
 // A pending (submitted, not-yet-approved) claim by ANYONE on this author.
 const pendingByAnyone = ref(false);
 
@@ -307,42 +312,38 @@ const pendingByAnyone = ref(false);
 const trimmedLength = computed(() => evidence.value.replace(/<[^>]*>/g, '').trim().length);
 const canSubmit = computed(() => trimmedLength.value > 3 && trimmedLength.value <= 2000);
 
-const showClaimedBadge = computed(() =>
-  claimStatusKnown.value && claimedByOther.value
+// The viewer's own pending claim for this author — immediate post-submit
+// feedback before claim-status is refetched.
+const ownPendingHere = computed(() =>
+  !!pendingClaim.value
+  && shortId(pendingClaim.value.author_id) === shortId(props.authorId)
 );
+const ownsHere = computed(() => ownsProfile(userAuthorId.value, props.authorId));
+// A pending claim hides the button for everyone (the badge takes its slot),
+// which also prevents competing claims through the UI.
+const badge = computed(() => claimBadge({
+  known: claimStatusKnown.value,
+  owns: ownsHere.value,
+  claimed: claimedByAnyone.value,
+  pending: pendingByAnyone.value,
+  ownPending: ownPendingHere.value,
+  hasAnyClaim: hasAnyClaim.value,
+}));
+const showClaimedBadge = computed(() => ['owner', 'claimed'].includes(badge.value));
+const showPendingBadge = computed(() => badge.value === 'pending');
+const showButton = computed(() => badge.value === 'claim');
+
 // Only site admins get a clickable badge that deep-links to the claimant's
 // admin record; everyone else sees a plain, non-interactive indicator.
 const adminCanOpen = computed(() =>
   showClaimedBadge.value && isAdmin.value && !!claimedByUser.value?.user_id
 );
-const claimedTooltip = computed(() =>
-  adminCanOpen.value
-    ? `Claimed by ${claimedByUser.value.display_name || claimedByUser.value.email || 'a user'} — open admin`
-    : 'A user has claimed this profile'
-);
-
-// Shown to EVERYONE while a claim on this profile is awaiting review:
-// either anyone's pending claim (from claim-status) or — for immediate
-// post-submit feedback before claim-status is refetched — the current
-// user's own pending claim for this author.
-const ownPendingHere = computed(() =>
-  !!pendingClaim.value
-  && shortId(pendingClaim.value.author_id) === shortId(props.authorId)
-);
-const showPendingBadge = computed(() =>
-  claimStatusKnown.value
-  && !claimedByOther.value
-  && (pendingByAnyone.value || ownPendingHere.value)
-);
-// A pending claim now hides the button for everyone (the badge takes its
-// slot), which also prevents competing claims through the UI.
-const showButton = computed(() =>
-  claimStatusKnown.value
-  && !claimedByOther.value
-  && !pendingByAnyone.value
-  && !ownPendingHere.value
-  && !hasAnyClaim.value
-);
+const claimedTooltip = computed(() => {
+  if (adminCanOpen.value) {
+    return `Claimed by ${claimedByUser.value.display_name || claimedByUser.value.email || 'a user'} — open admin`;
+  }
+  return badge.value === 'owner' ? copy.badge.owner : copy.badge.claimed;
+});
 
 // Admins get a clickable "Claim pending" badge that deep-links to the
 // (pending) claimant's admin record — same behaviour as the claimed icon.
@@ -366,10 +367,10 @@ async function fetchClaimStatus() {
   claimedByUser.value = null;
   try {
     const resp = await axios.get(`${urlBase.userApi}/authors/${props.authorId}/claim-status`);
-    claimedByOther.value = !!resp.data?.claimed;
+    claimedByAnyone.value = !!resp.data?.claimed;
     pendingByAnyone.value = !!resp.data?.pending;
   } catch (e) {
-    claimedByOther.value = false;  // Fail open — better to show button than block.
+    claimedByAnyone.value = false;  // Fail open — better to show button than block.
     pendingByAnyone.value = false;
   } finally {
     claimStatusKnown.value = true;
@@ -381,7 +382,7 @@ async function fetchClaimStatus() {
 // author so either badge can deep-link to their admin record.
 async function maybeFetchClaimedBy() {
   if (!props.authorId || !isAdmin.value) return;
-  if (!claimedByOther.value && !pendingByAnyone.value) return;
+  if (!claimedByAnyone.value && !pendingByAnyone.value) return;
   if (claimedByUser.value) return;
   try {
     const resp = await axios.get(
