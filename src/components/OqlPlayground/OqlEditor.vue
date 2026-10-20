@@ -4,6 +4,10 @@
          top-right tools with a builder-style strip (same geometry + icon-button recipe
          as OqlQueryBuilderV2's .builder-toolbar, so the two modes' cards rhyme). -->
     <div v-if="toolbar" class="oql-editor__toolbar">
+      <!-- IDE mode (#1597): one quiet line on how to drive it -->
+      <span v-if="ide" class="oql-editor__hint">
+        Suggestions as you type · <kbd>{{ modKey }}</kbd> click a link to open it · <kbd>{{ modKey }}</kbd><kbd>⏎</kbd> runs
+      </span>
       <v-spacer />
       <v-btn size="small" variant="text" icon :disabled="!canTidy" @click="tidy">
         <v-icon color="grey-darken-1">mdi-broom</v-icon>
@@ -133,7 +137,9 @@
  * This editor exists for *serialization*: reading, copying, and hand-editing an
  * OQL query, and keeping it two-way-synced with a builder elsewhere on the page.
  * So there is deliberately NO autocomplete, no "add filter/sort", and no Run —
- * it cannot submit anything itself; it only reflects and reports text. The one
+ * it cannot submit anything itself; it only reflects and reports text.
+ * Exception (#1597): with `ide` on (the one-mode search page) it IS an authoring
+ * surface: entity links, autocomplete from the server's parser, hover help. The one
  * nod to submission: ⌘/Ctrl+Enter emits a `submit` event (intent only — the host
  * decides what, if anything, to do with it).
  *
@@ -167,6 +173,8 @@
  *
  * EXPOSED: focus() — focus the editor.
  *
+ *   - ide          Boolean  the IDE layer (#1597, oqlIde.js): links, autocomplete, hover.
+ *
  * The component is intentionally free of any page/layout assumptions so it can be
  * dropped into a playground, a SERP pane, a dialog, etc.
  */
@@ -181,6 +189,7 @@ import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 import { lintKeymap } from "@codemirror/lint";
 
 import { oqlSyntax, makeOqlLinter } from "./oqlLanguage";
+import { oqlIde, warmIde } from "./oqlIde";
 import { useStore } from "vuex";
 import { pickOql } from "@/oqlForm";
 
@@ -206,6 +215,9 @@ const props = defineProps({
   // chip in its card footer) turn the built-in bottom-right badge off. The
   // @validation payload carries everything such a host needs.
   showBadge: { type: Boolean, default: true },
+  // #1597: the IDE layer (entity links, autocomplete from the parser, hover help, English
+  // highlighting). Off by default, so hosts that haven't opted in are unchanged.
+  ide: { type: Boolean, default: false },
 });
 const emit = defineEmits(["update:modelValue", "valid", "validation", "submit"]);
 
@@ -306,6 +318,8 @@ function onValidateResult(data) {
   }
 }
 
+const modKey = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || "") ? "⌘" : "Ctrl";
+
 // --- tools -------------------------------------------------------------------
 const copied = ref(false);
 let copiedTimer = null;
@@ -383,7 +397,7 @@ function buildState(doc) {
       EditorView.editable.of(!props.readonly),
       EditorState.readOnly.of(props.readonly),
       cmPlaceholder(placeholderSpec()),
-      oqlSyntax(),
+      props.ide ? oqlIde() : oqlSyntax(),
       makeOqlLinter(onValidateResult),
       keymap.of([
         // ⌘/Ctrl+Enter = submit intent (#600). MUST be bound here, first: defaultKeymap
@@ -427,6 +441,7 @@ function buildState(doc) {
 
 onMounted(() => {
   view = new EditorView({ state: buildState(props.modelValue), parent: host.value });
+  if (props.ide) warmIde(view);
   measurePhantom();
 });
 
@@ -487,6 +502,25 @@ defineExpose({ focus: () => view && view.focus() });
   gap: 2px;
   padding: 4px 10px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* IDE hint (#1597): one quiet line, left of the tools */
+.oql-editor__hint {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.oql-editor__hint kbd {
+  font-family: inherit;
+  font-size: 11px;
+  padding: 0 4px;
+  margin: 0 1px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: #fafafa;
 }
 
 /* floating tools, top-right */

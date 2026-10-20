@@ -138,3 +138,100 @@ export async function runOql(oql) {
   const resp = await axios.post(url, { oql }, axiosConfig());
   return resp.data;
 }
+
+// --- IDE editor (oxjob #1597) ----------------------------------------------------
+
+// Kinds /autocomplete/<kind> serves; the rest are small lists read whole (getEnumValues).
+const _AC_KINDS = new Set(["authors", "institutions", "sources", "funders", "publishers", "topics",
+  "subfields", "licenses", "keywords", "works"]);
+const _LIST_KINDS = new Set(["countries", "continents", "sdgs", "fields", "domains", "languages"]);
+// the mixed list names its rows' kind in the singular
+const _PLURAL = { work: "works", author: "authors", source: "sources", institution: "institutions",
+  funder: "funders", publisher: "publishers", topic: "topics", concept: "concepts", keyword: "keywords",
+  country: "countries", subfield: "subfields", field: "fields", domain: "domains", license: "licenses" };
+
+function _row(kind, r) {
+  const tail = String(r.id || r.value || "").split("/").pop();
+  return {
+    kind: kind || _PLURAL[r.entity_type] || r.entity_type || null,
+    id: tail,
+    name: r.display_name || tail,
+    hint: r.hint || null,
+    works_count: typeof r.works_count === "number" ? r.works_count : null,
+    cited_by_count: typeof r.cited_by_count === "number" ? r.cited_by_count : null,
+  };
+}
+
+function _matchList(rows, q) {
+  const s = (q || "").trim().toLowerCase();
+  if (!s) return rows.slice(0, 8);
+  const starts = [], words = [], inside = [];
+  for (const r of rows) {
+    const n = r.display_name.toLowerCase();
+    if (n.startsWith(s) || r.value.toLowerCase() === s) starts.push(r);
+    else if (n.split(/[\s-]+/).some((w) => w.startsWith(s))) words.push(r);
+    else if (n.includes(s)) inside.push(r);
+  }
+  return [...starts, ...words, ...inside].slice(0, 8);
+}
+
+async function _searchKind(kind, q) {
+  if (_LIST_KINDS.has(kind)) {
+    const rows = await getEnumValues(kind);
+    return _matchList(rows, q).map((r) => _row(kind, r));
+  }
+  if (_AC_KINDS.has(kind)) {
+    const rows = await autocompleteEntity(kind, q);
+    return rows.slice(0, 8).map((r) => _row(kind, r));
+  }
+  return [];
+}
+
+// Entities named like `q`, for an OQL link slot: the kinds the grammar wants there, most
+// likely first; no kinds = every kind (the mixed list, plus countries). Rows:
+// {kind, id, name, hint, works_count, cited_by_count}.
+export async function searchEntities(kinds, q) {
+  const query = (q || "").trim();
+  if (!kinds || !kinds.length) {
+    if (!query) return [];
+    let mixed = null;
+    if (edgeOn() && edgeSupports("mix")) mixed = await edgeRows("mix", query);
+    if (!mixed) {
+      const url = `${urlBase.api}/autocomplete?${MAILTO}&q=${encodeURIComponent(query)}`;
+      mixed = (await axios.get(url, axiosConfig())).data?.results || [];
+    }
+    const countries = await _searchKind("countries", query).catch(() => []);
+    const rows = mixed.slice(0, 8).map((r) => _row(null, r));
+    return [...countries.filter((c) => c.name.toLowerCase().startsWith(query.toLowerCase())).slice(0, 2), ...rows];
+  }
+  const per = await Promise.all(kinds.map((k) => _searchKind(k, query).catch(() => [])));
+  const cap = kinds.length === 1 ? 10 : 6;
+  return per.flatMap((rows) => rows.slice(0, cap)).slice(0, 14);
+}
+
+// One entity's API record, for the hover card (cached for the session).
+const _records = new Map();
+export function getEntityRecord(kind, id) {
+  const key = `${kind}/${id}`;
+  if (!_records.has(key)) {
+    const url = `${urlBase.api}/${kind}/${encodeURIComponent(id)}?${MAILTO}`;
+    _records.set(key, axios.get(url, axiosConfig()).then((r) => r.data).catch(() => {
+      _records.delete(key);
+      return null;
+    }));
+  }
+  return _records.get(key);
+}
+
+// The grammar's phrases with plain-English help ({value, kind, detail, doc}), from the same
+// tables the parser reads (GET /oql-vocabulary). null when this API doesn't serve it yet.
+let _vocab = null;
+export function getVocabulary() {
+  if (!_vocab) {
+    const url = `${urlBase.api}/oql-vocabulary?${MAILTO}`;
+    _vocab = axios.get(url, axiosConfig())
+      .then((r) => (Array.isArray(r.data?.phrases) ? r.data.phrases : null))
+      .catch(() => null);
+  }
+  return _vocab;
+}

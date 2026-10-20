@@ -11,6 +11,7 @@
       :status="status"
       :placeholder="PLACEHOLDER"
       toolbar
+      ide
       :show-badge="false"
       @validation="onValidation"
       @submit="submit"
