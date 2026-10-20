@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { EditorState } from '@codemirror/state';
 import { CompletionContext } from '@codemirror/autocomplete';
 
+vi.mock('@/edgeAutocomplete', () => ({ edgeWarm: vi.fn() }));
 vi.mock('@/components/OqlPlayground/oqlEditorApi', () => ({
   getVocabulary: vi.fn(async () => [
     { value: 'about', kind: 'keyword', detail: 'search titles, abstracts and keywords', doc: 'Works about a subject.' },

@@ -12,6 +12,8 @@
 import axios from "axios";
 import { urlBase, axiosConfig } from "@/apiConfig";
 import { edgeOn, edgeSupports, edgeRows } from "@/edgeAutocomplete";
+import { getEntityConfig } from "@/entityConfigs";
+import { idTail } from "./oqlLinks";
 
 const MAILTO = "mailto=ui@openalex.org";
 
@@ -115,7 +117,7 @@ export async function getEnumValues(entityType) {
   const out = [];
   let page = 1;
   for (;;) {
-    const url = `${urlBase.api}/${entityType}?${MAILTO}&per-page=200&page=${page}`;
+    const url = `${urlBase.api}/${entityType}?${MAILTO}&per-page=200&page=${page}&select=id,display_name`;
     const resp = await axios.get(url, axiosConfig());
     const results = resp.data?.results || [];
     for (const r of results) {
@@ -145,20 +147,15 @@ export async function runOql(oql) {
 const _AC_KINDS = new Set(["authors", "institutions", "sources", "funders", "publishers", "topics",
   "subfields", "licenses", "keywords", "works"]);
 const _LIST_KINDS = new Set(["countries", "continents", "sdgs", "fields", "domains", "languages"]);
-// the mixed list names its rows' kind in the singular
-const _PLURAL = { work: "works", author: "authors", source: "sources", institution: "institutions",
-  funder: "funders", publisher: "publishers", topic: "topics", concept: "concepts", keyword: "keywords",
-  country: "countries", subfield: "subfields", field: "fields", domain: "domains", license: "licenses" };
-
 function _row(kind, r) {
-  const tail = String(r.id || r.value || "").split("/").pop();
+  const tail = idTail(r.id || r.value);
   return {
-    kind: kind || _PLURAL[r.entity_type] || r.entity_type || null,
+    // the mixed list names its rows' kind in the singular (`institution`)
+    kind: kind || (r.entity_type ? getEntityConfig(r.entity_type)?.name || r.entity_type : null),
     id: tail,
     name: r.display_name || tail,
     hint: r.hint || null,
     works_count: typeof r.works_count === "number" ? r.works_count : null,
-    cited_by_count: typeof r.cited_by_count === "number" ? r.cited_by_count : null,
   };
 }
 
@@ -187,26 +184,45 @@ async function _searchKind(kind, q) {
   return [];
 }
 
-// Entities named like `q`, for an OQL link slot: the kinds the grammar wants there, most
-// likely first; no kinds = every kind (the mixed list, plus countries). Rows:
-// {kind, id, name, hint, works_count, cited_by_count}.
-export async function searchEntities(kinds, q) {
-  const query = (q || "").trim();
+async function _mixedRows(query) {
+  let mixed = null;
+  if (edgeOn() && edgeSupports("mix")) mixed = await edgeRows("mix", query);
+  if (!mixed) {
+    const url = `${urlBase.api}/autocomplete?${MAILTO}&q=${encodeURIComponent(query)}`;
+    mixed = (await axios.get(url, axiosConfig())).data?.results || [];
+  }
+  return mixed.slice(0, 8).map((r) => _row(null, r));
+}
+
+async function _search(kinds, query) {
   if (!kinds || !kinds.length) {
-    if (!query) return [];
-    let mixed = null;
-    if (edgeOn() && edgeSupports("mix")) mixed = await edgeRows("mix", query);
-    if (!mixed) {
-      const url = `${urlBase.api}/autocomplete?${MAILTO}&q=${encodeURIComponent(query)}`;
-      mixed = (await axios.get(url, axiosConfig())).data?.results || [];
-    }
-    const countries = await _searchKind("countries", query).catch(() => []);
-    const rows = mixed.slice(0, 8).map((r) => _row(null, r));
-    return [...countries.filter((c) => c.name.toLowerCase().startsWith(query.toLowerCase())).slice(0, 2), ...rows];
+    const [mixed, countries] = await Promise.all([
+      _mixedRows(query), _searchKind("countries", query).catch(() => []),
+    ]);
+    const lower = query.toLowerCase();
+    return [...countries.filter((c) => c.name.toLowerCase().startsWith(lower)).slice(0, 2), ...mixed];
   }
   const per = await Promise.all(kinds.map((k) => _searchKind(k, query).catch(() => [])));
-  const cap = kinds.length === 1 ? 10 : 6;
-  return per.flatMap((rows) => rows.slice(0, cap)).slice(0, 14);
+  return per.flatMap((rows) => (kinds.length === 1 ? rows : rows.slice(0, 6))).slice(0, 14);
+}
+
+// Entities named like `q`, for an OQL link slot: the kinds the grammar wants there, most
+// likely first; no kinds = every kind (the mixed list, plus countries). Rows:
+// {kind, id, name, hint, works_count}. Cached for the session (a click on a name looks its
+// whole name up again).
+const _searches = new Map();
+export function searchEntities(kinds, q) {
+  const query = (q || "").trim();
+  if (!query) return Promise.resolve([]);
+  const key = `${(kinds || []).join(",")}\u0000${query.toLowerCase()}`;
+  if (!_searches.has(key)) {
+    if (_searches.size > 300) _searches.clear();
+    _searches.set(key, _search(kinds, query).catch((e) => {
+      _searches.delete(key);
+      throw e;
+    }));
+  }
+  return _searches.get(key);
 }
 
 // One entity's API record, for the hover card (cached for the session).
@@ -225,13 +241,10 @@ export function getEntityRecord(kind, id) {
 
 // The grammar's phrases with plain-English help ({value, kind, detail, doc}), from the same
 // tables the parser reads (GET /oql-vocabulary). null when this API doesn't serve it yet.
-let _vocab = null;
+// The caller (oqlIde's loadVocabulary) asks once per page.
 export function getVocabulary() {
-  if (!_vocab) {
-    const url = `${urlBase.api}/oql-vocabulary?${MAILTO}`;
-    _vocab = axios.get(url, axiosConfig())
-      .then((r) => (Array.isArray(r.data?.phrases) ? r.data.phrases : null))
-      .catch(() => null);
-  }
-  return _vocab;
+  const url = `${urlBase.api}/oql-vocabulary?${MAILTO}`;
+  return axios.get(url, axiosConfig())
+    .then((r) => (Array.isArray(r.data?.phrases) ? r.data.phrases : null))
+    .catch(() => null);
 }

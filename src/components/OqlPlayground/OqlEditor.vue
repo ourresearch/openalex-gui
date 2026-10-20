@@ -144,7 +144,7 @@
  * decides what, if anything, to do with it).
  *
  * WHAT IT DOES
- *   - Syntax highlighting (cheap client tokenizer, see oqlLanguage.js).
+ *   - Syntax highlighting (cheap client tokenizer, see oqlLanguage.js; oqlIde.js when `ide`).
  *   - Live linting via the server /validate endpoint → red/amber squiggles.
  *   - Copy + Tidy (canonical pretty-print) tools, floating top-right.
  *   - A valid/invalid badge, bottom-right; invalid → click for an error popover.
@@ -170,10 +170,10 @@
  *   - minHeight    String   CSS min-height of the text area (default 120px).
  *   - maxHeight    String   CSS max-height before it scrolls (default 360px).
  *   - readonly     Boolean  render-only (no edits); still highlights + validates.
+ *   - ide          Boolean  the IDE layer (#1597, oqlIde.js): links, autocomplete, hover.
  *
  * EXPOSED: focus() — focus the editor.
  *
- *   - ide          Boolean  the IDE layer (#1597, oqlIde.js): links, autocomplete, hover.
  *
  * The component is intentionally free of any page/layout assumptions so it can be
  * dropped into a playground, a SERP pane, a dialog, etc.
@@ -190,6 +190,7 @@ import { lintKeymap } from "@codemirror/lint";
 
 import { oqlSyntax, makeOqlLinter } from "./oqlLanguage";
 import { oqlIde, warmIde } from "./oqlIde";
+import { cmdLabel as modKey } from "@/components/Oql/platformKeys";
 import { useStore } from "vuex";
 import { pickOql } from "@/oqlForm";
 
@@ -317,8 +318,6 @@ function onValidateResult(data) {
     emit("valid", { oql: pickOql(data, store.getters.newOql), oqo: data.oqo, oxurl: data.oxurl });
   }
 }
-
-const modKey = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || "") ? "⌘" : "Ctrl";
 
 // --- tools -------------------------------------------------------------------
 const copied = ref(false);

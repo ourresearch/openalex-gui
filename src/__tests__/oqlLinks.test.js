@@ -65,11 +65,13 @@ describe('linkKind / entityPath / linkText', () => {
     expect(linkKind('T10017')).toBe('topics');
     expect(linkKind('W2741809807')).toBe('works');
     expect(linkKind('col_abc')).toBe('collections');
+    expect(linkKind('G123')).toBe('awards');
     expect(linkKind('13')).toBeNull();
   });
   it('builds entity paths only for kinds with pages', () => {
     expect(entityPath('institutions', 'I63966007')).toBe('/institutions/I63966007');
     expect(entityPath('countries', 'KE')).toBe('/countries/KE');
+    expect(entityPath('institutions', 'i63966007')).toBe('/institutions/I63966007');
     expect(entityPath('collections', 'col_abc')).toBeNull();
     expect(entityPath(null, 'X')).toBeNull();
   });
@@ -116,11 +118,11 @@ describe('cards', () => {
   it('says what an institution card shows', () => {
     const f = cardFacts('institutions', {
       display_name: 'Stanford University', type: 'education', works_count: 558203,
-      cited_by_count: 97384341, geo: { city: 'Stanford', country: 'United States' },
+      cited_by_count: 97384341, country_code: 'US', geo: { city: 'Stanford', region: 'California' },
     });
     expect(f).toEqual({
       title: 'Stanford University', kicker: 'Institution · education',
-      line: 'Stanford, United States', stats: ['558.2K works', '97.4M citations'],
+      line: 'Stanford, California, USA', stats: ['558.2K works', '97.4M citations'],
     });
   });
   it('says what a work card shows', () => {

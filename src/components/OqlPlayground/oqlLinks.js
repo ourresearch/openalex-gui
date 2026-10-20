@@ -5,13 +5,12 @@
 // (#1555). The ID is the meaning; the name is for people. The editor shows the name as a link
 // and hides `[`, `](` and the ID, but the text it holds (and hands the page) is the full form.
 
-const LINK_RE = /\[([^[\]\n]*)\]\(([^()\s]+)\)/g;
+import { getEntityType, isCollectionId } from "@/openalexId";
+import { parseRecordPath } from "@/ssr/recordRoutes";
+import { entityConfigs, getLocationString } from "@/entityConfigs";
+import { capitalizeFirst } from "@/collectionTypeLabels";
 
-// ID prefix -> entity kind (the API's own short-ID shapes)
-const PREFIX_KINDS = {
-  W: "works", A: "authors", S: "sources", I: "institutions", F: "funders",
-  P: "publishers", T: "topics", C: "concepts",
-};
+const LINK_RE = /\[([^[\]\n]*)\]\(([^()\s]+)\)/g;
 
 // Every `[name](ID)` in the text, in order: offsets of the whole link, the name, and the ID.
 export function findLinks(text) {
@@ -46,9 +45,8 @@ export function linkCovering(links, pos) {
 // the link (`in SDG [Climate action](13)`, `under the [CC-BY](cc-by) license`).
 export function linkKind(id, before = "") {
   if (!id) return null;
-  if (/^col_/i.test(id)) return "collections";
-  const p = /^([WASIFPTC])\d+$/i.exec(id);
-  if (p) return PREFIX_KINDS[p[1].toUpperCase()];
+  if (isCollectionId(id)) return "collections";
+  if (/^[a-z]\d+$/i.test(id) && getEntityType(id)) return getEntityType(id);   // W123, I123, G123 ...
   if (/^Q\d+$/.test(id)) return "continents";
   const b = before.toLowerCase().replace(/\s+$/, "");
   if (/\bsdgs?$/.test(b)) return "sdgs";
@@ -61,15 +59,11 @@ export function linkKind(id, before = "") {
   return null;
 }
 
-// Kinds whose page and record live at /<kind>/<id> on openalex.org and api.openalex.org.
-const PAGE_KINDS = new Set([
-  "works", "authors", "sources", "institutions", "funders", "publishers", "topics",
-  "subfields", "fields", "domains", "sdgs", "countries", "continents", "licenses", "concepts",
-]);
-
+// The entity's page (and API record) path, `/institutions/I63966007`, in canonical case; null
+// for kinds without a page (collections) or a malformed ID.
 export function entityPath(kind, id) {
-  if (!kind || !id || !PAGE_KINDS.has(kind)) return null;
-  return `/${kind}/${id}`;
+  if (!kind || !id) return null;
+  return parseRecordPath(`/${kind}/${id}`)?.canonicalPath || null;
 }
 
 // The ID tail of an autocomplete row (`https://openalex.org/I97018004` -> `I97018004`,
@@ -106,7 +100,7 @@ export function bracketTailEnd(text, pos) {
 }
 
 // Words with offsets on one line of text (links count as one word each), for phrase lookups.
-export function wordsWithOffsets(text) {
+function wordsWithOffsets(text) {
   const out = [];
   const re = /\[[^[\]\n]*\]\([^()\s]+\)|[^\s,.()[\]"]+/g;
   let m;
@@ -145,16 +139,9 @@ export function compactNumber(n) {
   return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(n);
 }
 
-const KIND_LABELS = {
-  works: "Work", authors: "Author", sources: "Source", institutions: "Institution",
-  funders: "Funder", publishers: "Publisher", topics: "Topic", subfields: "Subfield",
-  fields: "Field", domains: "Domain", sdgs: "Sustainable Development Goal", countries: "Country",
-  continents: "Continent", licenses: "License", concepts: "Concept", keywords: "Keyword",
-  collections: "Collection",
-};
-
 export function kindLabel(kind) {
-  return KIND_LABELS[kind] || "Entity";
+  if (kind === "collections") return "Collection";
+  return capitalizeFirst(entityConfigs[kind]?.displayNameSingular) || "Entity";
 }
 
 const SOURCE_TYPES = { journal: "Journal", repository: "Repository", conference: "Conference",
@@ -170,9 +157,8 @@ export function cardFacts(kind, rec) {
   const works = compactNumber(rec.works_count);
   const cites = compactNumber(rec.cited_by_count);
   if (kind === "institutions") {
-    const geo = rec.geo || {};
     if (rec.type) kicker = `${kicker} · ${rec.type}`;
-    line = [geo.city, geo.country].filter(Boolean).join(", ") || null;
+    line = getLocationString(rec) || null;
   } else if (kind === "authors") {
     const inst = (rec.last_known_institutions || [])[0];
     line = inst ? inst.display_name : null;
@@ -190,8 +176,6 @@ export function cardFacts(kind, rec) {
     const more = (rec.authorships || []).length > 1 ? " et al." : "";
     const src = rec.primary_location?.source?.display_name;
     line = [first ? first + more : null, rec.publication_year, src].filter(Boolean).join(" · ") || null;
-  } else if (kind === "funders") {
-    line = rec.description || null;
   } else if (rec.description) {
     line = rec.description;
   }
