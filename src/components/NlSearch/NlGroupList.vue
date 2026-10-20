@@ -65,8 +65,11 @@ const maxLead = computed(() => {
 });
 const wholeLabel = computed(() => props.resultsObject?.summary?.all?.key_display_name || 'All');
 
+// The current year is partial; say so, as the chart does ("so far").
+const THIS_YEAR = String(new Date().getFullYear());
 function label(g) {
-  return g.key_display_name ?? String(g.key);
+  const name = g.key_display_name ?? String(g.key);
+  return byYear.value && String(g.key) === THIS_YEAR ? `${name} (so far)` : name;
 }
 function barWidth(row) {
   const v = Number(row.group[lead.value.key]) || 0;
