@@ -97,7 +97,10 @@
 
       <div v-if="asking" class="nl-msg nl-msg--bot nl-msg--thinking">
         <span class="nl-dots"><span /><span /><span /></span>
-        <span class="nl-thinking-text">Writing the query{{ elapsed >= 2 ? ` · ${elapsed} s` : '' }}</span>
+        <span class="nl-thinking-text">
+          Writing the query{{ elapsed >= 2 ? ` · ${elapsed} s` : '' }}
+          <span v-if="elapsed >= 15" class="nl-thinking-more">Big questions can take up to half a minute.</span>
+        </span>
       </div>
     </div>
 
@@ -519,6 +522,11 @@ defineExpose({ ask });
 @keyframes nl-pulse {
   0%, 80%, 100% { opacity: 0.25; transform: scale(0.85); }
   40% { opacity: 1; transform: scale(1); }
+}
+.nl-thinking-more {
+  display: block;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
 }
 .nl-chat-input {
   flex: 0 0 auto;
