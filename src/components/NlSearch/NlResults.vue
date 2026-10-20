@@ -3,7 +3,8 @@
        re-runs the query; each format reads the same response. -->
   <div class="nl-results">
     <div class="nl-results-bar">
-      <span class="nl-results-count">{{ countLabel }}</span>
+      <!-- The calculation table heads itself with the same count (and the price). -->
+      <span v-if="!(isPipeline && format === 'table')" class="nl-results-count">{{ countLabel }}</span>
       <v-spacer />
       <v-btn-toggle
         :model-value="format"

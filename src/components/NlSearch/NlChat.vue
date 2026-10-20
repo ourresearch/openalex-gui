@@ -413,8 +413,9 @@ defineExpose({ ask });
   padding: 0;
 }
 .nl-oql-snippet--current {
-  border-color: rgba(var(--v-theme-primary), 0.45);
-  background: rgba(var(--v-theme-primary), 0.04);
+  border-color: rgba(0, 0, 0, 0.22);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   cursor: default;
 }
 .nl-oql-snippet-foot {
