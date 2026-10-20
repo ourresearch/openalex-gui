@@ -62,22 +62,30 @@
           <div v-for="a in m.asides || []" :key="a.kind" class="nl-aside">
             <span class="nl-aside-label">{{ a.label }}:</span> {{ a.text }}
           </div>
-          <button
+          <div
             v-if="m.shownOql"
-            type="button"
+            role="button"
+            tabindex="0"
             class="nl-oql-snippet"
             :class="{ 'nl-oql-snippet--current': isCurrent(m) }"
             :title="isCurrent(m) ? 'This is the query on the page' : 'Show this query again'"
             @click="useQuery(m)"
+            @keydown.enter="useQuery(m)"
           >
-            <code>{{ m.shownOql }}</code>
+            <code :class="{ 'nl-oql-code--clamped': isLong(m.shownOql) && !expanded.has(i) }">{{ m.shownOql }}</code>
             <span class="nl-oql-snippet-foot">
               <span v-if="m.count != null">{{ countLabel(m.count) }}</span>
+              <button
+                v-if="isLong(m.shownOql)"
+                type="button"
+                class="nl-oql-more"
+                @click.stop="toggleExpanded(i)"
+              >{{ expanded.has(i) ? 'Show less' : 'Show all' }}</button>
               <span v-if="!isCurrent(m)" class="nl-oql-snippet-use">
                 <v-icon size="14">mdi-arrow-u-left-top</v-icon> Show again
               </span>
             </span>
-          </button>
+          </div>
         </div>
       </template>
 
@@ -169,6 +177,20 @@ function collapse(s) {
 }
 function isCurrent(m) {
   return !!m.shownOql && collapse(m.shownOql) === collapse(route.query.oql || store.getters.shownOql);
+}
+
+// A long query (a list of 46 countries) shows six lines in the thread; "Show all" opens it.
+// The editor above the results always shows it whole.
+const expanded = ref(new Set());
+function isLong(oql) {
+  const s = String(oql || '');
+  return s.split('\n').length > 6 || s.length > 360;
+}
+function toggleExpanded(i) {
+  const next = new Set(expanded.value);
+  if (next.has(i)) next.delete(i);
+  else next.add(i);
+  expanded.value = next;
 }
 
 function countLabel(n) {
@@ -271,6 +293,7 @@ function useQuery(m) {
 
 function newChat() {
   messages.value = [];
+  expanded.value = new Set();
   draft.value = '';
   nextTick(() => inputEl.value?.focus());
 }
@@ -418,12 +441,32 @@ defineExpose({ ask });
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   cursor: default;
 }
+.nl-oql-code--clamped {
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+  overflow: hidden;
+}
 .nl-oql-snippet-foot {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
   margin-top: 4px;
   font-size: 12px;
   color: rgba(0, 0, 0, 0.55);
+}
+.nl-oql-snippet-foot > :last-child {
+  margin-left: auto;
+}
+.nl-oql-more {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: rgb(var(--v-theme-primary));
+  text-decoration: underline;
+  cursor: pointer;
 }
 .nl-oql-snippet-use {
   color: rgb(var(--v-theme-primary));
