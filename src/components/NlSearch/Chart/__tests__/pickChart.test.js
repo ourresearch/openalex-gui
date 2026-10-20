@@ -54,6 +54,7 @@ const EXPECTED = {
   countries_by_year: [CHART.SMALL, CHART.LINES],
   compare_institutions_oa: [CHART.STACKED_BARS, CHART.HEATMAP],
   countries_sdg: [CHART.HEATMAP],
+  rank_journals_retracted: [CHART.BARS],
 };
 
 describe("pickChart on real answers", () => {
@@ -104,6 +105,10 @@ describe("chartData", () => {
     const c = chartData(answer("compare_searches_year"));
     expect(c.dims.map((x) => x.kind)).toEqual([DIM.NAMED, DIM.YEAR]);
     expect(c.rows[0].path[0].name).toBe("machine learning");
+  });
+
+  it("names sources limited to one type after the type", () => {
+    expect(chartData(answer("rank_journals_retracted")).dims[0]).toMatchObject({ label: "journal", noun: "journal" });
   });
 
   it("knows thing splits and their nouns", () => {

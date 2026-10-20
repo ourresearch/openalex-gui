@@ -191,12 +191,15 @@ export function chartData(resultsObject) {
 
   const dims = splitDefs.slice(0, depth).map((s, i) => {
     const kind = dimKind(s.column_id, s.kind, levelGroups[i]);
-    const label = (s.oql && kind !== DIM.YESNO ? s.oql : fieldLabel(s.column_id)).replace(/ bins$/, "");
+    let label = (s.oql && kind !== DIM.YESNO ? s.oql : fieldLabel(s.column_id)).replace(/ bins$/, "");
+    // Sources limited to one type say so: "Works by journal", not "by source".
+    const where = (oqo.group_by || [])[i]?.where;
+    if (label === "source" && where?.column_id === "type" && typeof where.value === "string") label = where.value;
     return {
       columnId: s.column_id,
       kind,
       label,
-      noun: kind === DIM.THING ? thingNoun(s.column_id) || label : label,
+      noun: label,
       partition: PARTITION_FIELDS.has(s.column_id) || kind === DIM.BINS || kind === DIM.YESNO,
       groupsCount: i === 0 ? meta.groups_count ?? levelGroups[0].length : null,
       more: i === 0 ? Boolean(meta.more_groups) || (meta.groups_count ?? 0) > levelGroups[0].length : false,
