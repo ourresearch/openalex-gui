@@ -14,7 +14,7 @@ import {
   askQueryText, friendlyError, sortToSortBy, oqlForAnswer, oqlForPageUrl, answerAsides, buildHistory, loadThread, saveThread,
   retryShortThrottle, stepsLine,
 } from '../components/NlSearch/nlChat';
-import { defaultFormat } from '../components/NlSearch/nlChart';
+import { defaultFormat, normalizeView, answerView, DEFAULT_VIEW } from '../components/NlSearch/nlChart';
 
 const err = (status, data = {}) => Object.assign(new Error(String(status)), { response: { status, data } });
 
@@ -237,5 +237,26 @@ describe('defaultFormat (the format a chat answer opens on)', () => {
   });
   it('a pickChart that throws falls back to the shape rule', () => {
     expect(defaultFormat(pipeline, 'x', () => { throw new Error('bad'); }, true)).toBe('chart');
+  });
+  it('a calculation no chart fits opens on its table, not its works', () => {
+    expect(defaultFormat(pipeline, 'x', () => null, true)).toBe('table');
+  });
+});
+
+describe('the results view: Groups (Chart | Table) and Works (List | Table)', () => {
+  it('maps a stored v1 format across', () => {
+    expect(normalizeView('chart')).toEqual({ tab: 'groups', groups: 'chart', works: 'list' });
+    expect(normalizeView('table')).toEqual({ tab: 'groups', groups: 'table', works: 'table' });
+    expect(normalizeView('list')).toEqual({ tab: 'works', groups: 'chart', works: 'list' });
+  });
+  it('makes a missing or bad view whole', () => {
+    expect(normalizeView(null)).toEqual(DEFAULT_VIEW);
+    expect(normalizeView({ tab: 'nope', works: 'table' })).toEqual({ tab: 'groups', groups: 'chart', works: 'table' });
+  });
+  it("a chat answer opens a calculation on its groups and a list on the list, keeping the other tab's format", () => {
+    const v = { tab: 'works', groups: 'table', works: 'table' };
+    expect(answerView(v, 'chart')).toEqual({ tab: 'groups', groups: 'chart', works: 'table' });
+    expect(answerView(v, 'table')).toEqual({ tab: 'groups', groups: 'table', works: 'table' });
+    expect(answerView({ ...v, tab: 'groups' }, 'list')).toEqual({ tab: 'groups', groups: 'table', works: 'list' });
   });
 });

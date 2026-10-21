@@ -2,7 +2,8 @@
   <!-- A calculation's Works tab (oxjob #1745, after Jason 2026-10-20): the works its groups are
        counted from, the way Splunk's Events tab sits beside Statistics and Visualization and
        Tableau's "View Data" has Summary and Full Data tabs. A click on a group in the chart
-       narrows this list to that group's works (drill-through, as in Metabase and Excel). -->
+       narrows this list to that group's works (drill-through, as in Metabase and Excel). It
+       shows them as list rows or, as a plain list's Table does, in ResultsTable (#1744). -->
   <div class="nl-works" :class="{ 'nl-works--busy': busy }">
     <div class="nl-works-head">
       <span class="nl-works-count">{{ countText }}</span>
@@ -13,11 +14,19 @@
         close-label="Show all the works"
         @click:close="emit('clear-drill')"
       >{{ drill.label }}</v-chip>
-      <span v-if="loaded" class="nl-works-count">· most cited first</span>
+      <span v-if="loaded && sort === MOST_CITED" class="nl-works-count">· most cited first</span>
     </div>
     <v-divider />
 
     <div v-if="error" class="nl-works-empty">{{ error }}</div>
+    <results-table
+      v-else-if="results.length && mode === 'table'"
+      :results-object="tableObject"
+      entity-type="works"
+      :sort="sort"
+      @sort="setSort"
+      @filter-column="(key) => emit('filter-column', key)"
+    />
     <div v-else-if="results.length" class="results-container">
       <serp-results-list-item v-for="r in results" :key="r.id" :result="r" />
     </div>
@@ -40,6 +49,7 @@ import filters from '@/filters';
 import { startingSetOqo } from '@/oqlPipeline';
 import { createFetchSequencer } from '@/serpFetchSeq';
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
+import ResultsTable from '@/components/Results/ResultsTable.vue';
 import SlidingPagination from '@/components/SlidingPagination.vue';
 
 defineOptions({ name: 'NlWorksList' });
@@ -49,16 +59,31 @@ const props = defineProps({
   resultsObject: Object,
   // {rows, label}: filter rows that pick one group's works, from the chart (or null).
   drill: { type: Object, default: null },
+  // 'list' | 'table': the same fetched page either way, so switching never refetches.
+  mode: { type: String, default: 'list' },
 });
-const emit = defineEmits(['clear-drill']);
+const emit = defineEmits(['clear-drill', 'filter-column']);
 
 const PER_PAGE = 25;
 const page = ref(1);
+// Most cited first, until a Table header picks another sort (this fetch owns it, not the
+// calculation's query, which a works sort would re-run).
+const MOST_CITED = { field: 'cited_by_count', direction: 'desc' };
+const sort = shallowRef(MOST_CITED);
+function setSort(s) {
+  sort.value = s;
+}
 const results = shallowRef([]);
 const count = ref(0);
 const busy = ref(false);
 const loaded = ref(false);
 const error = ref('');
+
+// The fetched page in the response shape ResultsTable reads.
+const tableObject = computed(() => ({
+  meta: { count: count.value, page: page.value, per_page: PER_PAGE },
+  results: results.value,
+}));
 
 // The starting set (taken from the response, so it always matches the groups beside it),
 // narrowed to one group after a chart click.
@@ -85,7 +110,8 @@ async function load() {
   let failed = !oqo;
   if (oqo) {
     try {
-      resp = await api.executeOqo(oqo, { page: page.value, per_page: PER_PAGE, sort: 'cited_by_count:desc' });
+      const order = `${sort.value.field}:${sort.value.direction}`;
+      resp = await api.executeOqo(oqo, { page: page.value, per_page: PER_PAGE, sort: order });
     } catch (e) {
       console.warn('[NlWorksList]', e);
       failed = true;
@@ -94,7 +120,7 @@ async function load() {
   if (isStale()) return; // a newer page or group is loading
   results.value = resp?.results || [];
   count.value = resp?.meta?.count || 0;
-  error.value = !failed ? '' : oqo ? "The works couldn't load. Try again, or see the Table." : 'This answer has no list of works behind it.';
+  error.value = !failed ? '' : oqo ? "The works couldn't load. Try again, or see the Groups." : 'This answer has no list of works behind it.';
   busy.value = false;
   loaded.value = true;
 }
@@ -105,6 +131,10 @@ watch(() => JSON.stringify(worksOqo.value), () => {
   else load();
 }, { immediate: true });
 watch(page, load);
+watch(sort, () => {
+  if (page.value !== 1) page.value = 1;
+  else load();
+});
 </script>
 
 <style scoped>

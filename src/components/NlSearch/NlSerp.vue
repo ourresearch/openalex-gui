@@ -49,7 +49,7 @@
           @ask="askFromBar"
         />
         <nl-results
-          v-model:format="format"
+          v-model:view="view"
           :results-object="resultsObject"
           :search-error="searchError"
         />
@@ -79,7 +79,7 @@ import SerpHeaderActions from '@/components/Serp/SerpHeaderActions.vue';
 import NlQueryBar from '@/components/NlSearch/NlQueryBar.vue';
 import NlResults from '@/components/NlSearch/NlResults.vue';
 import NlChat from '@/components/NlSearch/NlChat.vue';
-import { defaultFormat, loadPickChart } from '@/components/NlSearch/nlChart';
+import { defaultFormat, loadPickChart, normalizeView, answerView } from '@/components/NlSearch/nlChart';
 
 defineOptions({ name: 'NlSerp' });
 
@@ -123,21 +123,21 @@ async function askFromBar({ text, currentQuery }) {
   chatRef.value?.ask(text, { currentQuery });
 }
 
-// ---- result format (per device), and the chat's pick for its answers --------------------
-const FORMAT_KEY = 'nlSearch.format.v1';
-const FORMATS = ['table', 'list', 'chart'];
-function loadFormat() {
+// ---- results view (per device), and the chat's pick for its answers ----------------------
+// {tab: 'groups' | 'works', groups: 'chart' | 'table', works: 'list' | 'table'} (nlChart.js).
+const VIEW_KEY = 'nlSearch.view.v2';
+function loadView() {
   try {
-    const f = localStorage.getItem(FORMAT_KEY);
-    return FORMATS.includes(f) ? f : 'list';
+    const v = localStorage.getItem(VIEW_KEY);
+    return normalizeView(v ? JSON.parse(v) : localStorage.getItem('nlSearch.format.v1'));
   } catch (e) {
-    return 'list';
+    return normalizeView(null);
   }
 }
-const format = ref(loadFormat());
-watch(format, (f) => {
-  try { localStorage.setItem(FORMAT_KEY, f); } catch (e) { /* private mode */ }
-});
+const view = ref(loadView());
+watch(view, (v) => {
+  try { localStorage.setItem(VIEW_KEY, JSON.stringify(v)); } catch (e) { /* private mode */ }
+}, { deep: true });
 
 // A chat answer opens on the format that suits it (a chart for a calculation, the list for
 // a list). It applies once, to the first response for that answer's query.
@@ -147,7 +147,7 @@ function onAnswer(msg) {
 }
 watch([() => props.resultsObject, () => store.state.isLoading], ([r, loading]) => {
   if (!pendingAnswerOql.value || !r || loading) return;
-  format.value = defaultFormat(r, store.getters.shownOql);
+  view.value = answerView(view.value, defaultFormat(r, store.getters.shownOql));
   pendingAnswerOql.value = null;
   // On a phone the columns stack and the answer lands below the chat: bring it into view.
   if (stacked.value) nextTick(() => mainBody.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }));

@@ -1,37 +1,59 @@
 <template>
-  <!-- The answer in three formats (oxjob #1744): Table, List, Chart. Switching formats never
-       re-runs the query; each format reads the same response. -->
+  <!-- What, then how (oxjob #1744, Jason 2026-10-21): a calculation's answer has two tabs,
+       its Groups (Chart | Table) and the Works they're counted from (List | Table); a plain
+       list is only works (List | Table). Tabs for what, a small toggle for how, as Notion,
+       Airtable and GitHub Projects do (and #1745's records-and-groups research). Switching
+       never re-runs the query; every view reads the same response. -->
   <div class="nl-results">
     <div class="nl-results-bar">
-      <!-- The calculation table heads itself with the same count (and the price). -->
-      <span v-if="!(isPipeline && format === 'table')" class="nl-results-count">{{ countLabel }}</span>
+      <v-tabs
+        v-if="isPipeline"
+        :model-value="tab"
+        density="compact"
+        color="primary"
+        class="nl-tabs"
+        @update:model-value="setTab"
+      >
+        <v-tab value="groups" class="text-none nl-tab">{{ groupsLabel }}</v-tab>
+        <v-tab value="works" class="text-none nl-tab">{{ worksLabel }}</v-tab>
+      </v-tabs>
+      <span v-else class="nl-results-count">{{ countLabel }}</span>
       <v-spacer />
+      <!-- One toggle per tab (keyed), so neither ever holds the other's value. -->
       <v-btn-toggle
-        :model-value="format"
+        v-if="tab === 'groups'"
+        key="groups"
+        :model-value="how"
         mandatory
         density="compact"
         variant="outlined"
         divided
         class="nl-format-toggle"
-        @update:model-value="(f) => emit('update:format', f)"
+        @update:model-value="setHow"
       >
-        <v-btn value="table" size="small" class="text-none" prepend-icon="mdi-table">Table</v-btn>
-        <!-- On a calculation the middle tab is the works the groups are counted from
-             (Splunk's Events tab, Tableau's Full Data; oxjob #1745). -->
-        <v-btn
-          value="list"
-          size="small"
-          class="text-none"
-          :prepend-icon="isPipeline ? 'mdi-file-document-multiple-outline' : 'mdi-format-list-bulleted'"
-        >{{ isPipeline ? 'Works' : 'List' }}</v-btn>
         <v-btn value="chart" size="small" class="text-none" prepend-icon="mdi-chart-bar">Chart</v-btn>
+        <v-btn value="table" size="small" class="text-none" prepend-icon="mdi-table">Table</v-btn>
+      </v-btn-toggle>
+      <v-btn-toggle
+        v-else
+        key="works"
+        :model-value="how"
+        mandatory
+        density="compact"
+        variant="outlined"
+        divided
+        class="nl-format-toggle"
+        @update:model-value="setHow"
+      >
+        <v-btn value="list" size="small" class="text-none" prepend-icon="mdi-format-list-bulleted">List</v-btn>
+        <v-btn value="table" size="small" class="text-none" prepend-icon="mdi-table">Table</v-btn>
       </v-btn-toggle>
     </div>
 
     <div v-if="searchError" />
 
-    <!-- Chart: #1745's component (it picks the best chart and offers the others). -->
-    <v-card v-else-if="format === 'chart'" variant="outlined" class="bg-white nl-chart-card">
+    <!-- Groups as a chart: #1745's component (it picks the best chart and offers the others). -->
+    <v-card v-else-if="tab === 'groups' && how === 'chart'" variant="outlined" class="bg-white nl-chart-card">
       <component
         :is="chartComponent"
         v-if="chartComponent && resultsObject"
@@ -46,17 +68,15 @@
       </div>
     </v-card>
 
-    <!-- A calculation: groups and calculated columns (its Works tab is kept below). -->
-    <template v-else-if="isPipeline">
-      <oql-pipeline-results v-if="format === 'table'" :results-object="resultsObject" />
-    </template>
+    <!-- Groups as a table: groups and calculated columns. It heads itself with the count. -->
+    <oql-pipeline-results v-else-if="tab === 'groups'" :results-object="resultsObject" />
 
-    <!-- A list of things: today's table and list rows. -->
-    <v-card v-else variant="outlined" class="bg-white">
+    <!-- A list of things: today's table and list rows. (A calculation's Works tab is below.) -->
+    <v-card v-else-if="!isPipeline" variant="outlined" class="bg-white">
       <div class="results-card-head d-flex align-center">
         <v-spacer />
         <serp-download-button :results-object="resultsObject" class="ml-1" />
-        <add-column v-if="format === 'table'" :entity-type="entityType">
+        <add-column v-if="how === 'table'" :entity-type="entityType">
           <template #activator="{ props: colBtnProps }">
             <v-btn v-bind="colBtnProps" icon variant="text" size="small" class="ml-1" aria-label="Edit columns">
               <v-icon size="20" color="grey-darken-1">mdi-view-column-outline</v-icon>
@@ -69,7 +89,7 @@
       <v-divider />
 
       <results-table
-        v-if="resultsObject?.results && format === 'table'"
+        v-if="resultsObject?.results && how === 'table'"
         :results-object="resultsObject"
         :entity-type="entityType"
         @filter-column="onColumnFilter"
@@ -96,17 +116,23 @@
     </v-card>
 
     <!-- A calculation's works: mounted the first time the tab opens, then kept, so moving
-         between Table, Works and Chart never refetches them. -->
+         between Groups and Works, or List and Table, never refetches them. -->
     <v-card
       v-if="isPipeline && !searchError && worksOpened"
-      v-show="format === 'list'"
+      v-show="tab === 'works'"
       variant="outlined"
       class="bg-white"
     >
-      <nl-works-list :results-object="resultsObject" :drill="drill" @clear-drill="drill = null" />
+      <nl-works-list
+        :results-object="resultsObject"
+        :drill="drill"
+        :mode="view.works"
+        @clear-drill="drill = null"
+        @filter-column="onColumnFilter"
+      />
     </v-card>
 
-    <add-filter v-if="format === 'table'" ref="columnFilterRef" headless />
+    <add-filter v-if="tab === 'works' && how === 'table'" ref="columnFilterRef" headless />
   </div>
 </template>
 
@@ -120,7 +146,7 @@ import filters from '@/filters';
 import { entityConfigs } from '@/entityConfigs';
 import { isPipelineResponse } from '@/oqlPipeline';
 import { useSelectionContext } from '@/composables/useSelectionContext';
-import { chartLoader } from '@/components/NlSearch/nlChart';
+import { chartLoader, DEFAULT_VIEW } from '@/components/NlSearch/nlChart';
 
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import ResultsTable from '@/components/Results/ResultsTable.vue';
@@ -137,9 +163,10 @@ defineOptions({ name: 'NlResults' });
 const props = defineProps({
   resultsObject: Object,
   searchError: String,
-  format: { type: String, default: 'list' },
+  // {tab: 'groups' | 'works', groups: 'chart' | 'table', works: 'list' | 'table'} (nlChart.js).
+  view: { type: Object, default: () => ({ ...DEFAULT_VIEW }) },
 });
-const emit = defineEmits(['update:format']);
+const emit = defineEmits(['update:view']);
 
 const store = useStore();
 const route = useRoute();
@@ -151,21 +178,39 @@ const shownOql = computed(() => store.getters.shownOql || route.query.oql || '')
 const isPipeline = computed(() => isPipelineResponse(props.resultsObject));
 const inOqlMode = computed(() => !!store.getters.featureFlags['oql'] && !!route.query.oql);
 
+// The open tab (a plain list has only Works, whatever tab a calculation left open) and its format.
+const tab = computed(() => (isPipeline.value && props.view.tab === 'groups' ? 'groups' : 'works'));
+const how = computed(() => (tab.value === 'groups' ? props.view.groups : props.view.works));
+const HOWS = { groups: ['chart', 'table'], works: ['list', 'table'] };
+function setTab(t) {
+  if (HOWS[t] && t !== props.view.tab) emit('update:view', { ...props.view, tab: t });
+}
+function setHow(h) {
+  if (HOWS[tab.value].includes(h)) emit('update:view', { ...props.view, [tab.value]: h });
+}
+
 // List vs table also picks the classic route's page size (url.getPerPage); keep the store
 // in step, session-only, as the Basic/Advanced modes do.
-watch(() => props.format, (f) => {
+watch(how, (f) => {
   store.commit('setSerpResultsView', { value: f === 'table' ? 'table' : 'list', persist: false });
 }, { immediate: true });
+
+// A calculation's tabs carry its counts: "24 groups" (no count when there are no splits, just
+// one number) and "12.3K works", the works the groups are counted from.
+const groupsLabel = computed(() => {
+  const meta = props.resultsObject?.meta || {};
+  if (!(meta.splits || []).length) return 'Groups';
+  const n = meta.groups_count ?? 0;
+  return `${n.toLocaleString()} ${n === 1 ? 'group' : 'groups'}`;
+});
+const worksLabel = computed(() => {
+  const n = props.resultsObject?.meta?.count || 0;
+  return `${filters.toPrecision(n)} ${n === 1 ? 'work' : 'works'}`;
+});
 
 const countLabel = computed(() => {
   const meta = props.resultsObject?.meta;
   if (!meta) return '';
-  if (isPipeline.value) {
-    const groups = meta.groups_count;
-    const from = `${filters.toPrecision(meta.count || 0)} ${meta.count === 1 ? 'work' : 'works'}`;
-    if (!(meta.splits || []).length) return `Calculated over ${from}`;
-    return `${(groups ?? 0).toLocaleString()} groups, from ${from}`;
-  }
   const count = meta.count;
   if (count === 0) return 'No results';
   const name = entityConfigs[entityType.value]?.displayName || entityType.value;
@@ -195,14 +240,14 @@ useSelectionContext(() => props.resultsObject);
 // works nobody looks at.
 const drill = ref(null);
 const worksOpened = ref(false);
-watch(() => props.format, (f) => { if (f === 'list') worksOpened.value = true; }, { immediate: true });
+watch(tab, (t) => { if (t === 'works') worksOpened.value = true; }, { immediate: true });
 watch(() => props.resultsObject, () => {
   drill.value = null;
-  worksOpened.value = props.format === 'list';
+  worksOpened.value = tab.value === 'works';
 });
 function onDrill(d) {
   drill.value = d;
-  emit('update:format', 'list');
+  emit('update:view', { ...props.view, tab: 'works', works: 'list' });
 }
 
 const columnFilterRef = ref(null);
@@ -225,6 +270,14 @@ function onColumnFilter(baseKey) {
 }
 .nl-format-toggle {
   height: 32px !important;
+}
+.nl-tabs {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.nl-tab {
+  letter-spacing: normal;
+  font-size: 14px;
 }
 .nl-chart-card {
   min-height: 420px;

@@ -109,11 +109,15 @@ const { masterChecked, masterIndeterminate, onMasterClick } = useMasterSelection
 const props = defineProps({
   resultsObject: { type: Object, default: null },
   entityType: { type: String, required: true },
+  // A caller that fetches its own rows (the NL page's calculation Works tab, oxjob #1744)
+  // owns their sort, {field, direction}: the headers show it and emit 'sort' instead of
+  // re-running the page's query. Null (the default) keeps the query's own sort.
+  sort: { type: Object, default: null },
 });
 
 // "Filter by this…" is routed up to ExpertSerp, which owns the (headless) filter
 // value-picker so the property's existing filter UI is reused verbatim.
-const emit = defineEmits(['filter-column']);
+const emit = defineEmits(['filter-column', 'sort']);
 
 // The ordered column keys are the sticky per-entity preference (localStorage,
 // falling back to per-entity defaults) — resolved in useColumnsState. The
@@ -133,17 +137,21 @@ const storeSortBy = computed(() => store.state.query?.sort || []);
 // Active sort state, reflected on the headers (check next to the active
 // direction + a small arrow indicator beside the label). In OQL mode the
 // primary store sort is shown; otherwise the URL sort.
-const sortField = computed(() =>
-  inOqlMode.value ? (storeSortBy.value[0]?.column_id ?? '') : url.getSortField(route),
-);
-const sortDirection = computed(() =>
-  inOqlMode.value
+const sortField = computed(() => {
+  if (props.sort) return props.sort.field ?? '';
+  return inOqlMode.value ? (storeSortBy.value[0]?.column_id ?? '') : url.getSortField(route);
+});
+const sortDirection = computed(() => {
+  if (props.sort) return props.sort.direction === 'asc' ? 'asc' : 'desc';
+  return inOqlMode.value
     ? (storeSortBy.value[0]?.direction === 'asc' ? 'asc' : 'desc')
-    : url.getSortDirection(route),
-);
+    : url.getSortDirection(route);
+});
 
 function onSort(col, dir) {
-  if (inOqlMode.value) {
+  if (props.sort) {
+    emit('sort', { field: col.baseKey, direction: dir });
+  } else if (inOqlMode.value) {
     // Drive the canonical store → POST-OQO (same path as NoviceSortButton).
     store.dispatch('query/setSort', { field: col.baseKey, direction: dir });
   } else {

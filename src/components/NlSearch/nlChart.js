@@ -23,13 +23,46 @@ export function loadPickChart() {
   return pickPromise;
 }
 
-/** The format a chat answer opens on: a chart when one fits the result, else the list. */
+/** The format a chat answer opens on: a chart when one fits a calculation, else its table;
+ *  the list for a list. */
 export function defaultFormat(resultsObject, oql, pick = pickFn, hasChart = !!chartLoader) {
+  const isPipeline = isPipelineResponse(resultsObject);
   if (pick && hasChart) {
     try {
-      return pick(resultsObject, oql) ? 'chart' : 'list';
+      if (pick(resultsObject, oql)) return 'chart';
+      return isPipeline ? 'table' : 'list';
     } catch (e) { /* fall through to the shape rule */ }
   }
-  if (isPipelineResponse(resultsObject)) return hasChart ? 'chart' : 'table';
+  if (isPipeline) return hasChart ? 'chart' : 'table';
   return 'list';
+}
+
+// ---- The results view (oxjob #1744, Jason 2026-10-21) --------------------------------------
+// What, then how: a calculation has two tabs, Groups (Chart | Table) and Works (List | Table);
+// a plain list is only works (List | Table). One object holds the open tab and each tab's own
+// format, so a plain list shows Works by the works format whatever tab a calculation left open.
+export const DEFAULT_VIEW = Object.freeze({ tab: 'groups', groups: 'chart', works: 'list' });
+
+/** A stored view made whole. A v1 format string ('table' | 'list' | 'chart') maps across. */
+export function normalizeView(v) {
+  if (typeof v === 'string') {
+    if (v === 'table') return { tab: 'groups', groups: 'table', works: 'table' };
+    if (v === 'list') return { ...DEFAULT_VIEW, tab: 'works' };
+    return { ...DEFAULT_VIEW };
+  }
+  const o = v && typeof v === 'object' ? v : {};
+  return {
+    tab: o.tab === 'works' ? 'works' : 'groups',
+    groups: o.groups === 'table' ? 'table' : 'chart',
+    works: o.works === 'table' ? 'table' : 'list',
+  };
+}
+
+/** The view a chat answer opens on, from defaultFormat's pick: a chart or table opens the
+ *  Groups tab; the list sets the works format and leaves the tab, so a later calculation
+ *  still opens on its groups. */
+export function answerView(view, format) {
+  const v = normalizeView(view);
+  if (format === 'chart' || format === 'table') return { ...v, tab: 'groups', groups: format };
+  return { ...v, works: 'list' };
 }
