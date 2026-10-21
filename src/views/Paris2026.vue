@@ -219,7 +219,7 @@
                             <li><strong>Abdesslam Chai-allah and Soizic Messiaen</strong> (INRAE) &mdash; OpenAlex at INRAE: what works, what doesn&rsquo;t, and what&rsquo;s next (<a href="https://docs.google.com/presentation/d/1SooYcU3og7DlhN0xA0FcNFj5BNhojE0-ZAicJrr8B0I/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Elke Hausner</strong> (IQWiG) &mdash; A practical assessment of OpenAlex and Lens for systematic literature searches (<a href="https://docs.google.com/presentation/d/12y7Xa_HmI_K1C3nsgOS53P_mifbfhd_Bcncw5Fv3MTQ/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>H&eacute;lo&iuml;se Gazeau</strong> (Universit&eacute; de Strasbourg) &mdash; Building institutional indicators without being a data analyst, or knowing how to code (<a href="https://docs.google.com/presentation/d/1wiZ_8somexF6AXAigyJlTT-4KwxM5Yed_kuIqvAl5ts/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
-                            <li><strong>Abdelghani Maddi</strong> (GEMASS, CNRS and Sorbonne Universit&eacute;) &mdash; When quality signals come late: what OpenAlex reveals about journal discontinuation</li>
+                            <li><strong>Abdelghani Maddi</strong> (GEMASS, CNRS and Sorbonne Universit&eacute;) &mdash; When quality signals come late: what OpenAlex reveals about journal discontinuation (<a href="https://zenodo.org/records/23345147" target="_blank" rel="noopener">slides</a>)</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span>
                     </div>
@@ -235,7 +235,7 @@
                     <div class="sched-time">11:30 &ndash; 12:00</div>
                     <div class="sched-content">
                         <h4>The past of OpenAlex</h4>
-                        <p>Jason Priem (OpenAlex) on how OpenAlex got here: why we built it, what changed along the way, and what we learned.</p>
+                        <p>Jason Priem (OpenAlex) on how OpenAlex got here: why we built it, what changed along the way, and what we learned. (<a href="https://docs.google.com/presentation/d/1Q4CL88fuDLoR8ss6GCJs67uBFDYq8PvsccVD8DknHkA/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</p>
                         <span class="f26-tag tag-presentation">openalex team</span>
                     </div>
                 </div>
