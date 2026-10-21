@@ -84,7 +84,7 @@
                         <ul class="speaker-list">
                             <li><strong>Henri Bretel</strong> (Universit&eacute; Paris-Saclay) &mdash; OpenAlex for institutional benchmarking and research strategy: a CRISalid approach (<a href="https://docs.google.com/presentation/d/1YWN5CaJsZpu7l8K-KPiajAsUi4qMoM4RIMYUVJyeaXw/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Guillaume Godet</strong> (Nantes Universit&eacute;) &mdash; Druid: an institutional directory and dashboard powering research analytics with OpenAlex</li>
-                            <li><strong>Bruna Santanach L&oacute;pez and Maia Francisco Borruel</strong> (Universitat Oberta de Catalunya) &mdash; UOC&rsquo;s journey with OpenAlex: data analysis, workflows and transparency from an institutional perspective (<a href="https://drive.google.com/file/d/18o2x8QrWcX8IDShWZtpWYtCrkdA5H3x7/view?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
+                            <li><strong>Bruna Santanach L&oacute;pez and Maia Francisco Borruel</strong> (Universitat Oberta de Catalunya) &mdash; UOC&rsquo;s journey with OpenAlex: data analysis, workflows and transparency from an institutional perspective (<a href="/paris2026-uoc-slides.pdf" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Nicolas Alarcon and colleagues</strong> (Sorbonne Universit&eacute;) &mdash; Sorbobot: turning OpenAlex&rsquo;s ontology into a conversational expert-finder (<a href="https://docs.google.com/presentation/d/1pqRTrkd7Yw02SnTmnPAKr77klfV6bTCGzO1YdqmYXE8/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
@@ -219,7 +219,7 @@
                             <li><strong>Abdesslam Chai-allah and Soizic Messiaen</strong> (INRAE) &mdash; OpenAlex at INRAE: what works, what doesn&rsquo;t, and what&rsquo;s next (<a href="https://docs.google.com/presentation/d/1SooYcU3og7DlhN0xA0FcNFj5BNhojE0-ZAicJrr8B0I/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Elke Hausner</strong> (IQWiG) &mdash; A practical assessment of OpenAlex and Lens for systematic literature searches (<a href="https://docs.google.com/presentation/d/12y7Xa_HmI_K1C3nsgOS53P_mifbfhd_Bcncw5Fv3MTQ/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>H&eacute;lo&iuml;se Gazeau</strong> (Universit&eacute; de Strasbourg) &mdash; Building institutional indicators without being a data analyst, or knowing how to code (<a href="https://docs.google.com/presentation/d/1wiZ_8somexF6AXAigyJlTT-4KwxM5Yed_kuIqvAl5ts/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
-                            <li><strong>Abdelghani Maddi</strong> (GEMASS, CNRS and Sorbonne Universit&eacute;) &mdash; When quality signals come late: what OpenAlex reveals about journal discontinuation (<a href="https://zenodo.org/records/23345147" target="_blank" rel="noopener">slides</a>)</li>
+                            <li><strong>Abdelghani Maddi</strong> (GEMASS, CNRS and Sorbonne Universit&eacute;) &mdash; When quality signals come late: what OpenAlex reveals about journal discontinuation</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span>
                     </div>
