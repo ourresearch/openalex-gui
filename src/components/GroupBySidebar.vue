@@ -1,8 +1,10 @@
 <template>
   <aside class="group-by-sidebar">
     <!-- No title label (r2: the "Stats" header read as clutter) — just the
-         right-aligned controls. -->
-    <div class="sidebar-head">
+         right-aligned controls. A host with its own header row (the one-mode search
+         page, #1744) moves them into it with `head-to`. -->
+    <Teleport defer :to="headTo" :disabled="!headTo">
+    <div class="sidebar-head" :class="{ 'sidebar-head--moved': headTo }">
       <v-spacer />
 
       <!-- Add/remove facet widgets — mirrors AddColumn.vue's column menu
@@ -110,6 +112,7 @@
         <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
       </v-btn>
     </div>
+    </Teleport>
 
     <!-- "More" → the shared Edit dialog in group_by mode (#440 r6): same
          search/categories/draggable-chips editor as Edit columns; Apply writes
@@ -162,6 +165,8 @@ defineOptions({ name: 'GroupBySidebar' });
 
 defineProps({
   resultsObject: Object,
+  // CSS selector of a header row to put the edit / export controls in (#1744).
+  headTo: { type: String, default: null },
 });
 
 const store = useStore();
@@ -314,6 +319,10 @@ const csvUrl = computed(() => {
   gap: 2px;
   padding: 0 4px 8px;
   min-height: 40px;
+}
+.sidebar-head--moved {
+  padding: 0;
+  min-height: 0;
 }
 
 /* The group-by widgets carry their own min-widths (150–300px) + Vuetify

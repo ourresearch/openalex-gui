@@ -155,7 +155,8 @@ import { EXAMPLE_QUESTIONS } from '@/components/NlSearch/nlExamples';
 
 defineOptions({ name: 'NlChat' });
 
-const emit = defineEmits(['collapse', 'answer']);
+// `asking`: true while a query is being written, so the page can show it's coming.
+const emit = defineEmits(['collapse', 'answer', 'asking']);
 
 const store = useStore();
 const route = useRoute();
@@ -172,6 +173,8 @@ const examples = EXAMPLE_QUESTIONS;
 const signedIn = computed(() => !!store.getters['user/userId']);
 
 watch(messages, (m) => saveThread(m), { deep: true });
+watch(asking, (a) => emit('asking', a));
+onBeforeUnmount(() => { if (asking.value) emit('asking', false); });
 
 // The OQL the page shows, sent with a follow-up so the model edits it. Only when the page
 // holds a query someone made (an ?oql=, or filters / a search on a classic URL); the bare
@@ -250,14 +253,16 @@ function send() {
   ask(text);
 }
 
-async function ask(text) {
+// `currentQuery` overrides the page's query as the one to change: a `#` note in the OQL box
+// sends the box's own (possibly edited) query (#1744).
+async function ask(text, { currentQuery: given } = {}) {
   if (asking.value) return;
   const history = buildHistory(messages.value);
   messages.value.push({ role: 'user', text });
   asking.value = true;
   startClock();
   scrollToEnd();
-  const context = currentQuery.value;
+  const context = given !== undefined ? given : currentQuery.value;
   let msg;
   try {
     await waitForKey();

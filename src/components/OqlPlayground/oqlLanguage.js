@@ -13,6 +13,7 @@ import { tags as t } from "@lezer/highlight";
 import { linter } from "@codemirror/lint";
 
 import { validateOql } from "./oqlEditorApi";
+import { maskComments } from "./oqlComments";
 import { unresolvedIdDiagnostics } from "./unresolvedIds";
 import { OQL_ROLES, OQL_ANNOTATION_FG } from "@/components/Oql/oqlPalette";
 
@@ -191,10 +192,13 @@ export function oqlSyntax() {
 // updates from one round-trip (no duplicate call). No debounce (#600, Jason):
 // delay 0 fires a /validate on every keystroke so the badge is as real-time as
 // the round-trip allows (CM already coalesces to one in-flight run at a time).
-export function makeOqlLinter(onResult) {
+// `comments` (the IDE editor, #1744): `#` notes to the chat are blanked before /validate, so
+// they never read as errors (oqlComments.js).
+export function makeOqlLinter(onResult, { comments = false } = {}) {
   return linter(
     async (view) => {
-      const q = view.state.doc.toString();
+      const raw = view.state.doc.toString();
+      const q = comments ? maskComments(raw) : raw;
       if (!q.trim()) {
         if (onResult) onResult(null);
         return [];
@@ -207,7 +211,7 @@ export function makeOqlLinter(onResult) {
       }
       // With per-keystroke firing, a slow response can land after the doc has moved
       // on — never report stale results (CM will already have queued a fresh run).
-      if (view.state.doc.toString() !== q) return [];
+      if (view.state.doc.toString() !== raw) return [];
       // Fold client-side unresolvable-id warnings into the same diagnostics list so
       // they show in BOTH the squiggles and the badge/popover (which reads onResult's
       // data.diagnostics). These carry buffer offsets in start/end, matching server

@@ -4,10 +4,6 @@
          top-right tools with a builder-style strip (same geometry + icon-button recipe
          as OqlQueryBuilderV2's .builder-toolbar, so the two modes' cards rhyme). -->
     <div v-if="toolbar" class="oql-editor__toolbar">
-      <!-- IDE mode (#1597): one quiet line on how to drive it -->
-      <span v-if="ide" class="oql-editor__hint">
-        Suggestions as you type · <kbd>{{ modKey }}</kbd> click a link to open it · <kbd>{{ modKey }}</kbd><kbd>⏎</kbd> runs
-      </span>
       <v-spacer />
       <v-btn size="small" variant="text" icon :disabled="!canTidy" @click="tidy">
         <v-icon color="grey-darken-1">mdi-broom</v-icon>
@@ -184,13 +180,13 @@ import {
   EditorView, keymap, placeholder as cmPlaceholder, lineNumbers,
   highlightActiveLine, drawSelection,
 } from "@codemirror/view";
-import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
+import { defaultKeymap, history, historyKeymap, insertNewlineAndIndent } from "@codemirror/commands";
 import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 import { lintKeymap } from "@codemirror/lint";
 
 import { oqlSyntax, makeOqlLinter } from "./oqlLanguage";
 import { oqlIde, warmIde } from "./oqlIde";
-import { cmdLabel as modKey } from "@/components/Oql/platformKeys";
+import { inComment } from "./oqlComments";
 import { useStore } from "vuex";
 import { pickOql } from "@/oqlForm";
 
@@ -397,12 +393,22 @@ function buildState(doc) {
       EditorState.readOnly.of(props.readonly),
       cmPlaceholder(placeholderSpec()),
       props.ide ? oqlIde() : oqlSyntax(),
-      makeOqlLinter(onValidateResult),
+      makeOqlLinter(onValidateResult, { comments: props.ide }),
       keymap.of([
         // ⌘/Ctrl+Enter = submit intent (#600). MUST be bound here, first: defaultKeymap
         // binds Mod-Enter to insertBlankLine, so the editor would otherwise eat the
         // keystroke (and dirty the doc) before any host keydown listener sees it.
         { key: "Mod-Enter", run: () => { emit("submit"); return true; } },
+        // IDE (#1744): Enter in a `#` note to the chat sends it, as in the chat box;
+        // Shift+Enter still breaks the line.
+        ...(props.ide ? [
+          { key: "Enter", run: (v) => {
+            if (!inComment(v.state.doc.toString(), v.state.selection.main.head)) return false;
+            emit("submit");
+            return true;
+          } },
+          { key: "Shift-Enter", run: insertNewlineAndIndent },
+        ] : []),
         ...closeBracketsKeymap,
         ...lintKeymap,
         ...historyKeymap,
@@ -501,25 +507,6 @@ defineExpose({ focus: () => view && view.focus() });
   gap: 2px;
   padding: 4px 10px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-/* IDE hint (#1597): one quiet line, left of the tools */
-.oql-editor__hint {
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.45);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.oql-editor__hint kbd {
-  font-family: inherit;
-  font-size: 11px;
-  padding: 0 4px;
-  margin: 0 1px;
-  border: 1px solid rgba(0, 0, 0, 0.14);
-  border-bottom-width: 2px;
-  border-radius: 4px;
-  background: #fafafa;
 }
 
 /* floating tools, top-right */

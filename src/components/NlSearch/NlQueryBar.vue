@@ -3,25 +3,36 @@
        Basic's shortcut filters along the editor's bottom edge. The chat, the chips, the
        facets and this editor all write the same thing: the URL's ?oql=. -->
   <v-card variant="outlined" class="nl-query-bar bg-white">
-    <oql-editor
-      v-model="text"
-      min-height="56px"
-      max-height="240px"
-      font-size="14px"
-      :status="status"
-      :placeholder="PLACEHOLDER"
-      toolbar
-      ide
-      :show-badge="false"
-      @validation="onValidation"
-      @submit="submit"
-    />
+    <div class="nl-query-editor">
+      <oql-editor
+        v-model="text"
+        min-height="56px"
+        max-height="240px"
+        font-size="14px"
+        :status="status"
+        :placeholder="PLACEHOLDER"
+        toolbar
+        ide
+        :show-badge="false"
+        @validation="onValidation"
+        @submit="submit"
+      />
+      <!-- While the chat writes a query, the box holds no OQL: the old query would read as
+           the answer (Jason, Wed 21 Oct). -->
+      <div v-if="creating" class="nl-query-creating" aria-live="polite">
+        <span class="nl-creating-dots"><span /><span /><span /></span>
+        Writing the query…
+      </div>
+    </div>
     <div class="nl-query-actions">
-      <oql-status-chip :status="status" :validation="validation" />
-      <span v-if="dirty" class="nl-dirty-hint">Edited · not run yet</span>
+      <template v-if="!creating">
+        <oql-status-chip :status="status" :validation="validation" />
+        <span v-if="noteToChat" class="nl-dirty-hint">The <code>#</code> note goes to the chat · Enter sends it</span>
+        <span v-else-if="dirty" class="nl-dirty-hint">Edited · not run yet</span>
+      </template>
       <v-spacer />
       <v-btn
-        v-if="dirty"
+        v-if="dirty && !creating"
         variant="text"
         size="small"
         class="text-none mr-1"
@@ -32,17 +43,16 @@
         variant="flat"
         size="small"
         class="text-none"
-        :loading="status === 'querying'"
-        title="Run this query (⌘⏎)"
+        :loading="status === 'querying' || creating"
+        :disabled="creating"
+        :title="noteToChat ? 'Send the note to the chat (⏎)' : 'Run this query (⌘⏎)'"
         @click="submit"
-      >Run</v-btn>
+      >{{ noteToChat ? 'Ask' : 'Run' }}</v-btn>
     </div>
-    <div class="nl-query-chips">
+    <!-- Basic's shortcut filters, when the query is a flat list of filters. No row at all
+         otherwise (Jason, Wed 21 Oct: the "why not" notes cost a line and said little). -->
+    <div v-if="chipsRowShown" class="nl-query-chips">
       <novice-filter-chips v-if="chipsShown" cap-to-slots />
-      <div v-else class="nl-chips-note">
-        <v-icon size="16" class="mr-1">mdi-filter-variant</v-icon>
-        {{ chipsNote }}
-      </div>
     </div>
     <search-error-alert v-if="searchError" :message="searchError" class="ma-3 mt-0" />
   </v-card>
@@ -64,6 +74,7 @@ import SearchErrorAlert from '@/components/SearchErrorAlert.vue';
 import OqlStatusChip from '@/components/OqlPlayground/OqlStatusChip.vue';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import { oqlForPageUrl } from '@/components/NlSearch/nlChat';
+import { splitComments } from '@/components/OqlPlayground/oqlComments';
 
 const OqlEditor = defineAsyncComponent(() => import('@/components/OqlPlayground/OqlEditor.vue'));
 
@@ -72,7 +83,11 @@ defineOptions({ name: 'NlQueryBar' });
 const props = defineProps({
   resultsObject: Object,
   searchError: String,
+  // The chat is writing a query: the box empties and waits for it.
+  creating: { type: Boolean, default: false },
 });
+// `ask`: a `#` note in the box, for the chat to apply to the query above it.
+const emit = defineEmits(['ask']);
 
 const store = useStore();
 const route = useRoute();
@@ -130,9 +145,21 @@ function revert() {
   setText(seed.value);
 }
 
+// A `#` note (oqlComments.js): the box's OQL plus words for the chat to change it with.
+const noteToChat = computed(() => splitComments(text.value).note);
+
 async function submit() {
+  if (props.creating) return;
   const t = (text.value || '').trim();
   if (!t) return;
+  const { oql, note } = splitComments(t);
+  if (note) {
+    // The chat changes the query in the box (edits and all) the way it changes the page's
+    // after a follow-up. The note leaves the box now; the thread keeps it.
+    text.value = oql;
+    emit('ask', { text: note, currentQuery: oql || null });
+    return;
+  }
   let canonical = validation.value?.valid ? pickOql(validation.value, store.getters.newOql) : null;
   if (!canonical) {
     let res;
@@ -172,12 +199,12 @@ const chipsRepresentable = computed(() => {
     && filters.length <= chipSlotCount(entityType.value, isSemanticSearch.value);
 });
 const chipsShown = computed(() => hasFiltersAvailable.value && !isPipeline.value && chipsRepresentable.value);
-const chipsNote = computed(() => {
-  if (isLoading.value) return 'Shortcut filters load with the results.';
-  if (isPipeline.value) return 'To filter the works behind these groups, use the facets, edit the OQL, or ask the chat.';
-  if (!hasFiltersAvailable.value) return 'No shortcut filters for this kind of thing.';
-  return 'This query has more logic than shortcut filters can show. Edit the OQL, or ask the chat.';
-});
+// While a query loads the chips can't be read yet: keep the row if it was there, so the
+// page doesn't jump twice.
+const chipsRowShown = ref(false);
+watch([chipsShown, isLoading], ([shown, loading]) => {
+  if (!loading) chipsRowShown.value = shown;
+}, { immediate: true });
 </script>
 
 <style scoped>
@@ -198,17 +225,51 @@ const chipsNote = computed(() => {
   font-size: 12px;
   color: rgba(0, 0, 0, 0.55);
 }
+.nl-query-editor {
+  position: relative;
+}
+.nl-query-creating {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px;
+  background: #fff;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.5);
+  cursor: progress;
+}
+.nl-creating-dots {
+  display: inline-flex;
+  gap: 4px;
+}
+.nl-creating-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgb(var(--v-theme-primary));
+  opacity: 0.3;
+  animation: nl-creating-blink 1.2s infinite ease-in-out;
+}
+.nl-creating-dots span:nth-child(2) { animation-delay: 0.2s; }
+.nl-creating-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes nl-creating-blink {
+  0%, 80%, 100% { opacity: 0.25; }
+  40% { opacity: 1; }
+}
+.nl-dirty-hint code {
+  font-size: 12px;
+  padding: 0 3px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.06);
+}
 .nl-query-chips {
   border-top: 1px solid rgba(0, 0, 0, 0.08);
   background: rgba(0, 0, 0, 0.015);
   padding: 8px 10px;
   min-height: 48px;
-  display: flex;
-  align-items: center;
-}
-.nl-chips-note {
-  font-size: 13px;
-  color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
 }

@@ -34,6 +34,7 @@ import {
   phraseAt, entityPath, cardFacts, kindLabel, compactNumber,
 } from "./oqlLinks";
 import { getParseContext, searchEntities, getEntityRecord, getVocabulary } from "./oqlEditorApi";
+import { maskComments, inComment } from "./oqlComments";
 
 // --- vocabulary (the parser's phrases + help) --------------------------------------------
 // Loaded once per page. Until it arrives (or on an API that doesn't serve it yet) keywords
@@ -85,6 +86,12 @@ const makeCoreStream = () => StreamLanguage.define({
   token(stream, state) {
     if (stream.eatSpace()) return null;
     const ch = stream.peek();
+    // `#` to the end of the line is a note to the chat (oqlComments.js), not OQL.
+    if (ch === "#") {
+      stream.skipToEnd();
+      state.afterLink = false;
+      return "comment";
+    }
     if (ch === '"') {
       stream.next();
       eatThrough(stream, '"');
@@ -118,7 +125,7 @@ const makeCoreStream = () => StreamLanguage.define({
   },
   tokenTable: {
     keyword: t.keyword, value: t.literal, logic: t.logicOperator, link: t.link,
-    meta: t.meta, paren: t.paren, punctuation: t.punctuation,
+    meta: t.meta, paren: t.paren, punctuation: t.punctuation, comment: t.comment,
   },
 });
 
@@ -128,6 +135,8 @@ const coreHighlight = HighlightStyle.define([
   { tag: [t.literal, t.string, t.number], color: OQL_ROLES.value.fg, fontWeight: "500" },
   { tag: t.logicOperator, color: OQL_ROLES.conjunction.fg, fontWeight: "600" },
   { tag: t.paren, color: OQL_ANNOTATION_FG },
+  // A note to the chat: the chat's color, set apart from the query.
+  { tag: t.comment, color: "rgb(var(--v-theme-primary))", fontStyle: "italic", fontFamily: "system-ui, -apple-system, sans-serif" },
 ]);
 
 const languageSlot = new Compartment();
@@ -279,7 +288,8 @@ async function parseContextAt(text, pos) {
   const key = text.slice(0, pos);
   if (!ctxCache.has(key)) {
     if (ctxCache.size > 30) ctxCache.clear();
-    ctxCache.set(key, getParseContext(text, toCodePoints(text, pos)).catch(() => null));
+    // Comments are blanked, so the parser sees only the OQL (offsets unchanged).
+    ctxCache.set(key, getParseContext(maskComments(text), toCodePoints(text, pos)).catch(() => null));
   }
   return ctxCache.get(key);
 }
@@ -345,6 +355,9 @@ async function oqlCompletions(ctx) {
   const { state, pos } = ctx;
   const text = state.doc.toString();
   const { links } = state.field(linkField);
+
+  // 0. In a comment: plain words for the chat, nothing to suggest
+  if (inComment(text, pos)) return null;
 
   // 1. In a link's name: other entities named like it (the link's own kind first)
   const inLink = linkAtName(links, pos);

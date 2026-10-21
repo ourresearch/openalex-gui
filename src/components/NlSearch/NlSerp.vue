@@ -11,6 +11,7 @@
         <v-icon size="18" class="mr-2" color="grey-darken-1">mdi-filter-variant</v-icon>
         <span class="nl-col-title">Facets</span>
         <v-spacer />
+        <div id="nl-facets-head-tools" class="nl-head-tools" />
         <v-btn icon variant="text" size="small" aria-label="Hide the facets" @click="toggle('facets')">
           <v-icon size="20">mdi-chevron-left</v-icon>
           <v-tooltip activator="parent" location="bottom" content-class="linear-tooltip">Hide the facets</v-tooltip>
@@ -24,7 +25,7 @@
         <div v-if="isPipeline && !isSemanticSearch" class="nl-facets-note">
           Filter the works these groups are counted from.
         </div>
-        <group-by-sidebar v-if="!isSemanticSearch" :results-object="resultsObject" />
+        <group-by-sidebar v-if="!isSemanticSearch" :results-object="resultsObject" head-to="#nl-facets-head-tools" />
       </div>
     </aside>
     <button v-else type="button" class="nl-rail" aria-label="Show the facets" @click="toggle('facets')">
@@ -32,28 +33,21 @@
       <span class="nl-rail-label">Facets</span>
     </button>
 
-    <!-- The query and its results -->
-    <main v-if="open.results" class="nl-col nl-col--main">
+    <!-- The query and its results: always shown (Jason, Wed 21 Oct: hiding them isn't a real use). -->
+    <main class="nl-col nl-col--main">
       <div class="nl-col-head nl-col-head--main">
         <v-icon size="18" class="mr-2" color="grey-darken-1">mdi-code-braces</v-icon>
         <span class="nl-col-title">Query</span>
         <v-spacer />
         <serp-header-actions />
-        <v-btn
-          icon
-          variant="text"
-          size="small"
-          class="ml-1"
-          aria-label="Hide the results"
-          :disabled="openCount === 1"
-          @click="toggle('results')"
-        >
-          <v-icon size="20">mdi-arrow-collapse-horizontal</v-icon>
-          <v-tooltip activator="parent" location="bottom" content-class="linear-tooltip">Hide the results</v-tooltip>
-        </v-btn>
       </div>
       <div ref="mainBody" class="nl-col-body nl-col-body--main">
-        <nl-query-bar :results-object="resultsObject" :search-error="searchError" />
+        <nl-query-bar
+          :results-object="resultsObject"
+          :search-error="searchError"
+          :creating="chatAsking"
+          @ask="askFromBar"
+        />
         <nl-results
           v-model:format="format"
           :results-object="resultsObject"
@@ -61,14 +55,10 @@
         />
       </div>
     </main>
-    <button v-else type="button" class="nl-rail" aria-label="Show the results" @click="toggle('results')">
-      <v-icon size="18">mdi-code-braces</v-icon>
-      <span class="nl-rail-label">Query and results</span>
-    </button>
 
     <!-- Chat -->
-    <aside v-if="open.chat" class="nl-col nl-col--chat" :class="{ 'nl-col--chat-wide': !open.results }">
-      <nl-chat @collapse="toggle('chat')" @answer="onAnswer" />
+    <aside v-if="open.chat" class="nl-col nl-col--chat">
+      <nl-chat ref="chatRef" @collapse="toggle('chat')" @answer="onAnswer" @asking="(a) => (chatAsking = a)" />
     </aside>
     <button v-else type="button" class="nl-rail nl-rail--chat" aria-label="Show the chat" @click="toggle('chat')">
       <v-icon size="18" color="primary">mdi-creation-outline</v-icon>
@@ -112,19 +102,25 @@ function loadOpen() {
   try {
     const o = JSON.parse(localStorage.getItem(OPEN_KEY) || 'null');
     if (o && typeof o === 'object') {
-      const out = { facets: o.facets !== false, results: o.results !== false, chat: o.chat !== false };
-      return Object.values(out).some(Boolean) ? out : { facets: true, results: true, chat: true };
+      return { facets: o.facets !== false, results: true, chat: o.chat !== false };
     }
   } catch (e) { /* fall through */ }
   return { facets: true, results: true, chat: true };
 }
 const open = reactive(loadOpen());
-const openCount = computed(() => Object.values(open).filter(Boolean).length);
 function toggle(col) {
-  // Keep at least one column open.
-  if (open[col] && openCount.value === 1) return;
   open[col] = !open[col];
   try { localStorage.setItem(OPEN_KEY, JSON.stringify(open)); } catch (e) { /* private mode */ }
+}
+
+// ---- the chat and the OQL box ---------------------------------------------------------------
+// While the chat writes a query the box waits for it; a `#` note in the box goes to the chat.
+const chatRef = ref(null);
+const chatAsking = ref(false);
+async function askFromBar({ text, currentQuery }) {
+  if (!open.chat) toggle('chat');
+  await nextTick();
+  chatRef.value?.ask(text, { currentQuery });
 }
 
 // ---- result format (per device), and the chat's pick for its answers --------------------
@@ -148,10 +144,6 @@ watch(format, (f) => {
 const pendingAnswerOql = ref(null);
 function onAnswer(msg) {
   pendingAnswerOql.value = msg?.shownOql || null;
-  if (!open.results && openCount.value) {
-    open.results = true;
-    try { localStorage.setItem(OPEN_KEY, JSON.stringify(open)); } catch (e) { /* private mode */ }
-  }
 }
 watch([() => props.resultsObject, () => store.state.isLoading], ([r, loading]) => {
   if (!pendingAnswerOql.value || !r || loading) return;
@@ -183,7 +175,7 @@ onMounted(() => { loadPickChart(); });
   background: #fff;
 }
 .nl-col--facets {
-  flex: 0 0 300px;
+  flex: 0 0 400px;
   border-right: 1px solid rgba(0, 0, 0, 0.08);
 }
 .nl-col--main {
@@ -193,17 +185,6 @@ onMounted(() => { loadPickChart(); });
 .nl-col--chat {
   flex: 0 0 400px;
   border-left: 1px solid rgba(0, 0, 0, 0.08);
-}
-.nl-col--chat-wide {
-  flex: 1 1 auto;
-  max-width: none;
-}
-.nl-col--chat-wide :deep(.nl-chat-thread),
-.nl-col--chat-wide :deep(.nl-chat-input) {
-  width: 100%;
-  max-width: 760px;
-  margin-left: auto;
-  margin-right: auto;
 }
 .nl-col :deep(.nl-col-head) {
   flex: 0 0 auto;
@@ -232,6 +213,10 @@ onMounted(() => { loadPickChart(); });
   width: 100%;
   flex: 1 1 auto;
   padding: 10px 10px 32px;
+}
+.nl-head-tools {
+  display: flex;
+  align-items: center;
 }
 .nl-facets-note {
   padding: 12px 16px 0;
