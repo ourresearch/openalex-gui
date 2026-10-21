@@ -536,7 +536,8 @@ function modKey(event, view) {
 
 const clicks = EditorView.domEventHandlers({
   mousedown(event, view) {
-    if (!(event.metaKey || event.ctrlKey)) return false;
+    // Read-only (the page's query shown as text, #1744): a plain click on a name opens it.
+    if (!(event.metaKey || event.ctrlKey || (view.state.readOnly && event.button === 0))) return false;
     const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
     if (pos == null) return false;
     const { links } = view.state.field(linkField);
@@ -555,6 +556,7 @@ const clicks = EditorView.domEventHandlers({
     return false;
   },
   click(event, view) {
+    if (view.state.readOnly) return false;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.detail > 1) return false;
     setTimeout(() => clickOpensDropdown(view), 0);
     return false;

@@ -44,7 +44,7 @@
 
     <!-- floating tools, top-right (over the text, IDE-style) — the pre-toolbar
          presentation, kept for hosts that haven't opted into `toolbar` -->
-    <div v-if="!toolbar" class="oql-editor__tools">
+    <div v-if="!toolbar && !display" class="oql-editor__tools">
       <v-btn
         icon="mdi-broom"
         size="x-small"
@@ -215,6 +215,9 @@ const props = defineProps({
   // #1597: the IDE layer (entity links, autocomplete from the parser, hover help, English
   // highlighting). Off by default, so hosts that haven't opted in are unchanged.
   ide: { type: Boolean, default: false },
+  // #1744: show the query as read-only text (no gutter, no linting, the site's font); with
+  // `ide`, names stay links with hover cards and a click opens them.
+  display: { type: Boolean, default: false },
 });
 const emit = defineEmits(["update:modelValue", "valid", "validation", "submit"]);
 
@@ -380,20 +383,20 @@ function placeholderSpec() {
 }
 
 function buildState(doc) {
+  const readonly = props.readonly || props.display;
   return EditorState.create({
     doc,
     extensions: [
-      lineNumbers(),
-      highlightActiveLine(),
+      props.display ? [] : [lineNumbers(), highlightActiveLine()],
       drawSelection(),
       history(),
       closeBrackets(),
       EditorView.lineWrapping,
-      EditorView.editable.of(!props.readonly),
-      EditorState.readOnly.of(props.readonly),
+      EditorView.editable.of(!readonly),
+      EditorState.readOnly.of(readonly),
       cmPlaceholder(placeholderSpec()),
       props.ide ? oqlIde() : oqlSyntax(),
-      makeOqlLinter(onValidateResult, { comments: props.ide }),
+      props.display ? [] : makeOqlLinter(onValidateResult, { comments: props.ide }),
       keymap.of([
         // ⌘/Ctrl+Enter = submit intent (#600). MUST be bound here, first: defaultKeymap
         // binds Mod-Enter to insertBlankLine, so the editor would otherwise eat the
@@ -419,10 +422,11 @@ function buildState(doc) {
       EditorView.theme({
         "&": { fontSize: props.fontSize },
         ".cm-content": {
-          padding: "12px 8px 24px",
+          padding: props.display ? "0" : "12px 8px 24px",
           minHeight: props.minHeight,
-          fontFamily: "'JetBrains Mono','SF Mono',Menlo,monospace",
+          fontFamily: props.display ? "inherit" : "'JetBrains Mono','SF Mono',Menlo,monospace",
         },
+        ".cm-line": props.display ? { padding: "0" } : {},
         ".cm-scroller": { maxHeight: props.maxHeight },
         // CM sizes the gutter to the DOC height, not the content min-height, so on
         // a short query its tint + right rule stopped partway down the box. Same

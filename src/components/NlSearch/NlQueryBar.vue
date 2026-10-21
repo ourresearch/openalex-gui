@@ -1,13 +1,65 @@
 <template>
-  <!-- The top of the one-mode page (oxjob #1744): the query in OQL, always editable, with
-       Basic's shortcut filters along the editor's bottom edge. The chat, the chips, the
-       facets and this editor all write the same thing: the URL's ?oql=. -->
+  <!-- The top of the one-mode page (oxjob #1744): the page's query, shown as text with its
+       names as links, and Basic's shortcut filters under it. It is changed by asking the chat,
+       by the chips and facets, or in the OQL editor behind the pencil (Jason, Wed 21 Oct: "you
+       can't edit it in place"). All of them write the same thing: the URL's ?oql=. -->
   <v-card variant="outlined" class="nl-query-bar bg-white">
-    <div class="nl-query-editor">
+    <div class="nl-query-head">
+      <div class="nl-query-text">
+        <oql-editor
+          v-if="shown"
+          :model-value="shown"
+          display
+          ide
+          min-height="0"
+          max-height="none"
+          font-size="17px"
+          :show-badge="false"
+        />
+        <div v-else class="nl-query-empty">Ask in the chat, or write OQL with the pencil.</div>
+        <!-- While the chat writes a query the old one would read as its answer: hide it. -->
+        <div v-if="creating" class="nl-query-creating" aria-live="polite">
+          <span class="nl-creating-dots"><span /><span /><span /></span>
+          Writing the query…
+        </div>
+      </div>
+      <v-btn
+        icon
+        variant="text"
+        size="small"
+        class="nl-query-edit"
+        aria-label="Edit the OQL"
+        :disabled="creating"
+        @click="openEditor"
+      >
+        <v-icon size="20" color="grey-darken-1">mdi-pencil-outline</v-icon>
+        <v-tooltip activator="parent" location="bottom" content-class="linear-tooltip">Edit the OQL</v-tooltip>
+      </v-btn>
+    </div>
+    <!-- Basic's shortcut filters, when the query is a flat list of filters. No row at all
+         otherwise (Jason, Wed 21 Oct: the "why not" notes cost a line and said little). -->
+    <div v-if="chipsRowShown" class="nl-query-chips">
+      <novice-filter-chips v-if="chipsShown" cap-to-slots />
+    </div>
+    <search-error-alert v-if="searchError" :message="searchError" class="ma-3 mt-0" />
+  </v-card>
+
+  <!-- The OQL editor (the IDE: suggestions, name lookup, hover help, `#` notes to the chat). -->
+  <v-dialog v-model="editing" max-width="900" scrollable @after-enter="editorRef?.focus()">
+    <v-card class="nl-edit-card">
+      <div class="nl-edit-head">
+        <v-icon size="18" class="mr-2" color="grey-darken-1">mdi-code-braces</v-icon>
+        <span class="nl-edit-title">Edit the OQL</span>
+        <v-spacer />
+        <v-btn icon variant="text" size="small" aria-label="Close" @click="editing = false">
+          <v-icon size="20">mdi-close</v-icon>
+        </v-btn>
+      </div>
       <oql-editor
+        ref="editorRef"
         v-model="text"
-        min-height="56px"
-        max-height="240px"
+        min-height="120px"
+        max-height="50vh"
         font-size="14px"
         :status="status"
         :placeholder="PLACEHOLDER"
@@ -17,45 +69,31 @@
         @validation="onValidation"
         @submit="submit"
       />
-      <!-- While the chat writes a query, the box holds no OQL: the old query would read as
-           the answer (Jason, Wed 21 Oct). -->
-      <div v-if="creating" class="nl-query-creating" aria-live="polite">
-        <span class="nl-creating-dots"><span /><span /><span /></span>
-        Writing the query…
-      </div>
-    </div>
-    <div class="nl-query-actions">
-      <template v-if="!creating">
+      <div class="nl-query-actions">
         <oql-status-chip :status="status" :validation="validation" />
         <span v-if="noteToChat" class="nl-dirty-hint">The <code>#</code> note goes to the chat · Enter sends it</span>
         <span v-else-if="dirty" class="nl-dirty-hint">Edited · not run yet</span>
-      </template>
-      <v-spacer />
-      <v-btn
-        v-if="dirty && !creating"
-        variant="text"
-        size="small"
-        class="text-none mr-1"
-        @click="revert"
-      >Undo edits</v-btn>
-      <v-btn
-        color="primary"
-        variant="flat"
-        size="small"
-        class="text-none"
-        :loading="status === 'querying' || creating"
-        :disabled="creating"
-        :title="noteToChat ? 'Send the note to the chat (⏎)' : 'Run this query (⌘⏎)'"
-        @click="submit"
-      >{{ noteToChat ? 'Ask' : 'Run' }}</v-btn>
-    </div>
-    <!-- Basic's shortcut filters, when the query is a flat list of filters. No row at all
-         otherwise (Jason, Wed 21 Oct: the "why not" notes cost a line and said little). -->
-    <div v-if="chipsRowShown" class="nl-query-chips">
-      <novice-filter-chips v-if="chipsShown" cap-to-slots />
-    </div>
-    <search-error-alert v-if="searchError" :message="searchError" class="ma-3 mt-0" />
-  </v-card>
+        <span v-else class="nl-dirty-hint"><code>#</code> starts a note to the chat</span>
+        <v-spacer />
+        <v-btn
+          v-if="dirty"
+          variant="text"
+          size="small"
+          class="text-none mr-1"
+          @click="revert"
+        >Undo edits</v-btn>
+        <v-btn
+          color="primary"
+          variant="flat"
+          size="small"
+          class="text-none"
+          :loading="status === 'querying'"
+          :title="noteToChat ? 'Send the note to the chat (⏎)' : 'Run this query (⌘⏎)'"
+          @click="submit"
+        >{{ noteToChat ? 'Ask' : 'Run' }}</v-btn>
+      </div>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -104,6 +142,8 @@ const status = computed(() => (isLoading.value ? 'querying' : null));
 // (shownOql) drops. The editor's own validate pass then swaps in the tidy canonical form.
 // A classic URL (/works?filter=...) has no ?oql=, so it shows the echo.
 const seed = computed(() => route.query.oql || store.getters.shownOql || '');
+// The page's query as shown: the URL's form keeps entity names, so they read as links.
+const shown = computed(() => (seed.value || '').trim());
 const text = ref('');
 const baseline = ref('');
 const validation = ref(null);
@@ -145,18 +185,26 @@ function revert() {
   setText(seed.value);
 }
 
+// The pencil: the editor opens on the page's query, fresh each time.
+const editing = ref(false);
+const editorRef = ref(null);
+function openEditor() {
+  setText(seed.value);
+  validation.value = null;
+  editing.value = true;
+}
+
 // A `#` note (oqlComments.js): the box's OQL plus words for the chat to change it with.
 const noteToChat = computed(() => splitComments(text.value).note);
 
 async function submit() {
-  if (props.creating) return;
   const t = (text.value || '').trim();
   if (!t) return;
   const { oql, note } = splitComments(t);
   if (note) {
-    // The chat changes the query in the box (edits and all) the way it changes the page's
-    // after a follow-up. The note leaves the box now; the thread keeps it.
-    text.value = oql;
+    // The chat changes the query in the editor (edits and all) the way it changes the page's
+    // after a follow-up. The thread keeps the note.
+    editing.value = false;
     emit('ask', { text: note, currentQuery: oql || null });
     return;
   }
@@ -169,6 +217,7 @@ async function submit() {
     canonical = pickOql(res, store.getters.newOql);
   }
   setText(canonical);
+  editing.value = false;
   // Names stay in the URL (see oqlForPageUrl); compare without them.
   const next = oqlForPageUrl(canonical);
   if (url.oqlForUrl(next) === url.oqlForUrl(route.query.oql || '')) return;
@@ -225,8 +274,54 @@ watch([chipsShown, isLoading], ([shown, loading]) => {
   font-size: 12px;
   color: rgba(0, 0, 0, 0.55);
 }
-.nl-query-editor {
+.nl-query-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 10px 14px 18px;
+}
+.nl-query-text {
   position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 26px;
+}
+/* The query as a heading: the site's font, a little bolder than the page. */
+.nl-query-text :deep(.oql-editor) {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+.nl-query-text :deep(.cm-content) {
+  font-weight: 500;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.87);
+}
+.nl-query-text :deep(.cm-oql-link) {
+  cursor: pointer;
+}
+.nl-query-empty {
+  font-size: 15px;
+  line-height: 26px;
+  color: rgba(0, 0, 0, 0.45);
+}
+.nl-query-edit {
+  flex: 0 0 auto;
+  margin-top: -2px;
+}
+.nl-edit-head {
+  display: flex;
+  align-items: center;
+  padding: 10px 10px 10px 18px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+.nl-edit-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+.nl-edit-card :deep(.oql-editor) {
+  border: none;
+  border-radius: 0;
 }
 .nl-query-creating {
   position: absolute;
@@ -235,7 +330,6 @@ watch([chipsShown, isLoading], ([shown, loading]) => {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 20px;
   background: #fff;
   font-size: 14px;
   color: rgba(0, 0, 0, 0.5);

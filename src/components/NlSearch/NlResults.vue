@@ -146,7 +146,7 @@ import filters from '@/filters';
 import { entityConfigs } from '@/entityConfigs';
 import { isPipelineResponse } from '@/oqlPipeline';
 import { useSelectionContext } from '@/composables/useSelectionContext';
-import { chartLoader, DEFAULT_VIEW } from '@/components/NlSearch/nlChart';
+import { chartLoader, DEFAULT_VIEW, groupsTabLabel } from '@/components/NlSearch/nlChart';
 
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import ResultsTable from '@/components/Results/ResultsTable.vue';
@@ -195,14 +195,9 @@ watch(how, (f) => {
   store.commit('setSerpResultsView', { value: f === 'table' ? 'table' : 'list', persist: false });
 }, { immediate: true });
 
-// A calculation's tabs carry its counts: "24 groups" (no count when there are no splits, just
-// one number) and "12.3K works", the works the groups are counted from.
-const groupsLabel = computed(() => {
-  const meta = props.resultsObject?.meta || {};
-  if (!(meta.splits || []).length) return 'Groups';
-  const n = meta.groups_count ?? 0;
-  return `${n.toLocaleString()} ${n === 1 ? 'group' : 'groups'}`;
-});
+// A calculation's tabs carry its counts in its own words: "9 years", "2 countries by year"
+// (Jason, Wed 21 Oct), and "12.3K works", the works the groups are counted from.
+const groupsLabel = computed(() => groupsTabLabel(props.resultsObject?.meta));
 const worksLabel = computed(() => {
   const n = props.resultsObject?.meta?.count || 0;
   return `${filters.toPrecision(n)} ${n === 1 ? 'work' : 'works'}`;

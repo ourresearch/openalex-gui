@@ -260,3 +260,19 @@ describe('the results view: Groups (Chart | Table) and Works (List | Table)', ()
     expect(answerView({ ...v, tab: 'groups' }, 'list')).toEqual({ tab: 'groups', groups: 'table', works: 'list' });
   });
 });
+
+describe('groupsTabLabel: the Groups tab names its groups (#1744)', () => {
+  it('names the groups by their split', async () => {
+    const { groupsTabLabel } = await import('@/components/NlSearch/nlChart');
+    const m = (splits, n) => ({ splits: splits.map((oql) => ({ oql })), groups_count: n });
+    expect(groupsTabLabel(m(['year'], 9))).toBe('9 years');
+    expect(groupsTabLabel(m(['country'], 46))).toBe('46 countries');
+    expect(groupsTabLabel(m(['source'], 2612))).toBe('2,612 sources');
+    expect(groupsTabLabel(m(['open access status'], 6))).toBe('6 open access statuses');
+    expect(groupsTabLabel(m(['SDG'], 17))).toBe('17 SDGs');
+    expect(groupsTabLabel(m(['author'], 1))).toBe('1 author');
+    expect(groupsTabLabel(m(['country', 'year'], 2))).toBe('2 countries by year');
+    expect(groupsTabLabel(m(['country in ([United States](US), [China](CN))'], 2))).toBe('2 countries');
+    expect(groupsTabLabel({ splits: [] })).toBe('Summary');
+  });
+});

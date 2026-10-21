@@ -66,3 +66,29 @@ export function answerView(view, format) {
   if (format === 'chart' || format === 'table') return { ...v, tab: 'groups', groups: format };
   return { ...v, works: 'list' };
 }
+
+// The Groups tab's label: the groups named by what they are (#1744, Jason Wed 21 Oct): "9 years",
+// "2,612 sources", "2 countries by year" (two splits: the outer's count, then the inner).
+// A calculation with no split is one row of numbers: "Summary".
+function plural(name) {
+  const words = String(name || '').trim().split(/\s+/);
+  const last = words.pop() || 'group';
+  let p;
+  if (/^[A-Z0-9]+$/.test(last)) p = `${last}s`;
+  else if (/(s|x|ch|sh)$/i.test(last)) p = `${last}es`;
+  else if (/[^aeiou]y$/i.test(last)) p = `${last.slice(0, -1)}ies`;
+  else p = `${last}s`;
+  return [...words, p].join(' ');
+}
+function splitName(split) {
+  // `country in (...)` and the like: the name is what comes before the values.
+  return String(split?.oql || '').split(/\s+(?:in|from|except)\b|\(/)[0].trim() || 'group';
+}
+export function groupsTabLabel(meta) {
+  const splits = meta?.splits || [];
+  if (!splits.length) return 'Summary';
+  const n = meta.groups_count ?? 0;
+  const outer = splitName(splits[0]);
+  const label = `${n.toLocaleString()} ${n === 1 ? outer : plural(outer)}`;
+  return splits.length > 1 ? `${label} by ${splitName(splits[1])}` : label;
+}

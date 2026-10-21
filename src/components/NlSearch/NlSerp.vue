@@ -17,14 +17,11 @@
           <v-tooltip activator="parent" location="bottom" content-class="linear-tooltip">Hide the facets</v-tooltip>
         </v-btn>
       </div>
-      <div class="nl-col-body">
+      <div class="nl-col-body" :class="{ 'nl-stale': chatAsking }">
         <!-- On a calculation the facets filter the works the groups are counted from, as
              Scopus, Web of Science, Dimensions and Tableau's dimension filters do (prior art:
              oxjob #1745 work/prior_art_works_and_groups.md). A click narrows the starting set
              and the groups regroup; the splits and calculations stay. -->
-        <div v-if="isPipeline && !isSemanticSearch" class="nl-facets-note">
-          Filter the works these groups are counted from.
-        </div>
         <group-by-sidebar v-if="!isSemanticSearch" :results-object="resultsObject" head-to="#nl-facets-head-tools" />
       </div>
     </aside>
@@ -49,6 +46,7 @@
           @ask="askFromBar"
         />
         <nl-results
+          :class="{ 'nl-stale': chatAsking }"
           v-model:view="view"
           :results-object="resultsObject"
           :search-error="searchError"
@@ -73,7 +71,6 @@ import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify';
 
-import { isPipelineResponse } from '@/oqlPipeline';
 import GroupBySidebar from '@/components/GroupBySidebar.vue';
 import SerpHeaderActions from '@/components/Serp/SerpHeaderActions.vue';
 import NlQueryBar from '@/components/NlSearch/NlQueryBar.vue';
@@ -93,7 +90,6 @@ const route = useRoute();
 const { mdAndUp } = useDisplay();
 const stacked = computed(() => !mdAndUp.value);
 
-const isPipeline = computed(() => isPipelineResponse(props.resultsObject));
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 
 // ---- which columns are open (per device) -----------------------------------------------
@@ -214,15 +210,17 @@ onMounted(() => { loadPickChart(); });
   flex: 1 1 auto;
   padding: 10px 10px 32px;
 }
+/* While the chat writes a new query, what's on screen answers the old one: dim it and
+   keep hands off it (Jason, Wed 21 Oct). */
+.nl-stale {
+  opacity: 0.35;
+  pointer-events: none;
+  user-select: none;
+  transition: opacity 0.2s;
+}
 .nl-head-tools {
   display: flex;
   align-items: center;
-}
-.nl-facets-note {
-  padding: 12px 16px 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: rgba(0, 0, 0, 0.55);
 }
 .nl-rail {
   flex: 0 0 40px;
