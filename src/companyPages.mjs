@@ -73,7 +73,7 @@ export const COMPANY_PAGES = {
   },
   '/events/paris2026': {
     title: 'OpenAlex Users Meeting: Paris, 20–21 October 2026',
-    description: 'The first in-person OpenAlex users meeting: a day of community talks at CNRS, then a day of demos and hands-on breakouts with the OpenAlex team at Sorbonne Université. Free, registration required.',
+    description: 'The first in-person OpenAlex users meeting: a day of community talks at CNRS, then a day of talks and breakout groups with the OpenAlex team at Le Totem. Registration closed.',
   },
   '/jobs': {
     title: 'Jobs',
