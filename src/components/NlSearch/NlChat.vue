@@ -149,7 +149,7 @@ import HiringMarkdown from '@/components/Hiring/HiringMarkdown.vue';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import { waitForApiKey } from '@/keyWait';
 import {
-  askQueryText, oqlForAnswer, oqlForPageUrl, answerAsides, buildHistory, stepsLine, QUERY_ROUTES, loadThread, saveThread,
+  answerQuestion, oqlForPageUrl, buildHistory, loadThread, saveThread,
 } from '@/components/NlSearch/nlChat';
 import { EXAMPLE_QUESTIONS } from '@/components/NlSearch/nlExamples';
 
@@ -263,30 +263,8 @@ async function ask(text, { currentQuery: given } = {}) {
   startClock();
   scrollToEnd();
   const context = given !== undefined ? given : currentQuery.value;
-  let msg;
-  try {
-    await waitForKey();
-    const answer = await askQueryText({ text, currentQuery: context, history });
-    msg = {
-      role: 'assistant',
-      route: answer.route,
-      note: answer.note || null,
-      asides: answerAsides(answer),
-      answer: answer.answer || null,
-      link: answer.link || null,
-      count: answer.count ?? null,
-      oql: answer.oql || null,
-      sort: answer.sort || null,
-      how: stepsLine(answer.meta),
-    };
-    if (QUERY_ROUTES.has(answer.route) && answer.oql) {
-      msg.shownOql = await oqlForAnswer(answer.oql, answer.sort);
-    } else if (!answer.answer && !answer.note) {
-      msg = { role: 'assistant', error: "I couldn't find a query for that. Try rewording it." };
-    }
-  } catch (e) {
-    msg = { role: 'assistant', error: e.message };
-  }
+  await waitForKey();
+  const msg = await answerQuestion({ text, currentQuery: context, history });
   stopClock();
   asking.value = false;
   messages.value.push(msg);

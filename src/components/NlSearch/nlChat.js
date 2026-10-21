@@ -32,6 +32,37 @@ export async function askQueryText({ text, currentQuery = null, history = [] }) 
   }
 }
 
+/**
+ * One question to the chat's assistant message: {role, route, note, asides, answer, link, count,
+ * oql, sort, how, shownOql}, or {role, error} when it fails or finds nothing. Never throws.
+ * Shared by the chat and the homepage box, which waits on the landing page for it (#1744).
+ */
+export async function answerQuestion({ text, currentQuery = null, history = [] }) {
+  try {
+    const answer = await askQueryText({ text, currentQuery, history });
+    const msg = {
+      role: 'assistant',
+      route: answer.route,
+      note: answer.note || null,
+      asides: answerAsides(answer),
+      answer: answer.answer || null,
+      link: answer.link || null,
+      count: answer.count ?? null,
+      oql: answer.oql || null,
+      sort: answer.sort || null,
+      how: stepsLine(answer.meta),
+    };
+    if (QUERY_ROUTES.has(answer.route) && answer.oql) {
+      msg.shownOql = await oqlForAnswer(answer.oql, answer.sort);
+    } else if (!answer.answer && !answer.note) {
+      return { role: 'assistant', error: "I couldn't find a query for that. Try rewording it." };
+    }
+    return msg;
+  } catch (e) {
+    return { role: 'assistant', error: e.message };
+  }
+}
+
 /** What to tell the person when /query/text fails. Never throws. */
 export function friendlyError(e) {
   const status = e?.response?.status;

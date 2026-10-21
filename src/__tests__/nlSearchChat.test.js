@@ -12,8 +12,9 @@ vi.mock('@/components/OqlPlayground/oqlEditorApi', () => ({ validateOql: vi.fn(a
 import axios from 'axios';
 import {
   askQueryText, friendlyError, sortToSortBy, oqlForAnswer, oqlForPageUrl, answerAsides, buildHistory, loadThread, saveThread,
-  retryShortThrottle, stepsLine,
+  retryShortThrottle, stepsLine, answerQuestion,
 } from '../components/NlSearch/nlChat';
+import { api } from '@/api';
 import { defaultFormat, normalizeView, answerView, DEFAULT_VIEW } from '../components/NlSearch/nlChart';
 
 const err = (status, data = {}) => Object.assign(new Error(String(status)), { response: { status, data } });
@@ -41,6 +42,32 @@ describe('askQueryText', () => {
   it('rejects with a sentence fit to show', async () => {
     axios.post.mockRejectedValueOnce(err(401));
     await expect(askQueryText({ text: 'x' })).rejects.toThrow('Sign in to ask questions in plain words.');
+  });
+});
+
+// Shared by the chat and the homepage box, which waits for it before opening the page.
+describe('answerQuestion (a question to the chat message)', () => {
+  beforeEach(() => { axios.post.mockReset(); api.getQuery.mockReset(); });
+
+  it('a query answer carries the OQL the page will run', async () => {
+    axios.post.mockResolvedValueOnce({ data: { route: 'query', oql: 'get works where x', note: 'Frogs.' } });
+    api.getQuery.mockResolvedValueOnce({ oql: 'get works where x', x_new_oql: 'get works about frogs' });
+    const m = await answerQuestion({ text: 'frogs' });
+    expect(m).toMatchObject({ role: 'assistant', route: 'query', note: 'Frogs.', shownOql: 'get works about frogs' });
+  });
+
+  it('a help-desk answer has no query to run', async () => {
+    axios.post.mockResolvedValueOnce({ data: { route: 'help', answer: 'Yes, it is free.' } });
+    const m = await answerQuestion({ text: 'is it free?' });
+    expect(m.answer).toBe('Yes, it is free.');
+    expect(m.shownOql).toBeUndefined();
+  });
+
+  it('nothing to say, or a failure, is an error message; it never throws', async () => {
+    axios.post.mockResolvedValueOnce({ data: { route: 'help' } });
+    expect((await answerQuestion({ text: '?' })).error).toMatch(/couldn't find a query/);
+    axios.post.mockRejectedValueOnce(err(401));
+    expect(await answerQuestion({ text: 'frogs' })).toEqual({ role: 'assistant', error: 'Sign in to ask questions in plain words.' });
   });
 });
 

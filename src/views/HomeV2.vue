@@ -2,12 +2,14 @@
   <div class="landing-v2">
 
     <!-- ===================== HERO (#686) ===================== -->
-    <section class="hero">
+    <!-- Under `nl_search` (#1744; Jason, 2026-10-21: "just the query box and that's all") the
+         hero is the headline and the box, centered: no subhead, works feed, Learn more or logos. -->
+    <section class="hero" :class="{ 'hero--nl': nlSearch }">
       <div class="hero-copy">
         <!-- ⚠️ headline is the approved PLACEHOLDER (#686); Jason revisits it on the
              assembled page. Don't reopen before assembly. -->
         <h1 class="hero-headline">Unlock the<br>world's research</h1>
-        <p class="hero-subhead">
+        <p v-if="!nlSearch" class="hero-subhead">
           Inspired by the Library of Alexandria, we index half a billion scholarly
           works and make them easy to search, analyze, and&nbsp;reuse.
         </p>
@@ -20,12 +22,13 @@
                flag, so their submits still route to the legacy SERP form. -->
           <search-box single-row two-deck autofocus hide-submit
                       placeholder-override="Search papers, datasets, and more" />
+          <!-- suggestions mount here (#1744) -->
         </div>
       </div>
 
       <!-- live feed: rows are built imperatively in onMounted (faithful port of the
            #686 C3 prototype — prototype wins ties). -->
-      <div class="hero-viz">
+      <div v-if="!nlSearch" class="hero-viz">
         <!-- feed header intentionally removed (Jason 2026-08-03): the "N works added
              today" bar made the column busier, and the feed is now a curated best-of
              sample, not a live "today" claim. Kept commented in case it returns. -->
@@ -38,13 +41,13 @@
 
       <!-- bottom-center Learn more (R22): ghost + down chevron, scrolls one screen.
            Raw span.mdi (not v-icon) dodges the global 18px !important icon rule. -->
-      <button class="cta cta-secondary hero-learnmore" @click="scrollToContent">
+      <button v-if="!nlSearch" class="cta cta-secondary hero-learnmore" @click="scrollToContent">
         Learn more <span class="mdi mdi-chevron-down"></span>
       </button>
     </section>
 
     <!-- ===================== SOCIAL PROOF (#404 band, static grid per Jason 2026-08-03) ===================== -->
-    <section id="content" class="logos-section">
+    <section v-if="!nlSearch" id="content" class="logos-section">
       <div class="logo-grid" role="group" aria-label="Logos of organizations that use OpenAlex">
         <img v-for="(logo, i) in bandLogos" :key="i"
              :src="logo.src" :alt="logo.alt" class="band-logo" :class="logo.cls" />
@@ -211,6 +214,7 @@ import { heroWorks } from '@/heroWorks';
 import { urlBase } from '@/apiConfig';
 
 const store = useStore();
+const nlSearch = computed(() => store.getters.nlSearch);
 const goTo = useGoTo();
 
 import layerCake from '@/assets/landing/layer-cake.webp';
@@ -412,6 +416,7 @@ function composeOpeningIds(works) {
 }
 
 onMounted(() => {
+  if (!portRef.value) return; // no feed under `nl_search` (#1744)
   const port = portRef.value, belt = beltRef.value, tip = tipRef.value;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -641,6 +646,15 @@ export default { name: 'HomeV2Page' };
   padding: 0 40px;
 }
 .hero > * { min-width: 0; }
+// `nl_search` (#1744): one centered column, the headline over the box.
+.hero.hero--nl {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  text-align: center;
+  .hero-copy { width: 100%; max-width: 640px; display: flex; flex-direction: column; align-items: center; }
+  .hero-headline { margin-bottom: 36px; }
+  .hero-search { max-width: 640px; text-align: left; }
+}
 
 .hero-headline {
   font-size: 60px; font-weight: 700; line-height: 1.05;

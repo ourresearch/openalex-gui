@@ -68,6 +68,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
+import { url } from '@/url';
 import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify';
 
@@ -152,7 +153,17 @@ const mainBody = ref(null);
 // A failed run ends the wait too, so a later unrelated query doesn't inherit it.
 watch(() => props.searchError, (e) => { if (e) pendingAnswerOql.value = null; });
 
-onMounted(() => { loadPickChart(); });
+onMounted(() => {
+  loadPickChart();
+  // The homepage waited for the answer, then opened this page on its query (#1744): open on
+  // the format it suits, as after a chat answer. Only when the URL still holds that query.
+  let fresh = null;
+  try {
+    fresh = sessionStorage.getItem('nlSearch.freshAnswer');
+    sessionStorage.removeItem('nlSearch.freshAnswer');
+  } catch (e) { /* private mode */ }
+  if (fresh && url.oqlForUrl(fresh) === url.oqlForUrl(String(route.query.oql || ''))) pendingAnswerOql.value = fresh;
+});
 </script>
 
 <style scoped>

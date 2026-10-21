@@ -8,7 +8,16 @@
          two-deck (#681 landing): same children re-laid on a grid — row 1 = bare
          input, row 2 = entity selector left / pill + kebab + Search right. -->
     <div v-if="singleRow" class="search-row-single" :class="twoDeck ? 'search-row-deck' : 'd-flex align-center'">
-      <entity-selector-button class="ml-1 entity-slot" @entity-selected="focusSearchInput" />
+      <entity-selector-button v-if="!thinking" class="ml-1 entity-slot" @entity-selected="focusSearchInput" />
+      <!-- The homepage question waits here for its query (`nl_search`, #1744), so the page
+           that opens already shows the answer, not a few seconds of all works. -->
+      <div v-else class="nl-wait" role="status">
+        <span class="nl-dots"><span /><span /><span /></span>
+        <span>
+          Writing the query{{ thinkElapsed >= 2 ? ` · ${thinkElapsed} s` : '' }}
+          <span v-if="thinkElapsed >= 15" class="nl-wait-more">Big questions can take up to half a minute.</span>
+        </span>
+      </div>
       <textarea
         ref="inputRef"
         v-model="searchString"
@@ -16,6 +25,7 @@
         :placeholder="placeholder"
         aria-label="Search scholarly works"
         :autofocus="autofocus"
+        :readonly="thinking"
         rows="1"
         @keydown.enter.prevent="onEnter"
         @keydown.down.prevent="onArrowDown"
@@ -28,7 +38,7 @@
         autocomplete="off"
       />
       <v-btn
-        v-if="searchString"
+        v-if="searchString && !thinking"
         icon
         variant="text"
         size="small"
@@ -180,7 +190,10 @@
       </v-btn>
 
       <!-- two-deck submit (#681 landing): black in-box Search button, row 2 right -->
-      <button v-if="twoDeck" type="button" class="deck-submit" @click="clickSubmit">Search</button>
+      <button v-if="twoDeck" type="button" class="deck-submit" :disabled="thinking" @click="clickSubmit">
+        <v-progress-circular v-if="thinking" indeterminate size="14" width="2" aria-label="Writing the query" />
+        <template v-else>Search</template>
+      </button>
     </div>
 
     <!-- Row 1: Input + clear (two-row variant, flag-off) -->
@@ -397,6 +410,8 @@ import { facetConfigs } from '@/facetConfigs';
 import { edgeOn, edgeSupports, edgeRows, edgeWarm } from '@/edgeAutocomplete';
 import { extractIssn, extractLocationId, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, looksLikeQuestion, requestSearchBoxFocus, consumeSearchBoxFocus, authorNameMatchesQuery, dedupeByName, footerSearchEntityType } from '@/components/searchBox.helpers';
 import { ensureIntentModel, classifyQuery } from '@/intent/useIntent';
+import { waitForApiKey } from '@/keyWait';
+import { answerQuestion, oqlForPageUrl, saveThread } from '@/components/NlSearch/nlChat';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import { translateSearch } from '@/dbSearchTranslate';
 import { rememberTranslation } from '@/dbSearchNotes';
@@ -1066,6 +1081,7 @@ function selectSuggestion(item) {
 }
 
 function onEnter() {
+  if (thinking.value) return;
   if (highlightedIndex.value >= 0 && highlightedIndex.value < suggestions.value.length) {
     selectSuggestion(suggestions.value[highlightedIndex.value]);
   } else if (showDropdown.value) {
@@ -1244,7 +1260,52 @@ watch(
   },
 );
 
+// The homepage question, signed in (`nl_search`, #1744; Jason, 2026-10-21): stay on the
+// landing page until the model has written the query, then open the page on it. Navigating
+// first showed a few seconds of all works while the model thought, which read as the answer.
+// The chat on the next page picks up the saved thread (question + answer) and asks nothing.
+const thinking = ref(false);
+const thinkElapsed = ref(0);
+let thinkTimer = null;
+let left = false;
+function stopThinkClock() {
+  if (thinkTimer) clearInterval(thinkTimer);
+  thinkTimer = null;
+}
+onBeforeUnmount(() => { left = true; stopThinkClock(); });
+
+async function askOnHome(text) {
+  if (thinking.value || !text) return;
+  thinking.value = true;
+  dismissDropdown();
+  thinkElapsed.value = 0;
+  const t0 = Date.now();
+  thinkTimer = setInterval(() => { thinkElapsed.value = Math.floor((Date.now() - t0) / 1000); }, 500);
+  const from = router.currentRoute.value.fullPath;
+  let msg;
+  try {
+    await waitForApiKey(store);
+    msg = await answerQuestion({ text, currentQuery: null, history: [] });
+  } finally {
+    stopThinkClock();
+    thinking.value = false;
+  }
+  // Left the page while waiting: don't pull them back to the answer.
+  if (left || router.currentRoute.value.fullPath !== from) return;
+  // A new question from the homepage starts its own conversation, as `?ask=` does.
+  saveThread([{ role: 'user', text }, msg]);
+  if (msg.shownOql) {
+    // The new page opens on the chart / table the answer suits (NlSerp reads this once).
+    try { sessionStorage.setItem('nlSearch.freshAnswer', msg.shownOql); } catch (e) { /* private mode */ }
+    url.pushToRoute(router, { name: 'OqlQuery', query: { oql: oqlForPageUrl(msg.shownOql) } });
+  } else {
+    // A help-desk answer or an error: the chat shows it, over the plain page.
+    url.pushToRoute(router, { name: 'Serp', params: { entityType: 'works' } });
+  }
+}
+
 async function submitSearch(forceEntityType) {
+  if (thinking.value) return;
   const targetEntityType = forceEntityType || entityType.value;
 
   if (!searchString.value) {
@@ -1276,7 +1337,8 @@ async function submitSearch(forceEntityType) {
   // with it instead of running as keywords (plain keywords still answer there, as a search).
   // DOIs, ORCIDs, database strategies and OQL above route as before; no other box changes.
   if (store.getters.nlSearch && route.name === 'Home') {
-    url.pushToRoute(router, { name: 'Serp', params: { entityType: 'works' }, query: { ask: searchString.value } });
+    if (store.getters['user/userId']) await askOnHome(searchString.value.trim());
+    else url.pushToRoute(router, { name: 'Serp', params: { entityType: 'works' }, query: { ask: searchString.value } });
     return;
   }
 
@@ -1421,6 +1483,41 @@ function focusSearchInput() {
   padding: 9px 18px; margin-left: 6px; cursor: pointer;
   transition: background .12s ease;
   &:hover { background: #000; }
+}
+.deck-submit:disabled { cursor: default; background: #1a1a1a; min-width: 82px; }
+/* The homepage's wait for the model's query (#1744): row 2, left, in place of the entity
+   selector. Dots as in the chat (NlChat .nl-dots). */
+.search-row-deck .nl-wait { grid-column: 1 / 3; grid-row: 2; }
+.nl-wait {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.6);
+}
+.nl-wait-more {
+  display: block;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+}
+.nl-dots {
+  display: inline-flex;
+  gap: 3px;
+}
+.nl-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgb(var(--v-theme-primary));
+  opacity: 0.35;
+  animation: nl-pulse 1.2s infinite ease-in-out;
+}
+.nl-dots span:nth-child(2) { animation-delay: 0.2s; }
+.nl-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes nl-pulse {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.85); }
+  40% { opacity: 1; transform: scale(1); }
 }
 /* Entity selector chip matches the filter chips' height (32px, v-chip
    size=default) — it rendered shorter than the chips below it (#440 r5). */
