@@ -293,8 +293,9 @@ watch([chipsShown, isLoading], ([shown, loading]) => {
   background: transparent;
 }
 .nl-query-text :deep(.cm-content) {
-  font-weight: 500;
-  line-height: 1.5;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
   color: rgba(0, 0, 0, 0.87);
 }
 .nl-query-text :deep(.cm-oql-link) {

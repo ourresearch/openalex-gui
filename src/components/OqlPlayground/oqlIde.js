@@ -589,6 +589,8 @@ const ideTheme = EditorView.theme({
 // the editor's theme classes, so a theme (not a base theme, which loses to the library's own
 // defaults) styles them.
 const tooltipTheme = EditorView.theme({
+  // Tooltips live on <body>: stay above a Vuetify dialog (the editor's dialog, #1744; ~2400).
+  ".cm-tooltip": { zIndex: "3000" },
   ".cm-tooltip.cm-tooltip-autocomplete": {
     ...PANEL,
     padding: "4px 0",

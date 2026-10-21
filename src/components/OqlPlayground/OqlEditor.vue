@@ -427,7 +427,9 @@ function buildState(doc) {
           fontFamily: props.display ? "inherit" : "'JetBrains Mono','SF Mono',Menlo,monospace",
         },
         ".cm-line": props.display ? { padding: "0" } : {},
-        ".cm-scroller": { maxHeight: props.maxHeight },
+        ".cm-scroller": props.display
+          ? { maxHeight: props.maxHeight, fontFamily: "inherit", lineHeight: "inherit" }
+          : { maxHeight: props.maxHeight },
         // CM sizes the gutter to the DOC height, not the content min-height, so on
         // a short query its tint + right rule stopped partway down the box. Same
         // min-height on .cm-gutter (the official CM recipe) runs it to the bottom,
