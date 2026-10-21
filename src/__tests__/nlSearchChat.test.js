@@ -329,5 +329,7 @@ describe('more than one match: an unsure lookup (#1744)', () => {
     const msg = { confidence: 0.21, lookups, shownOql: "get [John Maynard Smith](A5108453556)'s works" };
     expect(unsureLookup(msg)).toEqual({ kind: 'authors', chosen: 'A5108453556', search: 'John Smith' });
     expect(unsureLookup({ ...msg, confidence: 0.9 })).toBeNull();
+    expect(unsureLookup({ ...msg, confidence: 0.9, note: 'There are many John Smiths. Tell me which one you meant.' }))
+      .toEqual({ kind: 'authors', chosen: 'A5108453556', search: 'John Smith' });
   });
 });

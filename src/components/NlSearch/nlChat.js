@@ -241,8 +241,10 @@ export function lookupsOf(meta) {
 
 // When the note names no ids but the model was unsure (low confidence) about a name it looked
 // up, the choices come from searching that name: {kind, chosen, search}, or null.
+const UNSURE_NOTE = /which (one|of them) you meant|others include|more than one|several (authors|institutions|journals|sources|funders)|many (authors|people|institutions|journals)|there are many/i;
 export function unsureLookup(msg) {
-  if (!(typeof msg?.confidence === 'number' && msg.confidence < 0.5)) return null;
+  const lowConfidence = typeof msg?.confidence === 'number' && msg.confidence < 0.5;
+  if (!lowConfidence && !UNSURE_NOTE.test(String(msg?.note || ''))) return null;
   const inOql = [...String(msg.shownOql || '').matchAll(OQL_ID)].map((m) => m[1]);
   for (const l of msg.lookups || []) {
     const prefix = Object.keys(KIND_BY_PREFIX).find((p) => KIND_BY_PREFIX[p] === l.kind);
