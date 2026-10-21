@@ -129,6 +129,7 @@
         :mode="view.works"
         @clear-drill="drill = null"
         @filter-column="onColumnFilter"
+        @oql="(o) => (worksOql = o)"
       />
     </v-card>
 
@@ -166,7 +167,9 @@ const props = defineProps({
   // {tab: 'groups' | 'works', groups: 'chart' | 'table', works: 'list' | 'table'} (nlChart.js).
   view: { type: Object, default: () => ({ ...DEFAULT_VIEW }) },
 });
-const emit = defineEmits(['update:view']);
+// `query-oql`: the query behind what's on screen when that isn't the page's own: the works
+// tab of a calculation (null otherwise), so the OQL at the top always reproduces the view.
+const emit = defineEmits(['update:view', 'query-oql']);
 
 const store = useStore();
 const route = useRoute();
@@ -238,9 +241,14 @@ useSelectionContext(() => props.resultsObject);
 // works nobody looks at.
 const drill = ref(null);
 const worksOpened = ref(false);
+const worksOql = ref(null);
+watch([() => tab.value, worksOql, isPipeline], ([t, o, p]) => {
+  emit('query-oql', p && t === 'works' ? o : null);
+}, { immediate: true });
 watch(tab, (t) => { if (t === 'works') worksOpened.value = true; }, { immediate: true });
 watch(() => props.resultsObject, () => {
   drill.value = null;
+  worksOql.value = null;
   worksOpened.value = tab.value === 'works';
 });
 function onDrill(d) {

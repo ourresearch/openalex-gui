@@ -43,10 +43,12 @@
           :results-object="resultsObject"
           :search-error="searchError"
           :creating="chatAsking"
+          :view-oql="viewOql"
           @ask="askFromBar"
         />
         <nl-results
           :class="{ 'nl-stale': chatAsking }"
+          @query-oql="(o) => (viewOql = o)"
           v-model:view="view"
           :results-object="resultsObject"
           :search-error="searchError"
@@ -114,6 +116,8 @@ function toggle(col) {
 // While the chat writes a query the box waits for it; a `#` note in the box goes to the chat.
 const chatRef = ref(null);
 const chatAsking = ref(false);
+// The query behind the view when it isn't the page's (a calculation's Works tab), for the top.
+const viewOql = ref(null);
 async function askFromBar({ text, currentQuery }) {
   if (!open.chat) toggle('chat');
   await nextTick();

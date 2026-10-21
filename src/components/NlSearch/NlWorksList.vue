@@ -62,7 +62,9 @@ const props = defineProps({
   // 'list' | 'table': the same fetched page either way, so switching never refetches.
   mode: { type: String, default: 'list' },
 });
-const emit = defineEmits(['clear-drill', 'filter-column']);
+// `oql`: the query for exactly these works (filters, a clicked group, the order), from the
+// API's echo, so the top of the page can show it on the Works tab (#1744).
+const emit = defineEmits(['clear-drill', 'filter-column', 'oql']);
 
 const PER_PAGE = 25;
 const page = ref(1);
@@ -123,6 +125,8 @@ async function load() {
   error.value = !failed ? '' : oqo ? "The works couldn't load. Try again, or see the Groups." : 'This answer has no list of works behind it.';
   busy.value = false;
   loaded.value = true;
+  const xq = resp?.meta?.x_query;
+  emit('oql', failed ? null : xq?.x_new_oql || xq?.oql || null);
 }
 
 // A new answer or a new group starts over at page 1.

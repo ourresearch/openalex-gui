@@ -123,6 +123,9 @@ const props = defineProps({
   searchError: String,
   // The chat is writing a query: the box empties and waits for it.
   creating: { type: Boolean, default: false },
+  // The query for what's on screen when it isn't the page's own (a calculation's Works tab):
+  // shown and edited instead, so the OQL always reproduces the view (Jason, Wed 21 Oct).
+  viewOql: { type: String, default: null },
 });
 // `ask`: a `#` note in the box, for the chat to apply to the query above it.
 const emit = defineEmits(['ask']);
@@ -142,8 +145,10 @@ const status = computed(() => (isLoading.value ? 'querying' : null));
 // (shownOql) drops. The editor's own validate pass then swaps in the tidy canonical form.
 // A classic URL (/works?filter=...) has no ?oql=, so it shows the echo.
 const seed = computed(() => route.query.oql || store.getters.shownOql || '');
-// The page's query as shown: the URL's form keeps entity names, so they read as links.
-const shown = computed(() => (seed.value || '').trim());
+// The query as shown: the view's own, else the page's (the URL's form keeps entity names, so
+// they read as links).
+const base = computed(() => props.viewOql || seed.value || '');
+const shown = computed(() => base.value.trim());
 const text = ref('');
 const baseline = ref('');
 const validation = ref(null);
@@ -182,14 +187,14 @@ function onValidation(v) {
 }
 
 function revert() {
-  setText(seed.value);
+  setText(base.value);
 }
 
 // The pencil: the editor opens on the page's query, fresh each time.
 const editing = ref(false);
 const editorRef = ref(null);
 function openEditor() {
-  setText(seed.value);
+  setText(base.value);
   validation.value = null;
   editing.value = true;
 }
