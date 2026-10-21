@@ -20,9 +20,15 @@
                oqlFlag fork to the legacy two-row box was dropped 2026-08-12 (Jason).
                Legacy-opt-out devices get this box too; its OQL probe self-gates on the
                flag, so their submits still route to the legacy SERP form. -->
-          <search-box single-row two-deck autofocus hide-submit
+          <search-box ref="searchBoxRef" single-row two-deck autofocus hide-submit
                       placeholder-override="Search papers, datasets, and more" />
-          <!-- suggestions mount here (#1744) -->
+          <!-- Three suggested queries, new on every load (#1744, Jason 2026-10-21). -->
+          <nl-landing-suggestions
+            v-if="nlSearch"
+            class="hero-suggestions"
+            :disabled="!!searchBoxRef?.thinking"
+            @pick="(t) => searchBoxRef?.askText(t)"
+          />
         </div>
       </div>
 
@@ -209,12 +215,14 @@ import { useStore } from 'vuex';
 import axios from 'axios';
 
 import SearchBox from '@/components/SearchBox.vue';
+import NlLandingSuggestions from '@/components/NlSearch/NlLandingSuggestions.vue';
 import { getTypeIcon } from '@/typeIcons';
 import { heroWorks } from '@/heroWorks';
 import { urlBase } from '@/apiConfig';
 
 const store = useStore();
 const nlSearch = computed(() => store.getters.nlSearch);
+const searchBoxRef = ref(null);
 const goTo = useGoTo();
 
 import layerCake from '@/assets/landing/layer-cake.webp';
@@ -665,6 +673,7 @@ export default { name: 'HomeV2Page' };
   max-width: 520px; margin: 0 0 40px 0;
 }
 .hero-search { width: 100%; max-width: 500px; } // widened 480→500 (R24)
+.hero-suggestions { margin-top: 14px; }
 // Linear-style chrome on the landing search box (Jason 2026-08-03): tighter 8px
 // radius (was 16px — way too round) to match the CTA buttons, subtle 1px border.
 // Scoped to the hero so the SERP's SearchBox is unaffected.

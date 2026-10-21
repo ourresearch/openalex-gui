@@ -1396,7 +1396,14 @@ function clickSubmit() {
 
 // Expose submit() so a host page (e.g. the #681 landing) can drive search from
 // its own "Search" call-to-action button, replacing the in-box magnifier.
-defineExpose({ submit: clickSubmit });
+// askText(): a suggested query clicked under the box (#1744) types itself in and runs.
+function askText(text) {
+  if (thinking.value || !text) return;
+  isUserTyping.value = false;
+  searchString.value = text;
+  clickSubmit();
+}
+defineExpose({ submit: clickSubmit, askText, thinking });
 
 // Vuetify's v-menu moves focus (to its activator, then <body>) while it
 // closes, which clobbers a single focus() call. Retry over a short window
