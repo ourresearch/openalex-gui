@@ -157,10 +157,11 @@ import { useRoute, useRouter } from 'vue-router';
 import { url } from '@/url';
 import filters from '@/filters';
 import HiringMarkdown from '@/components/Hiring/HiringMarkdown.vue';
-import { validateOql, getEntityRecord } from '@/components/OqlPlayground/oqlEditorApi';
+import { validateOql, getEntityRecord, searchEntityIds } from '@/components/OqlPlayground/oqlEditorApi';
 import { waitForApiKey } from '@/keyWait';
 import {
   answerQuestion, oqlForPageUrl, buildHistory, loadThread, saveThread, answerAlternatives, swapEntity, searchName,
+  unsureLookup,
 } from '@/components/NlSearch/nlChat';
 import { EXAMPLE_QUESTIONS } from '@/components/NlSearch/nlExamples';
 
@@ -317,15 +318,24 @@ function emitChoices(m) {
   emit('choices', c ? { oql: m.shownOql, kind: m.choices.kind, name: c.name, sub: c.sub, search: m.choices.search } : null);
 }
 async function loadChoices(m) {
-  const spec = answerAlternatives(m.note, m.shownOql);
-  if (!spec) return;
+  let spec = answerAlternatives(m.note, m.shownOql);
+  let search = null;
+  if (!spec) {
+    // No ids in the note: if the model was unsure of a name, the top matches for it.
+    const u = unsureLookup(m);
+    if (!u) return;
+    let found = [];
+    try { found = await searchEntityIds(u.kind, u.name); } catch (e) { return; }
+    spec = { kind: u.kind, chosen: u.chosen, others: found.filter((id) => id !== u.chosen).slice(0, 2) };
+    search = u.name;
+  }
   const ids = [spec.chosen, ...spec.others];
   const recs = await Promise.all(ids.map((id) => getEntityRecord(spec.kind, id)));
   const cards = recs
     .map((r, i) => r && { id: ids[i], name: r.display_name, sub: cardSub(spec.kind, r), works: r.works_count ?? null })
     .filter(Boolean);
   if (cards.length < 2) return;
-  m.choices = { kind: spec.kind, chosen: spec.chosen, cards, search: searchName(cards[0].name) };
+  m.choices = { kind: spec.kind, chosen: spec.chosen, cards, search: search || m.lookups?.[0]?.name || searchName(cards[0].name) };
   emitChoices(m);
   scrollToEnd();
 }

@@ -227,6 +227,13 @@ export function searchEntities(kinds, q) {
 
 // One entity's API record, for the hover card (cached for the session).
 const _records = new Map();
+// The ids of the top `n` matches for a name ("John Smith" -> authors), most relevant first.
+export async function searchEntityIds(kind, q, n = 4) {
+  const url = `${urlBase.api}/${kind}?${MAILTO}&search=${encodeURIComponent(q)}&per_page=${n}&select=id`;
+  const r = await axios.get(url, axiosConfig());
+  return (r.data?.results || []).map((x) => String(x.id).split("/").pop());
+}
+
 export function getEntityRecord(kind, id) {
   const key = `${kind}/${id}`;
   if (!_records.has(key)) {

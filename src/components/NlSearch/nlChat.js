@@ -51,6 +51,10 @@ export async function answerQuestion({ text, currentQuery = null, history = [] }
       oql: answer.oql || null,
       sort: answer.sort || null,
       how: stepsLine(answer.meta),
+      // For "more than one match" (answerAlternatives): how sure the model was, and the
+      // names it looked up ({kind, name}, from its find_entity steps).
+      confidence: typeof answer.confidence === 'number' ? answer.confidence : null,
+      lookups: lookupsOf(answer.meta),
     };
     if (QUERY_ROUTES.has(answer.route) && answer.oql) {
       msg.shownOql = await oqlForAnswer(answer.oql, answer.sort);
@@ -224,6 +228,29 @@ export function saveThread(messages, storage = globalThis.sessionStorage) {
 const KIND_BY_PREFIX = { A: 'authors', I: 'institutions', S: 'sources', F: 'funders', P: 'publishers', T: 'topics' };
 const NOTE_ID = /\b([AISFPT]\d{6,})\b/g;
 const OQL_ID = /\]\(([AISFPT]\d{6,})\)/g;
+
+// The model's name lookups: "authors: John Smith" -> {kind: 'authors', name: 'John Smith'}.
+export function lookupsOf(meta) {
+  return (Array.isArray(meta?.steps) ? meta.steps : [])
+    .filter((s) => s?.tool === 'find_entity' && /^\w+:\s*\S/.test(String(s.detail || '')))
+    .map((s) => {
+      const [, kind, name] = /^(\w+):\s*(.+)$/.exec(String(s.detail));
+      return { kind, name: name.trim() };
+    });
+}
+
+// When the note names no ids but the model was unsure (low confidence) about a name it looked
+// up, the choices come from searching that name: {kind, chosen, search}, or null.
+export function unsureLookup(msg) {
+  if (!(typeof msg?.confidence === 'number' && msg.confidence < 0.5)) return null;
+  const inOql = [...String(msg.shownOql || '').matchAll(OQL_ID)].map((m) => m[1]);
+  for (const l of msg.lookups || []) {
+    const prefix = Object.keys(KIND_BY_PREFIX).find((p) => KIND_BY_PREFIX[p] === l.kind);
+    const chosen = prefix && inOql.find((id) => id[0] === prefix);
+    if (chosen) return { kind: l.kind, chosen, search: l.name };
+  }
+  return null;
+}
 
 export function answerAlternatives(note, oql) {
   const inOql = [...String(oql || '').matchAll(OQL_ID)].map((m) => m[1]);

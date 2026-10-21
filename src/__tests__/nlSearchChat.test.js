@@ -319,3 +319,15 @@ describe('more than one match: choices from the note (#1744)', () => {
     expect(searchName('Jennifer A. Doudna')).toBe('Jennifer Doudna');
   });
 });
+
+describe('more than one match: an unsure lookup (#1744)', () => {
+  it('reads the looked-up name when the model was unsure', async () => {
+    const { lookupsOf, unsureLookup } = await import('@/components/NlSearch/nlChat');
+    const meta = { steps: [{ tool: 'find_entity', detail: 'authors: John Smith' }, { tool: 'run_oql', detail: 'x' }] };
+    const lookups = lookupsOf(meta);
+    expect(lookups).toEqual([{ kind: 'authors', name: 'John Smith' }]);
+    const msg = { confidence: 0.21, lookups, shownOql: "get [John Maynard Smith](A5108453556)'s works" };
+    expect(unsureLookup(msg)).toEqual({ kind: 'authors', chosen: 'A5108453556', search: 'John Smith' });
+    expect(unsureLookup({ ...msg, confidence: 0.9 })).toBeNull();
+  });
+});
