@@ -84,7 +84,7 @@
                         <ul class="speaker-list">
                             <li><strong>Henri Bretel</strong> (Universit&eacute; Paris-Saclay) &mdash; OpenAlex for institutional benchmarking and research strategy: a CRISalid approach (<a href="https://docs.google.com/presentation/d/1YWN5CaJsZpu7l8K-KPiajAsUi4qMoM4RIMYUVJyeaXw/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Guillaume Godet</strong> (Nantes Universit&eacute;) &mdash; Druid: an institutional directory and dashboard powering research analytics with OpenAlex</li>
-                            <li><strong>Bruna Santanach L&oacute;pez and Maia Francisco Borruel</strong> (Universitat Oberta de Catalunya) &mdash; UOC&rsquo;s journey with OpenAlex: data analysis, workflows and transparency from an institutional perspective (<a href="https://drive.google.com/file/d/18o2x8QrWcX8IDShWZtpWYtCrkdA5H3x7/view?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
+                            <li><strong>Bruna Santanach L&oacute;pez and Maia Francisco Borruel</strong> (Universitat Oberta de Catalunya) &mdash; UOC&rsquo;s journey with OpenAlex: data analysis, workflows and transparency from an institutional perspective (<a href="/paris2026-uoc-slides.pdf" target="_blank" rel="noopener">slides</a>)</li>
                             <li><strong>Nicolas Alarcon and colleagues</strong> (Sorbonne Universit&eacute;) &mdash; Sorbobot: turning OpenAlex&rsquo;s ontology into a conversational expert-finder (<a href="https://docs.google.com/presentation/d/1pqRTrkd7Yw02SnTmnPAKr77klfV6bTCGzO1YdqmYXE8/edit?usp=sharing" target="_blank" rel="noopener">slides</a>)</li>
                         </ul>
                         <span class="f26-tag tag-presentation">talks</span><span class="f26-tag tag-discuss">discussion</span>
@@ -267,7 +267,7 @@
                     <div class="sched-time">14:20 &ndash; 15:15</div>
                     <div class="sched-content">
                         <h4>Breakout groups, round 2: coverage</h4>
-                        <p>Same format, on what OpenAlex is missing: works we don&rsquo;t index at all, and fields missing from the works we do.</p>
+                        <p>Same format, on what OpenAlex is missing: works we don&rsquo;t index, fields missing from the works we do, and links to patents, clinical trials, policy and more.</p>
                         <span class="f26-tag tag-discuss">breakouts</span>
                     </div>
                 </div>
@@ -284,7 +284,7 @@
         <!-- DISCUSSION GROUPS -->
         <div class="section" id="discussion">
             <h2 class="section-header">Breakout groups</h2>
-            <p class="section-subtitle">Two rounds after lunch: accuracy, then coverage. Each round starts from the suggested groups below, which come from what people write to us about and what we heard on Tuesday. Tell us what we missed and we&rsquo;ll add it; a group nobody wants to join gets dropped. Each group then makes its pitch to OpenAlex: why this should be a priority, who it matters to, and what doing it well would look like.</p>
+            <p class="section-subtitle">Two rounds after lunch: accuracy, then coverage. Each round starts from the suggested groups below, which come from support tickets, Tuesday&rsquo;s talks and what people ask us for. Tell us what we missed and we&rsquo;ll add it; a group nobody wants to join gets dropped. Each group then makes its pitch to OpenAlex: why this should be a priority, who it matters to, and what doing it well would look like.</p>
 
             <h3 class="sub-header">Round 1: accuracy</h3>
             <p class="sub-note">What OpenAlex gets wrong today.</p>
@@ -334,35 +334,21 @@
             </div>
 
             <h3 class="sub-header round-header">Round 2: coverage</h3>
-            <p class="sub-note">What OpenAlex is missing. That comes in two kinds: works we don&rsquo;t index at all, and gaps in the records of works we do.</p>
+            <p class="sub-note">What OpenAlex is missing. That comes in three kinds: works we don&rsquo;t index, gaps in the records of works we do, and the places research gets used that aren&rsquo;t linked to OpenAlex yet.</p>
 
             <h4 class="group-kind">Missing works</h4>
             <div class="discussion-grid">
                 <div class="discussion-card">
-                    <h3>Journals outside the big indexes</h3>
+                    <h3>Journals and repositories</h3>
                     <ul>
-                        <li>Regional and non-English journals, journals without DOIs, OJS journals</li>
+                        <li>Regional and non-English journals, journals without DOIs, institutional repositories and national archives like HAL</li>
                         <li>How should OpenAlex find them, and decide what gets in?</li>
                     </ul>
                 </div>
                 <div class="discussion-card">
-                    <h3>Repositories and national archives</h3>
+                    <h3>Books and other outputs</h3>
                     <ul>
-                        <li>Institutional repositories, HAL and other national open archives, preprint servers</li>
-                        <li>Getting records in, and linking them to the published version</li>
-                    </ul>
-                </div>
-                <div class="discussion-card">
-                    <h3>Books and the humanities</h3>
-                    <ul>
-                        <li>Monographs, edited volumes and chapters, and humanities and social science journals</li>
-                        <li>Older and digitised literature, from heritage collections like Pers&eacute;e</li>
-                    </ul>
-                </div>
-                <div class="discussion-card">
-                    <h3>Beyond the journal article</h3>
-                    <ul>
-                        <li>Theses, conference proceedings, reports and working papers, datasets and software</li>
+                        <li>Books and chapters, theses, conference proceedings, reports, and older digitised literature</li>
                         <li>Which of these matter most for your work?</li>
                     </ul>
                 </div>
@@ -371,38 +357,56 @@
             <h4 class="group-kind">Incomplete records</h4>
             <div class="discussion-grid">
                 <div class="discussion-card">
-                    <h3>Abstracts and full text</h3>
+                    <h3>Abstracts, full text and references</h3>
                     <ul>
-                        <li>Works with no abstract, or no full text to search</li>
-                        <li>What do your searches and text mining need?</li>
+                        <li>What searching, text mining and citation analysis need from every record</li>
+                        <li>Where do the gaps hurt most?</li>
                     </ul>
                 </div>
                 <div class="discussion-card">
-                    <h3>References</h3>
+                    <h3>Authors, funding and subject headings</h3>
                     <ul>
-                        <li>Works with missing or partial reference lists, and the citation counts that depend on them</li>
-                        <li>Where do the gaps hurt your citation analyses most?</li>
+                        <li>Missing affiliations and ORCIDs, funders and grant numbers, MeSH and other subject headings</li>
+                        <li>Which fields should every record carry?</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h4 class="group-kind">Beyond the literature</h4>
+            <div class="discussion-grid">
+                <div class="discussion-card">
+                    <h3>Patents</h3>
+                    <ul>
+                        <li>Patents that cite research, and the research behind new technologies</li>
+                        <li>What would linking them let you answer?</li>
                     </ul>
                 </div>
                 <div class="discussion-card">
-                    <h3>Authors and affiliations</h3>
+                    <h3>Clinical trials</h3>
                     <ul>
-                        <li>Works with no affiliations, no ORCIDs, or incomplete author lists</li>
-                        <li>Which sources could fill them in?</li>
+                        <li>Trial registrations linked to the papers that report them</li>
+                        <li>What would systematic reviewers, funders and hospitals do with it?</li>
                     </ul>
                 </div>
                 <div class="discussion-card">
-                    <h3>Funding</h3>
+                    <h3>Policy documents</h3>
                     <ul>
-                        <li>Funders and grant numbers: which works have them, and which don&rsquo;t</li>
-                        <li>What would make funding data good enough to rely on?</li>
+                        <li>Government, NGO and intergovernmental reports that cite research</li>
+                        <li>Whose policy citations matter most, and how would you use them?</li>
                     </ul>
                 </div>
                 <div class="discussion-card">
-                    <h3>Subject headings and other traits</h3>
+                    <h3>Datasets and software</h3>
                     <ul>
-                        <li>MeSH and other subject headings, keywords, language, licences</li>
-                        <li>Which traits should every record carry?</li>
+                        <li>Which papers used which data and code, beyond formal citations</li>
+                        <li>How should data and software get credit in OpenAlex?</li>
+                    </ul>
+                </div>
+                <div class="discussion-card">
+                    <h3>News, Wikipedia and social media</h3>
+                    <ul>
+                        <li>Where research gets talked about outside academia</li>
+                        <li>Should OpenAlex carry attention data, and what for?</li>
                     </ul>
                 </div>
             </div>
