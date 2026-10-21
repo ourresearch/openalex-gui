@@ -62,29 +62,17 @@
           <div v-for="a in m.asides || []" :key="a.kind" class="nl-aside">
             <span class="nl-aside-label">{{ a.label }}:</span> {{ a.text }}
           </div>
-          <div
-            v-if="m.shownOql"
-            role="button"
-            tabindex="0"
-            class="nl-oql-snippet"
-            :class="{ 'nl-oql-snippet--current': isCurrent(m) }"
-            :title="isCurrent(m) ? 'This is the query on the page' : 'Show this query again'"
-            @click="useQuery(m)"
-            @keydown.enter="useQuery(m)"
-          >
-            <code :class="{ 'nl-oql-code--clamped': isLong(m.shownOql) && !expanded.has(i) }">{{ m.shownOql }}</code>
-            <span class="nl-oql-snippet-foot">
-              <span v-if="m.count != null">{{ countLabel(m.count) }}</span>
-              <button
-                v-if="isLong(m.shownOql)"
-                type="button"
-                class="nl-oql-more"
-                @click.stop="toggleExpanded(i)"
-              >{{ expanded.has(i) ? 'Show less' : 'Show all' }}</button>
-              <span v-if="!isCurrent(m) && !m.stale" class="nl-oql-snippet-use">
-                <v-icon size="14">mdi-arrow-u-left-top</v-icon> Show again
-              </span>
-            </span>
+          <!-- The query itself shows at the top of the page, not here (Jason, Wed 21 Oct): an
+               answer keeps its count, and an earlier one a way back to its query. -->
+          <div v-if="m.shownOql" class="nl-answer-foot">
+            <span v-if="m.count != null">{{ countLabel(m.count) }}</span>
+            <button
+              v-if="!isCurrent(m) && !m.stale"
+              type="button"
+              class="nl-show-again"
+              title="Show this query again"
+              @click="useQuery(m)"
+            ><v-icon size="14">mdi-arrow-u-left-top</v-icon> Show again</button>
           </div>
           <div v-if="m.how" class="nl-how">
             <v-icon size="13" class="mr-1">mdi-magnify-scan</v-icon>{{ m.how }}
@@ -193,19 +181,6 @@ function isCurrent(m) {
   return !!m.shownOql && collapse(m.shownOql) === collapse(route.query.oql || store.getters.shownOql);
 }
 
-// A long query (a list of 46 countries) shows six lines in the thread; "Show all" opens it.
-// The editor above the results always shows it whole.
-const expanded = ref(new Set());
-function isLong(oql) {
-  const s = String(oql || '');
-  return s.split('\n').length > 6 || s.length > 360;
-}
-function toggleExpanded(i) {
-  const next = new Set(expanded.value);
-  if (next.has(i)) next.delete(i);
-  else next.add(i);
-  expanded.value = next;
-}
 
 function countLabel(n) {
   const what = n === 1 ? 'result' : 'results';
@@ -304,7 +279,6 @@ async function useQuery(m) {
 
 function newChat() {
   messages.value = [];
-  expanded.value = new Set();
   draft.value = '';
   nextTick(() => inputEl.value?.focus());
 }
@@ -319,8 +293,7 @@ onMounted(() => {
     router.replace({ name: route.name, params: route.params, query });
     // A question arriving this way (a link, the homepage box) starts its own conversation.
     messages.value = [];
-    expanded.value = new Set();
-    if (signedIn.value) ask(q);
+      if (signedIn.value) ask(q);
     else draft.value = q;
   } else {
     inputEl.value?.focus();
@@ -394,6 +367,24 @@ defineExpose({ ask });
   line-height: 1.5;
   max-width: 100%;
   overflow-wrap: anywhere;
+}
+.nl-answer-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: rgba(0, 0, 0, 0.5);
+}
+.nl-show-again {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: rgb(var(--v-theme-primary));
+  font-weight: 500;
+}
+.nl-show-again:hover {
+  text-decoration: underline;
 }
 .nl-msg--user {
   align-self: flex-end;

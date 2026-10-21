@@ -40,9 +40,19 @@ export function isPipelineOqo(oqo) {
 // The works a calculation is computed from (its "starting set"): the query with its
 // calculations, splits and order taken off. Feeds the NL page's Works tab and its chart views
 // of a works list (oxjob #1745); every other key (filters, corpus, sample) stays.
+// A split over listed values (`by institution in ([UF], [FSU], [USF])`) also limits the works:
+// only those in one of its groups are counted, so the starting set keeps it as an OR filter
+// (#1744: without it the Works tab listed all 144M articles behind a three-university table).
 export function startingSetOqo(oqo) {
   const { calculate, group_by, sort_by, ...rest } = oqo || {}; // eslint-disable-line no-unused-vars
-  return rest;
+  const limits = (group_by || [])
+    .filter((g) => Array.isArray(g?.values) && g.values.length)
+    .map((g) => ({
+      join: "or",
+      filters: g.values.map((v) => (v && typeof v === "object" ? v : { column_id: g.column_id, value: v })),
+    }));
+  if (!limits.length) return rest;
+  return { ...rest, filter_rows: [...(rest.filter_rows || []), ...limits] };
 }
 
 // Percent measures print with a % sign; everything else is a plain number.

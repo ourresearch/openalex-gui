@@ -199,6 +199,9 @@ watch(how, (f) => {
 // (Jason, Wed 21 Oct), and "12.3K works", the works the groups are counted from.
 const groupsLabel = computed(() => groupsTabLabel(props.resultsObject?.meta));
 const worksLabel = computed(() => {
+  // meta.count is the works before the splits; a split over listed values (`by institution
+  // in (...)`) keeps only some of them, so the count waits for the Works tab's own fetch.
+  if ((props.resultsObject?.meta?.x_query?.oqo?.group_by || []).some((g) => g?.values?.length)) return 'Works';
   const n = props.resultsObject?.meta?.count || 0;
   return `${filters.toPrecision(n)} ${n === 1 ? 'work' : 'works'}`;
 });

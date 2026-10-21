@@ -42,6 +42,31 @@ describe("startingSetOqo", () => {
     });
     expect(startingSetOqo(null)).toEqual({});
   });
+
+  it("keeps a split's listed values as an OR filter (#1744)", () => {
+    const oqo = {
+      get_rows: "works",
+      filter_rows: [{ column_id: "type", value: "article" }],
+      group_by: [
+        { column_id: "publication_year" },
+        { column_id: "authorships.institutions.lineage", values: ["I33213144", "I103163165"] },
+      ],
+      calculate: [{ measure: "count" }],
+    };
+    expect(startingSetOqo(oqo)).toEqual({
+      get_rows: "works",
+      filter_rows: [
+        { column_id: "type", value: "article" },
+        {
+          join: "or",
+          filters: [
+            { column_id: "authorships.institutions.lineage", value: "I33213144" },
+            { column_id: "authorships.institutions.lineage", value: "I103163165" },
+          ],
+        },
+      ],
+    });
+  });
 });
 
 const MEAN_FWCI = { key: "mean_fwci", measure: "mean", column_id: "fwci", oql: "mean FWCI" };

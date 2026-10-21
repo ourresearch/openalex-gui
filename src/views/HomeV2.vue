@@ -13,6 +13,11 @@
           Inspired by the Library of Alexandria, we index half a billion scholarly
           works and make them easy to search, analyze, and&nbsp;reuse.
         </p>
+        <!-- What we are, in one line (Jason, Wed 21 Oct). -->
+        <p v-else class="hero-subhead hero-subhead--nl">
+          The free, open catalog of the world's research: half a billion scholarly works.
+          Ask it anything, in plain&nbsp;words.
+        </p>
         <div class="hero-search">
           <!-- hide-submit: no in-box magnifier; the Search CTA below drives it (#681).
                placeholder-override: fixed copy, no count (avoids the xpac-count confusion).
@@ -660,7 +665,8 @@ export default { name: 'HomeV2Page' };
   justify-items: center;
   text-align: center;
   .hero-copy { width: 100%; max-width: 640px; display: flex; flex-direction: column; align-items: center; }
-  .hero-headline { margin-bottom: 36px; }
+  .hero-headline { margin-bottom: 16px; }
+  .hero-subhead--nl { max-width: 560px; margin: 0 0 32px; }
   .hero-search { max-width: 640px; text-align: left; }
 }
 
@@ -673,7 +679,7 @@ export default { name: 'HomeV2Page' };
   max-width: 520px; margin: 0 0 40px 0;
 }
 .hero-search { width: 100%; max-width: 500px; } // widened 480→500 (R24)
-.hero-suggestions { margin-top: 14px; }
+.hero-suggestions { margin-top: 18px; }
 // Linear-style chrome on the landing search box (Jason 2026-08-03): tighter 8px
 // radius (was 16px — way too round) to match the CTA buttons, subtle 1px border.
 // Scoped to the hero so the SERP's SearchBox is unaffected.
