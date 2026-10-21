@@ -227,9 +227,12 @@ export function searchEntities(kinds, q) {
 
 // One entity's API record, for the hover card (cached for the session).
 const _records = new Map();
-// The ids of the top `n` matches for a name ("John Smith" -> authors), most relevant first.
+// The ids of the top `n` entities named like `q` ("John Smith" -> authors), most works first:
+// a name match, not full-text search (which surfaced unrelated people, #1744).
 export async function searchEntityIds(kind, q, n = 4) {
-  const url = `${urlBase.api}/${kind}?${MAILTO}&search=${encodeURIComponent(q)}&per_page=${n}&select=id`;
+  const name = String(q).replace(/[,:|]/g, " ");
+  const url = `${urlBase.api}/${kind}?${MAILTO}&filter=display_name.search:${encodeURIComponent(name)}`
+    + `&sort=works_count:desc&per_page=${n}&select=id`;
   const r = await axios.get(url, axiosConfig());
   return (r.data?.results || []).map((x) => String(x.id).split("/").pop());
 }
