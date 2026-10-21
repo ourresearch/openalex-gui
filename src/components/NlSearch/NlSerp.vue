@@ -46,6 +46,21 @@
           :view-oql="viewOql"
           @ask="askFromBar"
         />
+        <!-- The answer picked one of several matches: say so where people look (#1744). -->
+        <v-alert
+          v-if="choiceShown"
+          type="warning"
+          variant="tonal"
+          density="compact"
+          icon="mdi-account-multiple-outline"
+          class="nl-choice-alert"
+        >
+          More than one {{ choice.kind.replace(/s$/, '') }} matches “{{ choice.search }}”. Showing
+          <b>{{ choice.name }}</b><span v-if="choice.sub"> ({{ choice.sub }})</span>.
+          <template #append>
+            <v-btn variant="text" size="small" class="text-none" @click="showChoices">Pick another</v-btn>
+          </template>
+        </v-alert>
         <nl-results
           :class="{ 'nl-stale': chatAsking }"
           @query-oql="(o) => (viewOql = o)"
@@ -58,7 +73,13 @@
 
     <!-- Chat -->
     <aside v-if="open.chat" class="nl-col nl-col--chat">
-      <nl-chat ref="chatRef" @collapse="toggle('chat')" @answer="onAnswer" @asking="(a) => (chatAsking = a)" />
+      <nl-chat
+        ref="chatRef"
+        @collapse="toggle('chat')"
+        @answer="onAnswer"
+        @asking="(a) => (chatAsking = a)"
+        @choices="(c) => (choice = c)"
+      />
     </aside>
     <button v-else type="button" class="nl-rail nl-rail--chat" aria-label="Show the chat" @click="toggle('chat')">
       <v-icon size="18" color="primary">mdi-creation-outline</v-icon>
@@ -118,6 +139,13 @@ const chatRef = ref(null);
 const chatAsking = ref(false);
 // The query behind the view when it isn't the page's (a calculation's Works tab), for the top.
 const viewOql = ref(null);
+// The chat's answer picked one of several matches; shown while the page holds that answer.
+const choice = ref(null);
+const choiceShown = computed(() => !!choice.value && !chatAsking.value
+  && url.oqlForUrl(choice.value.oql || '') === url.oqlForUrl(route.query.oql || ''));
+function showChoices() {
+  if (!open.chat) toggle('chat');
+}
 async function askFromBar({ text, currentQuery }) {
   if (!open.chat) toggle('chat');
   await nextTick();
@@ -232,6 +260,9 @@ onMounted(() => {
   pointer-events: none;
   user-select: none;
   transition: opacity 0.2s;
+}
+.nl-choice-alert {
+  margin-top: 12px;
 }
 .nl-head-tools {
   display: flex;

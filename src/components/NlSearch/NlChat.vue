@@ -74,6 +74,29 @@
               @click="useQuery(m)"
             ><v-icon size="14">mdi-arrow-u-left-top</v-icon> Show again</button>
           </div>
+          <!-- More than one match ("John Smith"): the pick and the others as cards; a click
+               swaps that one into the query. The last card searches them all (#1744). -->
+          <div v-if="m.choices?.cards?.length" class="nl-choices">
+            <button
+              v-for="c in m.choices.cards"
+              :key="c.id"
+              type="button"
+              class="nl-choice"
+              :class="{ 'nl-choice--on': c.id === m.choices.chosen }"
+              @click="pickChoice(m, c)"
+            >
+              <span class="nl-choice-name">{{ c.name }}</span>
+              <span v-if="c.sub" class="nl-choice-sub">{{ c.sub }}</span>
+              <span class="nl-choice-sub">
+                <template v-if="c.works != null">{{ c.works.toLocaleString() }} works</template>
+                <span v-if="c.id === m.choices.chosen" class="nl-choice-tag">Showing</span>
+              </span>
+            </button>
+            <button type="button" class="nl-choice nl-choice--search" @click="searchFor(m)">
+              <v-icon size="16" class="mr-1">mdi-magnify</v-icon>
+              Search {{ m.choices.kind }} for “{{ m.choices.search }}”
+            </button>
+          </div>
           <div v-if="m.how" class="nl-how">
             <v-icon size="13" class="mr-1">mdi-magnify-scan</v-icon>{{ m.how }}
           </div>
@@ -134,17 +157,19 @@ import { useRoute, useRouter } from 'vue-router';
 import { url } from '@/url';
 import filters from '@/filters';
 import HiringMarkdown from '@/components/Hiring/HiringMarkdown.vue';
-import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
+import { validateOql, getEntityRecord } from '@/components/OqlPlayground/oqlEditorApi';
 import { waitForApiKey } from '@/keyWait';
 import {
-  answerQuestion, oqlForPageUrl, buildHistory, loadThread, saveThread,
+  answerQuestion, oqlForPageUrl, buildHistory, loadThread, saveThread, answerAlternatives, swapEntity, searchName,
 } from '@/components/NlSearch/nlChat';
 import { EXAMPLE_QUESTIONS } from '@/components/NlSearch/nlExamples';
 
 defineOptions({ name: 'NlChat' });
 
 // `asking`: true while a query is being written, so the page can show it's coming.
-const emit = defineEmits(['collapse', 'answer', 'asking']);
+// `choices`: the answer on the page picked one of several matches ({oql, kind, name, sub,
+// search}), so the page can say so above the results (#1744).
+const emit = defineEmits(['collapse', 'answer', 'asking', 'choices']);
 
 const store = useStore();
 const route = useRoute();
@@ -244,6 +269,9 @@ async function ask(text, { currentQuery: given } = {}) {
   asking.value = false;
   messages.value.push(msg);
   scrollToEnd();
+  emit('choices', null);
+  const pushed = messages.value[messages.value.length - 1];
+  if (pushed.shownOql && pushed.note) loadChoices(pushed);
   if (msg.shownOql && runOql(msg.shownOql)) emit('answer', msg);
 }
 
@@ -277,6 +305,43 @@ async function useQuery(m) {
   if (runOql(m.shownOql)) emit('answer', m);
 }
 
+// ---- more than one match -----------------------------------------------------------------
+function cardSub(kind, r) {
+  if (kind === 'authors') return r.last_known_institutions?.[0]?.display_name || '';
+  if (kind === 'institutions') return [r.geo?.city, r.geo?.country].filter(Boolean).join(', ');
+  if (kind === 'sources') return r.host_organization_name || '';
+  return '';
+}
+function emitChoices(m) {
+  const c = m.choices?.cards?.find((x) => x.id === m.choices.chosen);
+  emit('choices', c ? { oql: m.shownOql, kind: m.choices.kind, name: c.name, sub: c.sub, search: m.choices.search } : null);
+}
+async function loadChoices(m) {
+  const spec = answerAlternatives(m.note, m.shownOql);
+  if (!spec) return;
+  const ids = [spec.chosen, ...spec.others];
+  const recs = await Promise.all(ids.map((id) => getEntityRecord(spec.kind, id)));
+  const cards = recs
+    .map((r, i) => r && { id: ids[i], name: r.display_name, sub: cardSub(spec.kind, r), works: r.works_count ?? null })
+    .filter(Boolean);
+  if (cards.length < 2) return;
+  m.choices = { kind: spec.kind, chosen: spec.chosen, cards, search: searchName(cards[0].name) };
+  emitChoices(m);
+  scrollToEnd();
+}
+function pickChoice(m, c) {
+  const ch = m.choices;
+  if (!ch || c.id === ch.chosen) return;
+  const next = swapEntity(m.shownOql, ch.chosen, c.id, c.name);
+  ch.chosen = c.id;
+  m.shownOql = next;
+  if (runOql(next)) emit('answer', m);
+  emitChoices(m);
+}
+function searchFor(m) {
+  url.setSearch(m.choices.kind, m.choices.search);
+}
+
 function newChat() {
   messages.value = [];
   draft.value = '';
@@ -286,6 +351,11 @@ function newChat() {
 // `?ask=` starts the chat with a question (handy for links in slides), then leaves the URL.
 onMounted(() => {
   scrollToEnd();
+  const last = messages.value[messages.value.length - 1];
+  if (last?.role === 'assistant' && last.shownOql && !route.query.ask) {
+    if (last.choices) emitChoices(last);
+    else if (last.note) loadChoices(last);
+  }
   const q = typeof route.query.ask === 'string' ? route.query.ask.trim() : '';
   if (q) {
     const query = { ...route.query };
@@ -367,6 +437,56 @@ defineExpose({ ask });
   line-height: 1.5;
   max-width: 100%;
   overflow-wrap: anywhere;
+}
+.nl-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+.nl-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 8px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+.nl-choice:hover {
+  border-color: rgba(var(--v-theme-primary), 0.45);
+  background: rgba(var(--v-theme-primary), 0.03);
+}
+.nl-choice--on {
+  border-color: rgb(var(--v-theme-primary));
+  cursor: default;
+}
+.nl-choice-name {
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.87);
+}
+.nl-choice-sub {
+  font-size: 12.5px;
+  color: rgba(0, 0, 0, 0.55);
+}
+.nl-choice-tag {
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(var(--v-theme-primary), 0.1);
+  color: rgb(var(--v-theme-primary));
+}
+.nl-choice--search {
+  flex-direction: row;
+  align-items: center;
+  color: rgba(0, 0, 0, 0.7);
+  border-style: dashed;
 }
 .nl-answer-foot {
   display: flex;

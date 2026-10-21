@@ -216,3 +216,35 @@ export function saveThread(messages, storage = globalThis.sessionStorage) {
     storage?.setItem(THREAD_KEY, JSON.stringify(messages.slice(-MAX_KEPT)));
   } catch (e) { /* private mode / quota: the thread just won't survive a reload */ }
 }
+
+// ---- more than one match (#1744, Jason Wed 21 Oct: "John Smith") --------------------------
+// The model picks one entity and names the others in its note, with their ids
+// ("Others include John W. Smith (A5050048211)"). These read that back: the kind, the one the
+// query uses, and up to two others, so the page can show them as choices.
+const KIND_BY_PREFIX = { A: 'authors', I: 'institutions', S: 'sources', F: 'funders', P: 'publishers', T: 'topics' };
+const NOTE_ID = /\b([AISFPT]\d{6,})\b/g;
+const OQL_ID = /\]\(([AISFPT]\d{6,})\)/g;
+
+export function answerAlternatives(note, oql) {
+  const inOql = [...String(oql || '').matchAll(OQL_ID)].map((m) => m[1]);
+  const others = [...new Set([...String(note || '').matchAll(NOTE_ID)].map((m) => m[1]))]
+    .filter((id) => !inOql.includes(id));
+  if (!others.length) return null;
+  const prefix = others[0][0];
+  const kind = KIND_BY_PREFIX[prefix];
+  const chosen = inOql.find((id) => id[0] === prefix) || null;
+  if (!kind || !chosen) return null;
+  return { kind, chosen, others: others.filter((id) => id[0] === prefix).slice(0, 2) };
+}
+
+// The query with one entity swapped for another: `[John R. Smith](A1)` -> `[John W. Smith](A2)`.
+export function swapEntity(oql, fromId, toId, toName) {
+  const name = String(toName || toId).replace(/[[\]]/g, '');
+  return String(oql || '').replace(new RegExp(`\\[[^\\]]*\\]\\(${fromId}\\)`, 'g'), `[${name}](${toId})`);
+}
+
+// "John R. Smith" -> "John Smith": the name to search for, without the initials that tell
+// the candidates apart.
+export function searchName(name) {
+  return String(name || '').replace(/(^|\s)[A-Z]\.(?=\s)/g, '').replace(/\s+/g, ' ').trim();
+}

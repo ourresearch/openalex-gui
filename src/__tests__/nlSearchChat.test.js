@@ -303,3 +303,19 @@ describe('groupsTabLabel: the Groups tab names its groups (#1744)', () => {
     expect(groupsTabLabel({ splits: [] })).toBe('Summary');
   });
 });
+
+describe('more than one match: choices from the note (#1744)', () => {
+  it('reads the alternatives the note names', async () => {
+    const { answerAlternatives, swapEntity, searchName } = await import('@/components/NlSearch/nlChat');
+    const note = 'Many authors are named John Smith. I picked John R. Smith at IBM Research. Others include John W. Smith (A5050048211) and John A. Smith (A5002524476). Tell me which one you meant.';
+    const oql = "get [John R. Smith](A5023888391)'s works";
+    expect(answerAlternatives(note, oql)).toEqual({
+      kind: 'authors', chosen: 'A5023888391', others: ['A5050048211', 'A5002524476'],
+    });
+    expect(answerAlternatives('Counts works about kelp.', 'get works about kelp')).toBeNull();
+    expect(answerAlternatives(note, 'get works about kelp')).toBeNull();
+    expect(swapEntity(oql, 'A5023888391', 'A5050048211', 'John W. Smith')).toBe("get [John W. Smith](A5050048211)'s works");
+    expect(searchName('John R. Smith')).toBe('John Smith');
+    expect(searchName('Jennifer A. Doudna')).toBe('Jennifer Doudna');
+  });
+});
