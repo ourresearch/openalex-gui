@@ -12,6 +12,7 @@ import {collectionMatchType, filterCollectionsForField} from "@/collectionFilter
 import {openAlexSdgs} from "@/sdgs";
 import {isListedInKey, listedInLabel} from "@/listedIn";
 import {getEntityConfig} from "@/entityConfigs";
+import {startingSetOqo} from "@/oqlPipeline";
 import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
 import store from "@/store";
 import {edgeOn, edgeSupports, edgeRows} from "@/edgeAutocomplete";
@@ -356,10 +357,9 @@ const api = (function () {
         // (per_page=200, matching the legacy makeGroupByUrl) rides as a sibling
         // request param, like all view params.
         // A pipeline query's calculations (#1536) stay out: the widget counts the
-        // starting set's works, the same as for any other query.
-        // eslint-disable-next-line no-unused-vars
-        const { calculate, ...rows } = oqo
-        return { ...rows, group_by: [{ column_id: filterKey }] }
+        // starting set's works, the same as for any other query, including a split's
+        // listed values (`by institution in (...)`, #1744; startingSetOqo).
+        return { ...startingSetOqo(oqo), group_by: [{ column_id: filterKey }] }
     }
     const GROUP_BY_PARAMS = { per_page: 200 }
 
