@@ -68,6 +68,8 @@ const listedInLabels = {
     "dongbi-b": "Dongbi Index (China), B",
     "dongbi-c": "Dongbi Index (China), C",
     "dongbi-d": "Dongbi Index (China), D",
+    // Diamond Discovery Hub (EDCH / OPERAS request, 2026-10-21)
+    "ddh": "Diamond Discovery Hub",
 };
 
 const isListedInKey = (filterKey) =>
