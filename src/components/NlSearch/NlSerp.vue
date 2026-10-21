@@ -155,13 +155,18 @@ async function askFromBar({ text, currentQuery }) {
 // ---- results view (per device), and the chat's pick for its answers ----------------------
 // {tab: 'groups' | 'works', groups: 'chart' | 'table', works: 'list' | 'table'} (nlChart.js).
 const VIEW_KEY = 'nlSearch.view.v2';
+// A page load opens a calculation on its groups, whatever tab was last open: the URL's OQL is
+// the calculation, and the top of the page shows the OQL of the open tab (#1744; a link left on
+// Works opened on the works' query). How each tab shows (chart / table, list / table) is kept.
 function loadView() {
+  let v;
   try {
-    const v = localStorage.getItem(VIEW_KEY);
-    return normalizeView(v ? JSON.parse(v) : localStorage.getItem('nlSearch.format.v1'));
+    const stored = localStorage.getItem(VIEW_KEY);
+    v = normalizeView(stored ? JSON.parse(stored) : localStorage.getItem('nlSearch.format.v1'));
   } catch (e) {
-    return normalizeView(null);
+    v = normalizeView(null);
   }
+  return { ...v, tab: 'groups' };
 }
 const view = ref(loadView());
 watch(view, (v) => {
