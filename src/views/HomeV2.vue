@@ -660,11 +660,13 @@ export default { name: 'HomeV2Page' };
 }
 .hero > * { min-width: 0; }
 // `nl_search` (#1744): one centered column, the headline over the box.
+// The column is centered on the page; its text sits on the box's left edge (Jason, Wed 21 Oct:
+// centered text read rough).
 .hero.hero--nl {
   grid-template-columns: 1fr;
   justify-items: center;
-  text-align: center;
-  .hero-copy { width: 100%; max-width: 640px; display: flex; flex-direction: column; align-items: center; }
+  text-align: left;
+  .hero-copy { width: 100%; max-width: 640px; display: flex; flex-direction: column; align-items: stretch; }
   .hero-headline { margin-bottom: 16px; }
   .hero-subhead--nl { max-width: 560px; margin: 0 0 32px; }
   .hero-search { max-width: 640px; text-align: left; }
