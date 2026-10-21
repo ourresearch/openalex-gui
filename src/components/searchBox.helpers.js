@@ -198,6 +198,46 @@ export function looksLikeOql(str) {
   return /^(sort by|group by|sample)\s/.test(rest);
 }
 
+// Words that open a question or a request (oxjob #1744). Kept short: words that also start
+// common topic or journal names ("research ...", "studies in ...", "top quark ...") are left out.
+const QUESTION_OPENERS = new Set([
+  'what', 'which', 'who', 'whose', 'how', 'when', 'where', 'why',
+  'is', 'are', 'was', 'were', 'do', 'does', 'did', 'can', 'could', 'should',
+  'show', 'find', 'list', 'compare', 'give', 'tell', 'count',
+  'papers', 'works', 'articles', 'publications',
+]);
+
+/** Lowercase, strip accents and punctuation: "University of California, San Diego" -> "university of california san diego". */
+function nameKey(str) {
+  return latinize(str).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+}
+
+/**
+ * Does the typed text read as a sentence (a question for the chat) rather than a name or a
+ * keyword? (oxjob #1744) Under the new search the homepage box sends a question to the chat,
+ * so it stops suggesting keywords once this is true. A client heuristic, instant on every keystroke:
+ *   - a `?` that ends a word ("what is CRISPR?"; a wildcard `?` sits inside a word: "wom?n");
+ *   - 4 or more words;
+ *   - 3 or more words opening with a question or request word ("which journals retract").
+ * Never a question: identifiers (DOI, ORCID, OpenAlex ID, ISSN, URL), a quoted phrase, OQL.
+ * Entity names can be long ("university of california san diego"), so a word-count match is
+ * overruled while `names` (the suggestions on screen; not work titles, which a sentence often
+ * prefixes) still holds a name that starts with the typed text.
+ */
+export function looksLikeQuestion(text, names = []) {
+  if (!text || typeof text !== 'string') return false;
+  const s = text.trim();
+  if (!s || s.startsWith('"')) return false;
+  if (/^(https?:\/\/|www\.)/i.test(s) || /\b\d{4}-\d{4}-\d{4}-\d{3}[\dX]\b/i.test(s)) return false;
+  if (extractOpenalexId(s) || extractLocationId(s) || extractIssn(s) || looksLikeOql(s)) return false;
+  if (/\?(\s|$)/.test(s)) return true;
+  const words = s.split(/\s+/);
+  const opens = QUESTION_OPENERS.has(nameKey(words[0]));
+  if (words.length < 4 && !(opens && words.length >= 3)) return false;
+  const typed = nameKey(s);
+  return !names.some(n => nameKey(n).startsWith(typed));
+}
+
 // One-shot cross-instance focus request (#598 r4): the landing-page search box,
 // on an empty-Enter, navigates to the SERP and asks the SERP's own SearchBox
 // instance (mounted on the next route) to grab focus so the user can just type.

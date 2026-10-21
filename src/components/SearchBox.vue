@@ -395,7 +395,7 @@ import { createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr } from '@/filter
 import { url } from '@/url';
 import { facetConfigs } from '@/facetConfigs';
 import { edgeOn, edgeSupports, edgeRows, edgeWarm } from '@/edgeAutocomplete';
-import { extractIssn, extractLocationId, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, requestSearchBoxFocus, consumeSearchBoxFocus, authorNameMatchesQuery, dedupeByName, footerSearchEntityType } from '@/components/searchBox.helpers';
+import { extractIssn, extractLocationId, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, looksLikeQuestion, requestSearchBoxFocus, consumeSearchBoxFocus, authorNameMatchesQuery, dedupeByName, footerSearchEntityType } from '@/components/searchBox.helpers';
 import { ensureIntentModel, classifyQuery } from '@/intent/useIntent';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import { translateSearch } from '@/dbSearchTranslate';
@@ -638,7 +638,14 @@ const suggestions = ref([]);
 const highlightedIndex = ref(-1);
 const dropdownOpen = ref(false);
 const isUserTyping = ref(false);
-const showDropdown = computed(() => dropdownOpen.value && suggestions.value.length > 0);
+// The new search (`nl_search`, oxjob #1744): once the homepage text reads as a question it goes
+// to the chat, so keyword suggestions under a sentence only get in the way. This one switch hides
+// the dropdown, stops fetching, and lets Enter submit the typed text; shorter text turns it back on.
+// Names on screen that the typed text still prefixes keep it on ("university of california san").
+const suggestionsOff = computed(() => store.getters.nlSearch && route.name === 'Home' &&
+  looksLikeQuestion(searchString.value,
+    suggestions.value.filter(s => s._acType !== 'works').map(s => s.display_name)));
+const showDropdown = computed(() => dropdownOpen.value && suggestions.value.length > 0 && !suggestionsOff.value);
 // What the typed string looks like (oxjob #1347): {label, confidence} from the in-browser
 // classifier, recomputed synchronously on every keystroke; null until its weights load.
 const intent = ref(null);
@@ -1016,7 +1023,11 @@ const debouncedFetch = debounce(fetchSuggestions, 100);
 watch(searchString, (val) => {
   if (!isUserTyping.value) return;
   intent.value = val ? classifyQuery(val) : null;
-  if (val) {
+  if (val && suggestionsOff.value) {
+    // A question (oxjob #1744): no fetch, and drop any in flight so it can't reopen the dropdown.
+    dismissDropdown();
+    edgeId++;
+  } else if (val) {
     fetchEdge(val);
     debouncedFetch(val);
   } else {
@@ -1024,6 +1035,11 @@ watch(searchString, (val) => {
     suggestions.value = [];
     dropdownOpen.value = false;
   }
+});
+
+// A hidden list keeps no highlight, so Enter on a question submits the text (oxjob #1744).
+watch(suggestionsOff, (off) => {
+  if (off) highlightedIndex.value = -1;
 });
 
 function dismissDropdown() {
@@ -1121,7 +1137,7 @@ function onTextareaPaste() {
     if (await tryOqlRoute()) return;
     // A pasted PubMed / Scopus / WoS ... search opens translated (#1659).
     if (tryDatabaseSearchRoute()) return;
-    if (searchString.value) debouncedFetch(searchString.value);
+    if (searchString.value && !suggestionsOff.value) debouncedFetch(searchString.value);
   });
 }
 

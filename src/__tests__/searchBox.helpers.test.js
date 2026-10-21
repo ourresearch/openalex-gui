@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extractIssn, extractLocationId, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, dedupeByName, footerSearchEntityType } from '../components/searchBox.helpers.js';
+import { extractIssn, extractLocationId, extractOpenalexId, hasUnquotedWildcard, looksLikeOql, looksLikeQuestion, dedupeByName, footerSearchEntityType } from '../components/searchBox.helpers.js';
 
 describe('extractIssn', () => {
   it('accepts a canonical hyphenated ISSN', () => {
@@ -300,5 +300,55 @@ describe('extractLocationId', () => {
 
   it('rejects a doi namespace with a non-DOI value', () => {
     expect(extractLocationId('doi:not-a-doi')).toBeNull();
+  });
+});
+
+// oxjob #1744: under the new search the homepage box stops suggesting once the text reads as a question.
+describe('looksLikeQuestion', () => {
+  it('leaves names and keywords alone', () => {
+    expect(looksLikeQuestion('kelp')).toBe(false);
+    expect(looksLikeQuestion('machine learning')).toBe(false);
+    expect(looksLikeQuestion('climate change adaptation')).toBe(false);
+    expect(looksLikeQuestion('')).toBe(false);
+    expect(looksLikeQuestion(null)).toBe(false);
+  });
+
+  it('reads 4+ words as a sentence', () => {
+    expect(looksLikeQuestion('quantum computing output by country')).toBe(true);
+    expect(looksLikeQuestion('quantum computing output by country', ['Quantum computing'])).toBe(true);
+  });
+
+  it('keeps a long name while a suggestion on screen still starts with it', () => {
+    const names = ['University of California, San Diego', 'University of California, Berkeley'];
+    expect(looksLikeQuestion('university of california san diego', names)).toBe(false);
+    expect(looksLikeQuestion('University of California San', names)).toBe(false);
+    expect(looksLikeQuestion('university of california s', names)).toBe(false);
+    // no such name on screen: a sentence after all
+    expect(looksLikeQuestion('university of california san diego')).toBe(true);
+    expect(looksLikeQuestion('university of california san diego rankings', names)).toBe(true);
+  });
+
+  it('reads 3+ words opening with a question or request word as a question', () => {
+    expect(looksLikeQuestion('how has research on large language models grown')).toBe(true);
+    expect(looksLikeQuestion('which journals retract the most')).toBe(true);
+    expect(looksLikeQuestion('papers on kelp')).toBe(true);
+    expect(looksLikeQuestion('how to')).toBe(false);
+  });
+
+  it('reads a question mark that ends a word as a question, not a wildcard', () => {
+    expect(looksLikeQuestion('what is CRISPR?')).toBe(true);
+    expect(looksLikeQuestion('CRISPR?')).toBe(true);
+    expect(looksLikeQuestion('wom?n studies')).toBe(false);
+  });
+
+  it('never fires on identifiers, quoted phrases or OQL', () => {
+    expect(looksLikeQuestion('10.1038/nature12373')).toBe(false);
+    expect(looksLikeQuestion('https://doi.org/10.1038/nature12373')).toBe(false);
+    expect(looksLikeQuestion('https://example.org/search?q=kelp')).toBe(false);
+    expect(looksLikeQuestion('0000-0002-1825-0097')).toBe(false);
+    expect(looksLikeQuestion('W2163605009')).toBe(false);
+    expect(looksLikeQuestion('ISSN: 2041-1723')).toBe(false);
+    expect(looksLikeQuestion('"machine learning in health care settings"')).toBe(false);
+    expect(looksLikeQuestion('works where title has (kelp or seaweed)')).toBe(false);
   });
 });
