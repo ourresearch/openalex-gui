@@ -134,6 +134,14 @@ describe('hasUnquotedWildcard', () => {
 });
 
 describe('looksLikeOql', () => {
+  it('sniffs the new OQL: one sentence that starts with get (oxjob #1555)', () => {
+    expect(looksLikeOql('get works about kelp since 2020')).toBe(true);
+    expect(looksLikeOql('get the count of works about kelp by year')).toBe(true);
+    expect(looksLikeOql('get  authors at [UBC](I141945490),\n  highest h-index first')).toBe(true);
+    expect(looksLikeOql('get')).toBe(false);
+    expect(looksLikeOql('get well')).toBe(false);
+  });
+
   // Real OQL shapes (from the docs/oql-cheatsheet.md examples, prod-verified in #530).
   it('fires on entity + where + operator clauses', () => {
     expect(looksLikeOql('works where year is (2020)')).toBe(true);

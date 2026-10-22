@@ -72,7 +72,10 @@ export const stripOqlAnnotations = function (oql) {
             const j = s.indexOf("]", i + 1);
             if (j === -1) { out += s.slice(i); break; } // unterminated: verbatim
             const word = (curWord || prevWord).toLowerCase();
-            const lone = prevCh === "" || prevCh === "(" || prevCh === "," ||
+            // `[name](ID)` is a link: the new OQL puts it after any word (`from [Belarus](BY)`,
+            // `at [UBC](I1)`, `about`, `citing`), so it always stays (oxjob #1555)
+            const link = s[j + 1] === "(";
+            const lone = link || prevCh === "" || prevCh === "(" || prevCh === "," ||
                 OQL_PRE_VALUE_WORDS.has(word);
             if (lone) {
                 out += s.slice(i, j + 1); // the annotation IS the value — keep it

@@ -249,7 +249,7 @@ export default {
     // paging are CLIENT-owned (transient / sibling params) — the echo never
     // overwrites them, and any sort_by/select/page/per_page/cursor a transitional
     // server still echoes is simply ignored (splitOqo drops unknown keys).
-    syncFromResponse({ commit, rootGetters }, resultsObject) {
+    syncFromResponse({ commit, rootGetters, state }, resultsObject) {
       const oqo = resultsObject?.meta?.x_query?.oqo;
       // the form the URL shows (oxjob #1555: `new_oql` flag), so the skip-guard matches it
       const oql = pickOql(resultsObject?.meta?.x_query, rootGetters?.newOql);
@@ -266,6 +266,13 @@ export default {
       commit("setQueryOqoFull", queryOqo);
       commit("setViewState", viewState);
       commit("setLastExecutedOql", oql);
+      // The new OQL says its order (`get works about kelp, most cited first`, oxjob #1555), so a
+      // link can carry a sort the client never picked: adopt it, or the sort menu shows none and
+      // page 2 comes back in the default order. A sort the client picked still wins (#661).
+      if (state && state.sort == null && Array.isArray(oqo.sort_by) && oqo.sort_by.length) {
+        commit("setSortState", oqo.sort_by.map(({ column_id, direction }) => ({
+          column_id, direction: direction === "asc" ? "asc" : "desc" })));
+      }
     },
 
     // ---- Edit-surface actions (each mutates the canonical state + bumps the edit

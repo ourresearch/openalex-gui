@@ -39,6 +39,15 @@ describe("stripOqlAnnotations", () => {
       .toBe("works where institution is any ([Harvard], I123)");
   });
 
+  it("keeps a [name](ID) link after any word (the new OQL, oxjob #1555)", () => {
+    for (const s of [
+      "get works from [Belarus](BY) or [Belgium](BE)",
+      "get authors at [UBC](I141945490), highest h-index first",
+      "get works in the topic [Kelp](T10005) citing [Attention](W2963403868)",
+      "get the count of works about kelp by country except [Kenya](KE)",
+    ]) expect(stripOqlAnnotations(s)).toBe(s);
+  });
+
   it("never touches bracket text inside a quoted string", () => {
     expect(stripOqlAnnotations('works where title has "climate [zones] rising"'))
       .toBe('works where title has "climate [zones] rising"');
