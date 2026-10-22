@@ -187,6 +187,9 @@ export function looksLikeOql(str) {
   if (!str || typeof str !== 'string') return false;
   // Pasted OQL is often pretty-printed — normalize all whitespace to single spaces.
   const s = str.trim().replace(/\s+/g, ' ');
+  // The new OQL is one sentence that starts with `get` (`get works about kelp since 2020`,
+  // `get the count of works ... by year`, oxjob #1555): the server's validate decides
+  if (/^get\s+\S+\s+\S+/i.test(s)) return true;
   const body = s.replace(/^get\s+/i, '');
   const m = body.match(/^([a-z][a-z-]*)\s+(.+)$/i);
   if (!m) return false;

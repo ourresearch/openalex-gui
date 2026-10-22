@@ -163,7 +163,7 @@ describe("#464 Phase 2a — syncFromResponse SEEDS without bumping the edit coun
     state.paging = { per_page: 100 };
     const commit = commitInto(state);
     queryModule.actions.syncFromResponse(
-      { commit },
+      { commit, state },
       makeResp(
         {
           get_rows: "works",
@@ -180,6 +180,20 @@ describe("#464 Phase 2a — syncFromResponse SEEDS without bumping the edit coun
     // The client-owned view state is untouched by the echo:
     expect(state.sort).toEqual([{ column_id: "publication_year", direction: "asc" }]);
     expect(state.paging).toEqual({ per_page: 100 });
+  });
+
+  it("adopts the sentence's own order when the client picked none (oxjob #1555)", () => {
+    // `?oql=get works about kelp, most cited first`: the sort menu and page 2 keep it
+    const state = freshState();
+    const commit = commitInto(state);
+    queryModule.actions.syncFromResponse(
+      { commit, state },
+      makeResp({ get_rows: "works", sort_by: [{ column_id: "cited_by_count", direction: "desc" }] },
+        "get works about kelp, most cited first"),
+    );
+    expect(state.sort).toEqual([{ column_id: "cited_by_count", direction: "desc" }]);
+    expect(state.queryOqo).toEqual({ get_rows: "works" });
+    expect(state.editEpoch).toBe(0);
   });
 
   it("clears the canonical state (and lastExecutedOql) on a missing oqo", () => {
