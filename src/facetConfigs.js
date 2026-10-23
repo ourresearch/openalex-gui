@@ -1573,7 +1573,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "authors",
             type: "range",
             category: "citation",
-            actions: ["filter"],
+            actions: ["filter", "sort"],   // header sort (oxjob #1658, ticket 23622)
             actionsPopular: ["filter"],
             icon: "mdi-chart-line",
             extractFn: (entity) => entity.summary_stats.h_index,
@@ -1584,7 +1584,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "authors",
             type: "range",
             category: "citation",
-            actions: ["filter"],
+            actions: ["filter", "sort"],   // header sort (oxjob #1658, ticket 23622)
             actionsPopular: [],
             icon: "mdi-chart-line",
             extractFn: (entity) => entity.summary_stats.i10_index,
@@ -1595,7 +1595,7 @@ const facetConfigs = function (entityType) {
             entityToSelect: "authors",
             type: "range",
             category: "citation",
-            actions: ["filter"],
+            actions: ["filter", "sort"],   // header sort (oxjob #1658, ticket 23622)
             actionsPopular: [],
             icon: "mdi-chart-line",
             extractFn: (entity) => entity.summary_stats?.['2yr_mean_citedness'],
