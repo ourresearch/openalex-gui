@@ -41,4 +41,21 @@ describe("makeApiUrl sends rerank=true (#1521)", () => {
         expect(rerankOf(url.makeApiUrl(ROUTE({ search: "coral" }), false, "type"))).toBeNull();
         expect(rerankOf(url.makeApiUrl(ROUTE({ search: "coral" }), true))).toBeNull();
     });
+
+    it("on an explicit relevance sort too", () => {
+        expect(rerankOf(url.makeApiUrl(ROUTE({ search: "coral", sort: "relevance_score:desc" })))).toBe("true");
+    });
+});
+
+describe("makeApiUrl sends no sort when nobody chose one (#1658, charter decision 28)", () => {
+    const sortOf = (apiUrl) => new URL(apiUrl).searchParams.get("sort");
+    it("so works come in the engine's default, most cited (age-adjusted), not most cited", () => {
+        expect(sortOf(url.makeApiUrl(ROUTE({ filter: "authorships.author.id:A5045831612" })))).toBeNull();
+        expect(sortOf(url.makeApiUrl(ROUTE({ search: "coral" })))).toBeNull();
+        expect(sortOf(url.makeApiUrl(ROUTE({ filter: "works_count:>10" }, "authors")))).toBeNull();
+    });
+    it("and passes a chosen order through", () => {
+        expect(sortOf(url.makeApiUrl(ROUTE({ filter: "type:article", sort: "publication_date:desc" }))))
+            .toBe("publication_date:desc");
+    });
 });

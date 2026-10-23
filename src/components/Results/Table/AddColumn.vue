@@ -112,13 +112,12 @@
 <script setup>
 import { ref, computed, toRef, watch } from 'vue';
 import { useStore } from 'vuex';
-import { useRoute } from 'vue-router';
 import filters from '@/filters';
-import { url } from '@/url';
 import { facetConfigs } from '@/facetConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
 import { resolveColumn, parseColumnKey, isColumnEligible, hasIdsSibling } from '@/components/Results/Table/columnConfig';
 import { useColumnsState } from '@/composables/useColumnsState';
+import { useQueryOrder } from '@/composables/useQueryOrder';
 import SelectionMenu from '@/components/Misc/SelectionMenu.vue';
 import EditColumnsDialog from '@/components/Results/Table/EditColumnsDialog.vue';
 import ColumnViewSaveDialog from '@/components/Results/Table/ColumnViewSaveDialog.vue';
@@ -130,7 +129,6 @@ const props = defineProps({
 });
 
 const store = useStore();
-const route = useRoute();
 
 const isMenuOpen = ref(false);
 const isMoreOpen = ref(false);
@@ -201,21 +199,10 @@ const entityColumnViews = computed(() =>
   store.getters['user/userColumnViews'].filter((v) => v.entity_type === props.entityType),
 );
 
-// OQL mode: sort lives in the canonical query store, not ?sort= (#601's split).
-const inOqlMode = computed(
-  () => !!store.getters.featureFlags['oql'] && !!route.query.oql
-);
-
-// The active sort, mode-appropriately (store in OQL mode, ?sort= otherwise) —
-// captured into the view on save.
-const currentSortBy = computed(() => {
-  if (inOqlMode.value) {
-    const sortBy = store.state.query?.sort || [];
-    return sortBy.length ? sortBy : null;
-  }
-  const field = url.getSortField(route);
-  return field ? [{ column_id: field, direction: url.getSortDirection(route) }] : null;
-});
+// The query's order (oxjob #1658: one order, read back from the echo on every kind of
+// results page) — captured into the view on save.
+const { sortBy: querySortBy, setOrder } = useQueryOrder();
+const currentSortBy = computed(() => (querySortBy.value.length ? querySortBy.value : null));
 
 // Refresh from the server each time the menu opens (views are cross-device;
 // the list is tiny). Fire-and-forget: the submenu shows whatever is loaded.
@@ -229,13 +216,8 @@ watch(isMenuOpen, (open) => {
 
 function applyView(view, close) {
   setColumns([...view.columns]);
-  const s = view.sort_by?.[0];
-  if (inOqlMode.value) {
-    // Full restore: a view saved without a sort clears back to the engine default.
-    store.dispatch('query/setSort', s ? { field: s.column_id, direction: s.direction } : { field: null });
-  } else if (s) {
-    url.setSortDirection(s.column_id, s.direction);
-  }
+  // Full restore: a view saved without a sort clears back to the engine default.
+  setOrder(view.sort_by);
   store.commit('snackbar', `Loaded view "${view.name}"`);
   close();
 }

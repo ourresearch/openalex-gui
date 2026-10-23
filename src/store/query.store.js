@@ -26,10 +26,11 @@
 //   share/dedup key pillar B mints.
 //   viewState = recipient-local OQO chrome (sidebar group_by widgets, dice
 //   seed/sample) — stripped from the share id, but still rides in the OQO.
-//   sort / paging = client-owned view state (#661): sort is transient per result
-//   set, paging is session chrome; both are POSTed as SIBLING request params
-//   beside the OQO, never inside it. Columns never touch this store at all —
-//   they're the sticky per-entity localStorage preference (useColumnsState).
+//   sort = the query's order (oxjob #1658, reversing #661's transient sort): posted
+//   INSIDE the OQO (runOqo), adopted from every echo, kept across filter edits.
+//   paging = session chrome, POSTed as SIBLING request params beside the OQO.
+//   Columns never touch this store at all — they're the sticky per-entity
+//   localStorage preference (useColumnsState).
 // `group_by` is the sidebar widget set = chrome (D1: recipient keeps their own), NOT
 // the analytical Stage-B grouping; the default sort is owned by the engine and never
 // stored (D2) — a null state.sort means "engine default".
@@ -49,9 +50,9 @@ import {
 // in the canonical OQL, e.g. "works (all corpora)"), so it must survive the split:
 // dropping it made every store-driven re-execution (facet group_bys, refinements,
 // sort edits) silently fall back to the core corpus (#642).
-// #661: sort_by/select are GONE from the OQO entirely (public spec v1.4) — sort is
-// transient client state (state.sort), columns are the sticky per-entity
-// localStorage preference (useColumnsState); neither ever enters the query.
+// `sort_by` stays out of queryOqo (state.sort holds it, #1658), so the facets' counts
+// never carry an order; `select` left the OQO (#661): columns are the sticky per-entity
+// localStorage preference (useColumnsState).
 // `calculate` (#1536) is a pipeline query's calculations: part of the query too,
 // so a facet refinement on a pipeline query keeps them (its splits ride in group_by).
 const QUERY_KEYS = ["get_rows", "filter_rows", "corpus", "calculate"];
@@ -74,6 +75,11 @@ export function hasSemanticLeaf(rows) {
 }
 
 const VIEW_KEYS = ["group_by", "seed", "sample"];
+
+// An order as the store keeps it: [{column_id, direction: 'asc'|'desc'}], nothing else.
+const normalizeSortBy = (sortBy) =>
+  sortBy.map(({ column_id, direction }) => ({
+    column_id, direction: direction === "asc" ? "asc" : "desc" }));
 
 // Keep only the keys whose value is actually present (not null/undefined), so a
 // reconstructed OQO never sends spurious nulls and matches the server's "absent =
@@ -98,9 +104,12 @@ export default {
     queryOqo: null,
     // Recipient-local OQO chrome (sidebar group_by widgets, dice seed/sample).
     viewState: {},
-    // The current result-set's sort — TRANSIENT client state (#661): set by the
-    // sort UI, reset to null (= engine default) on every new query, never part of
-    // the OQO or the URL. null | [{column_id, direction}].
+    // The query's order (oxjob #1658: the order is part of the query, Jason 2026-10-12,
+    // reversing #661's transient sort): the OQO's `sort_by`, kept beside `queryOqo` so the
+    // facets' counts (which reuse executionOqo) never carry it. Set by the sort menu and the
+    // column headers, adopted from every echo (the latest edit wins: a typed order replaces
+    // a picked one), kept across filter edits. null = the default order (never written).
+    // null | [{column_id, direction}].
     sort: null,
     // Client-owned paging (#661): {page?, per_page?, cursor?}. Travels as sibling
     // request params next to the OQO, never inside it. per_page survives query
@@ -142,23 +151,26 @@ export default {
     lastEditOrigin: null,
   }),
   getters: {
-    // The OQO we POST to `/` to execute: the citeable query merged with the OQO
-    // chrome (group_by/seed/sample). Pure "which rows" (#661) — sort and paging
-    // travel beside it as sibling params (executionParams below), never inside.
+    // The citeable query merged with the OQO chrome (group_by/seed/sample): pure "which
+    // rows" (#661), what the facets count. The results page runs it with its order
+    // (runOqo); paging travels beside it (executionParams).
     executionOqo: (state) => {
       if (!state.queryOqo) return null;
       return { ...state.queryOqo, ...pickDefined(state.viewState, VIEW_KEYS) };
     },
+    // What the results page runs: executionOqo with its order inside (`sort_by`, OQO
+    // v1.6), never a separate `sort=` beside it (oxjob #1658), so the echo's OQL ends
+    // with the order's words and the link keeps it.
+    runOqo: (state, getters) => {
+      const oqo = getters.executionOqo;
+      if (!oqo || !Array.isArray(state.sort) || !state.sort.length) return oqo;
+      return { ...oqo, sort_by: state.sort };
+    },
     // The sibling request params for that execution, in the classic wire syntax
-    // the API takes next to the OQO (`sort=col:desc,col2:asc`, `page`, `per_page`,
-    // `cursor`). Only keys with a value are present. (#661 query/view split.)
+    // the API takes next to the OQO (`page`, `per_page`, `cursor`). Only keys with a
+    // value are present. (#661 query/view split; the order rides in runOqo, #1658.)
     executionParams: (state) => {
       const params = {};
-      if (Array.isArray(state.sort) && state.sort.length) {
-        params.sort = state.sort
-          .map((s) => `${s.column_id}:${s.direction === "asc" ? "asc" : "desc"}`)
-          .join(",");
-      }
       for (const k of ["page", "per_page", "cursor"]) {
         if (state.paging?.[k] != null) params[k] = state.paging[k];
       }
@@ -224,9 +236,9 @@ export default {
       }
       state.viewState = next;
     },
-    // The transient result-set sort (#661): null clears back to the engine default.
+    // The query's order (#1658): null clears back to the engine default.
     setSortState(state, sort) {
-      state.sort = Array.isArray(sort) && sort.length ? sort : null;
+      state.sort = Array.isArray(sort) && sort.length ? normalizeSortBy(sort) : null;
     },
     // Client-owned paging (#661): a key set to `undefined` is deleted.
     patchPaging(state, patch) {
@@ -245,11 +257,10 @@ export default {
     // canonical OQO. Deliberately does NOT `bumpEdit`: seeding must never re-trigger
     // the execution watcher (that would loop). Also records `lastExecutedOql` so the
     // inbound route watcher can recognise our own URL projection. Never throws.
-    // #661: only the QUERY_KEYS + OQO chrome are adopted from the echo. sort and
-    // paging are CLIENT-owned (transient / sibling params) — the echo never
-    // overwrites them, and any sort_by/select/page/per_page/cursor a transitional
-    // server still echoes is simply ignored (splitOqo drops unknown keys).
-    syncFromResponse({ commit, rootGetters, state }, resultsObject) {
+    // The QUERY_KEYS + OQO chrome and the order (`sort_by`, #1658) are adopted from the
+    // echo; paging is CLIENT-owned (sibling params, #661) and select/page/per_page/cursor
+    // in an echo are ignored (splitOqo drops unknown keys).
+    syncFromResponse({ commit, rootGetters }, resultsObject) {
       const oqo = resultsObject?.meta?.x_query?.oqo;
       // the form the URL shows (oxjob #1555: `new_oql` flag), so the skip-guard matches it
       const oql = pickOql(resultsObject?.meta?.x_query, rootGetters?.newOql);
@@ -266,27 +277,20 @@ export default {
       commit("setQueryOqoFull", queryOqo);
       commit("setViewState", viewState);
       commit("setLastExecutedOql", oql);
-      // The new OQL says its order (`get works about kelp, most cited first`, oxjob #1555), so a
-      // link can carry a sort the client never picked: adopt it, or the sort menu shows none and
-      // page 2 comes back in the default order. A sort the client picked still wins (#661).
-      if (state && state.sort == null && Array.isArray(oqo.sort_by) && oqo.sort_by.length) {
-        commit("setSortState", oqo.sort_by.map(({ column_id, direction }) => ({
-          column_id, direction: direction === "asc" ? "asc" : "desc" })));
-      }
+      // The order is part of the query (oxjob #1658): adopt the echo's, always. A menu pick
+      // runs with its order, so the echo carries it; a typed or linked OQL runs as written,
+      // so its order (or none: the default) replaces an earlier pick. The latest edit wins.
+      commit("setSortState", oqo.sort_by || null);
     },
 
     // ---- Edit-surface actions (each mutates the canonical state + bumps the edit
     // counter the execution watcher fires on) ---------------------------------
 
-    // Set a single-dimension sort (the novice sort menu collapses multi-sorts to one).
-    // `field` null/empty clears back to the engine default. `direction` defaults to
-    // 'desc'. Resets to page 1 (a re-sort invalidates the current page). #661: sort
-    // is transient client state, POSTed as a sibling param — never in the OQO.
-    setSort({ commit }, { field, direction = "desc" } = {}) {
-      commit(
-        "setSortState",
-        field ? [{ column_id: field, direction: direction === "asc" ? "asc" : "desc" }] : null,
-      );
+    // Set the query's order (the sort menu's choices can have two keys: most cited
+    // (age-adjusted)). [] / null clears back to the engine default. Resets to page 1 (a
+    // re-sort invalidates the current page). Runs inside the OQO (runOqo, #1658).
+    setSortBy({ commit }, { sortBy } = {}) {
+      commit("setSortState", sortBy || null);
       commit("patchPaging", { page: undefined, cursor: undefined });
       // A sort flip is tuning, not a new query → replace (don't litter history).
       commit("bumpEdit", "replace");
@@ -324,13 +328,13 @@ export default {
     // The OQL builder owns the WHOLE citeable query — entity (get_rows) and the
     // nested boolean filter tree (filter_rows) — and computes its OQO locally
     // (v2ToOqo). So a builder edit REPLACES the query slice wholesale (unlike
-    // setSort/setPage, which patch one key). We split the incoming OQO and keep
+    // setSortBy/setPage, which patch one key). We split the incoming OQO and keep
     // only the QUERY_KEYS (so any stray view bits — including a transitional
-    // builder's sort_by/select — never enter the query, #661), then reset paging
-    // AND the transient sort: a query change is a new result set, and sort is
-    // per-result-set state (#661 decision 3). syncFromResponse re-adopts the
-    // SERVER-canonical OQO right after the executeOqo fetch, so a slightly
-    // non-canonical local shape self-heals.
+    // builder's select — never enter the query, #661), then reset paging. The order
+    // survives the edit (#1658: it's part of the query, so it survives edits to the rest
+    // of it), unless the builder names its own or the entity changes (another entity's
+    // columns). syncFromResponse re-adopts the SERVER-canonical OQO right after the
+    // executeOqo fetch, so a slightly non-canonical local shape self-heals.
     //
     // nav (back-button policy, #464): the builder tags each edit's intent —
     //   'push'    a back-worthy NEW query: add/remove a filter or value, change the
@@ -338,10 +342,12 @@ export default {
     //   'replace' tuning that shouldn't litter history: a debounced keystroke in a
     //             value being typed, a column (return) toggle.
     // The projector in Serp.vue reads lastEditNav to pick pushToRoute vs replaceToRoute.
-    setQueryFromOqo({ commit }, { oqo, nav = "push" } = {}) {
+    setQueryFromOqo({ state, commit }, { oqo, nav = "push" } = {}) {
       const { queryOqo } = splitOqo(oqo || {});
+      const sameEntity = queryOqo.get_rows === state?.queryOqo?.get_rows;
       commit("setQueryOqoFull", queryOqo);
-      commit("setSortState", null);
+      if (oqo?.sort_by?.length) commit("setSortState", oqo.sort_by);
+      else if (!sameEntity) commit("setSortState", null);
       commit("patchPaging", { page: undefined, cursor: undefined });
       commit("bumpEdit", { nav: nav === "replace" ? "replace" : "push", origin: "builder" });
     },
@@ -360,9 +366,8 @@ export default {
     applyRefinementRows({ state, commit }, nextRows) {
       if (!state.queryOqo) return;
       commit("patchQueryOqo", { filter_rows: nextRows.length ? nextRows : undefined });
-      // A refinement is a NEW query → new result set → transient sort resets
-      // (#661 decision 3), and paging resets like any filter edit.
-      commit("setSortState", null);
+      // A refinement is a NEW query, so paging resets like any filter edit; the order
+      // survives it (#1658: the order is part of the query).
       commit("patchPaging", { page: undefined, cursor: undefined });
       commit("bumpEdit", "push");
     },

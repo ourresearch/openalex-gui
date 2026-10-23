@@ -730,6 +730,25 @@ const api = (function () {
         return fetchTranslate;
     }
 
+    // The orders one query can take, for the sort menu (oxjob #1658): GET /query/orders
+    // (free, parse-only) -> {order, order_default, options: [{words, sort_by, default?}]};
+    // POST past the request-line cap, like getQuery. Cached per OQL; a failure evicts, so
+    // the menu can ask again.
+    const _ordersCache = new Map();
+    const getQueryOrders = async function(oql) {
+        const q = oqlForUrl(oql);
+        if (!_ordersCache.has(q)) {
+            const url = `${urlBase.api}/query/orders?q=${encodeURIComponent(q)}`;
+            const p = (url.length > 8000
+                ? axios.post(`${urlBase.api}/query/orders`, { q }, axiosConfig())
+                : axios.get(url, axiosConfig()))
+                .then((resp) => resp.data);
+            p.catch(() => _ordersCache.delete(q));
+            _ordersCache.set(q, p);
+        }
+        return _ordersCache.get(q);
+    }
+
     const executeOql = async function(oql, params = {}) {
         // Submit an OQL string to be parsed → executed → results (oxjob #373).
         // POSTs to the API root (the execute surface shipped in #372), which has
@@ -803,6 +822,7 @@ const api = (function () {
         makeUrl,
         createExport,
         getQuery,
+        getQueryOrders,
         executeOql,
         executeOqo,
     }

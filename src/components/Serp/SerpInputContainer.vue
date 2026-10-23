@@ -166,11 +166,18 @@
             @update:model-value="onMasterClick"
           />
           <span class="text-body-2 text-medium-emphasis">{{ resultsCountLabel }}</span>
+          <!-- The order, in every tab (oxjob #1658): bound to the query, so a pick
+               rewrites the OQL's ending and a typed order moves it; the column
+               headers set the same order. -->
+          <sort-menu
+            class="ml-2"
+            :x-query="resultsObject?.meta?.x_query"
+            @pick="setOrder"
+          />
           <v-spacer />
           <!-- Icon-only actions (#440 r12 — no icon+word hybrids), right-to-left:
                kebab, columns, download, collection (collection only with a
-               selection). Each carries a Linear-styled tooltip. Sorting lives in
-               the column header menus (#601), not here. -->
+               selection). Each carries a Linear-styled tooltip. -->
           <collection-action-menu
             v-if="mode !== 'basic' && selectedCount > 0"
             :entity-type="entityType"
@@ -293,6 +300,8 @@ import SerpResultsKebab from '@/components/Serp/SerpResultsKebab.vue';
 import SerpHeaderActions from '@/components/Serp/SerpHeaderActions.vue';
 import SerpDownloadButton from '@/components/Serp/SerpDownloadButton.vue';
 import OqlPipelineResults from '@/components/Serp/OqlPipelineResults.vue';
+import SortMenu from '@/components/Serp/SortMenu.vue';
+import { useQueryOrder } from '@/composables/useQueryOrder';
 import { isPipelineResponse, isPipelineOqo, formatCost } from '@/oqlPipeline';
 // (#603 round 10: the V1 grid builder import is gone — Advanced mounts the V2
 // outline builder. OqlQueryBuilder.vue stays on disk for reference/playground.)
@@ -316,14 +325,12 @@ const props = defineProps({
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
-
-const entityType = computed(() => store.getters.entityType);
 // OQL mode (#464 Phase 2b): when an `?oql=` query is in play under the oql flag,
 // edits (sort, paging) drive the canonical query store → POST-OQO, not the URL.
-// Basic/chip (OXURL) mode is unchanged. Mirrors NoviceSortButton's gate.
-const inOqlMode = computed(
-  () => !!store.getters.featureFlags['oql'] && !!route.query.oql
-);
+// Basic/chip (OXURL) mode is unchanged.
+const { setOrder, inOqlMode } = useQueryOrder();
+
+const entityType = computed(() => store.getters.entityType);
 const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 const isPipeline = computed(() => isPipelineResponse(props.resultsObject));
 // View is COUPLED to the mode (#440 r5): Basic = list, Advanced = table — and

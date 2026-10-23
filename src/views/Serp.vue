@@ -387,14 +387,13 @@ watch(
   () => store.state.query.editEpoch,
   async () => {
     if (!oqlFlag.value || !store.state.query.authoritative) return;
-    const oqo = store.getters['query/executionOqo'];
+    // the query with its order inside (#1658); paging rides beside it (#661)
+    const oqo = store.getters['query/runOqo'];
     if (!oqo) return;
 
     const isStale = beginFetch();
     store.state.isLoading = true;
     try {
-      // #661 query/view split: the OQO is pure "which rows"; sort + paging ride
-      // as sibling params (classic wire syntax) built by executionParams.
       const resp = await api.executeOqo(oqo, store.getters['query/executionParams']);
       if (isStale()) return;
       resultsObject.value = resp;

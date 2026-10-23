@@ -20,6 +20,7 @@ import {urlBase} from "@/apiConfig";
 import {oqlForUrl} from "@/oqlSerialize";
 import {SEMANTIC_MAX_PER_PAGE} from "@/semanticLimits";
 import { searchParamKeys } from '@/searchParamKeys';
+import { sortParam } from '@/sortMenu';
 
 
 const urlObjectFromSearchUrl = function (searchUrl) {
@@ -937,15 +938,17 @@ const getActionValueKeys = function (currentRoute, action) {
 }
 
 
-const getDefaultSortValueForRoute = function(currentRoute, withDirection=false){
+// The legacy interface's idea of the default order (NoviceSortButton's check mark and
+// setSort's "back to the default" toggle). The results pages send no sort for the default
+// and name the engine's own (oxjob #1658).
+const getDefaultSortValueForRoute = function(currentRoute){
     let sort = ""
     if (isSearchFilterApplied(currentRoute)) {
         sort = "relevance_score"
     } else {
         const entityType = entityTypeForRoute(currentRoute)
         // Config override (oxjob #852): entities without works_count (locations)
-        // set `defaultSort` in entityConfigs — "" means "send no sort param and
-        // take the API's own default order" (makeApiUrl omits empty values).
+        // set `defaultSort` in entityConfigs ("" = no default sort).
         const configured = getEntityConfig(entityType)?.defaultSort
         if (configured !== undefined) {
             sort = configured
@@ -958,8 +961,7 @@ const getDefaultSortValueForRoute = function(currentRoute, withDirection=false){
         }
     }
 
-    if (!sort) return ""
-    return sort + (withDirection ? ":desc" : "")
+    return sort
 }
 
 
@@ -1002,37 +1004,18 @@ const toggleSort = function (filterKey) {
 }
 
 
-// Set sort to an explicit field + direction. Unlike setSort (which only toggles
-// the :desc form), this always writes `field:dir` — used by the table column
-// header menu's Sort ↑ (asc) / Sort ↓ (desc) items, which need both directions.
-const setSortDirection = function (sortByKey, direction) {
-    const dir = direction === "asc" ? "asc" : "desc"
+// Set the order on a `/works?filter=` link: `sort=` with every key (the sort menu's
+// choices can have two: most cited (age-adjusted)); [] / null = the default (no param).
+// The API reads it into the query (oxjob #1658).
+const setSortBy = function (sortBy) {
     return pushToRoute(router, {
         name: "Serp",
         query: {
             ...router.currentRoute.value.query,
-            sort: `${sortByKey}:${dir}`,
+            sort: sortParam(sortBy),
             page: 1,
         },
     })
-}
-
-
-// The active sort field, parsed from the URL (falls back to the route default).
-// Used to reflect active sort state on table column headers.
-const getSortField = function (currentRoute) {
-    const raw = currentRoute.query.sort
-    if (raw) return raw.split(":")[0]
-    return getDefaultSortValueForRoute(currentRoute).split(":")[0]
-}
-
-
-// The active sort direction: "asc" | "desc". Defaults to "desc" (the implicit
-// direction when no explicit suffix is present).
-const getSortDirection = function (currentRoute) {
-    const raw = currentRoute.query.sort
-    if (!raw) return "desc"
-    return raw.split(":")[1] === "asc" ? "asc" : "desc"
 }
 
 
@@ -1290,7 +1273,10 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         query.group_by = groupBy
     } else {
         query.page = currentRoute.query.page
-        query.sort = currentRoute.query.sort ?? getDefaultSortValueForRoute(currentRoute, true)
+        // No order chosen: send none, so the engine's default applies (charter decision 28)
+        // and the sort menu names it (oxjob #1658: works were sent `cited_by_count:desc`,
+        // so they never came in their real default, most cited (age-adjusted)).
+        query.sort = currentRoute.query.sort
         query.per_page = getPerPage()
         // Semantic search returns at most SEMANTIC_MAX_PER_PAGE rows and the API
         // 400s a larger per_page; a user at 100/page would see that error on
@@ -1323,7 +1309,7 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
     // search. Sent only for pages that start inside those 100; past them the API
     // returns the normal order anyway, and rerank costs extra credits.
     if (entityType === "works" && !groupBy && !formatCsv
-        && query.sort === "relevance_score:desc"
+        && (query.sort ?? "relevance_score:desc") === "relevance_score:desc"   // a search's default
         && searchParamKeys.some(k => k !== "search.semantic" && currentRoute.query[k])
         && ((Number(query.page) || 1) - 1) * (Number(query.per_page) || 25) < RERANK_WINDOW) {
         query.rerank = "true"
@@ -1481,9 +1467,7 @@ const url = {
 
     getSort,
     toggleSort,
-    setSortDirection,
-    getSortField,
-    getSortDirection,
+    setSortBy,
     getGroupBy,
     addGroupBy,
 

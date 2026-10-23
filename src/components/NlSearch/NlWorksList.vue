@@ -14,7 +14,8 @@
         close-label="Show all the works"
         @click:close="emit('clear-drill')"
       >{{ drill.label }}</v-chip>
-      <span v-if="loaded && sort === MOST_CITED" class="nl-works-count">· most cited first</span>
+      <!-- These works' own order (oxjob #1658): the Works query's, shown in its OQL. -->
+      <sort-menu :x-query="xQuery" @pick="setSortBy" />
     </div>
     <v-divider />
 
@@ -23,8 +24,8 @@
       v-else-if="results.length && mode === 'table'"
       :results-object="tableObject"
       entity-type="works"
-      :sort="sort"
-      @sort="setSort"
+      :sort="tableSort"
+      @sort="(s) => setSortBy([{ column_id: s.field, direction: s.direction }])"
       @filter-column="(key) => emit('filter-column', key)"
     />
     <div v-else-if="results.length" class="results-container">
@@ -51,6 +52,7 @@ import { createFetchSequencer } from '@/serpFetchSeq';
 import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import ResultsTable from '@/components/Results/ResultsTable.vue';
 import SlidingPagination from '@/components/SlidingPagination.vue';
+import SortMenu from '@/components/Serp/SortMenu.vue';
 
 defineOptions({ name: 'NlWorksList' });
 
@@ -68,13 +70,18 @@ const emit = defineEmits(['clear-drill', 'filter-column', 'oql']);
 
 const PER_PAGE = 25;
 const page = ref(1);
-// Most cited first, until a Table header picks another sort (this fetch owns it, not the
-// calculation's query, which a works sort would re-run).
-const MOST_CITED = { field: 'cited_by_count', direction: 'desc' };
-const sort = shallowRef(MOST_CITED);
-function setSort(s) {
-  sort.value = s;
+// These works' order, inside their own query (oxjob #1658): set from the menu or a Table
+// header, null = the default (most cited (age-adjusted); never written). This fetch owns
+// it, not the calculation's query, which a works sort would re-run.
+const sortBy = shallowRef(null);
+function setSortBy(s) {
+  sortBy.value = s && s.length ? s : null;
 }
+const tableSort = computed(() => ({
+  field: sortBy.value?.[0]?.column_id ?? '',
+  direction: sortBy.value?.[0]?.direction ?? 'desc',
+}));
+const xQuery = shallowRef(null);
 const results = shallowRef([]);
 const count = ref(0);
 const busy = ref(false);
@@ -112,8 +119,8 @@ async function load() {
   let failed = !oqo;
   if (oqo) {
     try {
-      const order = `${sort.value.field}:${sort.value.direction}`;
-      resp = await api.executeOqo(oqo, { page: page.value, per_page: PER_PAGE, sort: order });
+      const run = sortBy.value ? { ...oqo, sort_by: sortBy.value } : oqo;
+      resp = await api.executeOqo(run, { page: page.value, per_page: PER_PAGE });
     } catch (e) {
       console.warn('[NlWorksList]', e);
       failed = true;
@@ -126,6 +133,7 @@ async function load() {
   busy.value = false;
   loaded.value = true;
   const xq = resp?.meta?.x_query;
+  xQuery.value = failed ? null : xq || null;
   emit('oql', failed ? null : xq?.x_new_oql || xq?.oql || null);
 }
 
@@ -135,7 +143,7 @@ watch(() => JSON.stringify(worksOqo.value), () => {
   else load();
 }, { immediate: true });
 watch(page, load);
-watch(sort, () => {
+watch(sortBy, () => {
   if (page.value !== 1) page.value = 1;
   else load();
 });

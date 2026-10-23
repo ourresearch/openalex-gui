@@ -10,6 +10,9 @@
   <v-card variant="outlined" class="bg-white oql-pipeline-results">
     <div class="results-card-head d-flex align-center">
       <span class="text-body-2 text-medium-emphasis">{{ headLabel }}</span>
+      <!-- The table's order (oxjob #1658): the same order as the column headers and
+           the OQL's ending (`, highest mean FWCI first`). -->
+      <sort-menu class="ml-2" :x-query="meta.x_query" @pick="setOrder" />
       <v-spacer />
       <span v-if="costLabel" class="text-body-2 text-medium-emphasis">{{ costLabel }}</span>
       <v-tooltip location="bottom" :text="exportTooltip" content-class="linear-tooltip">
@@ -40,7 +43,8 @@
             <th
               v-for="col in columns"
               :key="col.key"
-              :class="['pipeline-th', col.numeric ? 'numeric' : 'group-col', { sorted: sort?.key === col.key }]"
+              :class="['pipeline-th', col.numeric ? 'numeric' : 'group-col',
+                       { sorted: sort?.key === col.key, unsortable: !col.sortable }]"
               :aria-sort="sort?.key === col.key ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'"
               @click="onSort(col)"
             >
@@ -73,15 +77,15 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 
-import { api } from '@/api';
-import { pickOql } from '@/oqlForm';
 import {
   flatRows, sortRows, formatMeasure, formatCost, groupLink, wholeSetMeasures, exportRows, isTextMeasure,
 } from '@/oqlPipeline';
+import { orderLabel } from '@/sortMenu';
+import { useQueryOrder } from '@/composables/useQueryOrder';
 import SerpResultsExportButton from '@/components/SerpResultsExportButton.vue';
+import SortMenu from '@/components/Serp/SortMenu.vue';
 
 defineOptions({ name: 'OqlPipelineResults' });
 
@@ -89,18 +93,17 @@ const props = defineProps({
   resultsObject: { type: Object, required: true },
 });
 
-const route = useRoute();
+// The table's order is the query's (oxjob #1658): a header click or a menu pick runs the
+// query with it (the API sorts every group), and the OQL and the link end with its words.
+// The clicked order shows at once (`clicked`, a local sort of the rows here) until its run
+// comes back. Shortcut: every click is a run (the query's price, 1-10 credits, ~0.3 s) even
+// when all groups are here; sorting here and asking the free translate for the OQL would
+// skip it, but would patch the echo the page reads its OQL, menu and link from.
 const store = useStore();
+const { setOrder } = useQueryOrder();
+const clicked = ref(null); // {key, dir} | null
 
-// One split with more groups than came back (`meta.more_groups`) holds only the top
-// page, so a sort on a calculated column asks the API for the top page by that column
-// (`sort=<measure key>:<dir>`); otherwise every group is here and sorting is local.
-const serverSorted = ref(null); // response of the API-side sort, or null
-const sorting = ref(false);
-const sort = ref(null); // {key, dir} | null = the API's order
-
-const response = computed(() => serverSorted.value || props.resultsObject);
-const meta = computed(() => response.value?.meta || {});
+const meta = computed(() => props.resultsObject?.meta || {});
 const measures = computed(() => meta.value.measures || []);
 const splits = computed(() => meta.value.splits || []);
 const depth = computed(() => splits.value.length);
@@ -112,52 +115,55 @@ const textKeys = computed(() => new Set(
   rowMeasures.value.filter((m) => isTextMeasure(m, allRows.value)).map((m) => m.key),
 ));
 
+// The API sorts a table by its first split's key (`key`) or by a number (its key); an inner
+// split keeps its own order, and an ID split sorts by the ID string (`in institution ID
+// order`, the split's `key_order: 'id'`), no use to people. Those headers don't sort.
 const columns = computed(() => [
-  ...splits.value.map((s, i) => ({ key: `split:${i}`, label: s.oql, numeric: false })),
-  ...rowMeasures.value.map((m) => ({ key: m.key, label: m.oql, numeric: !textKeys.value.has(m.key), measure: m })),
+  ...splits.value.map((s, i) => ({
+    key: `split:${i}`, label: s.oql, numeric: false,
+    sortable: i === 0 && ['alphabetical', 'year'].includes(s.key_order),
+  })),
+  ...rowMeasures.value.map((m) => ({
+    key: m.key, label: m.oql, numeric: !textKeys.value.has(m.key), measure: m, sortable: depth.value > 0,
+  })),
 ]);
 
-watch(() => props.resultsObject, () => {
-  sort.value = null;
-  serverSorted.value = null;
-}, { immediate: true });
+// The run is back (or failed): show what the API sent.
+watch(() => props.resultsObject, () => { clicked.value = null; }, { immediate: true });
+watch(() => store.state.isLoading, (loading) => { if (!loading) clicked.value = null; });
+
+// The order the shown groups came in, as a column: the echo's `sort_by` (`key` = the
+// first split); none = the default (most works first; years oldest first).
+const echoed = computed(() => {
+  const s = meta.value.x_query?.oqo?.sort_by?.[0];
+  if (!s) return null;
+  return { key: s.column_id === 'key' ? 'split:0' : s.column_id, dir: s.direction === 'asc' ? 'asc' : 'desc' };
+});
+const sort = computed(() => clicked.value || echoed.value);
+const defaultSort = computed(() => (splits.value[0]?.column_id === 'publication_year'
+  ? { key: 'split:0', dir: 'asc' } : { key: 'count', dir: 'desc' }));
 
 const allRows = computed(() => {
-  if (depth.value) return flatRows(response.value?.group_by, depth.value);
+  if (depth.value) return flatRows(props.resultsObject?.group_by, depth.value);
   const all = props.resultsObject?.summary?.all;
   return all ? [{ id: 'all', path: [], group: all }] : [];
 });
-// Local sort; an API-sorted page is already in order.
-const rows = computed(() => (serverSorted.value ? allRows.value : sortRows(allRows.value, sort.value)));
+// The API's order; a clicked order is shown at once, sorted here, until its run returns.
+const rows = computed(() => (clicked.value ? sortRows(allRows.value, clicked.value) : allRows.value));
 
 function label(g) {
   return g.key_display_name ?? String(g.key);
 }
 
-async function onSort(col) {
-  // First click: biggest first (names A-Z); a second click flips it.
-  const firstDir = col.numeric ? 'desc' : 'asc';
-  const dir = sort.value?.key === col.key
-    ? (sort.value.dir === 'asc' ? 'desc' : 'asc')
-    : firstDir;
-  sort.value = { key: col.key, dir };
-  if (!props.resultsObject?.meta?.more_groups || !col.numeric) {
-    serverSorted.value = null;
-    return;
-  }
-  // the form the site shows (the new one under `new_oql` / `nl_search`; oxjob #1555)
-  const oql = pickOql(props.resultsObject.meta.x_query, store.getters.newOql) || route.query.oql;
-  const asked = sort.value;
-  sorting.value = true;
-  try {
-    const resp = await api.executeOql(oql, { sort: `${col.key}:${dir}` });
-    if (sort.value === asked) serverSorted.value = resp;
-  } catch (e) {
-    // Fall back to sorting the page we have.
-    if (sort.value === asked) serverSorted.value = null;
-  } finally {
-    if (sort.value === asked) sorting.value = false;
-  }
+function onSort(col) {
+  if (!col.sortable) return;
+  // First click: biggest first (names A-Z); a click on the sorted column flips it.
+  const now = sort.value || defaultSort.value;
+  const dir = now.key === col.key
+    ? (now.dir === 'asc' ? 'desc' : 'asc')
+    : (col.numeric ? 'desc' : 'asc');
+  clicked.value = { key: col.key, dir };
+  setOrder([{ column_id: col.key === 'split:0' ? 'key' : col.key, direction: dir }]);
 }
 
 // ---- Export: the shared Export dialog (oxjob #1550) -------------------------------
@@ -171,7 +177,7 @@ const exportTooltip = computed(() => {
 
 const headLabel = computed(() => {
   const m = meta.value;
-  if (sorting.value) return 'Sorting…';
+  if (clicked.value) return 'Sorting…';
   const works = m.count != null ? `${m.count.toLocaleString()} works` : '';
   if (!depth.value) return works;
   // nested splits: every combination is here, one row each; one split: the API's
@@ -189,17 +195,13 @@ const footNote = computed(() => {
   const m = meta.value;
   if (!m.more_groups) return null;
   const shown = allRows.value.length.toLocaleString();
-  const by = serverSorted.value && sort.value
-    ? (measures.value.find((x) => x.key === sort.value.key)?.oql || sort.value.key)
-    : 'count';
-  const head = serverSorted.value
-    ? `Showing the top ${shown} groups by ${by}.`
-    : `Showing the top ${shown} groups by ${by}. Sort by a column to see the top groups by it.`;
+  // the order every group was sorted by, in the menu's words (the API sorts them all)
+  const head = `Showing the first ${shown} groups: ${orderLabel(m.x_query?.order).toLowerCase()}.`;
   // A mean (or median, min, max) over many groups puts one-work groups first; the
-  // language's answer is a count filter on the split.
-  const m2 = serverSorted.value && measures.value.find((x) => x.key === sort.value?.key);
+  // language's answer is a count floor (`Only ... with at least 20 works ...`).
+  const m2 = echoed.value && measures.value.find((x) => x.key === echoed.value.key);
   if (m2 && ['mean', 'median', 'min', 'max'].includes(m2.measure)) {
-    return `${head} Groups with a few works can top a ${m2.measure}; to skip them, add a count filter to the split, e.g. "where count of those works > (20)".`;
+    return `${head} Groups with a few works can top a ${m2.measure}; to skip them, add a floor, e.g. "Only ... with at least 20 works".`;
   }
   return head;
 });
@@ -230,6 +232,12 @@ const footNote = computed(() => {
 }
 .pipeline-th:hover {
   background: rgba(0, 0, 0, 0.05);
+}
+.pipeline-th.unsortable {
+  cursor: default;
+}
+.pipeline-th.unsortable:hover {
+  background: none;
 }
 .pipeline-th.sorted {
   color: rgba(0, 0, 0, 0.8);

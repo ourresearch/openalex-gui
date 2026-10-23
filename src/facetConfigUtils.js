@@ -25,7 +25,7 @@ const getFacetConfig = function (entityType, key) {
 
     // Special case: relevance_score is a sort-only option that's dynamically available
     // when a search filter is applied. It's not a real facet in the configs array.
-    // The UI components (SerpResultsSortButton, url.js) conditionally enable this
+    // The UI components (NoviceSortButton, url.js) conditionally enable this
     // based on whether isSearchFilterApplied() returns true.
     if (key === "relevance_score") {
         return {

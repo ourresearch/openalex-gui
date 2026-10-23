@@ -74,6 +74,8 @@
     <!-- A list of things: today's table and list rows. (A calculation's Works tab is below.) -->
     <v-card v-else-if="!isPipeline" variant="outlined" class="bg-white">
       <div class="results-card-head d-flex align-center">
+        <!-- The list's order, bound to the OQL at the top (oxjob #1658). -->
+        <sort-menu :x-query="resultsObject?.meta?.x_query" @pick="setOrder" />
         <v-spacer />
         <serp-download-button :results-object="resultsObject" class="ml-1" />
         <add-column v-if="how === 'table'" :entity-type="entityType">
@@ -158,6 +160,8 @@ import SerpResultsKebab from '@/components/Serp/SerpResultsKebab.vue';
 import SerpDownloadButton from '@/components/Serp/SerpDownloadButton.vue';
 import OqlPipelineResults from '@/components/Serp/OqlPipelineResults.vue';
 import NlWorksList from '@/components/NlSearch/NlWorksList.vue';
+import SortMenu from '@/components/Serp/SortMenu.vue';
+import { useQueryOrder } from '@/composables/useQueryOrder';
 
 defineOptions({ name: 'NlResults' });
 
@@ -179,7 +183,7 @@ const chartComponent = chartLoader ? defineAsyncComponent(chartLoader) : null;
 const entityType = computed(() => store.getters.entityType);
 const shownOql = computed(() => store.getters.shownOql || route.query.oql || '');
 const isPipeline = computed(() => isPipelineResponse(props.resultsObject));
-const inOqlMode = computed(() => !!store.getters.featureFlags['oql'] && !!route.query.oql);
+const { setOrder, inOqlMode } = useQueryOrder();
 
 // The open tab (a plain list has only Works, whatever tab a calculation left open) and its format.
 const tab = computed(() => (isPipeline.value && props.view.tab === 'groups' ? 'groups' : 'works'));

@@ -4,11 +4,11 @@
  * execute surface).
  *
  * #661 model: the OQO is pure "which rows" — get_rows, corpus, filter_rows, plus
- * the OQO chrome group_by/seed/sample. Sort is TRANSIENT client state
- * (`state.sort`, reset on every new query); paging is the client-owned
- * `state.paging`. Both are POSTed as SIBLING request params (executionParams,
- * classic wire syntax) beside the OQO — never inside it. Columns never touch
- * this store at all (sticky localStorage preference, useColumnsState).
+ * the OQO chrome group_by/seed/sample. The order (`state.sort`) is the query's
+ * (#1658): POSTed INSIDE the OQO (runOqo), adopted from every echo, kept across
+ * filter edits. Paging is the client-owned `state.paging`, POSTed as SIBLING
+ * request params (executionParams). Columns never touch this store at all
+ * (sticky localStorage preference, useColumnsState).
  *
  * Phase 2a (#464) contract still pinned: edit-surface actions mutate the
  * canonical state and bump `editEpoch` (the signal the SERP execution watcher
@@ -99,8 +99,8 @@ describe("#661 — executionOqo getter (pure 'which rows')", () => {
   });
 });
 
-describe("#661 — executionParams getter (sibling view params, classic wire syntax)", () => {
-  it("serializes the transient sort to sort=col:dir[,col:dir] and passes paging through", () => {
+describe("#661 — executionParams getter (sibling paging params, classic wire syntax)", () => {
+  it("passes paging through and never a sort (the order rides inside the OQO, #1658)", () => {
     expect(
       executionParams(
         [
@@ -109,22 +109,36 @@ describe("#661 — executionParams getter (sibling view params, classic wire syn
         ],
         { page: 3, per_page: 50, cursor: "c1" },
       ),
-    ).toEqual({
-      sort: "cited_by_count:desc,publication_year:asc",
-      page: 3,
-      per_page: 50,
-      cursor: "c1",
-    });
+    ).toEqual({ page: 3, per_page: 50, cursor: "c1" });
   });
 
-  it("is empty when sort is null and paging unset (engine defaults)", () => {
+  it("is empty when paging is unset (engine defaults)", () => {
     expect(executionParams(null, {})).toEqual({});
   });
+});
 
-  it("normalises a missing/unknown direction to desc", () => {
-    expect(executionParams([{ column_id: "cited_by_count" }], {})).toEqual({
-      sort: "cited_by_count:desc",
-    });
+describe("#1658 — runOqo: the query with its order inside", () => {
+  const runOqo = (state) => queryModule.getters.runOqo(state, {
+    executionOqo: queryModule.getters.executionOqo(state) });
+  it("puts the order in the OQO's sort_by, never beside it", () => {
+    const state = { queryOqo: { get_rows: "works" }, viewState: {},
+      sort: [{ column_id: "publication_date", direction: "desc" }] };
+    expect(runOqo(state)).toEqual({ get_rows: "works",
+      sort_by: [{ column_id: "publication_date", direction: "desc" }] });
+  });
+  it("is executionOqo itself for the default order (no sort_by)", () => {
+    expect(runOqo({ queryOqo: { get_rows: "works" }, viewState: {}, sort: null }))
+      .toEqual({ get_rows: "works" });
+  });
+  it("leaves executionOqo (the facets' query) without the order", () => {
+    const state = { queryOqo: { get_rows: "works" }, viewState: {},
+      sort: [{ column_id: "cited_by_count", direction: "desc" }] };
+    expect(queryModule.getters.executionOqo(state)).toEqual({ get_rows: "works" });
+  });
+  it("normalises a missing/unknown direction to desc when the order is set", () => {
+    const state = freshState();
+    commitInto(state)("setSortState", [{ column_id: "cited_by_count" }]);
+    expect(state.sort).toEqual([{ column_id: "cited_by_count", direction: "desc" }]);
   });
 });
 
@@ -157,7 +171,8 @@ describe("#464 Phase 2a — syncFromResponse SEEDS without bumping the edit coun
     expect(state.editEpoch).toBe(0);
   });
 
-  it("ignores transitional sort_by/select/paging in the echo — client owns those (#661)", () => {
+  it("adopts the echo's order, the latest edit winning; ignores select/paging (#1658, #661)", () => {
+    // A typed `..., most cited first` replaces an earlier pick; paging stays the client's
     const state = freshState();
     state.sort = [{ column_id: "publication_year", direction: "asc" }];
     state.paging = { per_page: 100 };
@@ -177,9 +192,16 @@ describe("#464 Phase 2a — syncFromResponse SEEDS without bumping the edit coun
     );
     expect(state.queryOqo).toEqual({ get_rows: "works" });
     expect(state.viewState).toEqual({});
-    // The client-owned view state is untouched by the echo:
-    expect(state.sort).toEqual([{ column_id: "publication_year", direction: "asc" }]);
+    expect(state.sort).toEqual([{ column_id: "cited_by_count", direction: "desc" }]);
     expect(state.paging).toEqual({ per_page: 100 });
+  });
+
+  it("an echo with no order clears an earlier pick (the text says the default)", () => {
+    const state = freshState();
+    state.sort = [{ column_id: "publication_year", direction: "asc" }];
+    queryModule.actions.syncFromResponse(
+      { commit: commitInto(state), state }, makeResp({ get_rows: "works" }, "works"));
+    expect(state.sort).toBeNull();
   });
 
   it("adopts the sentence's own order when the client picked none (oxjob #1555)", () => {
@@ -214,42 +236,47 @@ describe("#464 Phase 2a — syncFromResponse SEEDS without bumping the edit coun
   });
 });
 
-describe("#661 — setSort edit action (transient client sort)", () => {
-  const runSetSort = (payload) => {
+describe("#1658 — setSortBy edit action (the sort menu and the column headers)", () => {
+  const runSetSortBy = (sortBy) => {
     const state = freshState();
     state.queryOqo = { get_rows: "works" };
     state.paging = { page: 4, per_page: 50, cursor: "c0" };
-    queryModule.actions.setSort({ commit: commitInto(state) }, payload);
+    queryModule.actions.setSortBy({ commit: commitInto(state) }, { sortBy });
     return state;
   };
 
-  it("sets the transient sort OUTSIDE the OQO, resets paging, bumps the edit counter", () => {
-    const s = runSetSort({ field: "cited_by_count", direction: "desc" });
+  it("sets the order beside queryOqo (runOqo posts it inside), resets paging, bumps", () => {
+    const s = runSetSortBy([{ column_id: "cited_by_count", direction: "desc" }]);
     expect(s.sort).toEqual([{ column_id: "cited_by_count", direction: "desc" }]);
-    expect(s.queryOqo).toEqual({ get_rows: "works" }); // the query is untouched
+    expect(s.queryOqo).toEqual({ get_rows: "works" }); // the facets' query is untouched
     expect("page" in s.paging).toBe(false); // paging reset on re-sort
     expect("cursor" in s.paging).toBe(false);
     expect(s.paging.per_page).toBe(50); // page size preserved
     expect(s.editEpoch).toBe(1);
   });
 
-  it("normalises an unknown direction to desc", () => {
-    const s = runSetSort({ field: "publication_year", direction: "sideways" });
-    expect(s.sort).toEqual([{ column_id: "publication_year", direction: "desc" }]);
+  it("keeps every key of a two-key order (most cited (age-adjusted))", () => {
+    const s = runSetSortBy([{ column_id: "cited_by_percentile_year.max", direction: "desc" },
+      { column_id: "cited_by_count", direction: "desc" }]);
+    expect(s.sort).toHaveLength(2);
   });
 
-  it("keeps an explicit asc direction", () => {
-    const s = runSetSort({ field: "publication_year", direction: "asc" });
-    expect(s.sort[0].direction).toBe("asc");
+  it("normalises an unknown direction to desc; keeps an explicit asc", () => {
+    expect(runSetSortBy([{ column_id: "publication_year", direction: "sideways" }]).sort)
+      .toEqual([{ column_id: "publication_year", direction: "desc" }]);
+    expect(runSetSortBy([{ column_id: "publication_year", direction: "asc" }]).sort[0].direction)
+      .toBe("asc");
   });
 
-  it("clears back to the engine default when field is null (relevance / D2)", () => {
-    const state = freshState();
-    state.queryOqo = { get_rows: "works" };
-    state.sort = [{ column_id: "cited_by_count", direction: "desc" }];
-    queryModule.actions.setSort({ commit: commitInto(state) }, { field: null });
-    expect(state.sort).toBe(null); // null = engine default
-    expect(state.editEpoch).toBe(1);
+  it("clears back to the engine default with [] or null (the menu's default choice)", () => {
+    for (const sortBy of [[], null]) {
+      const state = freshState();
+      state.queryOqo = { get_rows: "works" };
+      state.sort = [{ column_id: "cited_by_count", direction: "desc" }];
+      queryModule.actions.setSortBy({ commit: commitInto(state) }, { sortBy });
+      expect(state.sort).toBe(null); // null = engine default
+      expect(state.editEpoch).toBe(1);
+    }
   });
 });
 
@@ -299,10 +326,11 @@ describe("#464 Phase 2b — bumpEdit records nav intent (back-button policy)", (
     expect(s.lastEditNav).toBe("replace");
   });
 
-  it("setSort tags its edit as replace (a sort flip is tuning)", () => {
+  it("setSortBy tags its edit as replace (a sort flip is tuning)", () => {
     const s = freshState();
     s.queryOqo = { get_rows: "works" };
-    queryModule.actions.setSort({ commit: commitInto(s) }, { field: "cited_by_count" });
+    queryModule.actions.setSortBy({ commit: commitInto(s) },
+      { sortBy: [{ column_id: "cited_by_count", direction: "desc" }] });
     expect(s.lastEditNav).toBe("replace");
   });
 });
@@ -379,10 +407,11 @@ describe("#464 Phase 2a — patch mutations delete on undefined (absent = defaul
 describe("#464 Phase 2c — setQueryFromOqo (builder/OQL-text edits)", () => {
   const runSetQuery = (oqo, payload, startPaging = { page: 4, per_page: 100, cursor: "c0" }) => {
     const state = freshState();
+    state.queryOqo = { get_rows: "works" };
     state.paging = { ...startPaging };
     state.sort = [{ column_id: "cited_by_count", direction: "desc" }];
     queryModule.actions.setQueryFromOqo(
-      { commit: commitInto(state) },
+      { state, commit: commitInto(state) },
       { oqo, ...(payload || {}) }
     );
     return state;
@@ -407,22 +436,28 @@ describe("#464 Phase 2c — setQueryFromOqo (builder/OQL-text edits)", () => {
     expect(s.lastEditNav).toBe("push"); // add/remove a filter = back-worthy
   });
 
-  it("resets paging AND the transient sort (a new query = a new result set, #661)", () => {
+  it("resets paging; another entity resets the order (its columns differ, #1658)", () => {
     const s = runSetQuery({ get_rows: "authors", filter_rows: [] }, { nav: "push" });
     expect("page" in s.paging).toBe(false);
     expect("cursor" in s.paging).toBe(false);
     expect(s.paging.per_page).toBe(100); // page size is recipient-local, preserved
-    expect(s.sort).toBe(null); // sort is per-result-set — reset to engine default
+    expect(s.sort).toBe(null);
   });
 
-  it("drops any stray sort_by/select/view bit from the incoming OQO (#661)", () => {
-    // A transitional builder still emits sort_by/select; they must never enter
-    // the citeable query (that's the #471 leak class, structurally dead now).
+  it("keeps the order across an edit to the same entity (it's part of the query, #1658)", () => {
+    const s = runSetQuery({ get_rows: "works", filter_rows: [{ column_id: "type", value: "article" }] });
+    expect(s.sort).toEqual([{ column_id: "cited_by_count", direction: "desc" }]);
+  });
+
+  it("takes the builder's own order; drops select/paging from the incoming OQO (#661)", () => {
+    // select and paging must never enter the citeable query (the #471 leak class); an
+    // order is the query's, kept beside it (#1658)
     const s = runSetQuery(
-      { get_rows: "works", sort_by: [{ column_id: "cited_by_count", direction: "desc" }], select: ["doi"], page: 9 },
+      { get_rows: "works", sort_by: [{ column_id: "publication_date", direction: "asc" }], select: ["doi"], page: 9 },
       { nav: "push" }
     );
     expect(s.queryOqo).toEqual({ get_rows: "works" });
+    expect(s.sort).toEqual([{ column_id: "publication_date", direction: "asc" }]);
     expect("page" in s.paging).toBe(false); // and reset, not adopted from the stray bit
   });
 
@@ -458,8 +493,8 @@ describe("#464 Phase 2c — setQueryFromOqo (builder/OQL-text edits)", () => {
   });
 });
 
-describe("#661 — refinements reset the transient sort (a refinement is a new query)", () => {
-  it("applyRefinementRows clears sort + page/cursor, keeps per_page, bumps as push", () => {
+describe("#1658 — refinements keep the order (it survives edits to the rest of the query)", () => {
+  it("applyRefinementRows keeps the order, clears page/cursor, keeps per_page, bumps as push", () => {
     const state = freshState();
     state.queryOqo = { get_rows: "works" };
     state.sort = [{ column_id: "cited_by_count", direction: "desc" }];
@@ -469,7 +504,7 @@ describe("#661 — refinements reset the transient sort (a refinement is a new q
       [{ column_id: "type", value: "article" }],
     );
     expect(state.queryOqo.filter_rows).toEqual([{ column_id: "type", value: "article" }]);
-    expect(state.sort).toBe(null);
+    expect(state.sort).toEqual([{ column_id: "cited_by_count", direction: "desc" }]);
     expect(state.paging).toEqual({ per_page: 50 });
     expect(state.lastEditNav).toBe("push");
     expect(state.editEpoch).toBe(1);

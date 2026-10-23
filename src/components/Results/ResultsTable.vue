@@ -90,20 +90,18 @@
 <script setup>
 import { computed, ref, toRef } from 'vue';
 import { useStore } from 'vuex';
-import { useRoute } from 'vue-router';
 import filters from '@/filters';
-import { url } from '@/url';
 import { resolveColumns } from '@/components/Results/Table/columnConfig';
 import { useColumnsState } from '@/composables/useColumnsState';
 import CellValue from '@/components/Results/Table/CellValue.vue';
 import AddColumn from '@/components/Results/Table/AddColumn.vue';
 import ColumnHeaderMenu from '@/components/Results/Table/ColumnHeaderMenu.vue';
 import { useMasterSelection } from '@/composables/useMasterSelection';
+import { useQueryOrder } from '@/composables/useQueryOrder';
 
 defineOptions({ name: 'ResultsTable' });
 
 const store = useStore();
-const route = useRoute();
 const { masterChecked, masterIndeterminate, onMasterClick } = useMasterSelection();
 
 const props = defineProps({
@@ -125,37 +123,27 @@ const emit = defineEmits(['filter-column', 'sort']);
 // or the query (#661 column-model redesign).
 const { columnKeys, removeColumn, setColumns } = useColumnsState(toRef(props, 'entityType'));
 
-// OQL mode: sort is transient client state in the canonical query store
-// (`state.query.sort`, #661 — never in the OQO or the URL; POSTed as a sibling
-// param). So both the active-sort read and the sort write must branch on mode,
-// mirroring NoviceSortButton's gate. Basic/chip (OXURL) + flag-off keep ?sort=.
-const inOqlMode = computed(
-  () => !!store.getters.featureFlags['oql'] && !!route.query.oql,
-);
-const storeSortBy = computed(() => store.state.query?.sort || []);
+// The query's order (oxjob #1658): one order with the sort menu, read back from the
+// echo (the store's `sort` on every kind of results page), so a header sort writes the
+// OQL's ending too and the arrow follows a typed order. The default shows no arrow.
+const { sortBy: querySortBy, setOrder } = useQueryOrder();
 
 // Active sort state, reflected on the headers (check next to the active
-// direction + a small arrow indicator beside the label). In OQL mode the
-// primary store sort is shown; otherwise the URL sort.
+// direction + a small arrow indicator beside the label).
 const sortField = computed(() => {
   if (props.sort) return props.sort.field ?? '';
-  return inOqlMode.value ? (storeSortBy.value[0]?.column_id ?? '') : url.getSortField(route);
+  return querySortBy.value[0]?.column_id ?? '';
 });
 const sortDirection = computed(() => {
   if (props.sort) return props.sort.direction === 'asc' ? 'asc' : 'desc';
-  return inOqlMode.value
-    ? (storeSortBy.value[0]?.direction === 'asc' ? 'asc' : 'desc')
-    : url.getSortDirection(route);
+  return querySortBy.value[0]?.direction ?? 'desc';   // the store keeps it asc | desc
 });
 
 function onSort(col, dir) {
   if (props.sort) {
     emit('sort', { field: col.baseKey, direction: dir });
-  } else if (inOqlMode.value) {
-    // Drive the canonical store → POST-OQO (same path as NoviceSortButton).
-    store.dispatch('query/setSort', { field: col.baseKey, direction: dir });
   } else {
-    url.setSortDirection(col.baseKey, dir);
+    setOrder([{ column_id: col.baseKey, direction: dir }]);
   }
 }
 function onFilter(col) {
