@@ -8,7 +8,7 @@ describe('claim copy (oxjob #1466)', () => {
   const ctx = { email: 'ana.silva@gmail.com', link: 'https://x.org/me' };
 
   it('has a reason for every users-api feedback code', () => {
-    for (const code of ['no_link', 'unreachable', 'email_not_found', 'self_made', 'email_not_contact', 'cant_tell']) {
+    for (const code of ['no_link', 'unreachable', 'email_not_found', 'self_made', 'email_not_contact', 'cant_tell', 'profile_gone']) {
       const t = reasonText(code, ctx);
       expect(t.length).toBeGreaterThan(40);
       expect(t).not.toContain('undefined');
@@ -16,6 +16,7 @@ describe('claim copy (oxjob #1466)', () => {
     expect(reasonText('email_not_found', ctx)).toContain('ana.silva@gmail.com');
     expect(reasonText('self_made', ctx)).toMatch(/^https:\/\/x\.org\/me is a kind of page/);
     expect(reasonText('mystery', ctx)).toContain('support@openalex.org');
+    expect(reasonText('profile_gone', ctx)).toContain('claim that one');
   });
 
   it('picks the claim window screen', () => {

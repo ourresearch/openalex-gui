@@ -120,6 +120,9 @@ export function reasonText(code, { email, link } = {}) {
     case 'email_not_contact':
       return `We found ${email} on ${page}, but not as a researcher's email. Please send a page that lists it as your email, `
         + "for example your page on your university's website, or the author details in one of your papers.";
+    case 'profile_gone':
+      return 'That profile is no longer in OpenAlex: it was merged into another profile or removed after you claimed it. '
+        + 'Search for your name, open the profile with your works, and claim that one. Your new claim replaces this one.';
     default:
       return `We could not confirm that ${page} connects ${email} to a university, an institute or a published paper. `
         + "Please send a different page: your page on your university's website, or a paper that lists your email. "
