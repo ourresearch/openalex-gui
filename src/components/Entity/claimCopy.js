@@ -131,7 +131,7 @@ export function reasonText(code, { email, link } = {}) {
       return 'That profile is no longer in OpenAlex: it was merged into another profile or removed after you claimed it. '
         + 'Search for your name, open the profile with your works, and claim that one. Your new claim replaces this one.';
     case 'page_only':
-      return `We found ${email} on ${page}. But a university or institute page alone is not enough. `
+      return `We found ${email} on ${page}. But a web page alone is not enough, even a page on a university's website. `
         + `Anyone who can edit a page can put any name on it. ${works}`;
     case 'not_on_profile':
       return `The paper you sent, ${page}, is not on this profile, or the email on it belongs to another author. ${works}`;
