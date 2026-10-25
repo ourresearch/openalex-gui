@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  copy, reasonText, claimView, orcidAuthorizeUrl, orcidCallbackFlow, orcidAutoClaim, bareOrcid, sameOrcid,
+  copy, reasonText, claimView, showFastestFix, orcidAuthorizeUrl, orcidCallbackFlow, orcidAutoClaim, bareOrcid, sameOrcid,
   ORCID_STATE_SETTINGS,
 } from '@/components/Entity/claimCopy.js';
 
@@ -18,6 +18,12 @@ describe('claim copy (oxjob #1466)', () => {
     expect(reasonText('self_made', ctx)).toMatch(/^https:\/\/x\.org\/me is a kind of page/);
     expect(reasonText('mystery', ctx)).toContain('support@openalex.org');
     expect(reasonText('profile_gone', ctx)).toContain('claim that one');
+  });
+
+  it('offers the university-email tip only where it can help (oxjob #1762)', () => {
+    expect(showFastestFix('page_only')).toBe(true);
+    expect(showFastestFix(undefined)).toBe(true);
+    for (const code of ['merged_profile', 'already_owned', 'institution_email_unclear']) expect(showFastestFix(code)).toBe(false);
   });
 
   it('picks the claim window screen', () => {

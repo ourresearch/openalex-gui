@@ -125,7 +125,7 @@
           <template v-else-if="view === 'needs_evidence'">
             <p class="font-weight-medium">{{ copy.notYet }}</p>
             <p style="white-space: pre-line;">{{ reason }}</p>
-            <div class="claim-option best">
+            <div v-if="showFastestFix(userClaim?.feedback_code)" class="claim-option best">
               <p>{{ copy.fastestFix }}</p>
               <v-btn size="small" rounded color="primary" variant="flat" @click="goToEmails">
                 {{ copy.universityEmail.button }}
@@ -243,7 +243,7 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig.js';
-import { copy, reasonText, claimView, orcidAuthorizeUrl, sameOrcid, bareOrcid, shortId, ORCID_CLIENT_ID } from './claimCopy.js';
+import { copy, reasonText, claimView, orcidAuthorizeUrl, sameOrcid, bareOrcid, shortId, ORCID_CLIENT_ID, showFastestFix } from './claimCopy.js';
 import OrcidIcon from '@/components/Orcid/OrcidIcon.vue';
 
 defineOptions({ name: 'EntityHeaderClaimProfileButton' });

@@ -54,7 +54,7 @@ export const copy = {
     ],
     whyTitle: 'Why your email?',
     why: 'Anyone can type any name into an OpenAlex account. '
-      + 'Your email is the only thing we have checked. So the page must show it.',
+      + 'Your email is the only thing we have checked. So the paper must show it.',
     placeholder: 'Link to the paper, or its DOI',
     button: 'Check my link',
     after: 'We check your link automatically. You get an answer in a few minutes.',
@@ -150,6 +150,10 @@ export function reasonText(code, { email, link } = {}) {
         + 'If none of these is possible for you, write to support@openalex.org.';
   }
 }
+
+// The "add a university email" tip, unless the answer says it can't help (as in users-api's email).
+const NO_TIP = new Set(['merged_profile', 'already_owned', 'institution_email_unclear']);
+export const showFastestFix = (code) => !NO_TIP.has(code);
 
 // A123 from any OpenAlex author id shape, lowercased for comparing.
 export const shortId = (x) => (x || '').split('/').pop().toLowerCase();
