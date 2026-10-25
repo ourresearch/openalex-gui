@@ -169,10 +169,8 @@
               <div class="font-weight-bold mb-1">{{ copy.link.title }}</div>
               <p class="mb-1">{{ copy.link.intro }} <span class="claim-email">{{ userEmail }}</span></p>
               <ul class="claim-evidence">
-                <li class="yes">{{ copy.link.good[0] }}</li>
-                <li class="yes">{{ copy.link.good[1](userEmail) }}</li>
-                <li class="no">{{ copy.link.bad[0] }}</li>
-                <li class="no">{{ copy.link.bad[1] }}</li>
+                <li v-for="(g, i) in copy.link.good" :key="'g' + i" class="yes">{{ typeof g === 'function' ? g(userEmail) : g }}</li>
+                <li v-for="(b, i) in copy.link.bad" :key="'b' + i" class="no">{{ b }}</li>
               </ul>
               <p><b>{{ copy.link.whyTitle }}</b> {{ copy.link.why }}</p>
               <v-text-field
