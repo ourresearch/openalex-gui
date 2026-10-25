@@ -27,6 +27,17 @@
             </p>
           </div>
 
+          <!-- The address is on an account but not verified yet (oxjob #1762):
+               signing up with it would make a second, empty account. -->
+          <v-alert v-if="unverifiedEmail" type="info" variant="tonal" class="mb-4" id="login-unverified">
+            <strong>{{ unverifiedEmail }}</strong> hasn't been verified yet, so it can't log you in.
+            If you added it to your account, log in with your account's main email,
+            then verify this one in Settings &gt; Emails.
+            If you didn't add it,
+            <router-link :to="{ name: 'Signup', query: { ...$route.query, email: unverifiedEmail } }"
+                         class="text-primary font-weight-medium">sign up with it</router-link>.
+          </v-alert>
+
           <v-card flat class="pa-6" :loading="isLoading" :disabled="isLoading">
             <form @submit.prevent="submit">
               <v-text-field
@@ -87,6 +98,7 @@ const email = ref('');
 const isLoading = ref(false);
 const magicLinkSent = ref(false);
 const magicLinkEmail = ref('');
+const unverifiedEmail = ref('');
 
 const isFormDisabled = computed(() => {
   const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
@@ -111,6 +123,7 @@ const resetForm = () => {
 const submit = async () => {
   if (isFormDisabled.value) return;
   isLoading.value = true;
+  unverifiedEmail.value = '';
 
   try {
     await store.dispatch('user/requestLoginEmail', {
@@ -121,7 +134,11 @@ const submit = async () => {
     magicLinkEmail.value = email.value;
     magicLinkSent.value = true;
   } catch (e) {
-    if (e.response?.status === 404) {
+    if (e.response?.status === 404 && e.response?.data?.code === 'unverified_secondary') {
+      // An account's added address that was never verified: point them to it,
+      // not to sign-up (oxjob #1762).
+      unverifiedEmail.value = email.value;
+    } else if (e.response?.status === 404) {
       // No account for this email — hand it straight to signup, pre-filled,
       // preserving the post-auth redirect. The user just lands where they need
       // to be instead of dead-ending on an "email not found" message.

@@ -6,6 +6,7 @@ import {urlBase, axiosConfig} from "@/apiConfig.js"
 import {sanitizeRedirectPath} from "@/util";
 import {bootUser, readUserCache, writeUserCache, clearUserCache} from "@/store/userBoot";
 import {orcidAutoClaim} from "@/components/Entity/claimCopy.js";
+import {magicLoginConfig} from "@/store/magicLoginConfig.js";
 
 import shortUuid from 'short-uuid';
 
@@ -242,7 +243,8 @@ export default {
             const {token: magicToken, turnstileToken} = typeof payload === "string" ? {token: payload} : payload
             const resp = await axios.post(
                 apiBaseUrl + "/users/magic-login",
-                turnstileToken ? {token: magicToken, turnstile_token: turnstileToken} : {token: magicToken}
+                turnstileToken ? {token: magicToken, turnstile_token: turnstileToken} : {token: magicToken},
+                magicLoginConfig()
             )
             // oxjob #290: store the api_key as the universal auth credential
             // (was the JWT access_token). users-api accepts api_key on the same
