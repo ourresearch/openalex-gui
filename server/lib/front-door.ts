@@ -7,6 +7,7 @@ import compression from 'compression'
 import { defineEventHandler, fromNodeMiddleware, getRequestHeader, getResponseHeader, sendRedirect, setResponseHeader, setResponseHeaders, setResponseStatus } from 'h3'
 import type { App, H3Event } from 'h3'
 import { assistantPage, HEADER as ASSISTANT_HEADER } from '../../assistantPages/index.mjs'
+import { originKey } from './origin-key'
 
 // Read at request time on purpose: Nitro's build replaces the literal
 // `process.env.NODE_ENV` with "production", and server.js decided at runtime.
@@ -96,8 +97,9 @@ export const assistantPages = defineEventHandler(async (event) => {
   return page.body
 })
 
-// server.js order.
-export const FRONT_DOOR = [sslRedirect, compress, subdomainRedirect, assistantPages]
+// server.js order, plus #1782's side-door check after the alpha./analytics. redirects
+// (Cloudflare stamps only openalex.org and www; those hosts only redirect there).
+export const FRONT_DOOR = [sslRedirect, compress, subdomainRedirect, originKey, assistantPages]
 
 // Nitro's own in-process requests (route-rule proxies such as /aboutness/viewer,
 // Nuxt's error page render) run through the same app on a mock req/res. They
