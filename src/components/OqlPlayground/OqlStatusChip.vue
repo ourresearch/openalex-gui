@@ -11,7 +11,12 @@
     <span v-if="status" class="oql-chip oql-chip--busy">{{ status }}…</span>
 
     <template v-else-if="validation">
-      <span v-if="!isInvalid && !hasWarnings" class="oql-chip oql-chip--ok" title="Valid OQL">
+      <!-- Plain words in the statement (#1597): not an error; Run hands them to the assistant. -->
+      <span v-if="plainWords" class="oql-chip oql-chip--plain" :title="plainWords">
+        <v-icon size="14">mdi-creation-outline</v-icon>
+        plain words
+      </span>
+      <span v-else-if="!isInvalid && !hasWarnings" class="oql-chip oql-chip--ok" title="Valid OQL">
         <v-icon size="14">mdi-check-circle</v-icon>
         valid
       </span>
@@ -72,6 +77,9 @@ const props = defineProps({
 // Same derivations as OqlEditor's badge (kept in step deliberately — this IS that
 // badge, relocated to the host footer and re-chromed as a chip).
 const isInvalid = computed(() => !!props.validation && props.validation.valid === false);
+// the plain-words message (#1597), or '' when there are none
+const plainWords = computed(() => (props.validation?.plain_words
+  && (props.validation.diagnostics || []).find((d) => d.code === "OQL_PLAIN_WORDS")?.message) || "");
 const problems = computed(() =>
   (props.validation?.diagnostics || [])
     .filter((d) => d.severity !== "info")
@@ -111,6 +119,11 @@ const chipSummary = computed(() => {
   padding: 4px 8px;
   border-radius: 999px;
   border: 1px solid transparent;
+}
+.oql-chip--plain {
+  color: #6d28d9;
+  border-color: rgba(109, 40, 217, 0.25);
+  background: rgba(245, 243, 255, 0.92);
 }
 .oql-chip--busy {
   color: rgba(0, 0, 0, 0.45);

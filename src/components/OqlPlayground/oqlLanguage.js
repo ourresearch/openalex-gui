@@ -187,25 +187,56 @@ export function oqlSyntax() {
 }
 
 // --- linting ------------------------------------------------------------------
+// /validate's diagnostics -> CodeMirror's. Info diagnostics are not drawn, except plain words
+// (#1597), which get their own soft mark; a diagnostic with a `replacement` (a typo) carries a
+// quick fix that swaps it in.
+export function cmDiagnostics(data, len) {
+  return ((data && data.diagnostics) || [])
+    .filter((d) => d.severity !== "info" || d.code === "OQL_PLAIN_WORDS")
+    .map((d) => {
+      const start = typeof d.start === "number" ? Math.min(d.start, len) : 0;
+      const end =
+        typeof d.end === "number" && d.end > start
+          ? Math.min(d.end, len)
+          : Math.min(len, start + 1);
+      const out = {
+        from: start,
+        to: Math.max(end, Math.min(start + 1, len)),
+        severity: d.severity || "error",
+        message: d.message + (d.fixit ? `\n\n💡 ${d.fixit}` : ""),
+        source: d.code,
+      };
+      if (d.code === "OQL_PLAIN_WORDS") out.markClass = "cm-oql-plain-words";
+      if (d.replacement) {
+        out.actions = [{
+          name: `Use “${d.replacement}”`,
+          apply: (view, from, to) => view.dispatch({ changes: { from, to, insert: d.replacement } }),
+        }];
+      }
+      return out;
+    });
+}
+
 // makeOqlLinter(onResult) returns the linter extension. The same /validate
 // response that drives the squiggles is handed to onResult so the preview panel
 // updates from one round-trip (no duplicate call). No debounce (#600, Jason):
 // delay 0 fires a /validate on every keystroke so the badge is as real-time as
 // the round-trip allows (CM already coalesces to one in-flight run at a time).
-// `comments` (the IDE editor, #1744): `#` notes to the chat are blanked before /validate, so
-// they never read as errors (oqlComments.js).
-export function makeOqlLinter(onResult, { comments = false } = {}) {
+// `ide` (the IDE editor): `#` notes to the chat are blanked before /validate, so they never read
+// as errors (#1744, oqlComments.js); plain English words typed into the statement are marked
+// for the assistant, and a typo of an OQL word gets a one-click fix (#1597).
+export function makeOqlLinter(onResult, { ide = false } = {}) {
   return linter(
     async (view) => {
       const raw = view.state.doc.toString();
-      const q = comments ? maskComments(raw) : raw;
+      const q = ide ? maskComments(raw) : raw;
       if (!q.trim()) {
         if (onResult) onResult(null);
         return [];
       }
       let data;
       try {
-        data = await validateOql(q);
+        data = await validateOql(q, { plainWords: ide });
       } catch (e) {
         return [];
       }
@@ -228,23 +259,7 @@ export function makeOqlLinter(onResult, { comments = false } = {}) {
         data = { ...data, diagnostics: [...(data.diagnostics || []), ...idWarnings] };
       }
       if (onResult) onResult(data);
-      const len = q.length;
-      return (data.diagnostics || [])
-        .filter((d) => d.severity !== "info")
-        .map((d) => {
-          const start = typeof d.start === "number" ? Math.min(d.start, len) : 0;
-          const end =
-            typeof d.end === "number" && d.end > start
-              ? Math.min(d.end, len)
-              : Math.min(len, start + 1);
-          return {
-            from: start,
-            to: Math.max(end, Math.min(start + 1, len)),
-            severity: d.severity || "error",
-            message: d.message + (d.fixit ? `\n\n💡 ${d.fixit}` : ""),
-            source: d.code,
-          };
-        });
+      return cmDiagnostics(data, q.length);
     },
     // No debounce (#600, Jason): fire on every keystroke. CM serializes runs (one
     // in flight at a time), and the stale-doc guard above drops out-of-date results.

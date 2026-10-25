@@ -262,7 +262,9 @@ let applyingExternal = false;
 
 // --- validity state (driven by the linter's /validate round-trip) ------------
 const validation = ref(null);
-const isInvalid = computed(() => !!validation.value && validation.value.valid === false);
+// Plain words (#1597) aren't an error: Ask hands them to the assistant.
+const isInvalid = computed(() =>
+  !!validation.value && validation.value.valid === false && !validation.value.plain_words);
 const problems = computed(() =>
   (validation.value?.diagnostics || [])
     .filter((d) => d.severity !== "info")
@@ -396,7 +398,7 @@ function buildState(doc) {
       EditorState.readOnly.of(readonly),
       cmPlaceholder(placeholderSpec()),
       props.ide ? oqlIde() : oqlSyntax(),
-      props.display ? [] : makeOqlLinter(onValidateResult, { comments: props.ide }),
+      props.display ? [] : makeOqlLinter(onValidateResult, { ide: props.ide }),
       keymap.of([
         // ⌘/Ctrl+Enter = submit intent (#600). MUST be bound here, first: defaultKeymap
         // binds Mod-Enter to insertBlankLine, so the editor would otherwise eat the

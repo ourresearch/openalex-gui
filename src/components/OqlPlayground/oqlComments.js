@@ -73,3 +73,17 @@ export function splitComments(text) {
 export function inComment(text, pos) {
   return commentRanges(text).some((r) => pos > r.from && pos <= r.to);
 }
+
+// What the editor sends the chat instead of running, or null to run the query: a `#` note
+// (#1744) asks for the note, applied to the editor's OQL; plain words typed into the statement
+// (#1597; /validate asked with plain_words marks them) send the whole statement as typed,
+// applied to the query the editor opened on. Measured on 44 real follow-ups (#1597
+// work/plain_words_measure.py): the whole statement 44/44; the plain words alone with the rest
+// of the statement 42/44 (alone, "not only retracted ones" lost what it was about).
+// { kind: 'note' | 'plain', text, currentQuery } | null.
+export function editorAsk(text, validation, openedOn) {
+  const { oql, note } = splitComments(text);
+  if (note) return { kind: 'note', text: note, currentQuery: oql || null };
+  if (!validation?.plain_words || !oql) return null;
+  return { kind: 'plain', text: oql, currentQuery: (openedOn || '').trim() || null };
+}

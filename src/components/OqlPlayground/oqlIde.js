@@ -583,6 +583,14 @@ const ideTheme = EditorView.theme({
   },
   ".cm-oql-link:hover": { textDecorationColor: "rgba(29, 78, 216, 0.8)" },
   "&.cm-oql-mod .cm-oql-link": { cursor: "pointer", textDecorationColor: "#1d4ed8" },
+  // Plain words for the assistant (#1597): a soft violet wash, not the lint squiggle.
+  ".cm-lintRange.cm-oql-plain-words": {
+    backgroundImage: "none",
+    backgroundColor: "rgba(124, 58, 237, 0.09)",
+    borderBottom: "1.5px dotted rgba(124, 58, 237, 0.55)",
+    borderRadius: "3px",
+    fontStyle: "italic",
+  },
 });
 
 // Tooltips live on <body> (the page's cards clip their overflow); CodeMirror wraps them in

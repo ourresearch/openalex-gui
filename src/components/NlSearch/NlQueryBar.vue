@@ -71,7 +71,8 @@
       />
       <div class="nl-query-actions">
         <oql-status-chip :status="status" :validation="validation" />
-        <span v-if="noteToChat" class="nl-dirty-hint">The <code>#</code> note goes to the chat · Enter sends it</span>
+        <span v-if="chatAsk?.kind === 'note'" class="nl-dirty-hint">The <code>#</code> note goes to the chat · Enter sends it</span>
+        <span v-else-if="chatAsk" class="nl-dirty-hint">Plain words go to the assistant · Ask sends them</span>
         <span v-else-if="dirty" class="nl-dirty-hint">Edited · not run yet</span>
         <span v-else class="nl-dirty-hint"><code>#</code> starts a note to the chat</span>
         <v-spacer />
@@ -88,9 +89,9 @@
           size="small"
           class="text-none"
           :loading="status === 'querying'"
-          :title="noteToChat ? 'Send the note to the chat (⏎)' : 'Run this query (⌘⏎)'"
+          :title="chatAsk ? 'Ask the assistant to work it into the query (⌘⏎)' : 'Run this query (⌘⏎)'"
           @click="submit"
-        >{{ noteToChat ? 'Ask' : 'Run' }}</v-btn>
+        >{{ chatAsk ? 'Ask' : 'Run' }}</v-btn>
       </div>
     </v-card>
   </v-dialog>
@@ -112,7 +113,7 @@ import SearchErrorAlert from '@/components/SearchErrorAlert.vue';
 import OqlStatusChip from '@/components/OqlPlayground/OqlStatusChip.vue';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import { oqlForPageUrl } from '@/components/NlSearch/nlChat';
-import { splitComments } from '@/components/OqlPlayground/oqlComments';
+import { splitComments, editorAsk } from '@/components/OqlPlayground/oqlComments';
 
 const OqlEditor = defineAsyncComponent(() => import('@/components/OqlPlayground/OqlEditor.vue'));
 
@@ -199,28 +200,26 @@ function openEditor() {
   editing.value = true;
 }
 
-// A `#` note (oqlComments.js): the box's OQL plus words for the chat to change it with.
-const noteToChat = computed(() => splitComments(text.value).note);
+// A `#` note or plain words in the statement (oqlComments.js editorAsk): Ask, not Run.
+const chatAsk = computed(() => editorAsk(text.value, validation.value, baseline.value));
 
 async function submit() {
   const t = (text.value || '').trim();
   if (!t) return;
-  const { oql, note } = splitComments(t);
-  if (note) {
-    // The chat changes the query in the editor (edits and all) the way it changes the page's
-    // after a follow-up. The thread keeps the note.
+  let res = validation.value;
+  if (!res && !splitComments(t).note) {
+    try { res = await validateOql(t, { plainWords: true }); } catch (e) { return; }
+    if (t !== (text.value || '').trim()) return; // kept typing
+  }
+  const ask = editorAsk(t, res, baseline.value);
+  if (ask) {
+    // The chat changes the query the way it does after a follow-up; the thread keeps the words.
     editing.value = false;
-    emit('ask', { text: note, currentQuery: oql || null });
+    emit('ask', { text: ask.text, currentQuery: ask.currentQuery });
     return;
   }
-  let canonical = validation.value?.valid ? pickOql(validation.value, store.getters.newOql) : null;
-  if (!canonical) {
-    let res;
-    try { res = await validateOql(t); } catch (e) { return; }
-    if (t !== (text.value || '').trim()) return; // kept typing
-    if (!res?.valid) return; // the red chip already says why
-    canonical = pickOql(res, store.getters.newOql);
-  }
+  if (!res?.valid) return; // the red chip already says why
+  const canonical = pickOql(res, store.getters.newOql);
   setText(canonical);
   editing.value = false;
   // Names stay in the URL (see oqlForPageUrl); compare without them.

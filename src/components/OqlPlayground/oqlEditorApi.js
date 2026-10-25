@@ -70,9 +70,13 @@ export async function getParseContext(q, pos) {
 }
 
 // Full OQL -> { valid, oql, oqo, oxurl, diagnostics:[{code,message,fixit,severity,start,end}] }
-export async function validateOql(q) {
+// `plainWords` (the IDE editor, oxjob #1597): a statement that doesn't read also says whether
+// it holds plain words for the assistant (`plain_words: {start, end, text, rest}`, with an
+// OQL_PLAIN_WORDS info diagnostic) or a typo (one OQL_TYPO error with its `replacement`).
+export async function validateOql(q, { plainWords = false } = {}) {
   return _timed("validate", async () => {
-    const url = `${urlBase.api}/validate?${MAILTO}&q=${encodeURIComponent(q)}`;
+    const url = `${urlBase.api}/validate?${MAILTO}&q=${encodeURIComponent(q)}` +
+      (plainWords ? "&plain_words=1" : "");
     const resp = await axios.get(url, axiosConfig());
     return resp.data;
   });
