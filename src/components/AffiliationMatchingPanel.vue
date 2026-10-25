@@ -194,13 +194,16 @@
       </v-table>
 
       <!-- Pagination -->
-      <div v-if="affiliations.length" class="d-flex align-center justify-center pa-3 border-t">
+      <div v-if="affiliations.length" class="d-flex flex-column align-center pa-3 border-t">
         <v-pagination
           v-model="currentPage"
           :length="totalPages"
           :total-visible="7"
           density="compact"
         />
+        <div v-if="isPastPageLimit" class="text-body-2 text-grey-darken-1 mt-1">
+          Pages stop at {{ (MAX_PAGES * perPage).toLocaleString() }} affiliations. Search to find the rest.
+        </div>
       </div>
     </v-card>
 
@@ -382,9 +385,16 @@ const linkFilterOptions = [
   { title: 'unlinked to', value: 'not_matching' },
 ];
 
+// /raw-affiliation-strings pages by number only up to page 100; a later page
+// answered 400 and blanked the list, which read as a broken editor (INRAE's
+// 129K linked strings, oxjob #1823).
+const MAX_PAGES = 100;
+
 const totalPages = computed(() => {
-  return Math.ceil(totalResults.value / perPage.value) || 1;
+  return Math.min(Math.ceil(totalResults.value / perPage.value) || 1, MAX_PAGES);
 });
+
+const isPastPageLimit = computed(() => totalResults.value > MAX_PAGES * perPage.value);
 
 const resultsRangeText = computed(() => {
   if (totalResults.value === 0) return '0 affiliations';

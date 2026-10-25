@@ -101,7 +101,7 @@
       <!-- Info row -->
       <div class="mb-2">
         <span class="text-body-2 text-medium-emphasis">
-          Showing {{ showingStart }}-{{ showingEnd }} of {{ totalCount }} curations
+          Showing {{ showingStart }}-{{ showingEnd }} of {{ totalCountText }} curations
         </span>
       </div>
 
@@ -231,12 +231,12 @@
         >
           <v-icon>mdi-chevron-left</v-icon>
         </v-btn>
-        <span class="text-body-2 mx-2">Page {{ page }} of {{ totalPages }}</span>
+        <span class="text-body-2 mx-2">Page {{ page }} of {{ Math.max(page, totalPages).toLocaleString() }}{{ totalCountCapped ? '+' : '' }}</span>
         <v-btn
           icon
           variant="text"
           size="small"
-          :disabled="page >= totalPages"
+          :disabled="!hasNextPage"
           @click="nextPage"
         >
           <v-icon>mdi-chevron-right</v-icon>
@@ -300,6 +300,9 @@ const page = ref(1);
 const perPage = ref(25);
 const totalCount = ref(0);
 const totalPages = ref(1);
+// The API stops counting at a cap (10,000 site-wide) and says so in
+// meta.total_count_capped; shown bare, "of 10000" read as a quota (oxjob #1823).
+const totalCountCapped = ref(false);
 
 // Debounce timer
 let debounceTimer = null;
@@ -329,7 +332,18 @@ const showingStart = computed(() => {
   return (page.value - 1) * perPage.value + 1;
 });
 
+const totalCountText = computed(() => {
+  return totalCount.value.toLocaleString() + (totalCountCapped.value ? '+' : '');
+});
+
+// Past a capped count, a full page means more rows may follow.
+const hasNextPage = computed(() => {
+  return page.value < totalPages.value
+    || (totalCountCapped.value && curations.value.length === perPage.value);
+});
+
 const showingEnd = computed(() => {
+  if (totalCountCapped.value) return (page.value - 1) * perPage.value + curations.value.length;
   return Math.min(page.value * perPage.value, totalCount.value);
 });
 
@@ -368,6 +382,7 @@ async function fetchCurations() {
     curations.value = res.data.results || [];
     totalCount.value = res.data.meta?.total_count || 0;
     totalPages.value = res.data.meta?.total_pages || 1;
+    totalCountCapped.value = !!res.data.meta?.total_count_capped;
     resolveEntities(curations.value);
   } catch (e) {
     error.value = e?.response?.data?.message || 'Failed to fetch curations.';
@@ -400,7 +415,7 @@ function prevPage() {
 }
 
 function nextPage() {
-  if (page.value < totalPages.value) {
+  if (hasNextPage.value) {
     page.value++;
     fetchCurations();
   }
