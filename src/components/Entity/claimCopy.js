@@ -39,21 +39,23 @@ export const copy = {
     button: 'Claim this profile',
   },
   checkingOrcid: 'Checking your ORCID iD…',
+  // Since oxjob #1762 (2026-10-24) only a paper on this profile passes as a link: a web page
+  // alone shows whose email it is, not whose profile this is.
   link: {
-    title: 'Or send a link that shows your email',
-    intro: 'Send a link to a page that shows this email address:',
+    title: 'Or send one of your papers that shows your email',
+    intro: 'Send a link to one of your papers on this profile that shows this email address (its DOI is enough):',
     good: [
-      "Your page on your university's or institute's website",
-      (email) => `A paper or preprint that lists ${email} as your email`,
+      (email) => `A paper or preprint on this profile that lists ${email} as your email`,
     ],
     bad: [
+      "A web page alone, even your page on a university's website: anyone who can edit a page can put any name on it",
       'A page that shows your name but not your email',
-      'A page you made yourself, like a personal website, LinkedIn or ResearchGate',
+      'A paper that is not on this profile',
     ],
     whyTitle: 'Why your email?',
     why: 'Anyone can type any name into an OpenAlex account. '
       + 'Your email is the only thing we have checked. So the page must show it.',
-    placeholder: 'Link to the page',
+    placeholder: 'Link to the paper, or its DOI',
     button: 'Check my link',
     after: 'We check your link automatically. You get an answer in a few minutes.',
   },
@@ -102,30 +104,49 @@ export const copy = {
   },
 };
 
-// The middle paragraph of a "not yet" answer, by users-api feedback_code.
+// The middle paragraph of a "not yet" answer, by users-api feedback_code. Same text as
+// users-api templates/_claim_reason.txt. Since oxjob #1762 (2026-10-24) nothing waits for a
+// person: a web page alone never passes, so every answer names what does pass on its own.
 export function reasonText(code, { email, link } = {}) {
   const page = link || 'your link';
+  const works = `What works on its own: a link to one of your papers that lists ${email}. `
+    + 'The paper must be on this profile. Its DOI is enough. '
+    + 'Or sign in with ORCID, if this profile shows your ORCID iD.';
   switch (code) {
     case 'no_link':
-      return `We did not find a link in what you sent. Please send a link to a web page or a paper that shows your email, ${email}.`;
+      return `We did not find a link in what you sent. ${works}`;
     case 'unreachable':
-      return `We could not open this page: ${page}. It may need a login, or the site may be down. Please send a page that anyone can open.`;
+      return `We could not open this page: ${page}. It may need a login, or the site may be down. `
+        + 'Please send a link that anyone can open.';
     case 'email_not_found':
       return `We opened ${page}, but your email, ${email}, is not on that page. The page must show this exact email.\n\n`
         + 'A page with only your name is not enough. Anyone can type any name into an OpenAlex account. '
         + 'Your email is the only thing we can check.';
     case 'self_made':
-      return `${page} is a kind of page that anyone can make for themselves, for example a personal website, LinkedIn or ResearchGate. `
-        + `Please send your page on your university's or institute's website, or a paper that shows ${email}.`;
+      return `${page} is a kind of page that anyone can make for themselves, for example a personal website, `
+        + `LinkedIn or ResearchGate. ${works}`;
     case 'email_not_contact':
-      return `We found ${email} on ${page}, but not as a researcher's email. Please send a page that lists it as your email, `
-        + "for example your page on your university's website, or the author details in one of your papers.";
+      return `We found ${email} on ${page}, but not as a researcher's email. ${works}`;
     case 'profile_gone':
       return 'That profile is no longer in OpenAlex: it was merged into another profile or removed after you claimed it. '
         + 'Search for your name, open the profile with your works, and claim that one. Your new claim replaces this one.';
+    case 'page_only':
+      return `We found ${email} on ${page}. But a university or institute page alone is not enough. `
+        + `Anyone who can edit a page can put any name on it. ${works}`;
+    case 'not_on_profile':
+      return `The paper you sent, ${page}, is not on this profile, or the email on it belongs to another author. ${works}`;
+    case 'merged_profile':
+      return 'This profile seems to mix the works of more than one person. So a link or an email cannot show that it is yours. '
+        + 'If this profile shows your ORCID iD, sign in with ORCID: that still works.';
+    case 'already_owned':
+      return 'Another OpenAlex account already owns this profile. If that is your other account, sign in with that account.';
+    case 'institution_email_unclear':
+      return `Your institution email alone does not show that this profile is yours. ${works}`;
+    case 'could_not_check':
+      return `For several days, we could not open or check ${page}. The problem may be on our side or on the site's side. `
+        + 'Please send the link again, or send a different link.';
     default:
-      return `We could not confirm that ${page} connects ${email} to a university, an institute or a published paper. `
-        + "Please send a different page: your page on your university's website, or a paper that lists your email. "
+      return `We could not confirm that ${page} connects ${email} to this profile. ${works} `
         + 'If none of these is possible for you, write to support@openalex.org.';
   }
 }

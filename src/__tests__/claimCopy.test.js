@@ -8,7 +8,8 @@ describe('claim copy (oxjob #1466)', () => {
   const ctx = { email: 'ana.silva@gmail.com', link: 'https://x.org/me' };
 
   it('has a reason for every users-api feedback code', () => {
-    for (const code of ['no_link', 'unreachable', 'email_not_found', 'self_made', 'email_not_contact', 'cant_tell', 'profile_gone']) {
+    for (const code of ['no_link', 'unreachable', 'email_not_found', 'self_made', 'email_not_contact', 'cant_tell', 'profile_gone',
+      'page_only', 'not_on_profile', 'merged_profile', 'already_owned', 'institution_email_unclear', 'could_not_check']) {
       const t = reasonText(code, ctx);
       expect(t.length).toBeGreaterThan(40);
       expect(t).not.toContain('undefined');
