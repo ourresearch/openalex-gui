@@ -14,6 +14,7 @@
 //
 // Everything here is opt-in through OqlEditor's `ide` prop; the old OQL tab doesn't turn it on.
 
+import { forEachDiagnostic } from "@codemirror/lint";
 import { EditorState, StateField, RangeSetBuilder, Compartment, Prec } from "@codemirror/state";
 import {
   EditorView, Decoration, WidgetType, hoverTooltip, keymap, tooltips, closeHoverTooltips,
@@ -489,8 +490,18 @@ function phraseDom(entry) {
   return dom;
 }
 
+// Inside plain words (#1597) the lint tooltip says what they are; no phrase card on top of it.
+function inPlainWords(state, pos) {
+  let inside = false;
+  forEachDiagnostic(state, (d, from, to) => {
+    if (d.markClass === "cm-oql-plain-words" && pos >= from && pos <= to) inside = true;
+  });
+  return inside;
+}
+
 const oqlHover = hoverTooltip((view, pos) => {
   if (completionStatus(view.state)) return null;   // the dropdown has the floor
+  if (inPlainWords(view.state, pos)) return null;
   const { links } = view.state.field(linkField);
   const l = links.find((x) => pos >= x.from && pos <= x.to);
   if (l) return { pos: l.nameFrom, end: l.nameTo, above: true, create: () => ({ dom: cardDom(l) }) };

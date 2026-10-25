@@ -206,7 +206,10 @@ export function cmDiagnostics(data, len) {
         message: d.message + (d.fixit ? `\n\n💡 ${d.fixit}` : ""),
         source: d.code,
       };
-      if (d.code === "OQL_PLAIN_WORDS") out.markClass = "cm-oql-plain-words";
+      if (d.code === "OQL_PLAIN_WORDS") {
+        out.markClass = "cm-oql-plain-words";
+        delete out.source;   // no code name under a message meant for everyone
+      }
       if (d.replacement) {
         out.actions = [{
           name: `Use “${d.replacement}”`,
