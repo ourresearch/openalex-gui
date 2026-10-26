@@ -272,6 +272,21 @@ export function swapEntity(oql, fromId, toId, toName) {
   return String(oql || '').replace(new RegExp(`\\[[^\\]]*\\]\\(${fromId}\\)`, 'g'), `[${name}](${toId})`);
 }
 
+// The entities a query names, once each: `[University of Florida](I33213144)` or a bare
+// `(I150451288)` -> {kind, id, name}. The page checks each one exists (#1758): the API takes
+// an unknown id silently and counts 0 works for it.
+// A bare one needs 6+ digits so a search like `(P2020)` isn't read as an id; a named one
+// can be a topic (T10001).
+const OQL_ENTITY = /\[([^\]]*)\]\(([AISFPT]\d{4,})\)|\(([AISFPT]\d{6,})\)/g;
+export function entityIds(oql) {
+  const out = new Map();
+  for (const m of String(oql || '').matchAll(OQL_ENTITY)) {
+    const id = m[2] || m[3];
+    if (!out.has(id)) out.set(id, { kind: KIND_BY_PREFIX[id[0]], id, name: (m[1] || '').trim() || null });
+  }
+  return [...out.values()];
+}
+
 // "John R. Smith" -> "John Smith": the name to search for, without the initials that tell
 // the candidates apart.
 export function searchName(name) {

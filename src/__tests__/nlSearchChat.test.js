@@ -302,6 +302,22 @@ describe('groupsTabLabel: the Groups tab names its groups (#1744)', () => {
     expect(groupsTabLabel(m(['country in ([United States](US), [China](CN))'], 2))).toBe('2 countries');
     expect(groupsTabLabel({ splits: [] })).toBe('Summary');
   });
+
+  it('counts years up to this one, as the chart draws them (#1758)', async () => {
+    const { groupsTabLabel } = await import('@/components/NlSearch/nlChart');
+    const thisYear = new Date().getFullYear();
+    const years = [];
+    for (let y = 2000; y <= thisYear; y++) years.push(y);
+    const groups = [...years, thisYear + 1, thisYear + 5, 2050].map((y) => ({ key: String(y), count: 1 }));
+    const meta = (n, extra = {}) => ({ splits: [{ oql: 'year', column_id: 'publication_year' }], groups_count: n, ...extra });
+    expect(groupsTabLabel(meta(groups.length), groups)).toBe(`${years.length} years`);
+    expect(groupsTabLabel({ ...meta(groups.length), splits: [{ oql: 'year', column_id: 'publication_year' }, { oql: 'institution' }] }, groups))
+      .toBe(`${years.length} years by institution`);
+    // only part of the groups on hand: the API's count stands
+    expect(groupsTabLabel(meta(500), groups)).toBe('500 years');
+    // other splits are counted as they come
+    expect(groupsTabLabel({ splits: [{ oql: 'country', column_id: 'country' }], groups_count: 3 }, groups.slice(0, 3))).toBe('3 countries');
+  });
 });
 
 describe('more than one match: choices from the note (#1744)', () => {
@@ -317,6 +333,23 @@ describe('more than one match: choices from the note (#1744)', () => {
     expect(swapEntity(oql, 'A5023888391', 'A5050048211', 'John W. Smith')).toBe("get [John W. Smith](A5050048211)'s works");
     expect(searchName('John R. Smith')).toBe('John Smith');
     expect(searchName('Jennifer A. Doudna')).toBe('Jennifer Doudna');
+  });
+});
+
+describe('ids that no entity has (#1758)', () => {
+  it('lists each entity a query names, named or bare, once', async () => {
+    const { entityIds } = await import('@/components/NlSearch/nlChat');
+    const oql = 'get the count and mean FWCI of articles by year since 2000 and institution in ([University of Florida](I33213144), '
+      + '[University of South Florida](I150451288), (I103163165)), [University of Florida](I33213144) first';
+    expect(entityIds(oql)).toEqual([
+      { kind: 'institutions', id: 'I33213144', name: 'University of Florida' },
+      { kind: 'institutions', id: 'I150451288', name: 'University of South Florida' },
+      { kind: 'institutions', id: 'I103163165', name: null },
+    ]);
+    expect(entityIds('get works about [Coral reefs](T10215)')).toEqual([{ kind: 'topics', id: 'T10215', name: 'Coral reefs' }]);
+    // a search in parens is not an id
+    expect(entityIds('get works about (P2020) since 2022')).toEqual([]);
+    expect(entityIds(null)).toEqual([]);
   });
 });
 

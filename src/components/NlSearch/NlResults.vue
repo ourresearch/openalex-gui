@@ -204,7 +204,7 @@ watch(how, (f) => {
 
 // A calculation's tabs carry its counts in its own words: "9 years", "2 countries by year"
 // (Jason, Wed 21 Oct), and "12.3K works", the works the groups are counted from.
-const groupsLabel = computed(() => groupsTabLabel(props.resultsObject?.meta));
+const groupsLabel = computed(() => groupsTabLabel(props.resultsObject?.meta, props.resultsObject?.group_by));
 const worksLabel = computed(() => {
   // meta.count is the works before the splits; a split over listed values (`by institution
   // in (...)`) keeps only some of them, so the count waits for the Works tab's own fetch.

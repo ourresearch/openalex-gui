@@ -84,10 +84,19 @@ function splitName(split) {
   // `country in (...)` and the like: the name is what comes before the values.
   return String(split?.oql || '').split(/\s+(?:in|from|except)\b|\(/)[0].trim() || 'group';
 }
-export function groupsTabLabel(meta) {
+// Years count up to this one, as the chart draws them (#1758): a few hundred works are dated
+// 2027-2050, so `by year since 2000` came back with 50 year groups for 27 years.
+function groupsShown(meta, groups) {
+  const n = meta.groups_count ?? 0;
+  const byYear = meta.splits[0]?.column_id === 'publication_year';
+  if (!byYear || !Array.isArray(groups) || groups.length !== n) return n;
+  const thisYear = new Date().getFullYear();
+  return groups.filter((g) => !(Number(g?.key) > thisYear)).length;
+}
+export function groupsTabLabel(meta, groups) {
   const splits = meta?.splits || [];
   if (!splits.length) return 'Summary';
-  const n = meta.groups_count ?? 0;
+  const n = groupsShown(meta, groups);
   const outer = splitName(splits[0]);
   const label = `${n.toLocaleString()} ${n === 1 ? outer : plural(outer)}`;
   return splits.length > 1 ? `${label} by ${splitName(splits[1])}` : label;

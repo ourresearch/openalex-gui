@@ -61,6 +61,16 @@
             <v-btn variant="text" size="small" class="text-none" @click="showChoices">Pick another</v-btn>
           </template>
         </v-alert>
+        <v-alert
+          v-if="missingText && !chatAsking"
+          type="warning"
+          variant="tonal"
+          density="compact"
+          icon="mdi-help-circle-outline"
+          class="nl-choice-alert"
+        >
+          {{ missingText }}
+        </v-alert>
         <nl-results
           :class="{ 'nl-stale': chatAsking }"
           @query-oql="(o) => (viewOql = o)"
@@ -101,6 +111,8 @@ import NlQueryBar from '@/components/NlSearch/NlQueryBar.vue';
 import NlResults from '@/components/NlSearch/NlResults.vue';
 import NlChat from '@/components/NlSearch/NlChat.vue';
 import { defaultFormat, loadPickChart, normalizeView, answerView } from '@/components/NlSearch/nlChart';
+import { entityIds } from '@/components/NlSearch/nlChat';
+import { entityMissing } from '@/components/OqlPlayground/oqlEditorApi';
 
 defineOptions({ name: 'NlSerp' });
 
@@ -146,6 +158,25 @@ const choiceShown = computed(() => !!choice.value && !chatAsking.value
 function showChoices() {
   if (!open.chat) toggle('chat');
 }
+
+// An id in the query that no entity has: the API counts 0 works for it without a word, so a
+// made-up id read as a group of nothing (#1758, a wrong USF id). Say so above the results.
+const missing = ref([]);
+let missingSeq = 0;
+watch(() => route.query.oql, async (oql) => {
+  const seq = ++missingSeq;
+  missing.value = [];
+  const ents = entityIds(typeof oql === 'string' ? oql : '').filter((e) => e.kind);
+  const gone = await Promise.all(ents.map((e) => entityMissing(e.kind, e.id).catch(() => false)));
+  if (seq === missingSeq) missing.value = ents.filter((e, i) => gone[i]);
+}, { immediate: true });
+const missingText = computed(() => {
+  const parts = missing.value.map((e) => `no ${e.kind.replace(/s$/, '')} has the id ${e.id}`
+    + (e.name ? ` (“${e.name}” in the query)` : ''));
+  if (!parts.length) return '';
+  const s = parts.join(', and ');
+  return `${s[0].toUpperCase()}${s.slice(1)}, so ${parts.length > 1 ? 'they match' : 'it matches'} no works.`;
+});
 async function askFromBar({ text, currentQuery }) {
   if (!open.chat) toggle('chat');
   await nextTick();

@@ -241,16 +241,27 @@ export async function searchEntityIds(kind, q, n = 4) {
   return (r.data?.results || []).map((x) => String(x.id).split("/").pop());
 }
 
+// Ids the API answered 404 for: no such entity (a typo, or a made-up id). Any other failure
+// (a 429, the network) says nothing about whether it exists.
+const _missing = new Set();
+
 export function getEntityRecord(kind, id) {
   const key = `${kind}/${id}`;
   if (!_records.has(key)) {
     const url = `${urlBase.api}/${kind}/${encodeURIComponent(id)}?${MAILTO}`;
-    _records.set(key, axios.get(url, axiosConfig()).then((r) => r.data).catch(() => {
-      _records.delete(key);
+    _records.set(key, axios.get(url, axiosConfig()).then((r) => r.data).catch((e) => {
+      if (e?.response?.status === 404) _missing.add(key);
+      else _records.delete(key);
       return null;
     }));
   }
   return _records.get(key);
+}
+
+/** True only when the API says no such entity exists (404); false when found or unknown. */
+export async function entityMissing(kind, id) {
+  await getEntityRecord(kind, id);
+  return _missing.has(`${kind}/${id}`);
 }
 
 // The grammar's phrases with plain-English help ({value, kind, detail, doc}), from the same
