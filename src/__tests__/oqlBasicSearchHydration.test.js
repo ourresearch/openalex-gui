@@ -96,3 +96,34 @@ describe("nonFilterClausesFromCanonical keeps the folded search (#1245)", () => 
         expect(url.nonFilterClausesFromCanonical()).toEqual({});
     });
 });
+
+describe("makeGroupByUrl counts the folded search too (#1758)", () => {
+    beforeEach(() => {
+        storeState.isLoading = false;
+        storeState.entityType = "works";
+        route.value = OQL_ROUTE;
+    });
+
+    it("adds the canonical search on an ?oql= route, so chip menus count the page's works", () => {
+        storeState.resultsObject = xq("/works?filter=publication_year:>2021,title_abstract_keywords.search:coral reefs");
+        const u = new URL(url.makeGroupByUrl("works", "type", { filters: [] }));
+        expect(u.searchParams.get("search.title_abstract_keywords")).toBe("coral reefs");
+    });
+
+    it("leaves it out when the filters already hold the search, or the route has its own", () => {
+        storeState.resultsObject = xq("/works?filter=title_and_abstract.search:kelp");
+        const withSearch = new URL(url.makeGroupByUrl("works", "type", { filters: [{ key: "title_and_abstract.search", value: "kelp" }] }));
+        expect([...withSearch.searchParams.keys()].some((k) => k.startsWith("search"))).toBe(false);
+        route.value = { name: "OqlQuery", query: { oql: "x", search: "typed" }, params: {} };
+        const typed = new URL(url.makeGroupByUrl("works", "type", { filters: [] }));
+        expect(typed.searchParams.getAll("search")).toEqual(["typed"]);
+        expect(typed.searchParams.get("search.title_and_abstract")).toBeNull();
+    });
+
+    it("adds nothing off the ?oql= route", () => {
+        storeState.resultsObject = xq("/works?filter=title_and_abstract.search:kelp");
+        route.value = { name: "Serp", query: { filter: "type:article" }, params: { entityType: "works" } };
+        const u = new URL(url.makeGroupByUrl("works", "type", { filters: [] }));
+        expect([...u.searchParams.keys()].some((k) => k.startsWith("search"))).toBe(false);
+    });
+});

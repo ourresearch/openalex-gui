@@ -1388,6 +1388,15 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
     searchParamKeys.forEach(k => {
         if (routeQuery[k]) url.searchParams.set(k, routeQuery[k])
     })
+    // `/q?oql=` carries no search param: the search rides in the settled canonical query,
+    // and the chips' filters (chipFilterStr) leave it out, so their menus counted every
+    // work (#1758: Type said 32M articles for `get works since 2022 about (coral reefs)`).
+    // Skipped when the caller's filters already hold the search clause.
+    const searchInFilters = options.filters.some(f => /(^|\.)search(\.|$)/.test(String(f?.key || "")))
+    if (routeQuery.oql && !searchInFilters && !searchParamKeys.some(k => routeQuery[k])) {
+        const s = searchFromCanonicalXQuery(router.currentRoute.value)
+        if (s) url.searchParams.set(s.type, s.value)
+    }
 
     // we have to do it hacky like this because searchParams.set() will urlencode
     // special within-filter symbols like + and !
