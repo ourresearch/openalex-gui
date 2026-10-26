@@ -1,5 +1,5 @@
 // Canonical icon per work type — single source of truth (#720).
-// Keys = the full live /types vocabulary (25 types as of 2026-07-31).
+// Keys = the full live /types vocabulary (26 types as of 2026-10-26).
 // All names verified to exist in @mdi/font 7.4.47 (the GUI's installed version).
 // Intended home: openalex-gui/src/typeIcons.js. First consumer: #686 hero feed.
 
@@ -28,6 +28,7 @@ const typeIcons = {
   "paratext": "mdi-text-box-outline",
   "supplementary-materials": "mdi-paperclip",
   "libguides": "mdi-compass-outline",
+  "physical-object": "mdi-cube-outline", // a sample, specimen or artifact (#1647)
   "other": "mdi-file-question-outline",
 };
 

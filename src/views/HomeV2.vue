@@ -487,6 +487,7 @@ onMounted(() => {
     'paratext': 'Publishing material about a venue or work, like covers and mastheads.',
     'supplementary-materials': 'Extra files that support a published work.',
     'libguides': 'A research guide curated by librarians.',
+    'physical-object': 'A physical sample, specimen, or artifact registered as its own record.',
     'other': "A work that doesn't fit any other category.",
   };
   const lastName = n => n.trim().split(/\s+/).pop();
