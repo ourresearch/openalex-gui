@@ -6,17 +6,18 @@
          hero is the headline and the box, centered: no subhead, works feed, Learn more or logos. -->
     <section class="hero" :class="{ 'hero--nl': nlSearch }">
       <div class="hero-copy">
+        <!-- The new search's headline and subtitle: Jason's pick, Mon 26 Oct (#1758). -->
+        <h1 v-if="nlSearch" class="hero-headline">Ask Anything About Research</h1>
         <!-- ⚠️ headline is the approved PLACEHOLDER (#686); Jason revisits it on the
              assembled page. Don't reopen before assembly. -->
-        <h1 class="hero-headline">Unlock the<br>world's research</h1>
+        <h1 v-else class="hero-headline">Unlock the<br>world's research</h1>
         <p v-if="!nlSearch" class="hero-subhead">
           Inspired by the Library of Alexandria, we index half a billion scholarly
           works and make them easy to search, analyze, and&nbsp;reuse.
         </p>
-        <!-- What we are, in one line (Jason, Wed 21 Oct). -->
         <p v-else class="hero-subhead hero-subhead--nl">
-          The free, open catalog of the world's research: half a billion scholarly works.
-          Ask it anything, in plain&nbsp;words.
+          OpenAlex is a free, open index of half a billion scholarly works. Ask a question and
+          get the answer as a list, table, or&nbsp;chart.
         </p>
         <div class="hero-search">
           <!-- hide-submit: no in-box magnifier; the Search CTA below drives it (#681).
