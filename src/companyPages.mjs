@@ -41,7 +41,7 @@ export const COMPANY_PAGES = {
   },
   '/pricing': {
     title: 'Pricing',
-    description: 'OpenAlex API pricing: every account gets $1 a day free. For more, add prepaid usage from $1 or get an annual subscription, with an optional PDF sync add-on.',
+    description: 'OpenAlex API pricing: every account gets $1 a day free. For more, add prepaid usage from $1 or get an annual subscription. Member+ and Partner can add PDF sync.',
   },
   '/privacy': {
     title: 'Privacy',

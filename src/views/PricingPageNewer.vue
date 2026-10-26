@@ -27,8 +27,8 @@
         <strong>$1 per day for free</strong> — enough for most research and
         personal projects. If you need more, there are two ways to get it:
         <a href="#prepaid-usage">add prepaid usage</a> or
-        get an <a href="#subscriptions">annual subscription</a> — optionally
-        with the PDF sync add-on.
+        get an <a href="#subscriptions">annual subscription</a>. Member+ and
+        Partner subscriptions can also add PDF sync.
         For a full explanation of the plans and their benefits, see the
         <a :href="`${HELP_DOCS_BASE}/pricing/`" target="_blank">pricing docs</a>.
       </p>
@@ -280,13 +280,14 @@
                   Sync our complete archive of 50+ million cached open-access full-text PDFs to your own S3-compatible storage, with new documents delivered continuously as they arrive.
                 </v-tooltip>
               </td>
-              <td v-for="n in 3" :key="n">
+              <td><span class="dash">—</span></td>
+              <td v-for="n in 2" :key="n">
                 <span class="addon-value">Add-on</span>
                 <v-tooltip location="top" max-width="280" aria-label="PDF sync add-on">
                   <template #activator="{ props }">
                     <v-icon v-bind="props" size="14" class="info-hint">mdi-information-outline</v-icon>
                   </template>
-                  Available as a paid add-on.
+                  Available as a paid add-on to Member+ and Partner, the plans with daily sync: new PDFs are only usable with fresh metadata.
                 </v-tooltip>
               </td>
             </tr>
@@ -434,7 +435,9 @@
           </v-expansion-panel-title>
           <v-expansion-panel-text class="faq-answer">
             No — full-archive access is sold as the <strong>PDF sync service</strong>, a paid
-            add-on to any annual subscription. What you're buying is the ongoing service of
+            add-on to a Member+ or Partner subscription. Those plans include daily sync, and
+            new PDFs are only usable with fresh metadata (their license, and which work each
+            belongs to). What you're buying is the ongoing service of
             syncing our living archive (50+ million open-access PDFs, with new documents
             arriving continuously) to your own S3-compatible storage, rather than a one-time
             copy of the files. For smaller-scale needs, anyone can download individual PDFs
