@@ -69,9 +69,16 @@ const viewerKey = process.env.OPENALEX_TEST_VIEWER_API_KEY
 // So the harness adds a key to those calls at the network layer (the page still runs logged
 // out). --keyless turns this off.
 const apiKey = args.keyless ? null : (process.env.QA_API_KEY || process.env.OPENALEX_API_KEY || null)
+// oxjob #1782: with ORIGIN_KEY_MODE=enforce, openalex-gui.herokuapp.com 301s to openalex.org unless the
+// request carries the origin key (server/lib/origin-key.ts). The harness sends it only to the target
+// under test, never to third parties: OPENALEX_SITE_ORIGIN_KEY="$(heroku config:get ORIGIN_SHARED_SECRET -a openalex-gui | cut -d, -f1)"
+const originKey = (process.env.OPENALEX_SITE_ORIGIN_KEY || '').trim() || null
 const BLOCK = /(^https?:\/\/(plausible\.io|[^/]*\.ingest\.(us\.)?sentry\.io)\/)/
 const isLocal = base => /^http:\/\/(localhost|127\.0\.0\.1)/.test(base)
 fs.mkdirSync(outDir, { recursive: true })
+if (!originKey && targets.some(t => /\.herokuapp\.com$/.test(new URL(t.base).host))) {
+  console.warn('note: no OPENALEX_SITE_ORIGIN_KEY; a herokuapp.com target redirects to openalex.org while ORIGIN_KEY_MODE=enforce')
+}
 
 // Desk memory guard: desk's RAM is shared by ~20 Claude sessions. A page that runs away
 // (one SERP grew a renderer to 2.8 GB in the first run) gets its renderer killed once it
@@ -101,6 +108,7 @@ function guardTick() {
 async function rawCheck(target, route) {
   const headers = { 'user-agent': 'OpenAlex-QA/1689 (+https://openalex.org)' }
   if (isLocal(target.base)) headers['x-forwarded-proto'] = 'https'
+  else if (originKey) headers['x-openalex-origin-key'] = originKey
   const r = { status: null, location: null, bytes: 0 }
   try {
     const res = await fetch(target.base + route.path, { headers, redirect: 'manual' })
@@ -157,6 +165,9 @@ async function loadInBrowserInner(browser, target, route, width) {
     }
     if (isLocal(target.base) && u.startsWith(target.base)) {
       return rt.continue({ headers: { ...rt.request().headers(), 'x-forwarded-proto': 'https' } })
+    }
+    if (originKey && !isLocal(target.base) && u.startsWith(target.base + '/')) {
+      return rt.continue({ headers: { ...rt.request().headers(), 'x-openalex-origin-key': originKey } })
     }
     return rt.continue()
   })

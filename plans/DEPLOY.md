@@ -69,12 +69,15 @@ npm 11.21 no longer runs dependencies' install scripts unless allowed (`esbuild`
    build log expect `Resolving node version 24.x`, `npm 11.x`, `nuxt build`, `Procfile declares
    types -> web`. Preboot is off, so all five dynos restart together (a few seconds of 503s, as on
    every deploy today).
-4. **Check the origin** (bypasses Cloudflare):
+4. **Check the origin** (bypasses Cloudflare). Since #1782 the app turns away requests that skip
+   Cloudflare (herokuapp.com gets a 301 to openalex.org), so these send the origin key Cloudflare
+   adds; never paste it anywhere else:
    ```
-   curl -s https://openalex-gui.herokuapp.com/works/W2741809807 | grep -c "The state of OA"   # >= 1
-   curl -sI https://openalex-gui.herokuapp.com/W2741809807 | head -1                           # 301
-   curl -sI https://openalex-gui.herokuapp.com/no-such-file.png | head -1                      # 404
-   node scripts/qa/site-qa.mjs --targets live=https://openalex-gui.herokuapp.com             # whole site
+   K=$(heroku config:get ORIGIN_SHARED_SECRET -a openalex-gui | cut -d, -f1)
+   curl -s -H "x-openalex-origin-key: $K" https://openalex-gui.herokuapp.com/works/W2741809807 | grep -c "The state of OA"   # >= 1
+   curl -sI -H "x-openalex-origin-key: $K" https://openalex-gui.herokuapp.com/W2741809807 | head -1                           # 301
+   curl -sI -H "x-openalex-origin-key: $K" https://openalex-gui.herokuapp.com/no-such-file.png | head -1                      # 404
+   OPENALEX_SITE_ORIGIN_KEY="$K" node scripts/qa/site-qa.mjs --targets live=https://openalex-gui.herokuapp.com             # whole site
    heroku logs -a openalex-gui --dyno web -n 200 | grep -E "Listening|R14|R15|ssr-error"
    ```
 5. **Purge Cloudflare** once the new release answers (only matters after the HTML cache rule in
