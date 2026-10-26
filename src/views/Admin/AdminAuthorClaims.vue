@@ -186,7 +186,7 @@
                 </template>
                 <template v-else>
                   <v-chip
-                    :color="claim.decision === 'approved' ? 'success' : 'error'"
+                    :color="decisionColor(claim.decision)"
                     size="small"
                     variant="flat"
                   >
@@ -197,6 +197,18 @@
                     <template v-if="claim.decision_note"> · "{{ claim.decision_note }}"</template>
                     <template v-if="claim.verified_by"> · via {{ claim.verified_by }}</template>
                   </div>
+                  <!-- Wrong profile or fraud: end the claim (#1270) -->
+                  <v-btn
+                    v-if="claim.decision === 'approved'"
+                    variant="text"
+                    size="small"
+                    color="error"
+                    class="mt-1"
+                    :loading="rowBusy === claim.id"
+                    @click="openRevokeDialog(claim)"
+                  >
+                    Revoke
+                  </v-btn>
                 </template>
               </div>
             </div>
@@ -254,6 +266,40 @@
       </v-card>
     </v-dialog>
 
+    <!-- Revoke dialog (#1270) -->
+    <v-dialog v-model="revokeDialog" max-width="480">
+      <v-card>
+        <v-card-title>Revoke claim</v-card-title>
+        <v-card-text>
+          <p class="text-body-2 text-medium-emphasis mb-3">
+            Ends this approved claim: the person loses the profile and can no longer edit it.
+            They can claim a different profile, but not this one.
+          </p>
+          <v-checkbox
+            v-model="revokeRevertEdits"
+            label="Also undo their edits to this profile"
+            hint="Pending edits are dropped; applied ones come off after the next nightly update."
+            persistent-hint
+            density="compact"
+            class="mb-3"
+          />
+          <v-textarea
+            v-model="revokeNote"
+            label="Note, e.g. the ticket number"
+            variant="outlined"
+            rows="2"
+            auto-grow
+            hide-details
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="revokeDialog = false">Cancel</v-btn>
+          <v-btn color="error" variant="flat" @click="confirmRevoke">Revoke</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3500">
       {{ snackbar.text }}
     </v-snackbar>
@@ -277,6 +323,7 @@ const decisionOptions = [
   { title: 'Needs evidence', value: 'needs_evidence' },
   { title: 'Approved', value: 'approved' },
   { title: 'Rejected', value: 'rejected' },
+  { title: 'Revoked', value: 'revoked' },
   { title: 'All', value: 'all' },
 ];
 
@@ -292,6 +339,11 @@ const bulkBusy = ref(false);
 const denyDialog = ref(false);
 const denyNote = ref('');
 const denyTargetId = ref(null);
+
+const revokeDialog = ref(false);
+const revokeNote = ref('');
+const revokeRevertEdits = ref(true);
+const revokeTargetId = ref(null);
 
 const snackbar = ref({ show: false, text: '', color: 'success' });
 function notify(text, color = 'success') {
@@ -484,6 +536,35 @@ async function confirmDeny() {
     }
   } else {
     await bulkDecide('deny', note);
+  }
+}
+
+// --- Revoke an approved claim (#1270) ---
+function decisionColor(decision) {
+  return { approved: 'success', revoked: 'grey' }[decision] || 'error';
+}
+function openRevokeDialog(claim) {
+  revokeTargetId.value = claim.id;
+  revokeNote.value = '';
+  revokeRevertEdits.value = true;
+  revokeDialog.value = true;
+}
+async function confirmRevoke() {
+  const id = revokeTargetId.value;
+  revokeDialog.value = false;
+  rowBusy.value = id;
+  try {
+    const res = await axios.post(
+      `${urlBase.userApi}/admin/author-claims/${id}/revoke`,
+      { note: revokeNote.value.trim() || undefined, revert_edits: revokeRevertEdits.value },
+      axiosConfig({ userAuth: true }),
+    );
+    notify(res.data?.message || 'Claim revoked.', 'warning');
+    await fetchClaims();
+  } catch (e) {
+    notify(e?.response?.data?.message || 'Failed to revoke claim.', 'error');
+  } finally {
+    rowBusy.value = null;
   }
 }
 

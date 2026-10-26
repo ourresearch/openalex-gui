@@ -61,6 +61,7 @@ const pendingClaimLabel = computed(() => ({
   pending: 'Claim being checked',
   needs_evidence: 'Claim needs evidence',
   rejected: 'Claim rejected',
+  revoked: 'Claim revoked',
 }[pendingClaim.value?.decision] || 'Claim'));
 
 const pendingClaimUrl = computed(() => {
@@ -76,7 +77,7 @@ const pendingClaimDescription = computed(() => {
   const c = pendingClaim.value || {};
   const state = c.decision === 'needs_evidence'
     ? `Sent back: ${c.feedback_code || 'unknown'}${c.feedback_link ? ` (${c.feedback_link})` : ''}.`
-    : c.decision === 'rejected' ? 'Rejected by staff.' : 'Being checked.';
+    : { rejected: 'Rejected by staff.', revoked: 'Revoked by staff.' }[c.decision] || 'Being checked.';
   return when ? `Submitted ${when}. ${state}` : state;
 });
 </script>
