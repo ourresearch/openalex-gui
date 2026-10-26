@@ -186,6 +186,8 @@ const LINEAGE_CHUNK_SIZE = 50;
 
 // Every institution whose lineage includes any of rootIds. Cursor-paged: Inserm
 // alone has 405 descendants, so a single per_page=200 call would drop the tail.
+// Sent with the user's API key: the API refuses keyless cursor paging (401), which
+// left the dropdown empty for any org past 200 institutions (Sorbonne, ZD 26467).
 async function fetchByLineage(rootIds) {
   const results = [];
   for (let i = 0; i < rootIds.length; i += LINEAGE_CHUNK_SIZE) {
@@ -194,7 +196,8 @@ async function fetchByLineage(rootIds) {
     while (cursor) {
       const res = await axios.get(
         `https://api.openalex.org/institutions?filter=lineage:${roots}` +
-        `&select=id,display_name,status&per_page=200&cursor=${cursor}`
+        `&select=id,display_name,status&per_page=200&cursor=${cursor}`,
+        axiosConfig()
       );
       results.push(...(res.data.results || []));
       cursor = res.data.meta?.next_cursor || null;
@@ -205,7 +208,8 @@ async function fetchByLineage(rootIds) {
 
 async function fetchReseedIds(institutionId) {
   const res = await axios.get(
-    `https://api.openalex.org/institutions/${institutionId}?select=id,associated_institutions`
+    `https://api.openalex.org/institutions/${institutionId}?select=id,associated_institutions`,
+    axiosConfig()
   );
   return (res.data.associated_institutions || [])
     .filter(assoc => assoc.relationship === 'child' || assoc.relationship === 'predecessor')

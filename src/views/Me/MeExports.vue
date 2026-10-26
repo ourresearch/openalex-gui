@@ -120,8 +120,7 @@
                   size="small"
                   variant="text"
                   color="primary"
-                  :href="exp.result_url"
-                  target="_blank"
+                  @click="downloadExport(exp)"
                 >
                   <v-icon>mdi-download</v-icon>
                   <v-tooltip activator="parent" location="top" aria-label="Download">Download</v-tooltip>
@@ -386,6 +385,29 @@ const deleteExport = async (exportId) => {
     console.error('Error deleting export:', err);
     store.commit('snackbar', 'Failed to delete export');
   }
+};
+
+// The stored result_url is a presigned S3 link that dies after 30 days while the
+// file stays; ask users-api for a fresh link at click time (ZD 26342). Falls back
+// to the stored link if that call fails.
+const downloadExport = async (exp) => {
+  try {
+    const resp = await axios.get(
+      `${urlBase.userApi}/users/${userId.value}/exports/${exp.id}/download?format=json`,
+      axiosConfig({ userAuth: true })
+    );
+    if (resp.data?.url) {
+      window.location.href = resp.data.url;
+      return;
+    }
+  } catch (err) {
+    if (err?.response?.status === 404) {
+      store.commit('snackbar', 'This export file is no longer available');
+      return;
+    }
+    console.error('Error getting export download link:', err);
+  }
+  if (exp.result_url) window.open(exp.result_url, '_blank');
 };
 
 const copyExportId = async (exportId) => {

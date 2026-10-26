@@ -70,6 +70,8 @@ const listedInLabels = {
     "dongbi-d": "Dongbi Index (China), D",
     // Diamond Discovery Hub (EDCH / OPERAS request, 2026-10-21)
     "ddh": "Diamond Discovery Hub",
+    // International OA Journal Recommended List (Tsinghua / CUJS / CNPIEC; ZD 26281, 2026-10-25)
+    "oarl": "International OA Journal Recommended List (OARL)",
 };
 
 const isListedInKey = (filterKey) =>
