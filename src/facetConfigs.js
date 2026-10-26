@@ -4525,6 +4525,24 @@ const facetConfigs = function (entityType) {
             }
         })
 
+    // Institutions also count works through their child institutions, then also through
+    // the institutions they replaced (= the lineage filter): every count is shown on the
+    // entity page, so a librarian sees which number is which (oxjob #1823).
+    const institutionFamilyCountFilters = [
+        "works_count_with_children",
+        "works_count_with_children_and_predecessors",
+    ].map(key => ({
+        key,
+        entityToFilter: "institutions",
+        type: "range",
+        category: "citation",
+        actions: ["filter", "sort", "column"],
+        actionsPopular: [],
+        icon: "mdi-file-document-multiple-outline",
+        isDisplayedAsCount: true,
+        extractFn: (entity) => entity[key],
+    }))
+
     // Inject a `collection` facet for every entity type that supports collections (v1).
     // The chip itself resolves values via /collections/<id> (see NoviceFilterChip)
     // and renders a picker that lists the current user's collections for the type.
@@ -4557,6 +4575,7 @@ const facetConfigs = function (entityType) {
         ...ret,
         ...worksCountFilters,
         ...citedByCountFilters,
+        ...institutionFamilyCountFilters,
         ...collectionFilters,
     ]
 

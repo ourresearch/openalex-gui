@@ -91,10 +91,10 @@
     </span>
 
     <span v-else-if="valueWorksCount !== null">
-      <router-link v-if="valueWorksCount > 0" :to="valueWorksCountLink">
+      <router-link v-if="valueWorksCount > 0 && valueWorksCountLink" :to="valueWorksCountLink">
         {{ filters.toPrecision(valueWorksCount) }}
       </router-link>
-      <span v-else>0</span>
+      <span v-else>{{ valueWorksCount > 0 ? filters.toPrecision(valueWorksCount) : 0 }}</span>
     </span>
 
     <span v-else-if="valueUnlinkedCount">
@@ -257,8 +257,18 @@ const isDisplayed = computed(() => {
     return true;
   }
   if (isValueAnArray.value) return !!rawValue.value.length;
+  // An institution's wider works counts show only when they add works (#1823).
+  const narrower = INSTITUTION_NARROWER_COUNT[props.filterKey];
+  if (narrower && entityType.value === 'institutions') {
+    return typeof rawValue.value === 'number' && rawValue.value > (props.data?.[narrower] ?? 0);
+  }
   return rawValue.value !== null && rawValue.value !== undefined;
 });
+
+const INSTITUTION_NARROWER_COUNT = {
+  works_count_with_children: 'works_count',
+  works_count_with_children_and_predecessors: 'works_count_with_children',
+};
 
 const valueEntityLinks = computed(() => {
   return entityDatumValues.entityLinkItems(rawValue.value);
@@ -290,7 +300,8 @@ const valueString = computed(() => {
 });
 
 const valueWorksCount = computed(() => {
-  if (['works_count', 'funded_outputs_count', 'awards_count'].includes(props.filterKey)) {
+  if (['works_count', 'funded_outputs_count', 'awards_count',
+    'works_count_with_children', 'works_count_with_children_and_predecessors'].includes(props.filterKey)) {
     return rawValue.value ?? null;  // Return the value (including 0), or null if undefined
   }
   return null;
@@ -299,6 +310,15 @@ const valueWorksCount = computed(() => {
 const valueWorksCountLink = computed(() => {
   if (props.filterKey === 'awards_count') {
     return filters.funderAwardsLink(props.data?.id);
+  }
+  // Each institution count opens the works it counts: works_count the works
+  // linked to the institution itself, the widest count the lineage filter. No
+  // filter selects "with children but not predecessors", so that count has no link (#1823).
+  if (props.filterKey === 'works_count' && entityType.value === 'institutions') {
+    return filters.entityWorksLink(props.data?.id, props.data, 'authorships.institutions.id');
+  }
+  if (props.filterKey === 'works_count_with_children_and_predecessors') {
+    return filters.entityWorksLink(props.data?.id, props.data);
   }
   if (props.filterKey === 'works_count' || props.filterKey === 'funded_outputs_count') {
     return filters.entityWorksLink(props.data?.id, props.data);

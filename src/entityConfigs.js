@@ -331,6 +331,14 @@ const entityConfigs = reactive({
             "related_institutions",
             "ids.ror",
         ],
+        // Works counted directly, with child institutions, and also with the
+        // institutions it replaced (oxjob #1823); a row equal to the one above hides.
+        metricsToShowOnEntityPage: [
+            "works_count",
+            "works_count_with_children",
+            "works_count_with_children_and_predecessors",
+            "cited_by_count",
+        ],
         groupByDefaults: [
             "country_code",
             "type",
@@ -921,6 +929,8 @@ onCatalogUpdated(applyEntityIdentity);
 
 const metricsPriorityOrder = [
     "works_count",
+    "works_count_with_children",
+    "works_count_with_children_and_predecessors",
     "cited_by_count",
     "summary_stats.h_index",
     "summary_stats.i10_index",
