@@ -161,6 +161,7 @@ describe('recordHead', () => {
     expect(person.affiliation[0]).toMatchObject({ name: 'OpenAlex', url: 'https://openalex.org/institutions/I4200000001' });
     expect(recordJsonLd('institutions', RECORDS.institutions).sameAs).toContain('https://ror.org/03vek6s52');
     expect(recordJsonLd('topics', RECORDS.topics).inDefinedTermSet.name).toBe('OpenAlex topics');
+    expect(recordJsonLd('works', { ...RECORDS.works, type: 'physical-object' })['@type']).toBe('CreativeWork');
   });
   it('authors get og:type profile; other records website', () => {
     expect(meta(recordHead('authors', RECORDS.authors), 'og:type')).toBe('profile');
