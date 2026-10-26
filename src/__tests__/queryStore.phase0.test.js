@@ -232,7 +232,25 @@ describe("#464 Phase 2a — syncFromResponse SEEDS without bumping the edit coun
     // page/cursor cleared; per_page (a size preference) survives.
     expect(state.paging).toEqual({ per_page: 50 });
     expect(state.lastExecutedOql).toBe(null);
+    expect(state.lastExecutedWorks).toBe(null);
     expect(state.editEpoch).toBe(0);
+  });
+
+  it("records the works the query counts from, the same whatever the splits (#1758)", () => {
+    // The facets key on it: a new split, measure or order over the same works doesn't refetch them.
+    const works = (oqo) => {
+      const state = freshState();
+      queryModule.actions.syncFromResponse({ commit: commitInto(state), state }, makeResp(oqo, "x"));
+      return state.lastExecutedWorks;
+    };
+    const filter_rows = [{ column_id: "publication_year", operator: ">=", value: 2022 }];
+    const list = works({ get_rows: "works", filter_rows });
+    expect(list).toBe(JSON.stringify({ get_rows: "works", filter_rows }));
+    expect(works({ get_rows: "works", filter_rows, calculate: [{ measure: "count" }], group_by: [{ column_id: "publication_year" }] })).toBe(list);
+    expect(works({ get_rows: "works", filter_rows, calculate: [{ measure: "count" }], group_by: [{ column_id: "country" }],
+      sort_by: [{ column_id: "count", direction: "desc" }] })).toBe(list);
+    // a split over listed values limits the works, so it counts
+    expect(works({ get_rows: "works", filter_rows, group_by: [{ column_id: "institution", values: ["I1"] }] })).not.toBe(list);
   });
 });
 

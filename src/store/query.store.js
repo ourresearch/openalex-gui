@@ -62,6 +62,7 @@ const QUERY_KEYS = ["get_rows", "filter_rows", "corpus", "calculate"];
 // params (state.paging → executionParams), per the query/view split.
 import { SEMANTIC_MAX_PER_PAGE } from "@/semanticLimits";
 import { pickOql } from "@/oqlForm";
+import { startingSetOqo } from "@/oqlPipeline";
 export { SEMANTIC_MAX_PER_PAGE };
 
 // True when any leaf anywhere in the filter tree is a semantic-search clause
@@ -131,6 +132,10 @@ export default {
     // a redundant re-fetch (a store-driven edit executes via POST-OQO, then projects
     // `?oql=<canonical>`; without this the route change would fetch a second time).
     lastExecutedOql: null,
+    // The works that query counts from (its starting set: no calculations, splits or order),
+    // as a string. The facets key on it, so a new split or measure over the same works
+    // doesn't refetch them (#1758).
+    lastExecutedWorks: null,
     // Nav intent of the LAST edit (Phase 2b, #464): 'push' or 'replace'. The SERP
     // projector reads it to decide `url.pushToRoute` vs `url.replaceToRoute` when it
     // writes the canonical URL — so the back button behaves by edit SEMANTICS, fixed
@@ -198,6 +203,9 @@ export default {
     },
     setLastExecutedOql(state, oql) {
       state.lastExecutedOql = oql;
+    },
+    setLastExecutedWorks(state, key) {
+      state.lastExecutedWorks = key;
     },
     // Bump the edit counter — the signal the SERP execution watcher fires on — and
     // record this edit's nav intent ('push' | 'replace', default 'replace') so the
@@ -271,12 +279,14 @@ export default {
         commit("setSortState", null);
         commit("patchPaging", { page: undefined, cursor: undefined });
         commit("setLastExecutedOql", null);
+        commit("setLastExecutedWorks", null);
         return;
       }
       const { queryOqo, viewState } = splitOqo(oqo);
       commit("setQueryOqoFull", queryOqo);
       commit("setViewState", viewState);
       commit("setLastExecutedOql", oql);
+      commit("setLastExecutedWorks", JSON.stringify(startingSetOqo(oqo)));
       // The order is part of the query (oxjob #1658): adopt the echo's, always. A menu pick
       // runs with its order, so the echo carries it; a typed or linked OQL runs as written,
       // so its order (or none: the default) replaces an earlier pick. The latest edit wins.

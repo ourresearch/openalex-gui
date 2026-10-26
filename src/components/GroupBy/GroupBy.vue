@@ -550,7 +550,10 @@ const closeDialog = () => {
 const groupsRequestSignature = () => {
   if (oqlMode.value) {
     if (!store.state.query.lastExecutedOql) return null;
-    return `oql:${props.entityType}:${props.filterKey}:${store.state.query.lastExecutedOql}`;
+    // The facets count the query's starting set (api.buildGroupByOqo), so key on that: a new
+    // split, measure or order over the same works doesn't refetch them (#1758).
+    const works = store.state.query.lastExecutedWorks || store.state.query.lastExecutedOql;
+    return `oql:${props.entityType}:${props.filterKey}:${works}`;
   }
   // The Xpac toggle changes the corpus via ?corpus= / legacy ?include_xpac
   // without touching ?filter=, so it must be part of the signature — otherwise
