@@ -202,7 +202,7 @@
           density="compact"
         />
         <div v-if="isPastPageLimit" class="text-body-2 text-grey-darken-1 mt-1">
-          Pages stop at {{ (MAX_PAGES * perPage).toLocaleString() }} affiliations. Search to find the rest.
+          Past page {{ MAX_PAGES }}, pages open one at a time, in order.
         </div>
       </div>
     </v-card>
@@ -234,13 +234,13 @@
       <v-card>
         <v-card-title>Export Limit</v-card-title>
         <v-card-text>
-          The maximum export size is 10,000 rows. Your current result set has {{ totalResults.toLocaleString() }} rows.
-          Only the first 10,000 rows will be exported.
+          The maximum export size is {{ MAX_EXPORT_ROWS.toLocaleString() }} rows. Your current result set has {{ totalResults.toLocaleString() }} rows.
+          Only the first {{ MAX_EXPORT_ROWS.toLocaleString() }} rows will be exported.
         </v-card-text>
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" @click="showExportLimitDialog = false">Cancel</v-btn>
-          <v-btn color="primary" @click="confirmExport">Export first 10k</v-btn>
+          <v-btn color="primary" @click="confirmExport">Export first {{ MAX_EXPORT_ROWS.toLocaleString() }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -385,13 +385,21 @@ const linkFilterOptions = [
   { title: 'unlinked to', value: 'not_matching' },
 ];
 
-// /raw-affiliation-strings pages by number only up to page 100; a later page
-// answered 400 and blanked the list, which read as a broken editor (INRAE's
-// 129K linked strings, oxjob #1823).
+// /raw-affiliation-strings pages by number only up to page 100 (a later page
+// answered 400 and blanked the list: INRAE's 129K linked strings, oxjob #1823).
+// Past that the editor follows meta.next_cursor, one page at a time, so the
+// pager offers each page once its cursor is known.
 const MAX_PAGES = 100;
+const pageCursors = ref(new Map()); // page number past MAX_PAGES -> cursor that fetches it
+let pageCursorsSearch = '';
+
+// CSV exports walk cursors 1,000 rows at a time (129K rows in about a minute).
+const MAX_EXPORT_ROWS = 1000000;
+const EXPORT_PER_PAGE = 1000;
 
 const totalPages = computed(() => {
-  return Math.min(Math.ceil(totalResults.value / perPage.value) || 1, MAX_PAGES);
+  const reachable = Math.max(MAX_PAGES, ...pageCursors.value.keys());
+  return Math.min(Math.ceil(totalResults.value / perPage.value) || 1, reachable);
 });
 
 const isPastPageLimit = computed(() => totalResults.value > MAX_PAGES * perPage.value);
@@ -552,6 +560,20 @@ function debouncedSearch() {
   }, 300);
 }
 
+// The current search and link filter, without paging.
+function searchParams() {
+  const params = new URLSearchParams();
+  if (searchQuery.value) {
+    params.set('q', searchQuery.value);
+  }
+  if (matchingFilter.value === 'matching' && props.institutionId) {
+    params.set('matched-institutions', props.institutionId);
+  } else if (matchingFilter.value === 'not_matching' && props.institutionId) {
+    params.set('unmatched-institutions', props.institutionId);
+  }
+  return params;
+}
+
 async function fetchAffiliations() {
   if (!props.institutionId) {
     affiliations.value = [];
@@ -564,23 +586,33 @@ async function fetchAffiliations() {
   error.value = null;
 
   try {
-    const params = new URLSearchParams();
-    params.set('page', currentPage.value);
-
-    if (searchQuery.value) {
-      params.set('q', searchQuery.value);
+    const params = searchParams();
+    const search = params.toString();
+    if (search !== pageCursorsSearch) {
+      pageCursors.value = new Map();
+      pageCursorsSearch = search;
     }
-
-    if (matchingFilter.value === 'matching' && props.institutionId) {
-      params.set('matched-institutions', props.institutionId);
-    } else if (matchingFilter.value === 'not_matching' && props.institutionId) {
-      params.set('unmatched-institutions', props.institutionId);
+    const page = currentPage.value;
+    if (page > MAX_PAGES) {
+      const cursor = pageCursors.value.get(page);
+      if (!cursor) {
+        currentPage.value = MAX_PAGES;
+        return;
+      }
+      params.set('cursor', cursor);
+    } else {
+      params.set('page', page);
     }
 
     const response = await axios.get(
       `${urlBase.api}/raw-affiliation-strings?${params.toString()}`,
       axiosConfig()
     );
+
+    const nextCursor = response.data.meta?.next_cursor;
+    if (nextCursor && page >= MAX_PAGES && search === pageCursorsSearch) {
+      pageCursors.value = new Map(pageCursors.value).set(page + 1, nextCursor);
+    }
 
     affiliations.value = response.data.results || [];
     totalResults.value = response.data.meta?.count || 0;
@@ -596,7 +628,7 @@ async function fetchAffiliations() {
 }
 
 function handleExport() {
-  if (totalResults.value > 10000) {
+  if (totalResults.value > MAX_EXPORT_ROWS) {
     showExportLimitDialog.value = true;
   } else {
     startExport();
@@ -612,7 +644,7 @@ function startExport() {
   exportAbortController = new AbortController();
   exportProgress.value = 0;
   exportedCount.value = 0;
-  exportTotalTarget.value = Math.min(totalResults.value, 10000);
+  exportTotalTarget.value = Math.min(totalResults.value, MAX_EXPORT_ROWS);
   showExportDialog.value = true;
   exportToCsv();
 }
@@ -625,30 +657,20 @@ function cancelExport() {
 }
 
 async function exportToCsv() {
-  const maxExportRows = 10000;
-  const exportPerPage = 100;
   const delayBetweenRequests = 100;
   const maxRetries = 3;
-  let allResults = [];
-  let page = 1;
+  const rows = [];
+  let cursor = '*';
 
   try {
-    while (allResults.length < maxExportRows) {
+    while (cursor && rows.length < MAX_EXPORT_ROWS) {
       if (exportAbortController?.signal.aborted) {
         return;
       }
 
-      const params = new URLSearchParams();
-      params.set('page', page);
-      
-      if (searchQuery.value) {
-        params.set('q', searchQuery.value);
-      }
-      if (matchingFilter.value === 'matching' && props.institutionId) {
-        params.set('matched-institutions', props.institutionId);
-      } else if (matchingFilter.value === 'not_matching' && props.institutionId) {
-        params.set('unmatched-institutions', props.institutionId);
-      }
+      const params = searchParams();
+      params.set('per_page', EXPORT_PER_PAGE);
+      params.set('cursor', cursor);
 
       let response = null;
       let lastError = null;
@@ -658,7 +680,7 @@ async function exportToCsv() {
             ...axiosConfig(),
             signal: exportAbortController?.signal
           };
-          
+
           response = await axios.get(
             `${urlBase.api}/raw-affiliation-strings?${params.toString()}`,
             config
@@ -674,37 +696,37 @@ async function exportToCsv() {
           }
         }
       }
-      
+
       if (!response) {
         throw lastError || new Error('Failed to fetch after retries');
       }
 
+      // Rows go straight to CSV lines: a full walk can be hundreds of
+      // thousands of rows.
       const results = response.data.results || [];
-      if (results.length === 0) break;
+      for (const item of results) {
+        rows.push(csvRow(item));
+      }
 
-      allResults = allResults.concat(results);
-      
-      exportedCount.value = Math.min(allResults.length, maxExportRows);
+      exportedCount.value = Math.min(rows.length, MAX_EXPORT_ROWS);
       exportProgress.value = (exportedCount.value / exportTotalTarget.value) * 100;
-      
-      page++;
 
-      if (results.length < exportPerPage) break;
-      
-      await new Promise(resolve => setTimeout(resolve, delayBetweenRequests));
+      cursor = results.length ? response.data.meta?.next_cursor : null;
+      if (cursor) {
+        await new Promise(resolve => setTimeout(resolve, delayBetweenRequests));
+      }
     }
 
     if (exportAbortController?.signal.aborted) {
       return;
     }
 
-    allResults = allResults.slice(0, maxExportRows);
+    rows.length = Math.min(rows.length, MAX_EXPORT_ROWS);
 
-    const csvContent = convertToCsv(allResults);
-    downloadCsv(csvContent, 'affiliations-export.csv');
+    downloadCsv([csvHeader(), ...rows].join('\n'), 'affiliations-export.csv');
 
     showExportDialog.value = false;
-    store.commit('snackbar', `Exported ${allResults.length} affiliations`);
+    store.commit('snackbar', `Exported ${rows.length.toLocaleString()} affiliations`);
   } catch (err) {
     if (err.name === 'AbortError' || err.name === 'CanceledError') {
       return;
@@ -715,31 +737,27 @@ async function exportToCsv() {
   }
 }
 
-function convertToCsv(data) {
-  if (data.length === 0) return '';
+const CSV_COLUMNS = [
+  { key: 'raw_affiliation_string', header: 'Affiliation statement' },
+  { key: 'works_count', header: 'Works Count' },
+  { key: 'institution_ids_final', header: 'Institution IDs', transform: (val) => val?.join('|') || '' },
+];
 
-  const columns = [
-    { key: 'raw_affiliation_string', header: 'Affiliation statement' },
-    { key: 'works_count', header: 'Works Count' },
-    { key: 'institution_ids_final', header: 'Institution IDs', transform: (val) => val?.join('|') || '' },
-  ];
+function csvHeader() {
+  return CSV_COLUMNS.map(c => `"${c.header}"`).join(',');
+}
 
-  const headers = columns.map(c => `"${c.header}"`).join(',');
-
-  const rows = data.map(item => {
-    return columns.map(col => {
-      let value = item[col.key];
-      if (col.transform) {
-        value = col.transform(value);
-      }
-      if (value === null || value === undefined) {
-        value = '';
-      }
-      return `"${String(value).replace(/"/g, '""')}"`;
-    }).join(',');
-  });
-
-  return [headers, ...rows].join('\n');
+function csvRow(item) {
+  return CSV_COLUMNS.map(col => {
+    let value = item[col.key];
+    if (col.transform) {
+      value = col.transform(value);
+    }
+    if (value === null || value === undefined) {
+      value = '';
+    }
+    return `"${String(value).replace(/"/g, '""')}"`;
+  }).join(',');
 }
 
 function downloadCsv(content, filename) {
