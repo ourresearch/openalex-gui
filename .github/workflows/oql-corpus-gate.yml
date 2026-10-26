@@ -17,6 +17,9 @@ name: OQL Corpus Mirror Drift Gate
 # so this needs no elastic-api venv / OQL parser, just a sibling checkout of the
 # corpus file. Both repos are public, so the default GITHUB_TOKEN can fetch them.
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [master]
@@ -28,19 +31,19 @@ jobs:
       # Lay the two repos out as siblings so gen_oql_corpus.py finds the corpus
       # at ../openalex-elastic-api/docs/oql/corpus.yaml.
       - name: Check out openalex-gui
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           path: openalex-gui
 
       - name: Check out openalex-elastic-api (corpus source of truth)
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: ourresearch/openalex-elastic-api
           ref: master
           path: openalex-elastic-api
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.10"
           cache: pip
@@ -58,7 +61,7 @@ jobs:
       # secrets on 2026-06-07 (#384).
       - name: Notify Slack on failure
         if: failure()
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@37ebaef184d7626c5f204ab8d3baff4262dd30f0 # v1.27.0
         with:
           channel-id: 'C07JS893QE4'  # #dev
           slack-message: |
