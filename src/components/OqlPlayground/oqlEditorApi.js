@@ -241,27 +241,25 @@ export async function searchEntityIds(kind, q, n = 4) {
   return (r.data?.results || []).map((x) => String(x.id).split("/").pop());
 }
 
-// Ids the API answered 404 for: no such entity (a typo, or a made-up id). Any other failure
-// (a 429, the network) says nothing about whether it exists.
-const _missing = new Set();
-
+// A 404 (no such entity: a typo, a made-up id) stays cached as null; any other failure (a 429,
+// the network) says nothing about whether it exists, so the next call asks again.
 export function getEntityRecord(kind, id) {
   const key = `${kind}/${id}`;
   if (!_records.has(key)) {
     const url = `${urlBase.api}/${kind}/${encodeURIComponent(id)}?${MAILTO}`;
     _records.set(key, axios.get(url, axiosConfig()).then((r) => r.data).catch((e) => {
-      if (e?.response?.status === 404) _missing.add(key);
-      else _records.delete(key);
+      if (e?.response?.status !== 404) _records.delete(key);
       return null;
     }));
+    // The NL page checks every entity in every query (#1758): keep the newest 200.
+    if (_records.size > 200) _records.delete(_records.keys().next().value);
   }
   return _records.get(key);
 }
 
 /** True only when the API says no such entity exists (404); false when found or unknown. */
 export async function entityMissing(kind, id) {
-  await getEntityRecord(kind, id);
-  return _missing.has(`${kind}/${id}`);
+  return (await getEntityRecord(kind, id)) === null && _records.has(`${kind}/${id}`);
 }
 
 // The grammar's phrases with plain-English help ({value, kind, detail, doc}), from the same

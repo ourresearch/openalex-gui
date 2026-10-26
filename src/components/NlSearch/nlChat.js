@@ -14,6 +14,8 @@ import { urlBase, axiosConfig } from '@/apiConfig';
 import { api } from '@/api';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
 import { shortThrottleWaitMs } from '@/throttleRetry';
+import { getEntityType } from '@/openalexId';
+import { findLinks } from '@/components/OqlPlayground/oqlLinks';
 
 // Routes whose answer is a query to run (the help desk answers in words instead).
 export const QUERY_ROUTES = new Set(['query', 'title', 'search_string']);
@@ -272,17 +274,20 @@ export function swapEntity(oql, fromId, toId, toName) {
   return String(oql || '').replace(new RegExp(`\\[[^\\]]*\\]\\(${fromId}\\)`, 'g'), `[${name}](${toId})`);
 }
 
-// The entities a query names, once each: `[University of Florida](I33213144)` or a bare
-// `(I150451288)` -> {kind, id, name}. The page checks each one exists (#1758): the API takes
-// an unknown id silently and counts 0 works for it.
-// A bare one needs 6+ digits so a search like `(P2020)` isn't read as an id; a named one
-// can be a topic (T10001).
-const OQL_ENTITY = /\[([^\]]*)\]\(([AISFPT]\d{4,})\)|\(([AISFPT]\d{6,})\)/g;
+// The entities a query names, once each: `[University of Florida](I33213144)`, or a bare
+// `(I150451288)` (how the API echoes an id it can't name) -> {kind, id, name}. The page checks
+// each one exists (#1758): the API takes an unknown id silently and counts 0 works for it.
+// Only letter-and-digits ids (W, A, S, I, F, P, T...); a bare one needs 6+ digits so a search
+// like `(P2020)` isn't read as an id.
+const BARE_ID = /\(([A-Z]\d{6,})\)/g;
+const NUMBERED_ID = /^[A-Z]\d{4,}$/i;
 export function entityIds(oql) {
+  const text = String(oql || '');
+  const named = findLinks(text).map((l) => ({ kind: l.kind, id: l.id, name: l.name.trim() || null }));
+  const bare = [...text.matchAll(BARE_ID)].map((m) => ({ kind: getEntityType(m[1]), id: m[1], name: null }));
   const out = new Map();
-  for (const m of String(oql || '').matchAll(OQL_ENTITY)) {
-    const id = m[2] || m[3];
-    if (!out.has(id)) out.set(id, { kind: KIND_BY_PREFIX[id[0]], id, name: (m[1] || '').trim() || null });
+  for (const e of [...named, ...bare]) {
+    if (e.kind && NUMBERED_ID.test(e.id) && !out.has(e.id)) out.set(e.id, e);
   }
   return [...out.values()];
 }

@@ -113,6 +113,7 @@ import NlChat from '@/components/NlSearch/NlChat.vue';
 import { defaultFormat, loadPickChart, normalizeView, answerView } from '@/components/NlSearch/nlChart';
 import { entityIds } from '@/components/NlSearch/nlChat';
 import { entityMissing } from '@/components/OqlPlayground/oqlEditorApi';
+import { kindLabel } from '@/components/OqlPlayground/oqlLinks';
 
 defineOptions({ name: 'NlSerp' });
 
@@ -163,15 +164,16 @@ function showChoices() {
 // made-up id read as a group of nothing (#1758, a wrong USF id). Say so above the results.
 const missing = ref([]);
 let missingSeq = 0;
-watch(() => route.query.oql, async (oql) => {
+// Keyed on the ids, so the page rewriting ?oql= into its own form doesn't recheck.
+watch(() => entityIds(route.query.oql).map((e) => e.id).join(','), async () => {
   const seq = ++missingSeq;
   missing.value = [];
-  const ents = entityIds(typeof oql === 'string' ? oql : '').filter((e) => e.kind);
-  const gone = await Promise.all(ents.map((e) => entityMissing(e.kind, e.id).catch(() => false)));
+  const ents = entityIds(route.query.oql);
+  const gone = await Promise.all(ents.map((e) => entityMissing(e.kind, e.id)));
   if (seq === missingSeq) missing.value = ents.filter((e, i) => gone[i]);
 }, { immediate: true });
 const missingText = computed(() => {
-  const parts = missing.value.map((e) => `no ${e.kind.replace(/s$/, '')} has the id ${e.id}`
+  const parts = missing.value.map((e) => `no ${kindLabel(e.kind).toLowerCase()} has the id ${e.id}`
     + (e.name ? ` (“${e.name}” in the query)` : ''));
   if (!parts.length) return '';
   const s = parts.join(', and ');

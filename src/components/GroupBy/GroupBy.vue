@@ -534,8 +534,8 @@ const closeDialog = () => {
 };
 
 // Identity of the query this widget should aggregate. OQL mode keys on the
-// SETTLED canonical query — `lastExecutedOql`, written only by syncFromResponse
-// after an execution settles — NOT on the live edit-state OQO. Two reasons
+// SETTLED canonical query — `lastExecutedWorks` (its starting set, #1758), written only
+// by syncFromResponse after an execution settles — NOT on the live edit-state OQO. Two reasons
 // (oxjob #564): (1) the server canonicalizes the OQO it echoes back (adds
 // default operators etc.), so any OQO-shaped signature changes once per edit
 // even though the query didn't → a phantom second fetch; the canonical OQL
@@ -549,10 +549,10 @@ const closeDialog = () => {
 // Legacy mode keys on the resolved filter context. Null = nothing to aggregate.
 const groupsRequestSignature = () => {
   if (oqlMode.value) {
-    if (!store.state.query.lastExecutedOql) return null;
-    // The facets count the query's starting set (api.buildGroupByOqo), so key on that: a new
-    // split, measure or order over the same works doesn't refetch them (#1758).
-    const works = store.state.query.lastExecutedWorks || store.state.query.lastExecutedOql;
+    // The facets count the settled query's starting set (api.buildGroupByOqo), so key on that:
+    // a new split, measure or order over the same works doesn't refetch them (#1758).
+    const works = store.state.query.lastExecutedWorks;
+    if (!works) return null;
     return `oql:${props.entityType}:${props.filterKey}:${works}`;
   }
   // The Xpac toggle changes the corpus via ?corpus= / legacy ?include_xpac

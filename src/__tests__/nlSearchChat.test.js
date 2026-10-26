@@ -347,8 +347,10 @@ describe('ids that no entity has (#1758)', () => {
       { kind: 'institutions', id: 'I103163165', name: null },
     ]);
     expect(entityIds('get works about [Coral reefs](T10215)')).toEqual([{ kind: 'topics', id: 'T10215', name: 'Coral reefs' }]);
-    // a search in parens is not an id
+    expect(entityIds('get works citing (W9999999999)')).toEqual([{ kind: 'works', id: 'W9999999999', name: null }]);
+    // a search in parens is not an id, nor a country
     expect(entityIds('get works about (P2020) since 2022')).toEqual([]);
+    expect(entityIds('get works from [United States](US)')).toEqual([]);
     expect(entityIds(null)).toEqual([]);
   });
 });

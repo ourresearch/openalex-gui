@@ -1392,9 +1392,8 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
     // and the chips' filters (chipFilterStr) leave it out, so their menus counted every
     // work (#1758: Type said 32M articles for `get works since 2022 about (coral reefs)`).
     // Skipped when the caller's filters already hold the search clause.
-    const searchInFilters = options.filters.some(f => /(^|\.)search(\.|$)/.test(String(f?.key || "")))
-    if (routeQuery.oql && !searchInFilters && !searchParamKeys.some(k => routeQuery[k])) {
-        const s = searchFromCanonicalXQuery(router.currentRoute.value)
+    if (routeQuery.oql && !options.filters.some(f => /(^|\.)search(\.|$)/.test(String(f?.key || "")))) {
+        const s = getSearchFromRoute(router.currentRoute.value)
         if (s) url.searchParams.set(s.type, s.value)
     }
 

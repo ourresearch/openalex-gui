@@ -295,12 +295,12 @@ const csvUrl = computed(() => {
     formatCsv: true,
   });
   if (!oqlParams) return myUrl;
-  // makeGroupByUrl copies search/corpus params from the route; in OQL mode they
-  // live in the echo, so carry them over from there. Appended as a string (not
-  // searchParams.set) so the filter's + and ! stay unencoded, as in makeGroupByUrl.
+  // makeGroupByUrl copies corpus params from the route; in OQL mode they live in the echo,
+  // so carry them over from there (it adds the echo's search itself, #1758). Appended as a
+  // string (not searchParams.set) so the filter's + and ! stay unencoded, as in makeGroupByUrl.
   // Only query-scoping params: the echo also carries view params (per_page=1, sort…).
   const extra = [...oqlParams]
-    .filter(([key]) => key === 'corpus' || key === 'include_xpac' || key.startsWith('search'))
+    .filter(([key]) => key === 'corpus' || key === 'include_xpac')
     .map(([key, value]) => `${key}=${encodeURIComponent(value)}`);
   return extra.length ? `${myUrl}&${extra.join('&')}` : myUrl;
 });
