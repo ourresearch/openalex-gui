@@ -113,14 +113,16 @@ function countLeaves(groups, depth, n) {
 
 const splitsOf = (resultsObject) => (resultsObject?.meta?.splits || []).length;
 
-// Group rows an export writes: no split 1; one split the API's group count (an estimate
-// past 3,000); nested splits all their combinations: every one is in the answer, or past
-// what one answer holds (more_groups, oxjob #1598) the API's estimate. null when unknown.
+// Group rows an export writes: no split 1; else the API's row count, `rows_count` (a nested
+// split's combinations: every one within the limits, an estimate past them, oxjob #1598).
+// An answer without it: one split the group count (an estimate past 3,000); nested splits
+// all their combinations. null when unknown.
 export function exportRows(resultsObject) {
   const meta = resultsObject?.meta || {};
   const n = splitsOf(resultsObject);
   if (n === 0) return 1;
-  if (n === 1 || meta.more_groups) return meta.groups_count ?? null;
+  if ('rows_count' in meta) return meta.rows_count ?? null;
+  if (n === 1) return meta.groups_count ?? null;
   return countLeaves(resultsObject?.group_by, 0, n);
 }
 

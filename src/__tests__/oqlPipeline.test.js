@@ -237,10 +237,11 @@ describe("exports (mirror users-api export_calculation.py)", () => {
     expect(exportRows(withMeta({ splits: [{}], groups_count: 128284 }))).toBe(128284);
     expect(exportRows(withMeta({ splits: [{}], groups_count: null }))).toBe(null);
     expect(exportRows(withMeta({ splits: [{}, {}] }, { group_by: nested }))).toBe(6);
-    // past what one answer holds (oxjob #1598): the page has the first rows, the API estimates the rest
-    expect(exportRows(withMeta({ splits: [{}, {}], more_groups: true, groups_count: 98052753 },
-                               { group_by: nested }))).toBe(98052753);
-    expect(exportRows(withMeta({ splits: [{}, {}], more_groups: true, groups_count: null },
+    // rows_count (oxjob #1598): past what one answer holds the page has the first rows and groups_count is the
+    // outer split's groups; the API's estimate of the combinations prices it
+    expect(exportRows(withMeta({ splits: [{}, {}], more_groups: true, groups_count: 104640, rows_count: 284583200 },
+                               { group_by: nested }))).toBe(284583200);
+    expect(exportRows(withMeta({ splits: [{}, {}], more_groups: true, groups_count: 104640, rows_count: null },
                                { group_by: nested }))).toBe(null);
   });
 

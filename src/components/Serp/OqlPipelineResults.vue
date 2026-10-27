@@ -180,11 +180,12 @@ const headLabel = computed(() => {
   if (clicked.value) return 'Sorting…';
   const works = m.count != null ? `${m.count.toLocaleString()} works` : '';
   if (!depth.value) return works;
-  // nested splits: every combination is here, one row each, unless there are more than one
-  // answer holds (more_groups, oxjob #1598); then, like one split, the API's count of its
-  // groups (the page holds only the first ones)
-  const whole = depth.value > 1 && !m.more_groups;
-  const nGroups = whole ? allRows.value.length : (m.groups_count ?? allRows.value.length);
+  // the API's count of the table's rows (oxjob #1598: a nested split's combinations, which
+  // past what one answer holds is more than the page shows); without it, nested splits have
+  // every combination here, one split the API's count of its groups
+  const nGroups = 'rows_count' in m
+    ? (m.rows_count ?? allRows.value.length)
+    : (depth.value > 1 ? allRows.value.length : (m.groups_count ?? allRows.value.length));
   return `${nGroups.toLocaleString()} ${nGroups === 1 ? 'group' : 'groups'}${works ? ` of ${works}` : ''}`;
 });
 
