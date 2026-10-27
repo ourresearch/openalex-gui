@@ -161,6 +161,10 @@ describe("isColumnEligible", () => {
     it("selectEntity without extractFn is NOT eligible (no object source)", () => {
         expect(isColumnEligible({ type: "selectEntity", key: "some.entity.filter" })).toBe(false);
     });
+    it("noColumn opts a config out (works cited_by: no citing-works list, ZD 22167)", () => {
+        expect(isColumnEligible({ type: "range", key: "x", noColumn: true })).toBe(false);
+        expect(resolveColumn("works", "cited_by")).toBeNull();
+    });
 });
 
 describe("resolveColumns", () => {
@@ -271,6 +275,11 @@ describe("getColumnExportSpec (#304)", () => {
         // flat-path is the base key (|-joined by flatten_value).
         const spec = getColumnExportSpec("works", "primary_location.source.issn");
         expect(spec).toEqual({ path: "primary_location.source.issn", header: "ISSN" });
+    });
+
+    it("cites exports the cited works' IDs, not the count (ZD 22167), as related_to does", () => {
+        expect(getColumnExportSpec("works", "cites")).toMatchObject({ path: "referenced_works", recipe: "bare_openalex_id" });
+        expect(getColumnExportSpec("works", "related_to")).toMatchObject({ path: "related_works", recipe: "bare_openalex_id" });
     });
 });
 

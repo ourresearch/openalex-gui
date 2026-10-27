@@ -126,11 +126,13 @@ export function getColumnExtractFn(config) {
 /**
  * Is this facet config usable as a table column? It must (a) map to a render
  * kind and (b) have a usable extractFn. `is_xpac` is excluded (an internal
- * flag, not a user-facing column). The identity column is always eligible.
+ * flag, not a user-facing column), and so is any config with `noColumn`. The
+ * identity column is always eligible.
  */
 export function isColumnEligible(config) {
     if (!config) return false;
     if (config.key === "is_xpac") return false;
+    if (config.noColumn) return false;
     if (config.isIdentityColumn) return true;
     if (!deriveColumnRender(config)) return false;
     return !!getColumnExtractFn(config);
@@ -162,7 +164,7 @@ export function resolveColumn(entityType, rawKey) {
     // reorderable column (Phase 5.5). The ≥1-column floor lives in useColumnsState.
     const baseRender = deriveColumnRender(config);
     const baseExtractFn = getColumnExtractFn(config);
-    if (!config || !baseRender || !baseExtractFn) {
+    if (!config || config.noColumn || !baseRender || !baseExtractFn) {
         console.warn(
             `columnConfig: dropping unknown/ineligible column key "${rawKey}" for "${entityType}"`,
         );

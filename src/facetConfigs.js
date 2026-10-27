@@ -1360,7 +1360,9 @@ const facetConfigs = function (entityType) {
             icon: "mdi-format-quote-close",
             isDisplayedAsCount: true,
             extractFn: (entity) => entity.cited_by_count,
-            column: { export: { path: "cited_by_count" } },
+            // Not a table column: a work carries no list of the works citing it,
+            // and its count is already the "Cited by count" column (ZD 22167).
+            noColumn: true,
         },
         {
             key: "cites",
@@ -1373,7 +1375,9 @@ const facetConfigs = function (entityType) {
             icon: "mdi-format-quote-close",
             isDisplayedAsCount: true,
             extractFn: (entity) => entity.referenced_works?.length,
-            column: { export: { path: "referenced_works_count" } },
+            // The table shows the count; the CSV gets the cited works' IDs, as
+            // related_to does (ZD 22167: the count only repeated "Reference count").
+            column: { export: { path: "referenced_works", recipe: "bare_openalex_id" } },
         },
         {
             key: "related_to",
