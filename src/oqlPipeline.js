@@ -126,10 +126,12 @@ export function exportRows(resultsObject) {
   return countLeaves(resultsObject?.group_by, 0, n);
 }
 
-// The summary's rows: all works plus each split's groups on their own.
+// The summary's rows: all works plus each split's groups on their own. A split the
+// answer lists only the first groups of exports every one of them, so each counts its
+// groups_count when the API knows it (oxjob #1598).
 export function summaryRows(resultsObject) {
   const parts = resultsObject?.summary?.splits || [];
-  return 1 + parts.reduce((s, p) => s + ((p && p.groups) || []).length, 0);
+  return 1 + parts.reduce((s, p) => s + Math.max(p?.groups_count || 0, (p?.groups || []).length), 0);
 }
 
 const priced = (price, rows) => price * Math.max(1, Math.ceil(rows / ROWS_PER_PRICE));

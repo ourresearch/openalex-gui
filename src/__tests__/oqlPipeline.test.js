@@ -250,6 +250,16 @@ describe("exports (mirror users-api export_calculation.py)", () => {
     expect(summaryRows(withMeta({ splits: [{}] }, { summary: { all: {} } }))).toBe(1);
   });
 
+  it("summary rows: a split listed in part counts every group the export writes (#1598)", () => {
+    const cut = { all: {}, splits: [
+      { groups: [{}, {}], more_groups: true, groups_count: 104640 },
+      { groups: [], more_groups: true, groups_count: 34072897 },
+      { groups: [{}], more_groups: true, groups_count: null },
+      { groups: [{}, {}, {}], more_groups: false, groups_count: 3 },
+    ] };
+    expect(summaryRows(withMeta({ splits: [{}, {}, {}, {}] }, { summary: cut }))).toBe(1 + 104640 + 34072897 + 1 + 3);
+  });
+
   it("the query's price for every 100 group rows, plus the summary's call with a split", () => {
     const one = (groups_count, credits = 1) => withMeta({ splits: [{}], groups_count, cost: { credits } });
     expect(exportCredits(withMeta({ splits: [] }))).toBe(1);
