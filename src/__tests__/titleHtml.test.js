@@ -2,6 +2,7 @@
 // other tags dropped with their text kept). Examples are live titles the walden fix restored.
 import { describe, it, expect } from "vitest";
 import { titleHtml } from "@/titleHtml";
+import { plain } from "@/seo/recordHead.mjs";
 
 describe("titleHtml keeps text '<' (#1928)", () => {
   it.each([
@@ -32,5 +33,16 @@ describe("titleHtml markup unchanged (#1928)", () => {
     ["R&D for c>0", "R&amp;D for c&gt;0"],
   ])("%s", (input, expected) => {
     expect(titleHtml(input)).toBe(expected);
+  });
+});
+
+describe("plain() for page heads keeps text '<' (#1928)", () => {
+  it.each([
+    ["Psychology in Korean Films: focused on <King and the Crown> and <Masquerade>", "Psychology in Korean Films: focused on <King and the Crown> and <Masquerade>"],
+    ["Solutions for 1<m<p and c>0", "Solutions for 1<m<p and c>0"],
+    ["Growth of <i>E. coli</i> in H<sub>2</sub>O &amp; more", "Growth of E. coli in H2O & more"],
+    ["<mml:math><mml:mi>x</mml:mi></mml:math> bounds <jats:italic>a</jats:italic>", "x bounds a"],
+  ])("%s", (input, expected) => {
+    expect(plain(input)).toBe(expected);
   });
 });

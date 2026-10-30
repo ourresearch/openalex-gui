@@ -10,6 +10,7 @@
 // Descriptions: claim first, factual, no em dashes, at most ~160 characters.
 
 import { noindexReason } from './indexable.mjs';
+import { stripMarkup } from './titleMarkup.mjs';
 
 const SITE_URL = 'https://openalex.org';
 const SITE_NAME = 'OpenAlex';
@@ -44,11 +45,10 @@ const INSTITUTION_LD_TYPES = {
 
 const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", '#39': "'", nbsp: ' ' };
 
-// Display names carry markup (<i>, <sub>, <scp>) and entities; heads want plain text.
+// Display names carry markup (<i>, <sub>, <scp>) and entities; heads want plain text. A '<' that is text stays (#1928).
 export function plain(s) {
   if (s === null || s === undefined) return '';
-  return String(s)
-    .replace(/<[^>]*>/g, '')
+  return stripMarkup(String(s))
     .replace(/&(amp|lt|gt|quot|apos|#39|nbsp);/g, (_, e) => ENTITIES[e])
     .replace(/\s+/g, ' ')
     .trim();
