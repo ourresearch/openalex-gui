@@ -1,6 +1,6 @@
 import millify from "millify";
 import pluralize from "pluralize";
-import sanitizeHtml from "sanitize-html";
+import {titleHtml} from "./titleHtml";
 
 import store from "./store"
 import router from './router'
@@ -185,10 +185,7 @@ const filters = {
             .replace("United Kingdom of Great Britain and Northern Ireland", "United Kingdom")
     }
 
-    const safeTitle = sanitizeHtml(title, {
-        allowedTags: ['b', 'i', 'em', 'strong', 'a'],
-    })
-    return safeTitle
+    return titleHtml(title)
   },
   millify(number) {
     return millify(
