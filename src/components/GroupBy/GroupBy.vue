@@ -259,7 +259,7 @@ import { url } from '@/url';
 import filters from '@/filters';
 import { facetConfigs } from '@/facetConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
-import { filtersFromUrlStr, createSimpleFilter } from '@/filterConfigs';
+import { filtersFromUrlStr, createSimpleFilter, facetDialogSelection, applyFacetDialogSelection } from '@/filterConfigs';
 import { selectedValues as oqoSelectedValues, sameValue } from '@/components/Oql/refinements';
 import { exportArrayToCsv } from '@/utils/csvExport';
 
@@ -499,17 +499,14 @@ const applySelections = () => {
     closeDialog();
     return;
   }
-  // Get current filters and remove any with this key
-  const currentFilters = url.readFilters(route).filter(f => f.key !== props.filterKey);
-
-  // Add new filter with all selected values if any
-  if (localSelection.value.length > 0) {
-    const newFilterValue = localSelection.value.join('|');
-    const newFilter = createSimpleFilter(props.entityType, props.filterKey, newFilterValue);
-    currentFilters.push(newFilter);
-  }
-
-  url.pushNewFilters(currentFilters, props.entityType);
+  // A collection keeps its own clause (#1942; see applyFacetDialogSelection).
+  const newFilters = applyFacetDialogSelection({
+    entityType: props.entityType,
+    filterKey: props.filterKey,
+    currentFilters: url.readFilters(route),
+    selectedValues: localSelection.value,
+  });
+  url.pushNewFilters(newFilters, props.entityType);
   closeDialog();
 };
 
@@ -682,8 +679,10 @@ watch(
 );
 watch(isDialogOpen, (to) => {
   if (to) {
-    // Initialize local selection from current filter state
-    localSelection.value = [...(selectedGroupIds.value || [])];
+    // Seed from the current filters: only what the checklist can show ticked (#1942).
+    localSelection.value = oqlMode.value
+      ? [...selectedGroupIds.value]
+      : facetDialogSelection(url.readFilters(route), props.filterKey);
   } else {
     closeDialog();
   }

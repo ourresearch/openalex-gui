@@ -434,6 +434,34 @@ const applyEntitySelection = function ({
 }
 
 
+// The facet "More..." dialog (GroupBy.vue) owns one field's plain values in
+// un-negated clauses, OR'd. A collection or a negated clause keeps its own
+// clause and the picks get another (same-key clauses AND): the API refuses a
+// collection in a pipe list, `topics.id:col_x|t1` (oxjob #1942).
+const facetDialogSelection = function (currentFilters, filterKey) {
+    return currentFilters
+        .filter(f => f.key === filterKey && !f.isNegated)
+        .flatMap(f => optionsFromString(f.value))
+        .filter(v => !openalexId.isCollectionId(v))
+}
+
+const applyFacetDialogSelection = function ({
+    entityType,
+    filterKey,
+    currentFilters,
+    selectedValues = [],
+}) {
+    // Each collection stays in place as its own clause (also splits an old mixed clause).
+    const kept = currentFilters.flatMap(f => (f.key !== filterKey || f.isNegated) ? [f] :
+        optionsFromString(f.value)
+            .filter(openalexId.isCollectionId)
+            .map(c => createSimpleFilter(entityType, filterKey, c)))
+    const picks = selectedValues.filter(v => !openalexId.isCollectionId(v))
+    if (picks.length) kept.push(createSimpleFilter(entityType, filterKey, optionsToString(picks)))
+    return kept
+}
+
+
 const sortedFilters = function (filters, sortByValue) {
     const ret = cloneDeep(filters)
 
@@ -458,6 +486,8 @@ export {
     filtersFromFiltersApiResponse,
     createSimpleFilter,
     applyEntitySelection,
+    facetDialogSelection,
+    applyFacetDialogSelection,
     copySimpleFilter,
     createDisplayFilter,
     createFilterId,

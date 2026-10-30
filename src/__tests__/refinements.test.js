@@ -167,6 +167,24 @@ describe('setRefinementValues (multi-select "More…" dialog)', () => {
   });
 });
 
+// oxjob #1942: the API echoes a collection filter as its own operator, so in OQL mode a
+// facet pick ANDs with the collection instead of joining it (the classic `?filter=`
+// dialog wrote `col_x|t1`, which the API refuses).
+describe('a collection row is never a facet selection', () => {
+  const col = { column_id: 'topics.id', value: 'col_F9K8x52ngn', operator: 'in collection' };
+  it('is not listed as selected', () => {
+    expect(selectedValues([col], 'topics.id')).toEqual([]);
+  });
+  it('More… dialog picks go in their own row', () => {
+    const next = setRefinementValues([col], { columnId: 'topics.id', values: ['t1', 't2'] });
+    expect(next).toEqual([col, makeRefinementRow('topics.id', ['t1', 't2'])]);
+  });
+  it('a row click adds its own row', () => {
+    expect(toggleRefinementValue([col], { columnId: 'topics.id', value: 't1' }))
+      .toEqual([col, leaf('topics.id', 't1')]);
+  });
+});
+
 describe('removeRefinement', () => {
   it('drops only the named column, keeping the rest', () => {
     const start = [leaf('type', 'article'), leaf('open_access.is_oa', 'true')];
