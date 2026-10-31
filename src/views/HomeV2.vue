@@ -935,6 +935,9 @@ export default { name: 'HomeV2Page' };
   row-gap: 12px; padding-left: 124px;
   zoom: var(--cake-scale, 0.4);
   font-family: Inter, -apple-system, sans-serif;
+  // zoomed text reads as "tiny" to iOS Safari's text autosizer, which then
+  // inflates it and overflows the fixed height — opt this block out
+  -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
 }
 .cake-labels {
   align-self: center; display: flex; flex-direction: column; position: relative;
@@ -1081,6 +1084,21 @@ export default { name: 'HomeV2Page' };
   .whatis-title, .openness-title, .section-header { font-size: 38px; }
   .whatis-grid { grid-template-columns: 1fr; gap: 40px; }
   .whatis-graphic, .whatis-labels { --cake-scale: 0.32; }
+  // Stacked layout: the labels sit BELOW the art, so they no longer need to
+  // row-align with it. Drop the zoom + fixed 1170px height and lay the labels
+  // out at real sizes in normal flow. The zoomed version broke on iOS Safari:
+  // text-autosizing inflated the ~12px effective text back to full size inside
+  // the fixed-height (zoomed to ~374px) box, so labels spilled over the stats.
+  .cake-annot {
+    zoom: 1; height: auto; grid-template-rows: none;
+    row-gap: 20px; padding-left: 44px;
+  }
+  .cake-arrow { display: none; }
+  .cake-labels {
+    .title { font-size: 20px; }
+    .subtitle { font-size: 15px; margin-top: 2px; }
+    .num { left: -44px; top: -1px; width: 30px; height: 30px; font-size: 16px; }
+  }
   .stats-row { grid-template-columns: repeat(2, 1fr); gap: 40px 24px; }
   .openness-grid { grid-template-columns: 1fr; gap: 24px; }
   .access-cards { grid-template-columns: repeat(2, 1fr); }
