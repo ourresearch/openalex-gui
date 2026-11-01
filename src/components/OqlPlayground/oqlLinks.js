@@ -78,60 +78,6 @@ export function linkText(name, id) {
   return `[${clean}](${id})`;
 }
 
-// An unclosed `[` before `pos` on the same line (the person is typing a name to look up):
-// its offset and the name typed so far, or null. Inside a complete link it's null (the
-// link's own lookup handles that).
-export function openBracketBefore(text, pos, links = findLinks(text)) {
-  if (linkCovering(links, pos)) return null;
-  for (let i = pos - 1; i >= 0 && pos - i <= 120; i -= 1) {
-    const ch = text[i];
-    if (ch === "\n" || ch === "]" || ch === ")") return null;
-    if (ch === "[") return { from: i, query: text.slice(i + 1, pos) };
-  }
-  return null;
-}
-
-// What follows the cursor that a picked link should swallow: the `]` closeBrackets put
-// there, and a stale `(ID)` after it.
-export function bracketTailEnd(text, pos) {
-  if (text[pos] !== "]") return pos;
-  const m = /^\]\([^()\s]*\)/.exec(text.slice(pos));
-  return pos + (m ? m[0].length : 1);
-}
-
-// Words with offsets on one line of text (links count as one word each), for phrase lookups.
-function wordsWithOffsets(text) {
-  const out = [];
-  const re = /\[[^[\]\n]*\]\([^()\s]+\)|[^\s,.()[\]"]+/g;
-  let m;
-  while ((m = re.exec(text)) !== null) {
-    out.push({ word: m[0], from: m.index, to: m.index + m[0].length });
-  }
-  return out;
-}
-
-// The longest known phrase (up to 6 words) that covers offset `pos` in `text`, from a map
-// of lowercased phrase -> entry. Returns {entry, from, to} or null.
-export function phraseAt(text, pos, phrases, maxWords = 6) {
-  if (!phrases || !phrases.size) return null;
-  const words = wordsWithOffsets(text);
-  const k = words.findIndex((w) => pos >= w.from && pos <= w.to);
-  if (k < 0 || words[k].word.startsWith("[")) return null;
-  let best = null;
-  for (let start = Math.max(0, k - maxWords + 1); start <= k; start += 1) {
-    for (let end = Math.min(words.length - 1, start + maxWords - 1); end >= k; end -= 1) {
-      const span = words.slice(start, end + 1);
-      if (span.some((w) => w.word.startsWith("["))) continue;
-      const key = text.slice(span[0].from, span[span.length - 1].to).toLowerCase().replace(/\s+/g, " ");
-      const entry = phrases.get(key) || phrases.get(key.replace(/'s$/, ""));
-      if (entry && (!best || span.length > best.n)) {
-        best = { entry, from: span[0].from, to: span[span.length - 1].to, n: span.length };
-      }
-    }
-  }
-  return best && { entry: best.entry, from: best.from, to: best.to };
-}
-
 // Compact numbers for cards: 558203 -> "558K", 97384341 -> "97.4M".
 export function compactNumber(n) {
   if (typeof n !== "number" || !isFinite(n)) return null;

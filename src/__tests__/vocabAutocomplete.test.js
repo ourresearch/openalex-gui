@@ -45,6 +45,19 @@ describe('vocabAutocomplete', () => {
             expect(filterVocabRows(ROWS, 'ingdom')).toHaveLength(1);
         });
 
+        it('type-ahead order: name starts, then word starts, then the rest, each by works', () => {
+            const rows = [
+                { id: 'https://openalex.org/countries/CN', display_name: 'China' },
+                { id: 'https://openalex.org/countries/IN', display_name: 'India' },
+                { id: 'https://openalex.org/countries/GB', display_name: 'United Kingdom' },
+                { id: 'https://openalex.org/countries/ID', display_name: 'Indonesia' },
+                { id: 'https://openalex.org/countries/KR', display_name: 'Korea, Republic of' },
+            ];
+            expect(filterVocabRows(rows, 'in').map(r => r.display_name)).toEqual(['India', 'Indonesia', 'China', 'United Kingdom']);
+            expect(filterVocabRows(rows, 'rep').map(r => r.display_name)).toEqual(['Korea, Republic of']);
+            expect(filterVocabRows(rows, 'kingdom').map(r => r.display_name)).toEqual(['United Kingdom']);
+        });
+
         it('matches the bare code too', () => {
             expect(filterVocabRows(ROWS, 'gb')).toHaveLength(1);
             expect(filterVocabRows(ROWS, 'book-ch').map(r => r.display_name)).toEqual(['book-chapter']);

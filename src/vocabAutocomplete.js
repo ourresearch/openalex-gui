@@ -35,15 +35,23 @@ function isSmallVocabType(entityType) {
  * Pure substring filter over vocab rows, matching display_name or the bare
  * code (`US`, `article`). Empty query returns the top rows — the endpoints
  * are fetched sorted by works_count, so this is a sensible browse order.
+ * Type-ahead order (oxjob #1597): names that start with the text (or the code
+ * itself), then names with a word that starts with it, then the rest, each in
+ * that works_count order — `in` finds India before China.
  */
 function filterVocabRows(rows, query, limit = 25) {
     const term = (query || "").trim().toLowerCase();
-    return (rows || [])
-        .filter(r => r.id && r.display_name)
-        .filter(r => !term
-            || r.display_name.toLowerCase().includes(term)
-            || (openalexId.getShortId(r.id) || "").toLowerCase().includes(term))
-        .slice(0, limit);
+    const valid = (rows || []).filter(r => r.id && r.display_name);
+    if (!term) return valid.slice(0, limit);
+    const tiers = [[], [], []];
+    for (const r of valid) {
+        const name = r.display_name.toLowerCase();
+        const code = (openalexId.getShortId(r.id) || "").toLowerCase();
+        if (name.startsWith(term) || code === term) tiers[0].push(r);
+        else if (name.split(/[\s-]+/).some(w => w.startsWith(term))) tiers[1].push(r);
+        else if (name.includes(term) || code.includes(term)) tiers[2].push(r);
+    }
+    return tiers.flat().slice(0, limit);
 }
 
 async function fetchAllRows(entityType) {

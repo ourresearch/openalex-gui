@@ -1,9 +1,9 @@
 // API calls for the OQL editor (oxjob #357).
 //
-// Deliberately a standalone module (not src/api.js): it talks directly to the
-// elastic-api editor endpoints (/parse-context, /validate) + autocomplete + the
-// OQL execution surface, reusing the shared axios auth/base config. Keeping it
-// separate avoids touching the broadly-shared api.js.
+// The editor endpoints (/parse-context, /oql-phrases, /validate) and the OQL execution
+// surface, called directly with the shared axios auth/base config; name lookups go through
+// the site's own api.getAutocomplete (edge, small lists, awards) so they rank like the
+// rest of the site.
 //
 // Every round-trip is timed (performance.now) and pushed to a rolling latency
 // buffer — the charter decision-3 "measure keystroke latency before any JS port"
@@ -11,14 +11,13 @@
 
 import axios from "axios";
 import { urlBase, axiosConfig } from "@/apiConfig";
-import { edgeOn, edgeSupports, edgeRows } from "@/edgeAutocomplete";
-import { getEntityConfig } from "@/entityConfigs";
+import { api } from "@/api";
 import { idTail } from "./oqlLinks";
 
 const MAILTO = "mailto=ui@openalex.org";
 
 // --- rolling latency instrumentation -----------------------------------------
-const _samples = { "parse-context": [], validate: [], autocomplete: [] };
+const _samples = { "parse-context": [], phrases: [], validate: [] };
 const _CAP = 200;
 
 function _record(kind, ms) {
@@ -69,6 +68,25 @@ export async function getParseContext(q, pos) {
   });
 }
 
+// Every phrase of a statement with its help where it stands, for hover help and click-to-change
+// (GET /oql-phrases, oxjob #1597): [{start, end, value, kind, detail, doc, choice}], code-point
+// offsets. One call per text, cached; a failure answers [] and is asked again next time.
+const _phrases = new Map();
+export function getPhrases(q) {
+  if (!_phrases.has(q)) {
+    if (_phrases.size > 20) _phrases.delete(_phrases.keys().next().value);
+    _phrases.set(q, _timed("phrases", async () => {
+      const url = `${urlBase.api}/oql-phrases?${MAILTO}&q=${encodeURIComponent(q)}`;
+      const resp = await axios.get(url, axiosConfig());
+      return Array.isArray(resp.data?.phrases) ? resp.data.phrases : [];
+    }).catch(() => {
+      _phrases.delete(q);
+      return [];
+    }));
+  }
+  return _phrases.get(q);
+}
+
 // Full OQL -> { valid, oql, oqo, oxurl, diagnostics:[{code,message,fixit,severity,start,end}] }
 // `plainWords` (the IDE editor, oxjob #1597): a statement that doesn't read also says whether
 // it holds plain words for the assistant (`plain_words: {start, end, text, rest}`, with an
@@ -90,22 +108,6 @@ export async function getProperties(entity) {
   const url = `${urlBase.api}/properties?${MAILTO}${qs}`;
   const resp = await axios.get(url, axiosConfig());
   return resp.data;
-}
-
-// Entity-value lookup for id-kind value slots. Returns the raw results array
-// ({ id, short_id, display_name, hint, ... }).
-export async function autocompleteEntity(entity, q) {
-  // edge autocomplete (oxjob #1529): from the edge, falling back to today's endpoint on an error or no rows
-  if (edgeOn() && edgeSupports(entity)) {
-    const rows = await edgeRows(entity, q || "");
-    if (rows) return rows;
-  }
-  return _timed("autocomplete", async () => {
-    const url = `${urlBase.api}/autocomplete/${entity}?${MAILTO}` +
-      `&q=${encodeURIComponent(q || "")}`;
-    const resp = await axios.get(url, axiosConfig());
-    return resp.data?.results || [];
-  });
 }
 
 // Fixed-vocabulary values for an enum-kind property (#428 iter 11): properties
@@ -147,15 +149,10 @@ export async function runOql(oql) {
 
 // --- IDE editor (oxjob #1597) ----------------------------------------------------
 
-// Kinds /autocomplete/<kind> serves; the rest are small lists read whole (getEnumValues).
-const _AC_KINDS = new Set(["authors", "institutions", "sources", "funders", "publishers", "topics",
-  "subfields", "licenses", "keywords", "works"]);
-const _LIST_KINDS = new Set(["countries", "continents", "sdgs", "fields", "domains", "languages"]);
 function _row(kind, r) {
-  const tail = idTail(r.id || r.value);
+  const tail = idTail(r.id);
   return {
-    // the mixed list names its rows' kind in the singular (`institution`)
-    kind: kind || (r.entity_type ? getEntityConfig(r.entity_type)?.name || r.entity_type : null),
+    kind,
     id: tail,
     name: r.display_name || tail,
     hint: r.hint || null,
@@ -163,62 +160,23 @@ function _row(kind, r) {
   };
 }
 
-function _matchList(rows, q) {
-  const s = (q || "").trim().toLowerCase();
-  if (!s) return rows.slice(0, 8);
-  const starts = [], words = [], inside = [];
-  for (const r of rows) {
-    const n = r.display_name.toLowerCase();
-    if (n.startsWith(s) || r.value.toLowerCase() === s) starts.push(r);
-    else if (n.split(/[\s-]+/).some((w) => w.startsWith(s))) words.push(r);
-    else if (n.includes(s)) inside.push(r);
-  }
-  return [...starts, ...words, ...inside].slice(0, 8);
-}
-
-async function _searchKind(kind, q) {
-  if (_LIST_KINDS.has(kind)) {
-    const rows = await getEnumValues(kind);
-    return _matchList(rows, q).map((r) => _row(kind, r));
-  }
-  if (_AC_KINDS.has(kind)) {
-    const rows = await autocompleteEntity(kind, q);
-    return rows.slice(0, 8).map((r) => _row(kind, r));
-  }
-  return [];
-}
-
-async function _mixedRows(query) {
-  let mixed = null;
-  if (edgeOn() && edgeSupports("mix")) mixed = await edgeRows("mix", query);
-  if (!mixed) {
-    const url = `${urlBase.api}/autocomplete?${MAILTO}&q=${encodeURIComponent(query)}`;
-    mixed = (await axios.get(url, axiosConfig())).data?.results || [];
-  }
-  return mixed.slice(0, 8).map((r) => _row(null, r));
-}
-
+// The site's own lookup for each kind (edge autocomplete, the small lists, awards), the
+// kinds' rows interleaved most likely kind first.
 async function _search(kinds, query) {
-  if (!kinds || !kinds.length) {
-    const [mixed, countries] = await Promise.all([
-      _mixedRows(query), _searchKind("countries", query).catch(() => []),
-    ]);
-    const lower = query.toLowerCase();
-    return [...countries.filter((c) => c.name.toLowerCase().startsWith(lower)).slice(0, 2), ...mixed];
-  }
-  const per = await Promise.all(kinds.map((k) => _searchKind(k, query).catch(() => [])));
+  const per = await Promise.all(kinds.map((k) =>
+    api.getAutocomplete(k, { q: query }).then((rows) => (rows || []).slice(0, 8).map((r) => _row(k, r)))
+      .catch(() => [])));
   return per.flatMap((rows) => (kinds.length === 1 ? rows : rows.slice(0, 6))).slice(0, 14);
 }
 
-// Entities named like `q`, for an OQL link slot: the kinds the grammar wants there, most
-// likely first; no kinds = every kind (the mixed list, plus countries). Rows:
-// {kind, id, name, hint, works_count}. Cached for the session (a click on a name looks its
-// whole name up again).
+// Entities named like `q`, for an OQL link slot: the kinds the grammar wants there (the
+// parser names them), most likely first. Rows: {kind, id, name, hint, works_count}. Cached for
+// the session (a click on a name looks its whole name up again).
 const _searches = new Map();
 export function searchEntities(kinds, q) {
   const query = (q || "").trim();
-  if (!query) return Promise.resolve([]);
-  const key = `${(kinds || []).join(",")}\u0000${query.toLowerCase()}`;
+  if (!query || !kinds || !kinds.length) return Promise.resolve([]);
+  const key = `${kinds.join(",")}\u0000${query.toLowerCase()}`;
   if (!_searches.has(key)) {
     if (_searches.size > 300) _searches.clear();
     _searches.set(key, _search(kinds, query).catch((e) => {

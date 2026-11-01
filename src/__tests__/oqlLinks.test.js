@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   findLinks, linkAtName, linkCovering, linkKind, entityPath, idTail, linkText,
-  openBracketBefore, bracketTailEnd, phraseAt, compactNumber, cardFacts,
+  compactNumber, cardFacts,
 } from '@/components/OqlPlayground/oqlLinks';
 
 const Q = 'get works about (coral reefs) from [Massachusetts Institute of Technology](I63966007) since 2020, most cited first';
@@ -43,17 +43,6 @@ describe('cursor helpers', () => {
     expect(linkCovering(links, l.idFrom)).toBe(l);
     expect(linkCovering(links, l.from)).toBeNull();
   });
-  it('openBracketBefore finds a name being typed', () => {
-    const q = 'get works from [stanf]';
-    expect(openBracketBefore(q, q.length - 1)).toEqual({ from: 15, query: 'stanf' });
-    expect(openBracketBefore(Q, l.nameFrom + 3)).toBeNull();
-    expect(openBracketBefore('get works about kelp', 20)).toBeNull();
-  });
-  it('bracketTailEnd swallows the closing bracket and a stale ID', () => {
-    expect(bracketTailEnd('[stan]', 5)).toBe(6);
-    expect(bracketTailEnd('[stan](I1) since', 5)).toBe(10);
-    expect(bracketTailEnd('[stan', 5)).toBe(5);
-  });
 });
 
 describe('linkKind / entityPath / linkText', () => {
@@ -79,32 +68,6 @@ describe('linkKind / entityPath / linkText', () => {
     expect(linkText('Stanford University', idTail('https://openalex.org/I97018004'))).toBe('[Stanford University](I97018004)');
     expect(linkText('A [weird] name', 'I1')).toBe('[A weird name](I1)');
     expect(idTail('https://openalex.org/subfields/1702')).toBe('1702');
-  });
-});
-
-describe('phraseAt', () => {
-  const phrases = new Map([
-    ['most cited first', { value: 'most cited first', kind: 'order' }],
-    ['since', { value: 'since', kind: 'year' }],
-    ['about', { value: 'about', kind: 'keyword' }],
-    ['funded by', { value: 'funded by', kind: 'keyword' }],
-    ['by', { value: 'by', kind: 'keyword' }],
-  ]);
-  it('picks the longest phrase under the cursor', () => {
-    const i = Q.indexOf('cited');
-    const hit = phraseAt(Q, i + 2, phrases);
-    expect(hit.entry.value).toBe('most cited first');
-    expect(Q.slice(hit.from, hit.to)).toBe('most cited first');
-  });
-  it('prefers `funded by` over `by`', () => {
-    const q = 'get works funded by [NSF](F4320306076)';
-    expect(phraseAt(q, q.indexOf('by') + 1, phrases).entry.value).toBe('funded by');
-  });
-  it('ignores links and unknown words', () => {
-    const l = findLinks(Q)[0];
-    expect(phraseAt(Q, l.nameFrom + 2, phrases)).toBeNull();
-    expect(phraseAt(Q, Q.indexOf('coral') + 1, phrases)).toBeNull();
-    expect(phraseAt(Q, 0, new Map())).toBeNull();
   });
 });
 

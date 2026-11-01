@@ -5,8 +5,8 @@ import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('axios', () => ({ default: { get: vi.fn() } }));
 vi.mock('@/apiConfig', () => ({ urlBase: { api: 'https://api.test' }, axiosConfig: () => ({ headers: {} }) }));
-vi.mock('@/edgeAutocomplete', () => ({ edgeOn: () => false, edgeSupports: () => false, edgeRows: () => [] }));
-vi.mock('@/entityConfigs', () => ({ getEntityConfig: () => null }));
+vi.mock('@/api', () => ({ api: { getAutocomplete: vi.fn(async () => []) } }));
+vi.mock('@/entityConfigs', () => ({ entityConfigs: {}, getLocationString: () => null }));
 
 import axios from 'axios';
 import { entityMissing, getEntityRecord } from '../components/OqlPlayground/oqlEditorApi';

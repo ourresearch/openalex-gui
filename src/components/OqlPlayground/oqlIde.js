@@ -7,9 +7,10 @@
 //     ID are hidden, never deleted: the document (v-model, copy, the URL) keeps the full form.
 //     Click puts the cursor in the name and opens its lookup; Cmd/Ctrl-click opens the entity.
 //   - Autocomplete: the server's parser says what fits at the cursor (GET /parse-context, the
-//     same grammar that runs the query); entity slots and `[` look names up as you type.
-//   - Hover: an entity shows a small card with a link out; a phrase shows its help (GET
-//     /oql-vocabulary, the parser's own vocabulary).
+//     same grammar that runs the query), including where a name goes (a link, a `[`): those
+//     look names up as you type.
+//   - Hover: an entity shows a small card with a link out; a phrase shows its help where it
+//     stands (GET /oql-phrases, read by the same walk: `by` a split vs `by` an author).
 //   - Highlighting for the English OQL (keywords quiet, values teal, links blue).
 //
 // Everything here is opt-in through OqlEditor's `ide` prop; the old OQL tab doesn't turn it on.
@@ -31,16 +32,16 @@ import { OQL_ROLES, OQL_ANNOTATION_FG } from "@/components/Oql/oqlPalette";
 import { collectionTypeIcon } from "@/collectionTypeLabels";
 import { edgeWarm } from "@/edgeAutocomplete";
 import {
-  findLinks, linkAtName, linkCovering, openBracketBefore, bracketTailEnd, linkText,
-  phraseAt, entityPath, cardFacts, kindLabel, compactNumber,
+  findLinks, linkAtName, linkCovering, linkText, entityPath, cardFacts, kindLabel, compactNumber,
 } from "./oqlLinks";
-import { getParseContext, searchEntities, getEntityRecord, getVocabulary } from "./oqlEditorApi";
+import {
+  getParseContext, getPhrases, searchEntities, getEntityRecord, getVocabulary,
+} from "./oqlEditorApi";
 import { maskComments, inComment } from "./oqlComments";
 
-// --- vocabulary (the parser's phrases + help) --------------------------------------------
-// Loaded once per page. Until it arrives (or on an API that doesn't serve it yet) keywords
-// come from the small list below and phrase help is off; once served, the parser's own words
-// replace the list.
+// --- vocabulary (the parser's words, for highlighting) ----------------------------------------
+// Loaded once per page. Until it arrives (or on an API that doesn't serve it) keywords come
+// from the small list below; once served, the parser's own words replace the list.
 const FALLBACK_KEYWORDS = `get the of and or not by about with in from since before through at published funded
 citing co-authored under license where works articles reviews preprints books book chapters datasets conference
 papers dissertations editorials letters reports authors institutions sources journals repositories companies
@@ -50,7 +51,7 @@ matches highest lowest alphabetical reverse latest earliest year country institu
 language type topic field subfield domain sdg corresponding author as collection show only least more than
 fewer above below who each all ever title abstract full text an a is except both`.split(/\s+/);
 
-const vocab = { keywords: new Set(FALLBACK_KEYWORDS), phrases: new Map(), served: false };
+const vocab = { keywords: new Set(FALLBACK_KEYWORDS), served: false };
 let vocabPromise = null;
 
 function loadVocabulary() {
@@ -59,10 +60,8 @@ function loadVocabulary() {
       if (!phrases || !phrases.length) return;
       const keywords = new Set();
       for (const p of phrases) {
-        const key = String(p.value || "").toLowerCase().replace(/\s+/g, " ").trim();
-        if (!key) continue;
-        if (!vocab.phrases.has(key)) vocab.phrases.set(key, p);
-        if (p.kind !== "year") for (const w of key.split(" ")) if (/^[a-z-]+$/.test(w)) keywords.add(w);
+        const key = String(p.value || "").toLowerCase();
+        if (p.kind !== "year") for (const w of key.split(/\s+/)) if (/^[a-z-]+$/.test(w)) keywords.add(w);
       }
       vocab.keywords = keywords;
       vocab.served = true;
@@ -283,10 +282,10 @@ function fromCodePoints(text, cp) {
   return i;
 }
 
-// Context answers by the text before the cursor: typing inside a `[...]` asks once.
+// The parser's answer at a cursor, cached (a click's check and its dropdown ask once).
 const ctxCache = new Map();
 async function parseContextAt(text, pos) {
-  const key = text.slice(0, pos);
+  const key = `${pos}\u0000${text}`;
   if (!ctxCache.has(key)) {
     if (ctxCache.size > 30) ctxCache.clear();
     // Comments are blanked, so the parser sees only the OQL (offsets unchanged).
@@ -327,7 +326,9 @@ function entityOption(row, i) {
 function serverOption(s, i) {
   const insert = s.insert || s.value;
   const cursor = typeof s.cursor === "number" ? s.cursor : null;
-  const endish = s.kind === "order" || /[)"]$/.test(insert) || cursor != null;
+  // no space after an order (the sentence ends), a closing `)`/`"`, a placed caret, or an
+  // insert that brings its own (`. Show `)
+  const endish = s.kind === "order" || /[\s)"]$/.test(insert) || cursor != null;
   const apply = applyText(insert, { space: !endish, cursor });
   return {
     label: s.value,
@@ -345,7 +346,7 @@ function serverOption(s, i) {
 }
 
 async function entityResult(ctx, kinds, query, from, to, extra = []) {
-  const rows = query.trim() ? await searchEntities(kinds, query).catch(() => []) : [];
+  const rows = await searchEntities(kinds, query).catch(() => []);
   if (ctx.aborted) return null;
   const options = [...rows.map((r, i) => entityOption(r, i)), ...extra];
   if (!options.length) return null;
@@ -355,35 +356,11 @@ async function entityResult(ctx, kinds, query, from, to, extra = []) {
 async function oqlCompletions(ctx) {
   const { state, pos } = ctx;
   const text = state.doc.toString();
-  const { links } = state.field(linkField);
 
-  // 0. In a comment: plain words for the chat, nothing to suggest
+  // In a comment: plain words for the chat, nothing to suggest
   if (inComment(text, pos)) return null;
 
-  // 1. In a link's name: other entities named like it (the link's own kind first)
-  const inLink = linkAtName(links, pos);
-  if (inLink) {
-    const kinds = inLink.kind ? [inLink.kind] : [];
-    return entityResult(ctx, kinds, inLink.name || "", inLink.from, inLink.to);
-  }
-
-  // 2. After an unclosed `[`: look the name up
-  const br = openBracketBefore(text, pos, links);
-  if (br) {
-    let kinds = [];
-    if (vocab.served) {
-      const slot = await parseContextAt(text, br.from);
-      if (ctx.aborted) return null;
-      kinds = slot?.context?.autocomplete_entities || [];
-    }
-    return entityResult(ctx, kinds, br.query, br.from, bracketTailEnd(text, pos));
-  }
-
-  // 3. Everywhere else: ask the parser what fits here
-  if (!vocab.served) {
-    await loadVocabulary();
-    if (!vocab.served || ctx.aborted) return null;
-  }
+  // Ask the parser what fits here
   const res = await parseContextAt(text, pos);
   if (ctx.aborted || !res?.context) return null;
   const c = res.context;
@@ -392,14 +369,21 @@ async function oqlCompletions(ctx) {
   const rr = c.replace_range;
   const from = rr ? fromCodePoints(text, rr.start) : pos;
   const to = rr ? Math.max(pos, fromCodePoints(text, rr.end)) : pos;
+
+  // On a written link (`slot: link`, its name the prefix) or after a `[` where a name fits:
+  // entities named like it, in the kinds the slot takes, replacing the link or the `[...]`
+  const prefix = c.prefix || "";
+  if (kinds.length && (c.slot === "link" || prefix.startsWith("["))) {
+    return entityResult(ctx, kinds, c.slot === "link" ? prefix : prefix.slice(1), from, to);
+  }
+
   const typedSomething = from < pos;
   // after a space the dropdown opens on its own; mid-word it needs a match
   if (!ctx.explicit && !typedSomething && !/\s$/.test(text.slice(0, pos)) && pos !== 0) return null;
   const options = suggestions.map(serverOption);
   if (kinds.length) {
-    const prefix = c.prefix || "";
     if (prefix.trim().length >= 2) {
-      return entityResult(ctx, kinds, prefix.replace(/^\[/, ""), from, to, options);
+      return entityResult(ctx, kinds, prefix, from, to, options);
     }
     // first where a name is what goes here (`from `, `funded by `); last where it's one
     // option among many (`get ` also takes `[MIT](I63966007)'s works`)
@@ -499,40 +483,45 @@ function inPlainWords(state, pos) {
   return inside;
 }
 
-const oqlHover = hoverTooltip((view, pos) => {
+// The phrase at `pos` with its help where it stands (GET /oql-phrases, one call per text;
+// the server counts code points, notes to the chat are blanked), or null, also when the text
+// changed while asking.
+const spanAt = (spans, pos) => spans.find((x) => pos >= x.from && pos <= x.to) || null;
+async function phraseAt(view, pos) {
+  const doc = view.state.doc;
+  const text = doc.toString();
+  const rows = await getPhrases(maskComments(text));
+  if (view.state.doc !== doc) return null;
+  const spans = rows.map((p) => ({ ...p, from: fromCodePoints(text, p.start), to: fromCodePoints(text, p.end) }));
+  return spanAt(spans, pos);
+}
+
+const oqlHover = hoverTooltip(async (view, pos) => {
   if (completionStatus(view.state)) return null;   // the dropdown has the floor
   if (inPlainWords(view.state, pos)) return null;
-  const { links } = view.state.field(linkField);
-  const l = links.find((x) => pos >= x.from && pos <= x.to);
+  const l = spanAt(view.state.field(linkField).links, pos);
   if (l) return { pos: l.nameFrom, end: l.nameTo, above: true, create: () => ({ dom: cardDom(l) }) };
-  const line = view.state.doc.lineAt(pos);
-  const hit = phraseAt(line.text, pos - line.from, vocab.phrases);
+  const hit = await phraseAt(view, pos);
   if (!hit) return null;
-  return {
-    pos: line.from + hit.from, end: line.from + hit.to, above: true,
-    create: () => ({ dom: phraseDom(hit.entry) }),
-  };
+  return { pos: hit.from, end: hit.to, above: true, create: () => ({ dom: phraseDom(hit) }) };
 }, { hoverTime: 300, hideOnChange: true });
 
 // --- clicks ------------------------------------------------------------------------------------
-const CHOICE_KINDS = new Set(["order", "measure", "split", "noun", "adjective"]);
-
-// A plain click on a name, a choice phrase (`most cited first`, `mean FWCI`) or a year opens
-// its dropdown, like a select. Runs on the click (after mouseup): a dropdown started on
-// mousedown is reset by the selection the mouseup makes.
-function clickOpensDropdown(view) {
+// A plain click on a name or a choice phrase (`most cited first`, `mean FWCI`, a year; the
+// server marks them) opens its dropdown, like a select. At the end of the last phrase a click
+// is typing, not choosing (the server's rule: nothing but spaces after it). Runs on the click
+// (after mouseup): a dropdown started on mousedown is reset by the selection the mouseup makes.
+async function clickOpensDropdown(view) {
   const sel = view.state.selection.main;
   if (!sel.empty || completionStatus(view.state)) return;
-  const { links } = view.state.field(linkField);
-  let open = !!linkAtName(links, sel.head);
-  if (!open) {
-    const line = view.state.doc.lineAt(sel.head);
-    const at = sel.head - line.from;
-    const word = /[\w-]*$/.exec(line.text.slice(0, at))[0] + /^[\w-]*/.exec(line.text.slice(at))[0];
-    const hit = phraseAt(line.text, at, vocab.phrases);
-    open = (hit && CHOICE_KINDS.has(hit.entry.kind)) || (vocab.served && /^\d{4}$/.test(word));
+  const typingAt = (pos) => !/\S/.test(view.state.sliceDoc(pos));
+  let open = !!linkAtName(view.state.field(linkField).links, sel.head);
+  if (!open && !typingAt(sel.head)) {
+    const hit = await phraseAt(view, sel.head);
+    if (view.state.selection.main.head !== sel.head) return;
+    open = !!hit?.choice && (sel.head < hit.to || !typingAt(hit.to));
   }
-  if (open) {
+  if (open && !completionStatus(view.state)) {
     view.dispatch({ effects: closeHoverTooltips });
     startCompletion(view);
   }
@@ -733,7 +722,7 @@ export function oqlIde() {
 // Load the vocabulary and recolor an editor once it lands (keywords from the parser); warm the
 // edge autocomplete so the first name lookup isn't cold.
 export function warmIde(view, retries = 3) {
-  edgeWarm("mix");
+  edgeWarm("authors");
   loadVocabulary().then(() => {
     if (!view) return;
     if (vocab.served) {
@@ -746,4 +735,6 @@ export function warmIde(view, retries = 3) {
 }
 
 // for tests
-export const _internal = { toCodePoints, fromCodePoints, oqlCompletions, deleteAroundLink, loadVocabulary };
+export const _internal = {
+  toCodePoints, fromCodePoints, oqlCompletions, deleteAroundLink, loadVocabulary, clickOpensDropdown,
+};
