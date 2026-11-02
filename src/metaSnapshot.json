@@ -1,7 +1,7 @@
 {
- "version": "17.4.0",
- "fingerprint": "fcb36ac4ae12d1e7971efab5ac806f9a75c34ec58d8bbd44966cce64f28d20c6",
- "generatedAt": "2026-10-26T08:12:24.744Z",
+ "version": "20.0.0",
+ "fingerprint": "8257b34b221cac0fce55a14bb3803113da477d7c491f9aec9e2e021a9fe74c33",
+ "generatedAt": "2026-11-02T15:16:09.040Z",
  "entities": {
   "authors": {
    "displayName": "authors",
@@ -149,7 +149,6 @@
    "parsed_longest_name.suffix": "name suffix",
    "raw_author_names": "raw author names",
    "relevance_score": "relevance score",
-   "scopus": "scopus",
    "summary_stats": "summary stats",
    "summary_stats.2yr_mean_citedness": "2-year mean citedness",
    "summary_stats.h_index": "h-index",
@@ -185,6 +184,8 @@
    "doi": "DOI",
    "end_date": "end date",
    "end_year": "end year",
+   "from_created_date": "from created date",
+   "from_updated_date": "from updated date",
    "funded_outputs": "funded outputs",
    "funded_outputs_count": "funded outputs count",
    "funder": "funder",
@@ -245,6 +246,8 @@
    "sub_awards.relationship": "sub awards relationship",
    "sub_awards_count": "sub awards count",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "topics": "topics",
    "topics.domain.id": "topics domain id",
    "topics.field.id": "topics field id",
@@ -276,10 +279,9 @@
    "related_concepts": "related concepts",
    "relevance_score": "relevance score",
    "summary_stats": "summary stats",
-   "summary_stats.2yr_mean_citedness": "2-year mean citedness",
-   "summary_stats.h_index": "h-index",
-   "summary_stats.i10_index": "i10 index",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "wikidata": "wikidata",
    "wikidata_id": "Wikidata ID",
@@ -301,6 +303,8 @@
    "ids": "ids",
    "relevance_score": "relevance score",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "works_count": "works count"
   },
@@ -324,6 +328,8 @@
    "is_global_south": "global south",
    "relevance_score": "relevance score",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "works_api_url": "works api url",
    "works_count": "works count"
@@ -345,6 +351,8 @@
    "relevance_score": "relevance score",
    "siblings": "sibling domains",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "works_api_url": "works api url",
    "works_count": "works count"
@@ -368,6 +376,8 @@
    "subfields": "child subfields",
    "subfields.id": "subfield",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "works_api_url": "works api url",
    "works_count": "works count"
@@ -406,6 +416,8 @@
    "summary_stats.h_index": "h-index",
    "summary_stats.i10_index": "i10-index",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "works_count": "works count"
   },
@@ -421,6 +433,8 @@
    "id": "id",
    "relevance_score": "relevance score",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "works_api_url": "works api url",
    "works_count": "works count"
@@ -437,6 +451,8 @@
    "id": "id",
    "relevance_score": "relevance score",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "works_api_url": "works api url",
    "works_count": "works count"
@@ -483,6 +499,8 @@
    "summary_stats.h_index": "h-index",
    "summary_stats.i10_index": "i10-index",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "topic_share": "topic share",
    "topic_share.id": "topic share",
    "topics": "topics",
@@ -497,8 +515,7 @@
    "works_count": "works count",
    "works_count_with_children": "works count with child institutions",
    "works_count_with_children_and_predecessors": "works count with child and predecessor institutions",
-   "x_concepts": "x concepts",
-   "x_concepts.id": "concepts"
+   "x_concepts": "x concepts"
   },
   "keywords": {
    "cited_by_count": "citation count",
@@ -516,6 +533,8 @@
    "primary_topic.id": "primary topic",
    "relevance_score": "relevance score",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "topics": "related topics",
    "topics.id": "related topics",
    "updated_date": "updated date",
@@ -534,6 +553,8 @@
    "is_global_south": "is global south",
    "relevance_score": "relevance score",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "works_api_url": "works api url",
    "works_count": "works count"
@@ -550,6 +571,8 @@
    "id": "id",
    "relevance_score": "relevance score",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "url": "url",
    "works_api_url": "works api url",
@@ -597,6 +620,8 @@
    "id": "id",
    "relevance_score": "relevance score",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "works_api_url": "works api url",
    "works_count": "works count"
@@ -633,6 +658,8 @@
    "summary_stats.h_index": "h-index",
    "summary_stats.i10_index": "i10-index",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "works_count": "works count"
   },
@@ -651,6 +678,8 @@
    "image_url": "image url",
    "relevance_score": "relevance score",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "works_api_url": "works api url",
    "works_count": "works count"
@@ -671,6 +700,8 @@
    "sources_api_url": "sources api url",
    "sources_count": "sources",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "url": "url",
    "works_api_url": "works api url",
@@ -688,6 +719,8 @@
    "id": "id",
    "relevance_score": "relevance score",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "works_api_url": "works api url",
    "works_count": "works count"
@@ -729,8 +762,6 @@
    "is_high_oa_rate_since_year": "is high oa rate since year",
    "is_in_doaj": "DOAJ",
    "is_in_doaj_since_year": "is in doaj since year",
-   "is_in_jstage": "is in jstage",
-   "is_in_jstage_since_year": "is in jstage since year",
    "is_in_scielo": "is in scielo",
    "is_indexed_in_scopus": "is indexed in scopus",
    "is_oa": "fully OA",
@@ -778,6 +809,8 @@
    "pubmed_publication_types": "pubmed publication types",
    "relevance_score": "relevance score",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "works_api_url": "works api url",
    "works_count": "works count"
@@ -801,6 +834,8 @@
    "relevance_score": "relevance score",
    "siblings": "sibling subfields",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "topics": "child topics",
    "topics.id": "topic",
    "updated_date": "updated date",
@@ -832,6 +867,8 @@
    "subfield": "subfield",
    "subfield.id": "parent subfield",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "works_api_url": "works api url",
    "works_count": "works count"
@@ -849,6 +886,8 @@
    "id": "id",
    "relevance_score": "relevance score",
    "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "works_api_url": "works api url",
    "works_count": "works count"
@@ -1062,7 +1101,6 @@
    "sustainable_development_goals": "sustainable development goals",
    "sustainable_development_goals.id": "SDG",
    "sustainable_development_goals.score": "SDG score",
-   "sustainable_development_goals_aurora": "deprecated Aurora SDGs",
    "title": "title",
    "title_abstract_keywords.search": "title-abstract-keywords",
    "title_abstract_keywords.search.exact": "title abstract keywords",
@@ -1076,7 +1114,6 @@
    "topics.field.id": "field",
    "topics.id": "topics",
    "topics.subfield.id": "subfield",
-   "topics_count": "topics count",
    "type": "type",
    "type_crossref": "Crossref type",
    "updated_date": "updated date",
@@ -1129,9 +1166,7 @@
   "institutions": {
    "openalex": "ids.openalex",
    "openalex_id": "ids.openalex",
-   "default.search": "text.search",
-   "concept.id": "x_concepts.id",
-   "concepts.id": "x_concepts.id"
+   "default.search": "text.search"
   },
   "keywords": {
    "default.search": "text.search"
