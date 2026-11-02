@@ -49,6 +49,11 @@
         <v-btn value="table" size="small" class="text-none" prepend-icon="mdi-table">Table</v-btn>
       </v-btn-toggle>
     </div>
+    <!-- A list whose set in parentheses was too big to hold answers from a sample of it (oxjob #1930): the API says
+         how (the count's margin, and whether the rows are the list's own first works or the sample's). -->
+    <div v-if="listEstimateNote" class="nl-estimate text-body-2 text-medium-emphasis">
+      <v-icon size="16" class="mr-1">mdi-approximately-equal</v-icon>{{ listEstimateNote }}
+    </div>
 
     <div v-if="searchError" />
 
@@ -221,9 +226,11 @@ const countLabel = computed(() => {
   if (count === 0) return 'No results';
   const name = entityConfigs[entityType.value]?.displayName || entityType.value;
   const formatted = filters.toPrecision(count);
-  const about = Number(String(formatted).replace(/,/g, '')) !== count ? 'about ' : '';
+  // "about" when rounded, or when estimated from a sample even if it isn't (oxjob #1930)
+  const about = Number(String(formatted).replace(/,/g, '')) !== count || meta.estimate ? 'about ' : '';
   return `${about}${formatted} ${name}`;
 });
+const listEstimateNote = computed(() => (isPipeline.value ? null : props.resultsObject?.meta?.estimate?.message || null));
 
 const showPagination = computed(() => (props.resultsObject?.meta?.count || 0) > url.getPerPage());
 const page = computed({
@@ -278,6 +285,9 @@ function onColumnFilter(baseKey) {
 .nl-results-count {
   font-size: 14px;
   color: rgba(0, 0, 0, 0.6);
+}
+.nl-estimate {
+  margin: 0 0 8px;
 }
 .nl-format-toggle {
   height: 32px !important;
