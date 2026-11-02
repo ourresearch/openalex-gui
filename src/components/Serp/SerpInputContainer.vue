@@ -211,6 +211,9 @@
           <serp-results-kebab class="ml-1" />
         </div>
         <v-divider />
+        <div v-if="listEstimateNote" class="list-estimate text-body-2 text-medium-emphasis">
+          <v-icon size="16" class="mr-1">mdi-approximately-equal</v-icon>{{ listEstimateNote }}
+        </div>
 
         <results-table
           v-if="resultsObject?.results && isTableView"
@@ -842,6 +845,9 @@ const entityDisplayName = computed(
   () => entityConfigs[entityType.value]?.displayName || entityType.value
 );
 const selectedCount = computed(() => store.getters['selection/selectedCount']);
+// A list whose set in parentheses was too big to hold answers from a sample of it (oxjob #1930): the API's sentence
+// says how (the count's margin, and whether the rows are the list's first or the sample's).
+const listEstimateNote = computed(() => props.resultsObject?.meta?.estimate?.message || null);
 const resultsCountLabel = computed(() => {
   if (!props.resultsObject?.meta) return '';
   if (isSemanticSearch.value) return '50 most semantically similar works';
@@ -849,7 +855,8 @@ const resultsCountLabel = computed(() => {
   if (count === 0) return 'There are no results for this search.';
   const formatted = filters.toPrecision(count);
   const isRounded = Number(formatted.replace(/,/g, '')) !== count;
-  const prefix = isRounded ? 'about ' : '';
+  // a count estimated from a sample of a too-big set is "about" even when it isn't rounded (oxjob #1930)
+  const prefix = isRounded || listEstimateNote.value ? 'about ' : '';
   const base = `${prefix}${formatted} ${entityDisplayName.value}`;
   if (selectedCount.value > 0 && mode.value !== 'basic') {
     return `${selectedCount.value.toLocaleString()} selected of ${base}`;
@@ -957,6 +964,11 @@ watch(
 .results-card-head {
   padding: 6px 12px 6px 10px;
   min-height: 44px;
+}
+/* A list estimated from a sample of its set (oxjob #1930): the API's note, as the pipeline results show theirs. */
+.list-estimate {
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 /* Table mode stacks two headers (results head + column head). r8 tried a gray
    fill on the column row; r9 goes the Linear way instead — NO fill, hierarchy
