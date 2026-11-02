@@ -206,6 +206,17 @@ export function refusalMessage(data) {
   return null;
 }
 
+// The results head (oxjob #1930): "N groups of M works", or the whole set's works (`groups` null: no split). An
+// answer estimated from a sample of a too-big set says "about" for its works, and "N+" groups when the API says its
+// group count is only those the sample holds (meta.estimate.groups_count_is_at_least).
+export function countsLabel({ count, groups, estimate }) {
+  const n = count != null ? count.toLocaleString("en-US") : null;
+  if (groups == null) return n == null ? "" : `${estimate ? "About " : ""}${n} works`;
+  const atLeast = Boolean(estimate?.groups_count_is_at_least);
+  const head = `${groups.toLocaleString("en-US")}${atLeast ? "+" : ""} ${groups === 1 && !atLeast ? "group" : "groups"}`;
+  return n == null ? head : `${head} of ${estimate ? "about " : ""}${n} works`;
+}
+
 // Price line for a /query check or an executed pipeline response's meta.cost.
 export function formatCost(cost) {
   if (!cost || cost.credits == null) return null;

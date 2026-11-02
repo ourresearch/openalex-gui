@@ -35,6 +35,9 @@
       <serp-results-export-button ref="exportButtonRef" class="d-none" />
     </div>
     <v-divider />
+    <div v-if="estimateNote" class="pipeline-estimate text-body-2 text-medium-emphasis">
+      <v-icon size="16" class="mr-1">mdi-approximately-equal</v-icon>{{ estimateNote }}
+    </div>
 
     <div class="pipeline-table-wrap">
       <table class="pipeline-table">
@@ -80,7 +83,7 @@ import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 
 import {
-  flatRows, sortRows, formatMeasure, formatCost, groupLink, wholeSetMeasures, exportRows, isTextMeasure,
+  flatRows, sortRows, formatMeasure, formatCost, groupLink, wholeSetMeasures, exportRows, isTextMeasure, countsLabel,
 } from '@/oqlPipeline';
 import { orderLabel } from '@/sortMenu';
 import { useQueryOrder } from '@/composables/useQueryOrder';
@@ -178,16 +181,17 @@ const exportTooltip = computed(() => {
 const headLabel = computed(() => {
   const m = meta.value;
   if (clicked.value) return 'Sorting…';
-  const works = m.count != null ? `${m.count.toLocaleString()} works` : '';
-  if (!depth.value) return works;
   // the API's count of the table's rows (oxjob #1598: a nested split's combinations, which
   // past what one answer holds is more than the page shows); without it, nested splits have
   // every combination here, one split the API's count of its groups
-  const nGroups = 'rows_count' in m
+  const nGroups = !depth.value ? null : 'rows_count' in m
     ? (m.rows_count ?? allRows.value.length)
     : (depth.value > 1 ? allRows.value.length : (m.groups_count ?? allRows.value.length));
-  return `${nGroups.toLocaleString()} ${nGroups === 1 ? 'group' : 'groups'}${works ? ` of ${works}` : ''}`;
+  return countsLabel({ count: m.count, groups: nGroups, estimate: m.estimate });
 });
+
+// An answer estimated from a sample of a set too big to read in time (oxjob #1930): the API says how.
+const estimateNote = computed(() => meta.value.estimate?.message || null);
 
 const costLabel = computed(() => {
   const c = formatCost(meta.value.cost);
@@ -275,5 +279,9 @@ const footNote = computed(() => {
 }
 .pipeline-foot {
   padding: 10px 14px;
+}
+.pipeline-estimate {
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 </style>

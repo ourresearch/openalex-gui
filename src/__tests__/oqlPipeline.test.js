@@ -18,6 +18,7 @@ import {
   calculationExportFile,
   refusalMessage,
   formatCost,
+  countsLabel,
   isTextMeasure,
   startingSetOqo,
 } from "@/oqlPipeline";
@@ -292,5 +293,20 @@ describe("isTextMeasure (a group's own name or code, oxjob #1555)", () => {
     expect(isTextMeasure({ key: "summary_stats_h_index", measure: "value" }, rows)).toBe(false);
     expect(isTextMeasure({ key: "count", measure: "count" }, rows)).toBe(false);
     expect(isTextMeasure({ key: "last_known_institutions_id", measure: "value" }, [])).toBe(false);
+  });
+});
+
+
+describe("countsLabel (oxjob #1930)", () => {
+  it("counts a table's groups and works", () => {
+    expect(countsLabel({ count: 649079, groups: 28788 })).toBe("28,788 groups of 649,079 works");
+    expect(countsLabel({ count: 5, groups: 1 })).toBe("1 group of 5 works");
+    expect(countsLabel({ count: 128003, groups: null })).toBe("128,003 works");
+  });
+  it("says about, and N+ when only the sample's groups are counted", () => {
+    const estimate = { groups_count_is_at_least: true };
+    expect(countsLabel({ count: 2931914, groups: 22298, estimate })).toBe("22,298+ groups of about 2,931,914 works");
+    expect(countsLabel({ count: 2931914, groups: 198, estimate: {} })).toBe("198 groups of about 2,931,914 works");
+    expect(countsLabel({ count: 128003, groups: null, estimate })).toBe("About 128,003 works");
   });
 });
