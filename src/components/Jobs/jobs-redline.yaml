@@ -65,4 +65,5 @@
 # card, users-api ROLE_SLUGS/ROLE_TITLES + migration 075 followed in the same sweep
 # (page file renamed JobsSoftwareEngineerPage.vue). Entries emptied per lifecycle; no
 # page mounts <job-redline>. Ids are never reused — NEXT ID: R28.
+# 2026-11-02 (Casey, oxjob #1945): the Software Engineer listing was removed once the role was filled.
 entries: []

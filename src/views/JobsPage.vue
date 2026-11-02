@@ -12,11 +12,6 @@
 
     <static-section id="open-positions" title="Open positions">
       <div class="job-cards">
-        <router-link class="job-card" to="/jobs/software-engineer">
-          <span class="job-card-title">Software Engineer</span>
-          <span class="job-card-sub">Full-time &middot; Remote</span>
-          <span class="job-card-arrow" aria-hidden="true">&rarr;</span>
-        </router-link>
         <router-link class="job-card" to="/jobs/community-lead">
           <span class="job-card-title">Community Lead</span>
           <span class="job-card-sub">Full-time &middot; Remote</span>

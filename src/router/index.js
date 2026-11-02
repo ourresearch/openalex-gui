@@ -470,10 +470,10 @@ export const routes = [
     {path: '/jobs/draft', redirect: '/jobs'},
     // Community Lead listing (oxjob #662/#812).
     {path: '/jobs/community-lead', name: 'JobsCommunityLead', component: () => import('@/views/JobsCommunityLeadPage.vue'), meta: {chrome: 'site'}},
-    // Software Engineer listing (oxjob #812).
-    {path: '/jobs/software-engineer', name: 'JobsSoftwareEngineer', component: () => import('@/views/JobsSoftwareEngineerPage.vue'), meta: {chrome: 'site'}},
-    // Old slug (title was "Software & Data Engineer" until 2026-08-21) — the URL is in chat histories.
-    {path: '/jobs/software-data-engineer', redirect: '/jobs/software-engineer'},
+    // Software Engineer listing removed 2026-11-02 once the role was filled (oxjob #1945); LinkedIn and
+    // Hacker News posts still link here. The old slug was "Software & Data Engineer" until 2026-08-21.
+    {path: '/jobs/software-engineer', redirect: '/jobs'},
+    {path: '/jobs/software-data-engineer', redirect: '/jobs'},
     // Operations Associate listing (oxjob #812, added 2026-08-18).
     {path: '/jobs/operations-associate', name: 'JobsOperationsAssociate', component: () => import('@/views/JobsOperationsAssociatePage.vue'), meta: {chrome: 'site'}},
     {path: '/institutional-supporters', name: 'InstitutionalSupporters', component: MembersPage, meta: {chrome: 'site'}},
