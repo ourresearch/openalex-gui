@@ -301,6 +301,10 @@ describe('groupsTabLabel: the Groups tab names its groups (#1744)', () => {
     expect(groupsTabLabel(m(['country', 'year'], 2))).toBe('2 countries by year');
     expect(groupsTabLabel(m(['country in ([United States](US), [China](CN))'], 2))).toBe('2 countries');
     expect(groupsTabLabel({ splits: [] })).toBe('Summary');
+    // an answer from a sample counts only the groups the sample holds (#1930)
+    const est = { ...m(['source'], 22298), estimate: { groups_count_is_at_least: true } };
+    expect(groupsTabLabel(est)).toBe('22,298+ sources');
+    expect(groupsTabLabel({ ...m(['author'], 1), estimate: { groups_count_is_at_least: true } })).toBe('1+ authors');
   });
 
   it('counts years up to this one, as the chart draws them (#1758)', async () => {

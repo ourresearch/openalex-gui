@@ -210,7 +210,8 @@ const worksLabel = computed(() => {
   // in (...)`) keeps only some of them, so the count waits for the Works tab's own fetch.
   if ((props.resultsObject?.meta?.x_query?.oqo?.group_by || []).some((g) => g?.values?.length)) return 'Works';
   const n = props.resultsObject?.meta?.count || 0;
-  return `${filters.toPrecision(n)} ${n === 1 ? 'work' : 'works'}`;
+  const about = props.resultsObject?.meta?.estimate ? 'about ' : '';   // estimated from a sample (oxjob #1930)
+  return `${about}${filters.toPrecision(n)} ${n === 1 ? 'work' : 'works'}`;
 });
 
 const countLabel = computed(() => {

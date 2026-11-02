@@ -98,6 +98,8 @@ export function groupsTabLabel(meta, groups) {
   if (!splits.length) return 'Summary';
   const n = groupsShown(meta, groups);
   const outer = splitName(splits[0]);
-  const label = `${n.toLocaleString()} ${n === 1 ? outer : plural(outer)}`;
+  // an answer from a sample counts only the groups the sample holds (oxjob #1930): "22,298+ sources"
+  const atLeast = Boolean(meta?.estimate?.groups_count_is_at_least);
+  const label = `${n.toLocaleString()}${atLeast ? '+' : ''} ${n === 1 && !atLeast ? outer : plural(outer)}`;
   return splits.length > 1 ? `${label} by ${splitName(splits[1])}` : label;
 }
