@@ -57,9 +57,21 @@ export default defineNuxtConfig({
     // server.js ports (#1558 aboutness viewer; caching as #860: HTML no-cache).
     '/aboutness/viewer': { proxy: '/aboutness-viewer.html' },
   },
-  // Lets useNuxtApp() find the current request's app after an await, so the old
-  // module-level store/router imports can resolve per request (server only).
-  experimental: { asyncContext: true },
+  experimental: {
+    // Lets useNuxtApp() find the current request's app after an await, so the old
+    // module-level store/router imports can resolve per request (server only).
+    asyncContext: true,
+    // oxjob #1892: off, so a /_nuxt/ file name never comes back with new content.
+    // With the import map on, chunks import the entry as `#entry`, so the entry's name
+    // stays out of their hashes, but Vite still writes the entry's real name (and its
+    // CSS) into each chunk's preload list after hashing. A chunk could keep its name
+    // across a deploy while naming the old entry, and the year-long immutable copies in
+    // Cloudflare and browsers then fetched the previous build. Off, every name a chunk
+    // carries is part of its hash. Cost: chunks that import the entry get new names
+    // whenever the entry changes. Nuxt 4.6 (nuxt/nuxt#36198) drops only the entry from
+    // the preload list, not its CSS, so keep this off after upgrading.
+    entryImportMap: false,
+  },
   // Nuxt's own files live in app/; the existing app stays in src/ and keeps its "@" alias.
   alias: { '@': srcPath },
   // Don't let Nuxt auto-scan/auto-import anything from the old app.
