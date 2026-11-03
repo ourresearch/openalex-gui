@@ -8,9 +8,14 @@ const findExactFacetConfig = (entityType, key) =>
 
 // The canonical key the server folds an alias to (#655). Search keys are left as
 // typed: the search box owns their spelling (`default.search` stays the works
-// search key, not `fulltext.search`; see url.stripSearchClauses).
-const canonicalFacetKey = (entityType, key) =>
-    /\.search(\.exact)?$/.test(key) ? key : canonicalPropertyKey(entityType, key)
+// search key, not `fulltext.search`; see url.stripSearchClauses). Except a search
+// key whose canonical is its own exact mode: that field has no stemmed mode
+// (raw affiliation, oxjob #400), so the old name folds to the one facet.
+const canonicalFacetKey = (entityType, key) => {
+    if (!/\.search(\.exact)?$/.test(key)) return canonicalPropertyKey(entityType, key)
+    const canonical = canonicalPropertyKey(entityType, key)
+    return canonical === `${key}.exact` ? canonical : key
+}
 
 
 /**

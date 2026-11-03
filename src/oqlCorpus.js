@@ -5,7 +5,7 @@
 // in the corpus by its regen script, so this mirror needs no live parser.
 // `oxurl_status` (ok rows): has-oxurl | oql-only | translator-bug |
 // server-unsupported. `oxurl` is null for oql-only rows. See #345 / #384.
-// corpus version: 2; rows: 233.
+// corpus version: 2; rows: 235.
 
 export const oqlCorpus = [
   {
@@ -2183,13 +2183,13 @@ export const oqlCorpus = [
       "get_rows": "works",
       "filter_rows": [
         {
-          "column_id": "raw_affiliation_strings.search",
+          "column_id": "raw_affiliation_strings.search.exact",
           "value": "library",
           "operator": "has"
         }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search:library"
+    "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search.exact:library"
   },
   {
     "id": 65,
@@ -2205,19 +2205,19 @@ export const oqlCorpus = [
     "oxurl_status": "has-oxurl",
     "status": "ok",
     "oql": "works where raw affiliation has (within 5 (london, hospital))",
-    "note": "List proximity on a non-title field (oxjob #514): the position_increment_gap scopes the window to ONE affiliation string; slop ~5 allows order/gap within it. All-bare operands → stemmed `.search`.",
+    "note": "List proximity on a non-title field (oxjob #514): the position_increment_gap scopes the window to ONE affiliation string; slop ~5 allows order/gap within it. Raw affiliation has only its exact mode (oxjob #400), so bare operands run on `.search.exact`.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
       "filter_rows": [
         {
-          "column_id": "raw_affiliation_strings.search",
+          "column_id": "raw_affiliation_strings.search.exact",
           "value": "\"london\"~5~\"hospital\"",
           "operator": "has"
         }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search:%22london%22~5~%22hospital%22"
+    "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search.exact:%22london%22~5~%22hospital%22"
   },
   {
     "id": 66,
@@ -2514,13 +2514,13 @@ export const oqlCorpus = [
       "get_rows": "works",
       "filter_rows": [
         {
-          "column_id": "raw_affiliation_strings.search",
+          "column_id": "raw_affiliation_strings.search.exact",
           "value": "\"tufts\"~5~\"boston\"",
           "operator": "has"
         }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search:%22tufts%22~5~%22boston%22"
+    "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search.exact:%22tufts%22~5~%22boston%22"
   },
   {
     "id": 76,
@@ -4053,7 +4053,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
-    "oql": "works where date > (2020-01-01)",
+    "oql": "works where date >= (2020-01-02)",
     "note": "Strict `>`/`<` map to the base `publication_date` param (ES gt/lt), distinct from the inclusive `>=`/`<=` which route to from_/to_ (gte/lte). Mirrors the classic URL `publication_date:>2020-01-01`.",
     "diagnostic": "",
     "oqo": {
@@ -4066,7 +4066,7 @@ export const oqlCorpus = [
         }
       ]
     },
-    "oxurl": "https://openalex.org/works?filter=publication_date:>2020-01-01"
+    "oxurl": "https://openalex.org/works?filter=from_publication_date:2020-01-02"
   },
   {
     "id": 112,
@@ -10726,7 +10726,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where country is [Kenya](KE) and year >= 2015;\nthen, group those works by year;\nfinally, summarize using percent open access",
+    "oql": "get works where country is [Kenya](KE) and published since 2015;\nthen, group those works by year;\nfinally, summarize using percent open access",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -10811,7 +10811,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where institution is [MIT](I63966007);\nthen, group those works by author;\nfinally, summarize using mean FWCI",
+    "oql": "get authors who published works where institution is [MIT](I63966007);\nthen, summarize each author using mean FWCI",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -10849,7 +10849,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where title-abstract has (kelp);\nthen, group those works by author\n  where count of those works > 10\n  and co-author is not (A5023888391)",
+    "oql": "get authors where co-author is not (A5023888391)\n  who published more than 10 works where title-abstract has (kelp)",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -10898,7 +10898,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where year >= 2010;\nthen, compare title-abstract has \"inference latency\"\n  versus \"neuromorphic computing\"\n  versus \"edge AI\"\n  using count\n  by year",
+    "oql": "get works where published since 2010;\nthen, compare title-abstract has \"inference latency\"\n  versus \"neuromorphic computing\"\n  versus \"edge AI\"\n  using count\n  by year",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11007,7 +11007,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where country is [Kenya](KE) and year >= 2015;\nthen, group those works by funder;\nfinally, summarize using count and mean citation count",
+    "oql": "get funders that funded works where country is [Kenya](KE)\n  and published since 2015;\nthen, summarize each funder using count and mean citation count",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11054,7 +11054,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where topic is in the collection (col_abc123);\nthen, group those works by institution\n  where collaborator is not [MIT](I63966007);\nfinally, summarize using count",
+    "oql": "get institutions where collaborator is not [MIT](I63966007)\n  that published works where topic is in the collection (col_abc123);\nthen, summarize each institution using count",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11098,7 +11098,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where year >= 2016;\nthen, compare institution [KU Leuven](I99464096) versus country [Belgium](BE)\n  using count and percent of those works\n  by SDG",
+    "oql": "get works where published since 2016;\nthen, compare institution [KU Leuven](I99464096) versus country [Belgium](BE)\n  using count and percent of those works\n  by SDG",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11151,7 +11151,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where institution is in the collection (col_abc123);\nthen, compare (year >= 2016 and year <= 2019) versus year >= 2021\n  using count\n  by topic",
+    "oql": "get works where institution is in the collection (col_abc123);\nthen, compare published from 2016 through 2019 versus published since 2021\n  using count\n  by topic",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11213,7 +11213,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where institution is [MIT](I63966007) and year >= 2015;\nthen, group those works into citation count bins at (1, 10, 100);\nfinally, summarize using count and mean FWCI",
+    "oql": "get works where institution is [MIT](I63966007) and published since 2015;\nthen, group those works into citation count bins at (1, 10, 100);\nfinally, summarize using count and mean FWCI",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11266,7 +11266,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where institution is [MIT](I63966007) and year >= 2020;\nthen, group those works by year and by FWCI bins of 0.5;\nfinally, summarize using count",
+    "oql": "get works where institution is [MIT](I63966007) and published since 2020;\nthen, group those works by year and by FWCI bins of 0.5;\nfinally, summarize using count",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11314,7 +11314,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where title-abstract has (kelp);\nthen, group those works by author\n  where count of those works > 10\n  and h-index > 20;\nfinally, summarize using count and mean FWCI",
+    "oql": "get authors where h-index is above 20\n  who published more than 10 works where title-abstract has (kelp);\nthen, summarize each author using count and mean FWCI",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11372,7 +11372,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where institution is [University of Kansas](I146416000);\nthen, group those works by author\n  where count of those works >= 5\n  and that author is not in the collection (col_abc123);\nfinally, summarize using count",
+    "oql": "get authors not in the collection (col_abc123)\n  who published at least 5 works where institution is [University of Kansas](I146416000);\nthen, summarize each author using count",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11425,7 +11425,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where topic is [CRISPR and Genetic Engineering](T10878);\nthen, summarize using count, mean FWCI, percent open access, and median citation count",
+    "oql": "get works where topic is [CRISPR and Genetic Engineering](T10878);\nthen, summarize all those works\n  using count, mean FWCI, percent open access, and median citation count",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11469,7 +11469,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where year > 2020;\nthen, group those works by year;\nfinally, summarize using count",
+    "oql": "get works where published after 2020;\nthen, group those works by year;\nfinally, summarize using count",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11634,7 +11634,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where institution is [MIT](I63966007);\nthen, get each author of those works;\nthen, get all that author's works;\nfinally, summarize using mean FWCI",
+    "oql": "get works where institution is [MIT](I63966007);\nthen, get each author of those works;\nthen, get all that author's works;\nfinally, summarize each author using mean FWCI",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11677,7 +11677,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where topic is [CRISPR and Genetic Engineering](T10878);\nthen, get authors of those works;\nfinally, summarize using count",
+    "oql": "get authors who published works where topic is [CRISPR and Genetic Engineering](T10878);\nthen, summarize all those authors using count",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11716,7 +11716,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where title-abstract has (kelp);\nthen, get each author of those works where h-index > 20;\nthen, get all that author's works;\nfinally, summarize using count",
+    "oql": "get works where title-abstract has (kelp);\nthen, get each author of those works where h-index is above 20;\nthen, get all that author's works;\nfinally, summarize each author using count",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11763,7 +11763,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where title has (neuromorphic) and date >= 2026-09-14;\nthen, get authors of those works;\nfinally, get all those authors' works where date >= 2026-08-01",
+    "oql": "get works where title has (neuromorphic) and published since 2026-09-14;\nthen, get authors of those works;\nfinally, get all those authors' works where published since 2026-08-01",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11810,7 +11810,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where it cites a work in the set (\n    get works where institution is (I146416000)\n  );\nthen, group those works by country;\nfinally, summarize using count",
+    "oql": "get countries that published works where it cites a work in the set (\n    get works where institution is (I146416000)\n  );\nthen, summarize each country using count",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11857,7 +11857,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where institution is [Stanford](I97018004) and year >= 2020;\nthen, get each source of those works;\nthen, get all that source's works;\nfinally, summarize using percent open access",
+    "oql": "get works where institution is [Stanford](I97018004) and published since 2020;\nthen, get each source of those works;\nthen, get all that source's works;\nfinally, summarize each source using percent open access",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11963,7 +11963,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where year >= 2025\n  and it doesn't cite any work in the set (\n    get works where institution is (I146416000)\n  )",
+    "oql": "get works where published since 2025\n  and it doesn't cite any work in the set (\n    get works where institution is (I146416000)\n  )",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -12005,7 +12005,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where author is in the set (\n    get works where year >= 2022 and title-abstract has (kelp);\n    then, get authors of those works\n  )\n  and year >= 2025",
+    "oql": "get works where author is in the set (\n    get works where published since 2022 and title-abstract has (kelp);\n    then, get authors of those works\n  )\n  and published since 2025",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -12120,5 +12120,59 @@ export const oqlCorpus = [
     "diagnostic": "OQL_QUERY_SET_RETURNS_NUMBERS",
     "oqo": null,
     "oxurl": null
+  },
+  {
+    "id": 243,
+    "tags": [
+      "sr-transcription"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Raw affiliation is exact-only: a quoted phrase renders plain, never stemmed (oxjob #400)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where raw affiliation has (\"universiteit maastricht\")",
+    "note": "Raw affiliation was never stemmed, so it has only `.search.exact`; `raw_affiliation_strings.search` is an alias of it (oxjob #400). The old URL `raw_affiliation_strings.search:\"universiteit maastricht\"` gives this same OQO.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "raw_affiliation_strings.search.exact",
+          "value": "\"universiteit maastricht\"",
+          "operator": "has"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search.exact:%22universiteit%20maastricht%22"
+  },
+  {
+    "id": 244,
+    "tags": [
+      "sr-transcription"
+    ],
+    "provenance": {
+      "type": "spec design",
+      "label": "Raw affiliation keeps the quotes on a hyphenated word: they make a phrase (oxjob #400)",
+      "url": null
+    },
+    "oxurl_status": "has-oxurl",
+    "status": "ok",
+    "oql": "works where raw affiliation has (\"Paris-Saclay\")",
+    "note": "Live 2026-11-03: \"Paris-Saclay\" 162,495 works, bare Paris-Saclay 184,312 (query_string reads the bare word as both its parts). Raw affiliation searches stay one value with the user's quotes.",
+    "diagnostic": "",
+    "oqo": {
+      "get_rows": "works",
+      "filter_rows": [
+        {
+          "column_id": "raw_affiliation_strings.search.exact",
+          "value": "\"Paris-Saclay\"",
+          "operator": "has"
+        }
+      ]
+    },
+    "oxurl": "https://openalex.org/works?filter=raw_affiliation_strings.search.exact:%22Paris-Saclay%22"
   }
 ];

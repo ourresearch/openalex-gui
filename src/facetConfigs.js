@@ -543,7 +543,10 @@ const facetConfigs = function (entityType) {
             icon: "mdi-magnify",
         },
         {
-            key: "raw_affiliation_strings.search",
+            // Raw affiliation was never stemmed, so its search has only the exact mode;
+            // old `raw_affiliation_strings.search` URLs fold here through the catalog's
+            // alternate_keys (oxjob #400).
+            key: "raw_affiliation_strings.search.exact",
             entityToFilter: "works",
             type: "search",
             actions: ["filter",],

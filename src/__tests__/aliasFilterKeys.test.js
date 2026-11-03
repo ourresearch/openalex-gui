@@ -69,3 +69,23 @@ describe("alias filter keys (#655)", () => {
       .not.toBe("authorships.institutions.is_global_south");
   });
 });
+
+// oxjob #400: raw affiliation was never stemmed, so its search is offered only as
+// `.search.exact`; the old `.search` key is the server's alias of it.
+describe("raw affiliation search is exact-only (#400)", () => {
+  it("an old raw_affiliation_strings.search URL finds the exact facet", () => {
+    expect(getFacetConfig("works", "raw_affiliation_strings.search").key)
+      .toBe("raw_affiliation_strings.search.exact");
+    expect(canonicalFilterKey("works", "raw_affiliation_strings.search"))
+      .toBe("raw_affiliation_strings.search.exact");
+  });
+
+  it("re-serializes the old key as the exact one, value untouched", () => {
+    expect(roundTrip("works", 'raw_affiliation_strings.search:"universiteit maastricht"'))
+      .toBe('raw_affiliation_strings.search.exact:"universiteit maastricht"');
+  });
+
+  it("the exact-match column stays its own facet", () => {
+    expect(getFacetConfig("works", "raw_affiliation_strings").key).toBe("raw_affiliation_strings");
+  });
+});
