@@ -58,6 +58,13 @@
     <saved-search-rename-dialog/>
     <saved-search-edit-alert-dialog/>
     <credit-limit-dialog/>
+    <!-- Mounted on first "View in API", then kept, so its close animation plays. -->
+    <api-viewer-dialog
+      v-if="$store.state.apiDialogUrl"
+      :model-value="$store.state.apiDialogIsOpen"
+      :url="$store.state.apiDialogUrl"
+      @update:model-value="$store.commit('setApiDialogIsOpen', $event)"
+    />
 
   </v-app>
 </template>
@@ -66,7 +73,7 @@
 <script setup>
 defineOptions({ name: 'App' });
 
-import { ref, computed, watch, onMounted, onBeforeMount, getCurrentInstance } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeMount, getCurrentInstance, defineAsyncComponent } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 import { useDisplay } from 'vuetify';
@@ -77,6 +84,7 @@ import axios from 'axios';
 import SavedSearchRenameDialog from '@/components/SavedSearch/SavedSearchRenameDialog.vue';
 import SavedSearchEditAlertDialog from '@/components/SavedSearch/SavedSearchEditAlertDialog.vue';
 import CreditLimitDialog from '@/components/CreditLimitDialog.vue';
+const ApiViewerDialog = defineAsyncComponent(() => import('@/components/ApiViewerDialog.vue'));
 import SiteFooter from './components/SiteFooter.vue';
 
 import EntityDrawer from '@/components/Entity/EntityDrawer.vue';

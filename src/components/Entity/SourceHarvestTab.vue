@@ -44,7 +44,7 @@
           <td class="count-cell">{{ formatCount(locationsCount) }}</td>
           <td>
             records (locations) harvested from this source
-            <a :href="locationsApiUrl" target="_blank" rel="noopener" class="text-decoration-none ml-1" title="View raw data in the OpenAlex API">
+            <a :href="locationsApiUrl" target="_blank" rel="noopener" class="text-decoration-none ml-1" title="View raw data in the OpenAlex API" @click.exact.prevent="$store.commit('openApiDialog', locationsApiUrl)">
               <v-icon size="14">mdi-api</v-icon>
             </a>
           </td>

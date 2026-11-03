@@ -44,7 +44,7 @@
               </template>
             </v-list-item>
 
-            <v-list-item :href="apiUrl" target="_blank">
+            <v-list-item @click="store.commit('openApiDialog', apiUrl)">
               <template #prepend>
                 <v-icon color="grey-darken-2">mdi-api</v-icon>
               </template>

@@ -230,7 +230,7 @@ function openLandingPage(work) {
 function openApiPage(work) {
   const shortId = getWorkShortId(work);
   if (shortId) {
-    window.open(`https://api.openalex.org/works/${shortId}`, '_blank');
+    store.commit('openApiDialog', `https://api.openalex.org/works/${shortId}`);
   }
 }
 

@@ -49,7 +49,8 @@ const stateDefaults = function () {
         snackbarIcon: null,
         snackbarColor: undefined,
         zoomId: null,
-        apiDialogIsOpen: true,
+        // The in-app API viewer (App.vue, oxjob #1246).
+        apiDialogIsOpen: false,
         apiDialogUrl: "",
         showFiltersDrawer: false,
         facetZoom: null,
@@ -137,8 +138,12 @@ return createStore({
     },
     plugins: [clearPerUserStateOnLogout],
     mutations: {
-        setApiDialogUrl(state, url) {
+        openApiDialog(state, url) {
             state.apiDialogUrl = url;
+            state.apiDialogIsOpen = true;
+        },
+        setApiDialogIsOpen(state, isOpen) {
+            state.apiDialogIsOpen = isOpen;
         },
         snackbar(state, arg) {
             state.snackbarIsOpen = true;

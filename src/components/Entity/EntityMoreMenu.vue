@@ -27,9 +27,7 @@
         v-if="apiUrl"
         prepend-icon="mdi-code-json"
         title="View in API"
-        :href="apiUrl"
-        target="_blank"
-        rel="noopener"
+        @click="$store.commit('openApiDialog', apiUrl)"
       />
       <!-- Fly-in only: it has no other in-menu close. Same double-chevron as
            the control bar's close button. #641 -->
