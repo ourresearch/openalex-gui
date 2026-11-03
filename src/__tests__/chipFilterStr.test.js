@@ -48,6 +48,24 @@ describe("url.chipFilterStr (#378)", () => {
         expect(url.chipFilterStr(ROUTE("type:article,type:book"))).toBe("type:article,type:book");
     });
 
+    it("Basic-fits input is the same loading and settled for a search inside ?filter= (#1694)", () => {
+        // The Basic tab's check reads stripSearchClauses(chipFilterStr(route)). For this
+        // link the raw route filter kept title_and_abstract.search while loading (not a
+        // chip -> not Basic) and the settled one dropped it (Basic): the mode flipped on
+        // every fetch, each flip changed the page size and refetched, and the tab froze.
+        const r = ROUTE("publication_year:2024,title_and_abstract.search:kelp");
+        storeState.isLoading = true;
+        const loading = url.stripSearchClauses(url.chipFilterStr(r));
+        storeState.isLoading = false;
+        storeState.resultsObject = { meta: { x_query: { url: xqUrl("/works?filter=publication_year:2024,title_and_abstract.search:kelp") } } };
+        const settled = url.stripSearchClauses(url.chipFilterStr(r));
+        expect(loading).toBe("publication_year:2024");
+        expect(settled).toBe(loading);
+        // The edit base still keeps the search while loading (zd#7179's facet edits need it).
+        storeState.isLoading = true;
+        expect(url.chipFilterStr(r)).toBe("publication_year:2024,title_and_abstract.search:kelp");
+    });
+
     it("falls back to the route filter on an entity mismatch (mid cross-entity nav)", () => {
         storeState.resultsObject = { meta: { x_query: { url: xqUrl("/authors?filter=display_name.search:smith") } } };
         expect(url.chipFilterStr(ROUTE("type:article", "works"))).toBe("type:article");

@@ -244,7 +244,8 @@ const chipsRepresentable = computed(() => {
   }
   let filters;
   try {
-    filters = filtersFromUrlStr(entityType.value, url.chipFilterStr(route));
+    // Strip search clauses as the Basic tab does (oxjob #1694): loading and settled must agree.
+    filters = filtersFromUrlStr(entityType.value, url.stripSearchClauses(url.chipFilterStr(route)));
   } catch (e) {
     return false;
   }

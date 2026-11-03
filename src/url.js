@@ -1418,6 +1418,7 @@ const url = {
     urlObjectFromSearchUrl,
     routeFromOxurl,
     chipFilterStr,
+    stripSearchClauses,
     searchFromCanonicalXQuery,
     nonFilterClausesFromCanonical,
 

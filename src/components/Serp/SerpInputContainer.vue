@@ -304,6 +304,7 @@ import SerpHeaderActions from '@/components/Serp/SerpHeaderActions.vue';
 import SerpDownloadButton from '@/components/Serp/SerpDownloadButton.vue';
 import OqlPipelineResults from '@/components/Serp/OqlPipelineResults.vue';
 import SortMenu from '@/components/Serp/SortMenu.vue';
+import { mirrorModeToResultsView } from '@/components/Serp/resultsViewMirror';
 import { useQueryOrder } from '@/composables/useQueryOrder';
 import { isPipelineResponse, isPipelineOqo, formatCost } from '@/oqlPipeline';
 // (#603 round 10: the V1 grid builder import is gone — Advanced mounts the V2
@@ -725,7 +726,12 @@ const basicRepresentable = computed(() => {
     const xq = props.resultsObject?.meta?.x_query;
     if (store.state.isLoading || !xq || xq.url == null) return false;
   }
-  const filters = filtersFromUrlStr(entityType.value, url.chipFilterStr(route));
+  // Search clauses never become chips (the search box holds them). chipFilterStr strips
+  // them from the settled canonical filter but keeps them in the route filter it falls
+  // back to while loading (edits need them), so strip here too: otherwise a link with a
+  // search inside ?filter= reads not-Basic while loading and Basic once settled, and
+  // the mode flip-flops on every fetch (oxjob #1694).
+  const filters = filtersFromUrlStr(entityType.value, url.stripSearchClauses(url.chipFilterStr(route)));
   // The basic bar has a FIXED number of chip slots (#440 r10 — no second-row
   // wrap, ever). More active filters than slots → force advanced, disable
   // Basic. (basicCanRepresent already rejects duplicate keys, so filters.length
@@ -799,12 +805,11 @@ watch(mode, (now, was) => {
 // agree with the shown mode. persist:false leaves the durable list/table pref
 // (oax.resultsView, written only by the flag-off toggle) untouched. Registered
 // after basicRepresentable because `mode` reads it, and this fires immediately.
-watch(mode, (m) => {
-  store.commit('setSerpResultsView', {
-    value: m === 'basic' ? 'list' : 'table',
-    persist: false,
-  });
-}, { immediate: true });
+// A mode flip while a fetch is loading waits for it to settle (oxjob #1694: otherwise a
+// loading-only flip changes the page size, which refetches, which flips it back, forever).
+mirrorModeToResultsView(mode, () => store.state.isLoading, (value) => {
+  store.commit('setSerpResultsView', { value, persist: false });
+});
 
 // ---- OQL-tab seeding watchers (must live BELOW basicRepresentable) ----------
 // These read `mode`, so they can only be registered after `basicRepresentable` is
