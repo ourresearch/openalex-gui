@@ -115,6 +115,12 @@ export function readUserCache(storage, token) {
   }
 }
 
+// The stored token is the account's API key since #290 (22 letters and digits). A session from before then may
+// still hold a JWT (it has dots), which the API would refuse, so only a key-shaped token is used as the key.
+export function apiKeyFromToken(token) {
+  return typeof token === 'string' && /^[A-Za-z0-9_-]{8,128}$/.test(token) ? token : null;
+}
+
 export function clearUserCache(storage) {
   try { storage && storage.removeItem(USER_CACHE_KEY); } catch (e) { /* ignore */ }
 }

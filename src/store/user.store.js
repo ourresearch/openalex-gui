@@ -4,7 +4,7 @@ import {api} from "@/api";
 import {navigation} from '@/navigation';
 import {urlBase, axiosConfig} from "@/apiConfig.js"
 import {sanitizeRedirectPath} from "@/util";
-import {bootUser, readUserCache, writeUserCache, clearUserCache} from "@/store/userBoot";
+import {bootUser, readUserCache, writeUserCache, clearUserCache, apiKeyFromToken} from "@/store/userBoot";
 import {orcidAutoClaim} from "@/components/Entity/claimCopy.js";
 import {magicLoginConfig} from "@/store/magicLoginConfig.js";
 
@@ -17,10 +17,11 @@ let savedSearchesInFlight = null
 // Newest in-flight fetchUser, or null (see ensureUser).
 let userInFlight = null
 
-export default {
-    namespaced: true,
-    // #1689: a function, so each store instance (one per SSR request) gets its own state.
-    state: () => ({
+// Who is signed in, and with which key: the signed-out values. The initial state and logout both start from here
+// (oxjob #1999), so logout can't miss a field: it used to keep apiKey, so a logged-out tab kept spending the
+// person's key, and isAdmin.
+export function signedOutUser() {
+    return {
         id: "",
         name: "",
         email: "",
@@ -55,6 +56,14 @@ export default {
         // routes wait for this; see router.beforeEach.
         userLive: false,
         userFromCache: false,
+    }
+}
+
+export default {
+    namespaced: true,
+    // #1689: a function, so each store instance (one per SSR request) gets its own state.
+    state: () => ({
+        ...signedOutUser(),
         columnViews: [],
         facetViews: [],
         isSaving: false,
@@ -98,27 +107,11 @@ export default {
         setAuthorIdDirect(state, authorId) {
             state.authorId = authorId;
         },
+        setName(state, name) {
+            state.name = name;
+        },
         logout(state) {
-            state.id = ""
-            state.name = ""
-            state.email = ""
-            state.emails = []
-            state.savedSearches = []
-            state.savedSearchesLoaded = false
-            state.authorId = ""
-            state.agentApiKey = null
-            state.plan = null
-            state.planExpiresAt = null
-            state.isSiteCurator = false
-            state.organizationId = null
-            state.organizationName = null
-            state.organizationRole = null
-            state.organizationPlan = null
-            state.rateThrottled = false
-            state.orgRateThrottled = false
-            state.claim = null
-            state.userLive = false
-            state.userFromCache = false
+            Object.assign(state, signedOutUser())
             localStorage.removeItem("token")
             clearUserCache(localStorage)
             navigation.push("/")
@@ -219,9 +212,12 @@ export default {
         restoreUserFromCache({commit, state}) {
             if (state.id) return true
             if (localStorage.getItem('impersonatingUserId')) return false
-            const me = readUserCache(localStorage, localStorage.getItem("token"))
+            const token = localStorage.getItem("token")
+            const me = readUserCache(localStorage, token)
             if (!me) return false
-            commit("setFromApiResp", me)
+            // The cache strips the key, but the token it is bound to IS the key (#290). Without it a signed-in
+            // person's first API calls went out keyless and hit the anonymous limit (oxjob #1744, #1999).
+            commit("setFromApiResp", {...me, api_key: apiKeyFromToken(token)})
             commit("setFeatureFlags", me.feature_flags || [], { root: true })
             state.userFromCache = true
             return true
@@ -252,7 +248,13 @@ export default {
             // (fixes the #266 collection-filter footgun). Fall back to the JWT
             // only if api_key is somehow absent.
             commit("setToken", resp.data.api_key || resp.data.access_token)
-            await dispatch("fetchUser")
+            // The login itself succeeded here; the page decides "you're in" from that alone (oxjob #1999). A failed
+            // profile load is not a failed login: the app loads the profile again on the next page.
+            try {
+                await dispatch("fetchUser")
+            } catch (e) {
+                console.error("Logged in, but loading the profile failed:", e)
+            }
             // Return the response body so callers can tailor copy — e.g. an org
             // invite acceptance carries created_account / organization_name (#317).
             return resp.data
@@ -612,7 +614,9 @@ export default {
                 { display_name: name },
                 axiosConfig({userAuth: true})
             )
-            commit("setFromApiResp", { ...state, display_name: name })
+            // Only the name changed. setFromApiResp reads users-api's snake_case fields, so feeding it this camelCase
+            // state wiped the key, admin flag, author id and org until reload (oxjob #1999).
+            commit("setName", name)
             commit("snackbar", "Name updated", {root: true})
         },
 

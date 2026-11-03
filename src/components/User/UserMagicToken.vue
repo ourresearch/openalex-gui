@@ -5,7 +5,9 @@
          pre-fetch links and execute page JS, but do not click buttons. Auto-
          logging-in on mount let those scanners consume the single-use token
          before the real user clicked, locking them out (oxjob #321). -->
-    <v-card v-if="isReady" class="magic-card text-center" width="400" rounded="xl" elevation="0">
+    <!-- v-show, not v-if: the Turnstile widget lives in this card, and a refused check comes back here and resets it,
+         which throws once the card has been removed (oxjob #1999: the page then sat on "You're in" forever). -->
+    <v-card v-show="status === 'ready'" class="magic-card text-center" width="400" rounded="xl" elevation="0">
       <v-icon size="28" color="primary" class="mb-4">{{ copy.icon }}</v-icon>
       <h1 class="text-h6 font-weight-medium mb-2">{{ copy.title }}</h1>
       <p class="text-body-2 text-medium-emphasis" :class="isActivation ? 'mb-3' : 'mb-8'">{{ copy.text }}</p>
@@ -31,7 +33,7 @@
     </v-card>
 
     <!-- Loading state -->
-    <v-card v-else-if="isLoading" class="magic-card text-center" width="400" rounded="xl" elevation="0">
+    <v-card v-if="status === 'loading'" class="magic-card text-center" width="400" rounded="xl" elevation="0">
       <v-progress-circular indeterminate color="primary" size="32" width="3" class="mb-4"/>
       <h1 class="text-h6 font-weight-medium mb-2">{{ isActivation ? 'Activating your key…' : 'Logging you in…' }}</h1>
       <p class="text-body-2 text-medium-emphasis">
@@ -40,7 +42,7 @@
     </v-card>
 
     <!-- Error state -->
-    <v-card v-else-if="hasError" class="magic-card text-center" width="400" rounded="xl" elevation="0">
+    <v-card v-else-if="status === 'error'" class="magic-card text-center" width="400" rounded="xl" elevation="0">
       <v-icon size="28" color="error" class="mb-4">mdi-alert-circle-outline</v-icon>
       <h1 class="text-h6 font-weight-medium mb-2">{{ isActivation ? 'Activation link expired' : 'Login link expired' }}</h1>
       <p class="text-body-2 text-medium-emphasis mb-8">
@@ -61,7 +63,7 @@
     </v-card>
 
     <!-- Success state (brief, before redirect) -->
-    <v-card v-else class="magic-card text-center" width="400" rounded="xl" elevation="0">
+    <v-card v-else-if="status === 'done'" class="magic-card text-center" width="400" rounded="xl" elevation="0">
       <v-icon size="28" color="success" class="mb-4">mdi-check-circle-outline</v-icon>
       <h1 class="text-h6 font-weight-medium mb-2">{{ isActivation ? 'Your key is active' : "You're in" }}</h1>
       <p class="text-body-2 text-medium-emphasis">
@@ -146,18 +148,18 @@ function welcomeSnackbar(loginData) {
     const joined = org ? ` You've joined ${org}.` : '';
     return loginData.created_account
       ? `Welcome to OpenAlex!${joined}`
-      : `Welcome back, ${userName}!${joined}`;
+      : (userName ? `Welcome back, ${userName}!${joined}` : `Welcome back!${joined}`);
   }
-  return `Welcome back, ${userName}!`;
+  return userName ? `Welcome back, ${userName}!` : 'Welcome back!';
 }
 
 // Start in the "ready" state showing a Log in button. We deliberately do NOT
 // consume the token on mount: email link scanners load this page and run its
 // JS, but don't click buttons, so gating consumption behind a real click keeps
 // the single-use token alive for the actual user (oxjob #321).
-const isReady = ref(true);
-const isLoading = ref(false);
-const hasError = ref(false);
+// One status for the page (oxjob #1999): 'ready' | 'loading' | 'error' | 'done', set only from this click's own
+// login call. It was three flags, and "You're in" showed whenever all three were off.
+const status = ref('ready');
 
 const loginWithMagicToken = (token) => store.dispatch('user/loginWithMagicToken', token);
 
@@ -171,13 +173,12 @@ const goToLogin = () => {
 const doLogin = async () => {
   checkMessage.value = '';
   const checkToken = isActivation.value ? await tokenForActivation() : turnstileTokenNow();
-  isReady.value = false;
-  isLoading.value = true;
+  status.value = 'loading';
   try {
     // Some mail gateways append a stray char (e.g. a quote) to the link's
     // URL; strip anything outside the base64url token alphabet (#8891).
     const loginData = await loginWithMagicToken({token: sanitizeLoginToken(route.params.token), turnstileToken: checkToken});
-    isLoading.value = false;
+    status.value = 'done';
 
     store.commit('snackbar', welcomeSnackbar(loginData));
 
@@ -193,33 +194,23 @@ const doLogin = async () => {
     }, 500);
   } catch (e) {
     console.error('Magic link login failed:', e);
-    isLoading.value = false;
 
     // The human check didn't pass (or hadn't finished): the link is still good, so let them try again.
     const code = e?.response?.data?.code || '';
     if (code.startsWith('turnstile_')) {
       checkMessage.value = e.response.data.message || 'Please complete the check and try again.';
-      resetTurnstile();
-      isReady.value = true;
+      status.value = 'ready';
+      try {
+        resetTurnstile();
+      } catch (resetError) {
+        console.error('Turnstile reset failed:', resetError);
+      }
       return;
     }
 
-    // Check if login actually succeeded despite the error
-    // (fetchUser sub-calls like fetchSavedSearches may fail even after successful login)
-    if (localStorage.getItem('token')) {
-      // Login succeeded despite a sub-call failing. We don't have the login
-      // response body here, so fall back to a generic welcome (invite-aware).
-      const userName = store.getters['user/userName'];
-      if (isInvite.value) {
-        store.commit('snackbar', 'Welcome to OpenAlex!');
-      } else if (userName) {
-        store.commit('snackbar', `Welcome back, ${userName}!`);
-      }
-      const fallback = isInvite.value ? '/settings/org-profile' : '/';
-      router.push(sanitizeRedirectPath(route.query.redirect, fallback));
-    } else {
-      hasError.value = true;
-    }
+    // The login call itself failed (a profile load that fails after it is handled in the store), so this click did
+    // not sign anyone in. An old token in localStorage is not proof that it did (oxjob #1999).
+    status.value = 'error';
   }
 };
 </script>
