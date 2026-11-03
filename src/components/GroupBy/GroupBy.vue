@@ -73,7 +73,7 @@
       type="list-item@4"
       class="group-by-skeleton"
     />
-    <div v-else-if="groupsTruncated?.length || selectedGroupIds?.length" class="card-body">
+    <div v-else-if="groupsTruncated?.length || selectedGroupIds?.length || (isYearWidget && isSelected)" class="card-body">
 
       <div v-if="props.filterKey==='publication_year' || props.filterKey==='start_year'" style="min-width: 200px">
         <!-- Compact (flag-on rail, #440 r5): FIXED bins 2002→current year (zero-
@@ -260,7 +260,7 @@ import filters from '@/filters';
 import { facetConfigs } from '@/facetConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
 import { filtersFromUrlStr, createSimpleFilter, facetDialogSelection, applyFacetDialogSelection } from '@/filterConfigs';
-import { selectedValues as oqoSelectedValues, sameValue } from '@/components/Oql/refinements';
+import { selectedValues as oqoSelectedValues, selectedRange as oqoSelectedRange, sameValue } from '@/components/Oql/refinements';
 import { exportArrayToCsv } from '@/utils/csvExport';
 
 import BarGraph from '@/components/BarGraph.vue';
@@ -309,13 +309,15 @@ const maxResultsRange = 25;
 
 const isSelected = computed({
   get: () => {
+    if (oqlMode.value && isYearWidget.value) return oqoSelectedRange(queryFilterRows.value, props.filterKey) != null;
     if (oqlMode.value) return oqoSelectedValues(queryFilterRows.value, props.filterKey).length > 0;
     return url.isFilterApplied(route, props.entityType, props.filterKey);
   },
   set: (to) => {
     if (oqlMode.value) {
+      // Clearing a year drops its `>=` / `<=` bounds too (#1232).
       if (to) store.dispatch('query/setRefinementValue', { columnId: props.filterKey, value: true });
-      else store.dispatch('query/removeRefinement', { columnId: props.filterKey });
+      else store.dispatch(isYearWidget.value ? 'query/setRangeRefinement' : 'query/removeRefinement', { columnId: props.filterKey });
       return;
     }
     if (to) url.upsertFilter(props.entityType, props.filterKey, true);
@@ -396,19 +398,21 @@ const fixedYearBars = computed(() => {
 // the filter on release (@end), and any filter change (chip edits, shared links)
 // writes the slider (the route watcher below). Full range = no filter.
 const yearRange = ref([YEAR_MIN, currentYear]);
+const clampYear = (y) => Math.min(currentYear, Math.max(YEAR_MIN, y));
 function syncYearRangeFromUrl() {
   if (!isYearWidget.value) return;
-  // Source the current year value from the query store (OQL mode) or the legacy
-  // ?filter= param (flag-off). Parsing of the value expression is identical.
-  let rawValue;
+  // OQL mode: the query holds the years as `>=` / `<=` / `is` clauses (#1232).
   if (oqlMode.value) {
-    const vals = oqoSelectedValues(queryFilterRows.value, props.filterKey);
-    rawValue = vals.length ? vals[0] : null;
-  } else {
-    const f = filtersFromUrlStr(props.entityType, route.query.filter)
-      .find((f) => f.key === props.filterKey);
-    rawValue = f ? f.value : null;
+    const range = oqoSelectedRange(queryFilterRows.value, props.filterKey);
+    const next = [clampYear(range?.lo ?? YEAR_MIN), clampYear(range?.hi ?? currentYear)];
+    // The echo of every query lands here; reassign only on a change, so the slider doesn't redraw.
+    if (next[0] !== yearRange.value[0] || next[1] !== yearRange.value[1]) yearRange.value = next;
+    return;
   }
+  // Classic mode: the ?filter= value is a dash range (`2012-2026`, `2020-`, `-2010`).
+  const f = filtersFromUrlStr(props.entityType, route.query.filter)
+    .find((f) => f.key === props.filterKey);
+  const rawValue = f ? f.value : null;
   if (rawValue == null) {
     yearRange.value = [YEAR_MIN, currentYear];
     return;
@@ -444,22 +448,25 @@ function yearFilterIndex() {
 }
 function applyYearRange() {
   const [lo, hi] = yearRange.value;
+  // Handle-at-the-extreme = unbounded on that side, staying fresh as new years arrive.
+  // Both bounds interior → closed range; equal bounds → one year; full range → no filter.
+
+  if (oqlMode.value) {
+    // `>=` / `<=` clauses, never a dash range (#1232).
+    const bounds = lo === hi
+      ? { lo, hi }
+      : { lo: lo > YEAR_MIN ? lo : null, hi: hi < currentYear ? hi : null };
+    store.dispatch('query/setRangeRefinement', { columnId: props.filterKey, ...bounds });
+    return;
+  }
+
+  // Classic mode keeps the chip idioms ("Since 2020" → `2020-`, "Until 2010" → `-2010`).
   const isFullRange = lo <= YEAR_MIN && hi >= currentYear;
-  // Handle-at-the-extreme = unbounded on that side, matching the chip idioms
-  // ("Since 2020" → `2020-`, "Until 2010" → `-2010`) and staying fresh as new
-  // years arrive. Both bounds interior → closed range; equal bounds → one year.
   let value;
   if (lo === hi) value = String(lo);
   else if (hi >= currentYear && lo > YEAR_MIN) value = `${lo}-`;
   else if (lo <= YEAR_MIN && hi < currentYear) value = `-${hi}`;
   else value = `${lo}-${hi}`;
-
-  if (oqlMode.value) {
-    // OQL mode: the year range is just a single-value refinement on the column.
-    if (isFullRange) store.dispatch('query/removeRefinement', { columnId: props.filterKey });
-    else store.dispatch('query/setRefinementValue', { columnId: props.filterKey, value });
-    return;
-  }
 
   const idx = yearFilterIndex();
   if (isFullRange) {
@@ -473,7 +480,9 @@ function applyYearRange() {
   }
 }
 watch(
-  () => [route.query.filter, store.state.query.editEpoch],
+  // OQL mode watches the query's rows, not the edit counter: a reloaded or shared query
+  // lands from the server's echo, and the handles must follow it too (#1232).
+  () => [route.query.filter, queryFilterRows.value],
   syncYearRangeFromUrl,
   { immediate: true }
 );
@@ -640,6 +649,9 @@ const selectGroup = (val) => {
     // a top-level AND clause — see refinements.js / the query/* actions.
     if (type === 'boolean') {
       store.dispatch('query/setRefinementValue', { columnId: props.filterKey, value: val !== 0 });
+    } else if (isYearWidget.value) {
+      // A clicked year replaces the slider's range, not ANDs onto it (#1232).
+      store.dispatch('query/setRangeRefinement', { columnId: props.filterKey, lo: val, hi: val });
     } else if (type === 'range') {
       store.dispatch('query/setRefinementValue', { columnId: props.filterKey, value: val });
     } else {

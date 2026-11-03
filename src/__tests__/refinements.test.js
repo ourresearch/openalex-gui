@@ -10,7 +10,55 @@ import {
   removeRefinement,
   hasSelectedValue,
   sameValue,
+  selectedRange,
+  setRangeRefinement,
 } from '@/components/Oql/refinements';
+
+// oxjob #1232: OQL has no range literal, so the Year slider writes `>=` / `<=` clauses,
+// the same shape the API echoes for ?filter=publication_year:2022-2025.
+describe('year ranges (the Year slider)', () => {
+  const Y = 'publication_year';
+  const bound = (operator, value) => ({ column_id: Y, value, operator });
+  const set = (rows, lo, hi) => setRangeRefinement(rows, { columnId: Y, lo, hi });
+
+  it('a closed range is two endpoint clauses, never a dash value', () => {
+    const rows = set([], 2022, 2025);
+    expect(rows).toEqual([bound('>=', 2022), bound('<=', 2025)]);
+    expect(rows.some((r) => String(r.value).includes('-'))).toBe(false);
+  });
+  it('since / until are one clause each', () => {
+    expect(set([], 2003, null)).toEqual([bound('>=', 2003)]);
+    expect(set([], null, 2010)).toEqual([bound('<=', 2010)]);
+  });
+  it('one year is a single `is` leaf', () => {
+    expect(set([], 2020, 2020)).toEqual([bound('is', 2020)]);
+  });
+  it('the full range clears every year clause and keeps the rest', () => {
+    const type = leaf('type', 'article');
+    expect(set([type, bound('>=', 2022), bound('<=', 2025)], null, null)).toEqual([type]);
+  });
+  it('a new range replaces the old one, including a typed strict bound or year', () => {
+    const start = [leaf('type', 'article'), bound('>', 2019), bound('<=', 2025), leaf(Y, 2021)];
+    expect(set(start, 2015, 2018)).toEqual([leaf('type', 'article'), bound('>=', 2015), bound('<=', 2018)]);
+  });
+  it('leaves negated or nested year clauses alone (they are the user\'s)', () => {
+    const negated = { ...bound('>=', 2000), is_negated: true };
+    const nested = { join: 'or', filters: [bound('>=', 2020), leaf('type', 'review')] };
+    expect(set([negated, nested], 2022, null)).toEqual([negated, nested, bound('>=', 2022)]);
+  });
+  it('reads back what it writes, so the handles restore', () => {
+    expect(selectedRange(set([], 2022, 2025), Y)).toEqual({ lo: 2022, hi: 2025 });
+    expect(selectedRange(set([], 2003, null), Y)).toEqual({ lo: 2003, hi: null });
+    expect(selectedRange(set([], null, 2010), Y)).toEqual({ lo: null, hi: 2010 });
+    expect(selectedRange(set([], 2020, 2020), Y)).toEqual({ lo: 2020, hi: 2020 });
+    expect(selectedRange([leaf('type', 'article')], Y)).toBeNull();
+  });
+  it('reads the API echo: no operator means `is`, strict bounds move one year', () => {
+    expect(selectedRange([{ column_id: Y, value: 2022 }], Y)).toEqual({ lo: 2022, hi: 2022 });
+    expect(selectedRange([bound('>', 2019), bound('<', 2024)], Y)).toEqual({ lo: 2020, hi: 2023 });
+    expect(selectedRange([makeRefinementRow(Y, [2018, 2021])], Y)).toEqual({ lo: 2018, hi: 2021 });
+  });
+});
 
 // oxjob #1744: the facets' "More…" dialog keeps its own list seeded from the echo, so it
 // compares with the same rule.

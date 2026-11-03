@@ -42,6 +42,7 @@ import {
   setRefinementValue as setRefinementValueRows,
   setRefinementValues as setRefinementValuesRows,
   removeRefinement as removeRefinementRows,
+  setRangeRefinement as setRangeRefinementRows,
 } from "@/components/Oql/refinements";
 
 
@@ -405,6 +406,13 @@ export default {
     // Clear a facet's refinement entirely.
     removeRefinement({ getters, dispatch }, { columnId, operator } = {}) {
       const next = removeRefinementRows(getters.queryFilterRows, { columnId, operator });
+      dispatch("applyRefinementRows", next);
+    },
+
+    // Year slider (#1232): set `columnId` to the range [lo, hi] (null = open on that side;
+    // both null clears it).
+    setRangeRefinement({ getters, dispatch }, { columnId, lo, hi } = {}) {
+      const next = setRangeRefinementRows(getters.queryFilterRows, { columnId, lo, hi });
       dispatch("applyRefinementRows", next);
     },
   },

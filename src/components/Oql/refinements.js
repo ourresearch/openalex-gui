@@ -128,8 +128,8 @@ export function toggleRefinementValue(filterRows, { columnId, value, operator = 
   return rows;
 }
 
-// Set `columnId` to exactly one value (boolean / range facets, where the widget
-// owns a single value like `true`, `2012-2020`, or `>2019`). Replaces any
+// Set `columnId` to exactly one value (boolean facets, or one clicked bar of a
+// range facet, like `true` or `5`; a year range uses setRangeRefinement). Replaces any
 // existing simple row for the column; a null/empty value removes it. Returns a
 // NEW filter_rows array.
 export function setRefinementValue(filterRows, { columnId, value, operator = OP_IS }) {
@@ -153,4 +153,56 @@ export function setRefinementValues(filterRows, { columnId, values, operator = O
 // Drop `columnId`'s refinement entirely. Returns a NEW filter_rows array.
 export function removeRefinement(filterRows, { columnId, operator = OP_IS }) {
   return (filterRows || []).filter((r) => !isRefinementRowFor(r, columnId, operator));
+}
+
+// ---- Whole-number ranges: the Year slider (oxjob #1232) ---------------------
+// OQL has no range literal: `year is 2022-2025` is a parse error, and an OQO leaf whose value
+// is "2022-2025" fails the column's number check (charter decision 24, 2026-06-13). A range
+// is two top-level bound leaves, `year >= 2022` and `year <= 2025`, which is also how the API
+// echoes `?filter=publication_year:2022-2025`. A single year is one `is` leaf.
+//
+// The slider owns every top-level, un-negated bound on its column: `is` (a leaf, or an OR
+// group of them), `>=`, `>`, `<=`, `<`. Bounds inside the user's own nested tree stay theirs.
+const BOUND_OPS = new Set([">=", ">", "<=", "<"]);
+
+function isRangeRowFor(row, columnId) {
+  return (
+    isRefinementRowFor(row, columnId) ||
+    (BOUND_OPS.has(row?.operator) && isLeafFor(row, columnId, row.operator))
+  );
+}
+
+// The range `columnId` is narrowed to at the top level, as { lo, hi } (null = open on that
+// side), or null when nothing bounds it. A strict bound reads as the next whole number
+// (`year > 2019` → lo 2020); several bounds intersect; an OR group of years reads as its span.
+export function selectedRange(filterRows, columnId) {
+  let lo = null;
+  let hi = null;
+  const atLeast = (v) => { lo = lo == null ? v : Math.max(lo, v); };
+  const atMost = (v) => { hi = hi == null ? v : Math.min(hi, v); };
+  for (const row of filterRows || []) {
+    if (!isRangeRowFor(row, columnId)) continue;
+    const nums = rowValues(row).map(Number).filter(Number.isFinite);
+    if (!nums.length) continue;
+    const op = row.join ? OP_IS : (row.operator || OP_IS);
+    if (op === OP_IS) { atLeast(Math.min(...nums)); atMost(Math.max(...nums)); }
+    else if (op === ">=") atLeast(nums[0]);
+    else if (op === ">") atLeast(nums[0] + 1);
+    else if (op === "<=") atMost(nums[0]);
+    else if (op === "<") atMost(nums[0] - 1);
+  }
+  return lo == null && hi == null ? null : { lo, hi };
+}
+
+// Replace `columnId`'s top-level bounds with exactly [lo, hi] (null = open on that side):
+// lo === hi → one `is` leaf; otherwise `>= lo` and/or `<= hi`; both null → no bound at all.
+// Returns a NEW filter_rows array.
+export function setRangeRefinement(filterRows, { columnId, lo = null, hi = null }) {
+  const rows = (filterRows || []).filter((r) => !isRangeRowFor(r, columnId));
+  const oneValue = lo != null && hi != null && Number(lo) === Number(hi);
+  const bounds = oneValue ? [[lo, OP_IS]] : [[lo, ">="], [hi, "<="]];
+  for (const [v, op] of bounds) {
+    if (v != null) rows.push(makeRefinementRow(columnId, [Number(v)], op));
+  }
+  return rows;
 }
