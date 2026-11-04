@@ -11007,7 +11007,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get funders that funded works where country is [Kenya](KE)\n  and published since 2015;\nthen, summarize each funder using count and mean citation count",
+    "oql": "get funders that funded works where country is [Kenya](KE)\n  and published since 2015;\nthen, summarize each funder using count and mean citations",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11098,7 +11098,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where published since 2016;\nthen, compare institution [KU Leuven](I99464096) versus country [Belgium](BE)\n  using count and percent of those works\n  by SDG",
+    "oql": "get works where published since 2016;\nthen, compare institution [KU Leuven](I99464096) versus country [Belgium](BE)\n  using count and share\n  by SDG",
     "note": "",
     "diagnostic": "",
     "oqo": {
@@ -11425,7 +11425,7 @@ export const oqlCorpus = [
     },
     "oxurl_status": "oql-only",
     "status": "ok",
-    "oql": "get works where topic is [CRISPR and Genetic Engineering](T10878);\nthen, summarize all those works\n  using count, mean FWCI, percent open access, and median citation count",
+    "oql": "get works where topic is [CRISPR and Genetic Engineering](T10878);\nthen, summarize all those works\n  using count, mean FWCI, percent open access, and median citations",
     "note": "",
     "diagnostic": "",
     "oqo": {
