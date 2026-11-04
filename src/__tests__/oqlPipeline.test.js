@@ -16,7 +16,6 @@ import {
   exportCredits,
   summaryRows,
   calculationExportFile,
-  refusalMessage,
   formatCost,
   countsLabel,
   isTextMeasure,
@@ -201,23 +200,6 @@ describe("wholeSetMeasures", () => {
       { key: "value_h", measure: "value" }];
     expect(wholeSetMeasures(ms).map((m) => m.key)).toEqual(["count", "mean_fwci"]);
     expect(wholeSetMeasures(undefined)).toEqual([]);
-  });
-});
-
-describe("refusalMessage", () => {
-  it("a pipeline limit reads as its message plus its fix", () => {
-    const data = {
-      error: "too_many_groups",
-      message: "Splitting by author gives about 100,964,546 groups here; a nested split takes up to 10,000 groups per split.",
-      fix: "Narrow the starting set, or make it the only split (one split pages through any number of groups).",
-    };
-    expect(refusalMessage(data)).toBe(`${data.message} Fix: ${data.fix}`);
-  });
-
-  it("anything else (today's validation errors, a timeout) is left to the caller", () => {
-    expect(refusalMessage({ validation: { errors: [{ message: "x" }] } })).toBe(null);
-    expect(refusalMessage({ error: "Gateway timeout", message: "took too long" })).toBe(null);
-    expect(refusalMessage(undefined)).toBe(null);
   });
 });
 

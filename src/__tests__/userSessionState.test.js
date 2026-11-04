@@ -51,7 +51,7 @@ describe('logout', () => {
       activeBoost: { plan: 'x' }, verifiedOrcid: '0000-0001', columnViews: ['kept'] };
     localStorage.setItem('token', KEY);
     userStore.mutations.logout(state);
-    const { columnViews, facetViews, isSaving, renameId, editAlertId, activeSearchId,
+    const { columnViews, facetViews, isSaving, renameId, editAlertId, activeSearchId, activeSearchKey,
       impersonatingUserId, impersonatingUserName, ...identity } = state;
     expect(identity).toEqual(signedOutUser());
     expect(columnViews).toEqual(['kept']);          // view preferences aren't identity

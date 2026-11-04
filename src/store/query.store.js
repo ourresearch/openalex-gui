@@ -76,6 +76,20 @@ export function hasSemanticLeaf(rows) {
   );
 }
 
+// The sibling params for an INBOUND run (a typed query, a link, back/forward: Serp.vue's
+// `executeOql(route.query.oql)`). Only the page size travels: a new query starts on page
+// 1. Before oxjob #2002 it sent nothing, so with 100 per page picked a new query came back
+// with the API's 25 rows while the pager counted 100 a page: page 2 began at row 101 and
+// rows 26-100 never showed. The OQL isn't parsed yet, so a semantic search ("is similar
+// to") is spotted in the text and held to the API's 50 (a quoted phrase that happens to
+// say "similar to" is skipped; a wrong guess still pages right, as the pager counts by
+// meta.per_page).
+export function inboundRunParams(oql, perPage) {
+  if (perPage == null) return {};
+  const semantic = /\bsimilar\s+to\b/i.test(String(oql || "").replace(/"[^"]*"/g, ""));
+  return { per_page: semantic ? Math.min(perPage, SEMANTIC_MAX_PER_PAGE) : perPage };
+}
+
 const VIEW_KEYS = ["group_by", "seed", "sample"];
 
 // An order as the store keeps it: [{column_id, direction: 'asc'|'desc'}], nothing else.

@@ -23,16 +23,16 @@ import { searchParamKeys } from '@/searchParamKeys';
 import { sortParam } from '@/sortMenu';
 
 
+// A saved search's stored link as a route: an OQL link goes to `/q`, where the OQL names
+// the entity; any other takes its entity from the path (it was hardcoded "works", so an
+// authors search opened as works; oxjob #2002). An unknown path still opens as works.
 const urlObjectFromSearchUrl = function (searchUrl) {
-    const query = Object.fromEntries(new URL(searchUrl).searchParams);
-    const entityType = "works" // hardcoded for now
-    return {
-        name: "Serp",
-        params: {
-            entityType,
-        },
-        query,
+    const route = routeFromOxurl(searchUrl)
+    if (route?.query.oql) return { name: "OqlQuery", query: route.query }
+    if (!route || !getEntityConfig(route.params.entityType)) {
+        return { name: "Serp", params: { entityType: "works" }, query: route?.query || {} }
     }
+    return route
 }
 
 
@@ -42,9 +42,9 @@ const pushSearchUrlToRoute = async function (router, searchUrl) {
 
 
 // Convert an OXURL form (e.g. "/works?filter=type:article&sort=…", as returned
-// in meta.x_query.url) into a Serp route object. Unlike urlObjectFromSearchUrl,
-// this reads the entity type from the path so OQL targeting authors/sources/etc.
-// lands on the right entity page. Returns null for an empty/invalid oxurl.
+// in meta.x_query.url) into a Serp route object, reading the entity type from
+// the path so OQL targeting authors/sources/etc. lands on the right entity
+// page. Returns null for an empty/invalid oxurl.
 // (oxjob #373)
 const routeFromOxurl = function (oxurl) {
     if (!oxurl) return null;
@@ -1060,6 +1060,16 @@ const getPerPage = function() {
 }
 
 
+// The page size the shown results were fetched with: the API's own meta.per_page, so the
+// pager and the "(1–25)" label count what came back, not a preference the request may not
+// have carried (oxjob #2002: a semantic search is held to 50 rows a page). The preference
+// (getPerPage) until an answer is in. Page-size pickers still show getPerPage.
+const getShownPerPage = function(resultsObject) {
+    const n = Number(resultsObject?.meta?.per_page)
+    return Number.isFinite(n) && n > 0 ? n : getPerPage()
+}
+
+
 // An explicit page-size pick from the UI. Persists the current view's preference
 // and resets to page 1 — where `per_page` is omitted from the URL (it rides along
 // only on deep pages via setPage), so the size lives in the store, not the URL.
@@ -1471,6 +1481,7 @@ const url = {
     groupByMoneySignature,
 
     getPerPage,
+    getShownPerPage,
     setPerPage,
     pageSizeOptions,
     adoptPerPageFromUrl,

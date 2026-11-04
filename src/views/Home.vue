@@ -188,7 +188,7 @@ function toggleFaq(index) {
 }
 
 // Reset state on mount
-store.commit('user/setActiveSearchId', null);
+store.commit('user/setActiveSearch', {});
 store.state.entityType = 'works';
 </script>
 

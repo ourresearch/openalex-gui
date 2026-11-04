@@ -198,14 +198,6 @@ export function sortRows(rows, sort) {
     .map(([r]) => r);
 }
 
-// The message for an API refusal: today's validation errors, or a pipeline limit
-// ({error, message, fix}), which carries its fix separately.
-export function refusalMessage(data) {
-  if (!data || typeof data !== "object") return null;
-  if (data.fix && data.message) return `${data.message} Fix: ${data.fix}`;
-  return null;
-}
-
 // The results head (oxjob #1930): "N groups of M works", or the whole set's works (`groups` null: no split). An
 // answer estimated from a sample of a too-big set says "about" for its works, and "N+" groups when the API says its
 // group count is only those the sample holds (meta.estimate.groups_count_is_at_least).

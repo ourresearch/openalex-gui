@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { bootUser, runInBackground, shouldDropSavedSearchId } from '@/store/userBoot';
+import { bootUser, runInBackground } from '@/store/userBoot';
 
 const deferred = () => {
   let resolve, reject;
@@ -70,23 +70,6 @@ describe('bootUser (oxjob #860)', () => {
 
   it('runInBackground with no loaders settles immediately', async () => {
     expect(await runInBackground([])).toEqual([]);
-  });
-});
-
-describe('shouldDropSavedSearchId', () => {
-  const list = [{ id: 'ss-1' }, { id: 'ss-2' }];
-  it('never drops when there is no id in the URL', () => {
-    expect(shouldDropSavedSearchId({ queryId: undefined, savedSearches: [], loaded: true })).toBe(false);
-  });
-  it('never drops before the list has loaded (empty ≠ not found)', () => {
-    expect(shouldDropSavedSearchId({ queryId: 'ss-1', savedSearches: [], loaded: false })).toBe(false);
-  });
-  it('keeps an id that is in the loaded list', () => {
-    expect(shouldDropSavedSearchId({ queryId: 'ss-2', savedSearches: list, loaded: true })).toBe(false);
-  });
-  it('drops an id missing from the loaded list', () => {
-    expect(shouldDropSavedSearchId({ queryId: 'ss-9', savedSearches: list, loaded: true })).toBe(true);
-    expect(shouldDropSavedSearchId({ queryId: 'ss-9', savedSearches: [], loaded: true })).toBe(true);
   });
 });
 

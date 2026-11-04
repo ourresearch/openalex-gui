@@ -47,18 +47,6 @@ export function runInBackground(loaders) {
   });
 }
 
-/**
- * The SERP drops a `?id=<saved search>` that isn't in the user's list (it was
- * deleted, or belongs to someone else). With the list loading in the
- * background that check must not fire before the list has arrived — an empty
- * not-yet-loaded list is not "not found".
- */
-export function shouldDropSavedSearchId({ queryId, savedSearches, loaded }) {
-  if (!queryId) return false;
-  if (!loaded) return false;
-  return !savedSearches.some((s) => s.id === queryId);
-}
-
 // ---------------------------------------------------------------------------
 // Round 2 (oxjob #860 follow-up): don't gate the shell on identity at all.
 //

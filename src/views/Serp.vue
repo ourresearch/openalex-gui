@@ -19,10 +19,11 @@ import { url } from '@/url';
 import { pickOql } from '@/oqlForm';
 import { api } from '@/api';
 import { createFetchSequencer } from '@/serpFetchSeq';
-import { shouldDropSavedSearchId } from '@/store/userBoot';
+import { savedSearchIdState } from '@/savedSearchIdentity';
 import { entityConfigs } from '@/entityConfigs';
 import { filtersFromUrlStr } from '@/filterConfigs';
-import { refusalMessage } from '@/oqlPipeline';
+import { refusalText } from '@/requestRefusal';
+import { inboundRunParams } from '@/store/query.store';
 
 import ExpertSerp from '@/components/ExpertSerp.vue';
 import OqlSerp from '@/components/OqlSerp.vue';
@@ -188,7 +189,7 @@ watch(
       // reflect it. Since we're about to skip the refetch below, sync the active
       // id here or the toolbar star wouldn't fill until a manual refresh (#611 r4).
       if (userId.value) {
-        store.commit('user/setActiveSearchId', route.query.id);
+        store.commit('user/setActiveSearch', { id: route.query.id, path: route.path, query: route.query });
       }
       // A true projection echo has this instance's results already live — skip.
       if (resultsObject.value) return;
@@ -230,23 +231,27 @@ watch(
     // our post-await guards drop this run's writes if it has been superseded.
     const isStale = beginFetch();
 
-    if (
-      shouldDropSavedSearchId({
-        queryId: route.query.id,
-        savedSearches: userSavedSearches.value,
-        // Logged out: there is no list to be in; drop as before.
-        loaded: !userId.value || store.getters['user/savedSearchesLoaded'],
-      })
-    ) {
-      url.pushToRoute(router, {
-        name: 'Serp',
+    // Which saved search is this page? (savedSearchIdentity.js, oxjob #2002.) Only an id
+    // a signed-in person doesn't have is dropped: in place, a replace, so Back doesn't loop.
+    const savedSearchState = savedSearchIdState({
+      queryId: route.query.id,
+      signedIn: !!userId.value,
+      loaded: store.getters['user/savedSearchesLoaded'],
+      savedSearches: userSavedSearches.value,
+      path: route.path,
+      query: route.query,
+    });
+    if (savedSearchState === 'unknown') {
+      url.replaceToRoute(router, {
+        name: route.name,
+        params: route.params,
         query: { ...route.query, id: undefined },
       });
       return;
     }
 
     if (userId.value) {
-      store.commit('user/setActiveSearchId', route.query.id);
+      store.commit('user/setActiveSearch', { id: route.query.id, path: route.path, query: route.query });
     }
 
     store.state.isLoading = true;
@@ -288,7 +293,11 @@ watch(
     // bug; chips (Basic mode) still hydrate from the response's `meta.x_query.url`.
     if (oqlFlag.value && route.query.oql) {
       try {
-        const resp = await api.executeOql(route.query.oql);
+        // The page size rides along, not the page (inboundRunParams, oxjob #2002).
+        const resp = await api.executeOql(
+          route.query.oql,
+          inboundRunParams(route.query.oql, store.state.query.paging?.per_page),
+        );
         // Superseded by a newer navigation while awaiting → drop this stale result
         // (don't touch resultsObject / isLoading; the newer run owns them).
         if (isStale()) return;
@@ -306,11 +315,10 @@ watch(
         if (isStale()) return;
         resultsObject.value = null;
         store.state.resultsObject = null;
-        const validation = e?.response?.data?.validation || null;
-        store.commit('setOqlSubmitError', validation);
-        searchError.value =
-          refusalMessage(e?.response?.data) ||
-          validation?.errors?.[0]?.message || e?.message || 'OQL query failed.';
+        store.commit('setOqlSubmitError', e?.response?.data?.validation || null);
+        // A timeout or refusal shows the API's own words, never "Request failed with
+        // status code 504" (oxjob #2002).
+        searchError.value = refusalText(e);
       }
       resultsFilters.value = [];
       store.state.isLoading = false;
@@ -348,11 +356,8 @@ watch(
       store.state.resultsObject = null;
       // Surface the API's message field (e.g. wrong-entity-type collection
       // filter, malformed boolean search) instead of silently rendering an
-      // empty SERP. Falls back to generic copy if the body is missing.
-      searchError.value =
-        e?.response?.data?.message ||
-        e?.message ||
-        'Search failed.';
+      // empty SERP; see requestRefusal.js for the fallbacks.
+      searchError.value = refusalText(e);
     }
     store.state.isLoading = false;
 
@@ -405,14 +410,8 @@ watch(
       searchError.value = null;
     } catch (e) {
       if (isStale()) return;
-      const validation = e?.response?.data?.validation || null;
-      store.commit('setOqlSubmitError', validation);
-      searchError.value =
-        refusalMessage(e?.response?.data) ||
-        validation?.errors?.[0]?.message ||
-        e?.response?.data?.message ||
-        e?.message ||
-        'OQL query failed.';
+      store.commit('setOqlSubmitError', e?.response?.data?.validation || null);
+      searchError.value = refusalText(e);
     }
     resultsFilters.value = [];
     store.state.isLoading = false;

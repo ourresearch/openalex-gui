@@ -5,6 +5,7 @@ import {navigation} from '@/navigation';
 import {urlBase, axiosConfig} from "@/apiConfig.js"
 import {sanitizeRedirectPath} from "@/util";
 import {bootUser, readUserCache, writeUserCache, clearUserCache, apiKeyFromToken} from "@/store/userBoot";
+import {searchQueryKey, savedSearchQueryKey} from "@/savedSearchIdentity";
 import {orcidAutoClaim} from "@/components/Entity/claimCopy.js";
 import {magicLoginConfig} from "@/store/magicLoginConfig.js";
 
@@ -70,6 +71,9 @@ export default {
         renameId: null,
         editAlertId: null,
         activeSearchId: null,
+        // The query of the results page that id was read from (searchQueryKey): "saved"
+        // means it is the stored query, not just the id (oxjob #2002).
+        activeSearchKey: null,
         impersonatingUserId: null,
         impersonatingUserName: null,
     }),
@@ -86,8 +90,10 @@ export default {
         setEditAlertId(state, id) {
             state.editAlertId = id
         },
-        setActiveSearchId(state, id) {
-            state.activeSearchId = id
+        // The SERP's ?id= and the page it sits on (oxjob #2002); {} clears it.
+        setActiveSearch(state, {id, path, query} = {}) {
+            state.activeSearchId = id ?? null
+            state.activeSearchKey = id ? searchQueryKey(path, query) : null
         },
         setImpersonation(state, { userId, userName }) {
             state.impersonatingUserId = userId;
@@ -836,7 +842,7 @@ export default {
             commit("snackbar", "Search deleted", {root: true})
             rootState.isLoading = false
             await url.pushToRoute(navigation, "/me/searches")
-            commit("setActiveSearchId", undefined);
+            commit("setActiveSearch", {});
             return resp;
         },
 
@@ -885,7 +891,7 @@ export default {
             )
             await dispatch("fetchSavedSearches")
             commit("snackbar", "Search unsaved", {root: true})
-            commit("setActiveSearchId", undefined);
+            commit("setActiveSearch", {});
             // Strip ?id from current URL, stay on SERP
             const newUrl = new URL(window.location.href);
             newUrl.searchParams.delete("id");
@@ -928,7 +934,13 @@ export default {
         renameId: (state) => state.renameId,
         editAlertId: (state) => state.editAlertId,
         activeSearchId: (state) => state.activeSearchId,
-        activeSearchObj: (state) => state.savedSearches.find(s => s.id === state.activeSearchId),
+        // Saved means the id is theirs AND the stored query is this page's query: after a
+        // chip edit that kept ?id=, the star and bell no longer say "saved" while the alert
+        // runs the old query (oxjob #2002, savedSearchIdentity.js).
+        activeSearchObj: (state) => {
+            const saved = state.savedSearches.find(s => s.id === state.activeSearchId)
+            return saved && savedSearchQueryKey(saved.search_url) === state.activeSearchKey ? saved : undefined
+        },
         impersonatingUserId: (state) => state.impersonatingUserId,
         impersonatingUserName: (state) => state.impersonatingUserName,
         isImpersonating: (state) => !!state.impersonatingUserId,

@@ -118,7 +118,7 @@
         v-model="page"
         class="pb-8 pt-4"
         :count="resultsObject?.meta?.count || 0"
-        :per-page="url.getPerPage()"
+        :per-page="url.getShownPerPage(resultsObject)"
       />
     </v-card>
 
@@ -232,14 +232,14 @@ const countLabel = computed(() => {
 });
 const listEstimateNote = computed(() => (isPipeline.value ? null : props.resultsObject?.meta?.estimate?.message || null));
 
-const showPagination = computed(() => (props.resultsObject?.meta?.count || 0) > url.getPerPage());
+const showPagination = computed(() => (props.resultsObject?.meta?.count || 0) > url.getShownPerPage(props.resultsObject));
 const page = computed({
   get() {
     return props.resultsObject?.meta?.page ?? 1;
   },
   set(val) {
     if (inOqlMode.value) {
-      store.dispatch('query/setPage', { page: val, perPage: url.getPerPage() });
+      store.dispatch('query/setPage', { page: val, perPage: url.getShownPerPage(props.resultsObject) });
       return;
     }
     url.setPage(val === 1 ? undefined : val);

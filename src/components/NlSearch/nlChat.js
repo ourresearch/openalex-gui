@@ -13,7 +13,7 @@ import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { api } from '@/api';
 import { validateOql } from '@/components/OqlPlayground/oqlEditorApi';
-import { shortThrottleWaitMs } from '@/throttleRetry';
+import { withRefusalPolicy } from '@/requestRefusal';
 import { getEntityType } from '@/openalexId';
 import { findLinks } from '@/components/OqlPlayground/oqlLinks';
 
@@ -141,15 +141,8 @@ export async function oqlForAnswer(oql, sort, getQuery = api.getQuery, validate 
 // These calls come in a burst right after the answer, so a per-second throttle (429 with a
 // Retry-After of about a second) is likely; wait it out once, as api.get does (Kyle, 2026-10-16).
 // Seen live 2026-10-20 05:12 CT: the sort fold 429'd and the order was nearly lost.
-export async function retryShortThrottle(fn) {
-  try {
-    return await fn();
-  } catch (e) {
-    const waitMs = shortThrottleWaitMs(e?.response);
-    if (waitMs === null) throw e;
-    await new Promise((resolve) => setTimeout(resolve, waitMs));
-    return fn();
-  }
+export function retryShortThrottle(fn) {
+  return withRefusalPolicy(fn);
 }
 
 /**

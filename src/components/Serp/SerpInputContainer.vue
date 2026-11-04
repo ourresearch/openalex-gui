@@ -243,7 +243,7 @@
           class="pb-8 pt-4"
           v-model="page"
           :count="resultsObject?.meta?.count || 0"
-          :per-page="url.getPerPage()"
+          :per-page="url.getShownPerPage(resultsObject)"
         />
       </v-card>
     </div>
@@ -868,7 +868,7 @@ const resultsCountLabel = computed(() => {
   }
   // Works count FIRST (#440 r12 — the count is a primary outcome of the
   // search), page range in parens: "about 316,600,000 works (1–100)".
-  const perPage = url.getPerPage();
+  const perPage = url.getShownPerPage(props.resultsObject);
   const page = props.resultsObject.meta.page ?? 1;
   const from = (page - 1) * perPage + 1;
   const to = Math.min(page * perPage, count);
@@ -877,7 +877,7 @@ const resultsCountLabel = computed(() => {
 
 // ---- pagination -----------------------------------------------------------
 const showPagination = computed(
-  () => (props.resultsObject?.meta?.count || 0) > url.getPerPage()
+  () => (props.resultsObject?.meta?.count || 0) > url.getShownPerPage(props.resultsObject)
 );
 const page = computed({
   get() {
@@ -890,7 +890,7 @@ const page = computed({
     // current per_page so the executed size matches the displayed one. Replace
     // intent (paging is tuning, not a new query → no history entry).
     if (inOqlMode.value) {
-      store.dispatch('query/setPage', { page: val, perPage: url.getPerPage() });
+      store.dispatch('query/setPage', { page: val, perPage: url.getShownPerPage(props.resultsObject) });
       return;
     }
     url.setPage(val === 1 ? undefined : val);

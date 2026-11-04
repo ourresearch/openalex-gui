@@ -73,6 +73,18 @@
       type="list-item@4"
       class="group-by-skeleton"
     />
+    <!-- A failed fetch says so instead of leaving the previous query's counts under the
+         new results (oxjob #2002, groupsRequestState.js). -->
+    <div
+      v-else-if="groupsRequest.status === 'error'"
+      class="group-by-error d-flex align-center flex-wrap px-4 py-3 text-body-2 text-medium-emphasis"
+    >
+      <span class="mr-1">Couldn't load these counts{{ groupsRequest.error?.short ? `: ${groupsRequest.error.short}` : '' }}.</span>
+      <v-btn
+        v-if="groupsRequest.error?.canRetry !== false"
+        size="small" variant="text" class="text-none px-1" @click="getGroups()"
+      >Try again</v-btn>
+    </div>
     <div v-else-if="groupsTruncated?.length || selectedGroupIds?.length || (isYearWidget && isSelected)" class="card-body">
 
       <div v-if="props.filterKey==='publication_year' || props.filterKey==='start_year'" style="min-width: 200px">
@@ -262,6 +274,8 @@ import { getFacetConfig } from '@/facetConfigUtils';
 import { filtersFromUrlStr, createSimpleFilter, facetDialogSelection, applyFacetDialogSelection } from '@/filterConfigs';
 import { selectedValues as oqoSelectedValues, selectedRange as oqoSelectedRange, sameValue } from '@/components/Oql/refinements';
 import { exportArrayToCsv } from '@/utils/csvExport';
+import { initialGroupsRequest, needsGroupsFetch, beginGroupsRequest, settleGroupsRequest } from '@/groupsRequestState';
+import { refusalReason } from '@/requestRefusal';
 
 import BarGraph from '@/components/BarGraph.vue';
 import GroupByTableRow from '@/components/GroupBy/GroupByTableRow.vue';
@@ -299,10 +313,13 @@ const oqlMode = computed(() => !!store.getters.featureFlags?.['oql'] && !!route.
 const executionOqo = computed(() => store.getters['query/executionOqo']);
 const queryFilterRows = computed(() => store.getters['query/queryFilterRows']);
 
-const isLoading = ref(false);
+// The counts and whether they belong to the current query: one state, written only by
+// getGroups (oxjob #2002, groupsRequestState.js).
+const groupsRequest = ref(initialGroupsRequest());
+const groups = computed(() => groupsRequest.value.groups);
+const isLoading = computed(() => groupsRequest.value.status === 'loading');
 const searchString = ref('');
 const isDialogOpen = ref(false);
-const groups = ref([]);
 const localSelection = ref([]);
 const maxResults = 5;
 const maxResultsRange = 25;
@@ -569,12 +586,11 @@ const groupsRequestSignature = () => {
   const corpusSig = url.corpusFromRouteQuery(route.query) || (route.query.include_xpac === 'true' ? 'all' : 'core');
   return `url:${props.entityType}:${props.filterKey}:corpus=${corpusSig}:${JSON.stringify(apiRequestFilters.value)}`;
 };
-// The signature of the last SUCCESSFUL fetch (recorded after the await, so a
-// failed fetch retries). Value comparison, no sticky flag (the #464/#562
-// pattern): the watcher below still fires on route identity churn (every
-// navigation makes a fresh route.params object) and on editEpoch bumps, but a
-// byte-identical aggregation is never re-fetched. oxjob #564.
-let lastGroupsSignature = null;
+// Each query's counts are fetched once: getGroups skips a signature whose counts are
+// shown or on their way (needsGroupsFetch), by value, no sticky flag (the #464/#562
+// pattern). The watcher below still fires on route identity churn (every navigation
+// makes a fresh route.params object) and on editEpoch bumps; those re-fires are skipped.
+// A failed query is fetched again on the next fire or the card's Try again. oxjob #564, #2002.
 const getGroups = async () => {
   if (!props.filterKey) return;
   // Cross-entity guard: during an entity-changing navigation this widget can be
@@ -586,16 +602,13 @@ const getGroups = async () => {
   const signature = groupsRequestSignature();
   // Null in OQL mode = no settled query yet (first execution in flight) — the
   // post-sync signature change re-fires this watcher with a real value.
-  if (oqlMode.value && signature == null) return;
-  if (signature === lastGroupsSignature) return;
-  isLoading.value = true;
-  // Record the signature BEFORE awaiting: the fetch takes long enough that the
-  // canonical-URL projection re-fires this watcher while it's still in flight,
-  // and a post-await record let that re-fire slip past the guard (observed: a
-  // second 5-POST wave ~60ms after the first). Reverted on failure so a failed
-  // fetch retries.
-  const prevSignature = lastGroupsSignature;
-  lastGroupsSignature = signature;
+  if (oqlMode.value && (signature == null || !executionOqo.value)) return;
+  if (!needsGroupsFetch(groupsRequest.value, signature)) return;
+  // Mark it in flight BEFORE awaiting: the fetch takes long enough that the
+  // canonical-URL projection re-fires this watcher while it's still in flight
+  // (observed: a second 5-POST wave ~60ms after the first).
+  groupsRequest.value = beginGroupsRequest(groupsRequest.value, signature);
+  const { seq } = groupsRequest.value;
   // #1689: on the server, stop here. The server HTML then shows the loading state,
   // which is what the browser's first (hydrating) render shows too; the browser
   // fetches the groups. (No group_by calls on the server.)
@@ -604,31 +617,22 @@ const getGroups = async () => {
   // arbitrary nested boolean trees). Flag-off: legacy GET with the ?filter= context.
   let result;
   try {
-    if (oqlMode.value) {
-      if (!executionOqo.value) { isLoading.value = false; return; }
-      result = await api.getGroupsForOqo(props.entityType, props.filterKey, executionOqo.value, {
-        hideUnknown: true,
-      });
-    } else {
-      result = await api.getGroups(props.entityType, props.filterKey, {
-        hideUnknown: true,
-        filters: apiRequestFilters.value
-      });
-    }
+    result = oqlMode.value
+      ? await api.getGroupsForOqo(props.entityType, props.filterKey, executionOqo.value, { hideUnknown: true })
+      : await api.getGroups(props.entityType, props.filterKey, { hideUnknown: true, filters: apiRequestFilters.value });
   } catch (e) {
-    lastGroupsSignature = prevSignature;
-    isLoading.value = false;
-    throw e;
+    // Handled here: the card says it couldn't load (an answer for an older query is
+    // dropped by settleGroupsRequest either way).
+    console.warn(`GroupBy ${props.filterKey}: couldn't load counts`, e?.response?.status ?? e?.message);
+    groupsRequest.value = settleGroupsRequest(groupsRequest.value, seq, { error: refusalReason(e) });
+    return;
   }
   // Year groups arrive already sorted chronologically (descending) from
   // api.getGroups — see the zd#8363 note there. No need to re-sort here.
-  if (props.filterKey === 'start_year') {
-    const currentYear = new Date().getFullYear();
-    groups.value = result.filter(g => parseInt(g.value) <= currentYear);
-  } else {
-    groups.value = result;
-  }
-  isLoading.value = false;
+  const rows = props.filterKey === 'start_year'
+    ? result.filter(g => parseInt(g.value) <= currentYear)
+    : result;
+  groupsRequest.value = settleGroupsRequest(groupsRequest.value, seq, { groups: rows });
 };
 
 const selectGroup = (val) => {

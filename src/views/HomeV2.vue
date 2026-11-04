@@ -627,7 +627,7 @@ onMounted(() => {
 onBeforeUnmount(() => cleanup());
 
 // Reset state on mount (mirrors Home.vue)
-store.commit('user/setActiveSearchId', null);
+store.commit('user/setActiveSearch', {});
 store.state.entityType = 'works';
 </script>
 

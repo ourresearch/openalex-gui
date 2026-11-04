@@ -17,7 +17,7 @@ import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
 import store from "@/store";
 import {edgeOn, edgeSupports, edgeRows} from "@/edgeAutocomplete";
 import {isServerRender} from "@/utils/env";
-import {shortThrottleWaitMs} from "@/throttleRetry";
+import {withRefusalPolicy} from "@/requestRefusal";
 
 // Response cache for this browser tab. Never used on the server (#1689): a
 // module-level cache there would be shared by every visitor and grow forever.
@@ -106,34 +106,17 @@ const api = (function () {
             return cachedResponse;
         }
 
-        let res;
-        for (let attempt = 0; ; attempt++) {
-            try {
-                //console.log(`GET ${url}`);
-                res = await axios.get(url, config);
-                // console.log(`api GET ${url} success:`, res.data)
-                break;
-            } catch (e) {
-                // Deliberate aborts (stale autocomplete keystrokes) aren't failures.
-                if (e?.code === "ERR_CANCELED") throw e;
-                // A per-second throttle (e.g. one semantic search a second) clears in
-                // about a second: wait it out and try once more, so a burst the page
-                // made itself never shows as an error. Not the daily limit.
-                const throttleWaitMs = shortThrottleWaitMs(e.response);
-                if (throttleWaitMs !== null && attempt === 0) {
-                    await new Promise(resolve => setTimeout(resolve, throttleWaitMs));
-                    continue;
-                }
-                // https://gist.github.com/fgilio/230ccd514e9381fafa51608fcf137253
-                console.log("api GET failure:", e.response);
-                if (e.response?.status === 429 && throttleWaitMs === null && !store.state.user.id) {
-                    store.commit('showCreditLimitDialog');
-                }
-                throw e
-            }
-        }
+        const res = await sendWithRefusalPolicy(() => axios.get(url, config));
         stockCache(url, res.data);
         return res.data;
+    }
+
+    // GET and the OQL POSTs share one refusal policy (withRefusalPolicy, oxjob #2002).
+    const sendWithRefusalPolicy = function (send) {
+        return withRefusalPolicy(send, {
+            isSignedIn: () => !!store.state.user.id,
+            onDailyLimitSignedOut: () => store.commit('showCreditLimitDialog'),
+        });
     }
 
     const get =  async function (pathName, searchParams, config) {
@@ -758,7 +741,7 @@ const api = (function () {
         // Throws on a 4xx with a structured {validation: {errors: [...]}} body.
         // `params` are sibling view params (e.g. a pipeline query's `sort`, #1536).
         const url = `${urlBase.api}/?mailto=ui@openalex.org`;
-        const resp = await axios.post(url, { oql, ...params }, axiosConfig());
+        const resp = await sendWithRefusalPolicy(() => axios.post(url, { oql, ...params }, axiosConfig()));
         // Same boundary normalization as getResultsList/executeOqo (oxjob
         // #852) — the /q?oql= route fetches through here, and locations rows
         // otherwise render a blank identity column + unlinkable rows.
@@ -786,7 +769,7 @@ const api = (function () {
         // over any (transitional) embedded value. Throws on a 4xx with a
         // structured {validation: {errors: [...]}} body, like executeOql.
         const url = `${urlBase.api}/?mailto=ui@openalex.org`;
-        const resp = await axios.post(url, { oqo, ...params }, axiosConfig());
+        const resp = await sendWithRefusalPolicy(() => axios.post(url, { oqo, ...params }, axiosConfig()));
         // Same boundary normalization as getResultsList (oxjob #852): OQO rows
         // for displayNameField/component entities (locations: title, bare ids)
         // otherwise render a blank identity column + unlinkable rows in the
