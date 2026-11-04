@@ -61,3 +61,33 @@ describe('facetTypeToChipType', () => {
     expect(facetTypeToChipType({ type: 'range', key: 'cited_by_count' })).toBe('range');
   });
 });
+
+// oxjob #594 (ticket 22523): an author's Institution chip includes the institution's child
+// organizations (its labs and institutes), like works' Institution chip.
+describe('authors Institution chip uses lineage', () => {
+  const canAuthors = (filterStr) => basicCanRepresent('authors', filtersFromUrlStr('authors', filterStr));
+
+  it('the chip is last_known_institutions.lineage', async () => {
+    const { defaultChipsByEntity } = await import('../components/Filter/basicFilterMode');
+    expect(defaultChipsByEntity.authors[0].key).toBe('last_known_institutions.lineage');
+    expect(canAuthors('last_known_institutions.lineage:i90183372')).toBe(true);
+  });
+
+  it('both the lineage and the exact facet are filters on authors', async () => {
+    const { facetConfigs } = await import('../facetConfigs');
+    const byKey = Object.fromEntries(facetConfigs('authors').map((c) => [c.key, c]));
+    expect(byKey['last_known_institutions.lineage'].actions).toContain('filter');
+    expect(byKey['last_known_institutions.id'].actions).toContain('filter');
+  });
+});
+
+describe('authors exact-institution facet keeps the plain label where it shows the institution', () => {
+  it('the default column and the entity-page row say "institution"', async () => {
+    const { resolveColumn } = await import('../components/Results/Table/columnConfig');
+    const { facetConfigs } = await import('../facetConfigs');
+    expect(resolveColumn('authors', 'last_known_institutions.id').label).toBe('institution');
+    const exact = facetConfigs('authors').find((c) => c.key === 'last_known_institutions.id');
+    expect(exact.displayNameOnEntityPage).toBe('institution');
+    expect(exact.displayName).toBe('exact institution');
+  });
+});

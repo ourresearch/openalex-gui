@@ -1506,14 +1506,32 @@ const facetConfigs = function (entityType) {
             icon: "mdi-shape-outline",
         },
         {
-            key: "last_known_institutions.id",
+            // "Institution": the last known institution with its child organizations (a
+            // university's labs and institutes), as works' "Institution" filter is (oxjob #594).
+            key: "last_known_institutions.lineage",
             entityToFilter: "authors",
             entityToSelect: "institutions",
             type: "selectEntity",
             isManyOptions: true,
             category: "institution",
             actions: ["filter", "group_by"],
-            actionsPopular: ["filter", "group_by"],
+            actionsPopular: ["filter"],
+            icon: "mdi-town-hall",
+        },
+        {
+            // "Exact institution": that institution only. Still the default split, the
+            // default column and the entity-page row, which show the institution itself, not
+            // its parents; the column and the entity page keep the plain label.
+            key: "last_known_institutions.id",
+            displayNameOnEntityPage: "institution",
+            column: { label: "institution" },
+            entityToFilter: "authors",
+            entityToSelect: "institutions",
+            type: "selectEntity",
+            isManyOptions: true,
+            category: "institution",
+            actions: ["filter", "group_by", "column"],
+            actionsPopular: ["group_by"],
             icon: "mdi-town-hall",
             extractFn: (entity) => entity.last_known_institutions,
         },

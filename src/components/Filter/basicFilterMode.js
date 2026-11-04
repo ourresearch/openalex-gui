@@ -58,7 +58,8 @@ export const defaultChipsByEntity = {
     { key: 'type', label: 'Type', chipType: 'entity', entityToSelect: 'types' },
   ],
   authors: [
-    { key: 'last_known_institutions.id', label: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
+    // with its child organizations, like works' Institution chip (oxjob #594)
+    { key: 'last_known_institutions.lineage', label: 'Institution', chipType: 'entity', entityToSelect: 'institutions' },
     { key: 'last_known_institutions.country_code', label: 'Country', chipType: 'entity', entityToSelect: 'countries' },
   ],
   sources: [

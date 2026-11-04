@@ -1478,7 +1478,7 @@ export const oqlCorpus = [
       "get_rows": "authors",
       "filter_rows": [
         {
-          "column_id": "last_known_institutions.id",
+          "column_id": "last_known_institutions.lineage",
           "value": "I114027177"
         },
         {
@@ -1487,7 +1487,7 @@ export const oqlCorpus = [
         }
       ]
     },
-    "oxurl": "https://openalex.org/authors?filter=last_known_institutions.id:I114027177,topics.id:T10895"
+    "oxurl": "https://openalex.org/authors?filter=last_known_institutions.lineage:I114027177,topics.id:T10895"
   },
   {
     "id": 46,

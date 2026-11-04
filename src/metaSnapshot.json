@@ -1,7 +1,7 @@
 {
- "version": "21.0.0",
- "fingerprint": "1b2037c2822c8ded58d3cc112473951284264a387baf748678ac647268f7810a",
- "generatedAt": "2026-11-03T20:57:18.376Z",
+ "version": "22.1.0",
+ "fingerprint": "1d0b92915f53bc69f64bf735af72d131486262c3830f7110f093144ff4d05282",
+ "generatedAt": "2026-11-04T06:45:32.704Z",
  "entities": {
   "authors": {
    "displayName": "authors",
@@ -136,9 +136,9 @@
    "last_known_institutions.country_code": "institution country",
    "last_known_institutions.geo.city": "institution city",
    "last_known_institutions.geo.region": "institution region",
-   "last_known_institutions.id": "institution",
+   "last_known_institutions.id": "exact institution",
    "last_known_institutions.is_global_south": "last institution is in Global South",
-   "last_known_institutions.lineage": "last institution lineage",
+   "last_known_institutions.lineage": "institution",
    "last_known_institutions.ror": "last institution ROR",
    "last_known_institutions.type": "institution type",
    "observed_orcids": "Observed ORCIDs",
@@ -1114,7 +1114,6 @@
    "topics.id": "topics",
    "topics.subfield.id": "subfield",
    "type": "type",
-   "type_crossref": "Crossref type",
    "updated_date": "updated date",
    "versions": "versions",
    "volume": "volume",
