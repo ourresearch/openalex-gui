@@ -41,20 +41,24 @@ export function searchQueryKey(path, query) {
     return JSON.stringify([entity, params]);
 }
 
-// The stored `search_url` (a full https://openalex.org/... link) read the same way.
-export function savedSearchQueryKey(searchUrl) {
+// The stored `search_url` (a full https://openalex.org/... link) read the same way, and
+// the way the router reads it on arrival: `arrivalQuery` is its rewrite of an inbound link
+// (url.filterSearchRedirectQuery: #397 turns `filter=title.search:x` into `search.title=x`),
+// or null when it leaves the link alone. Without it an unedited old link reads as edited.
+export function savedSearchQueryKey(searchUrl, arrivalQuery) {
     try {
         const u = new URL(searchUrl, "https://openalex.org");
-        return searchQueryKey(u.pathname, Object.fromEntries(u.searchParams));
+        const query = Object.fromEntries(u.searchParams);
+        return searchQueryKey(u.pathname, arrivalQuery?.(query) || query);
     } catch {
         return null;
     }
 }
 
-export function savedSearchIdState({ queryId, signedIn, loaded, savedSearches, path, query }) {
+export function savedSearchIdState({ queryId, signedIn, loaded, savedSearches, path, query, arrivalQuery }) {
     if (!queryId || !signedIn) return "none";
     if (!loaded) return "loading";
     const saved = (savedSearches || []).find((s) => s.id === queryId);
     if (!saved) return "unknown";
-    return savedSearchQueryKey(saved.search_url) === searchQueryKey(path, query) ? "saved" : "edited";
+    return savedSearchQueryKey(saved.search_url, arrivalQuery) === searchQueryKey(path, query) ? "saved" : "edited";
 }

@@ -2,12 +2,20 @@
 // #1999 found (its EXPLORE.md, Area 4 items 2, 4, 7, 8).
 import { describe, it, expect, vi } from "vitest";
 
+// url.js (for the router's own arrival rewrite) needs a router and a store, not Nuxt's.
+vi.hoisted(() => {
+  globalThis.window = globalThis.window || { addEventListener: () => {}, location: { href: "", origin: "" } };
+});
+vi.mock("@/router", () => ({ default: { currentRoute: { value: { query: {}, params: {} } }, push: () => Promise.resolve() } }));
+vi.mock("@/store", () => ({ default: { state: {}, getters: {} } }));
+
 import {
   initialGroupsRequest, needsGroupsFetch, beginGroupsRequest, settleGroupsRequest,
 } from "@/groupsRequestState";
 import { classifyRequestError, refusalText, refusalReason, withRefusalPolicy } from "@/requestRefusal";
 import { savedSearchIdState, searchQueryKey, savedSearchQueryKey } from "@/savedSearchIdentity";
 import { inboundRunParams } from "@/store/query.store";
+import { url } from "@/url";
 
 // An axios-shaped HTTP error.
 const httpError = (status, data = {}, headers = {}) =>
@@ -190,6 +198,13 @@ describe("which saved search is this page? (savedSearchIdentity)", () => {
     expect(state({ ...classic, query: { filter: "title.search:frogs", id: "ss-2", page: "1" } })).toBe("saved");
     expect(state({ ...classic, query: { filter: "title.search:frogs,is_oa:true", id: "ss-2", page: "1" } })).toBe("edited");
     expect(state({ ...classic, path: "/authors", query: { filter: "title.search:frogs", id: "ss-2" } })).toBe("edited");
+  });
+
+  it("an old link the router rewrites on arrival is still 'saved' (live 3 Nov: filter=title.search:x -> search.title=x)", () => {
+    const old = [{ id: "ss-3", search_url: "https://openalex.org/works?filter=title.search:frogs&id=ss-3" }];
+    const arrived = { queryId: "ss-3", savedSearches: old, path: "/works", query: { id: "ss-3", "search.title": "frogs" } };
+    expect(state({ ...arrived, arrivalQuery: url.filterSearchRedirectQuery })).toBe("saved");
+    expect(state({ ...arrived, query: { id: "ss-3", "search.title": "toads" }, arrivalQuery: url.filterSearchRedirectQuery })).toBe("edited");
   });
 
   it("an OQL page names its entity in the OQL, so its path doesn't matter", () => {

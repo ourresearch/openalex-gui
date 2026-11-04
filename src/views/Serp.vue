@@ -240,6 +240,7 @@ watch(
       savedSearches: userSavedSearches.value,
       path: route.path,
       query: route.query,
+      arrivalQuery: url.filterSearchRedirectQuery,
     });
     if (savedSearchState === 'unknown') {
       url.replaceToRoute(router, {

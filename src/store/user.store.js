@@ -939,7 +939,8 @@ export default {
         // runs the old query (oxjob #2002, savedSearchIdentity.js).
         activeSearchObj: (state) => {
             const saved = state.savedSearches.find(s => s.id === state.activeSearchId)
-            return saved && savedSearchQueryKey(saved.search_url) === state.activeSearchKey ? saved : undefined
+            return saved && savedSearchQueryKey(saved.search_url, url.filterSearchRedirectQuery) === state.activeSearchKey
+                ? saved : undefined
         },
         impersonatingUserId: (state) => state.impersonatingUserId,
         impersonatingUserName: (state) => state.impersonatingUserName,
