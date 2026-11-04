@@ -80,7 +80,7 @@
         hide-details
         clearable
         label="Status"
-        class="filter-select"
+        class="filter-select filter-select--status"
       >
         <template #item="{ item, props: itemProps }">
           <v-list-item v-bind="itemProps" :prepend-icon="item.raw.icon" />
@@ -530,5 +530,10 @@ onMounted(() => {
 
 .filter-select {
   max-width: 150px;
+}
+
+/* "Not seen live yet" (oxjob #2009) wrapped to three lines at 150px. */
+.filter-select--status {
+  max-width: 210px;
 }
 </style>
