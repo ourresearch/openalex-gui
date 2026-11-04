@@ -11,6 +11,7 @@ import {
   namePending,
   nameRemoved,
 } from '@/composables/observedNamesMapping';
+import { isOpenCuration, latestCurationPerWork } from '@/composables/useCurationDescriptor';
 
 // Name-level "remove observed names" curation for the author entity page.
 // oxjob #342.
@@ -111,16 +112,20 @@ export function useObservedNamesCuration({
       'user/fetchAuthorCurations',
       authorId.value
     );
+    // A work counts as removed only when its newest curation is a removal
+    // still in force: open (pending / timed_out) or applied. A superseded
+    // removal, or one the author re-claimed since, does not hide the work or
+    // its name (oxjob #2009).
     const removed = {};
     const pending = {};
     const applied = {};
-    (curations || [])
-      .filter((c) => c.action === 'remove')
-      .forEach((c) => {
-        const sid = shortWorkId(c.entity_id);
+    Object.entries(latestCurationPerWork(curations, shortWorkId))
+      .filter(([, c]) => c.action === 'remove')
+      .forEach(([sid, c]) => {
+        if (isOpenCuration(c)) pending[sid] = true;
+        else if (c.status === 'applied') applied[sid] = true;
+        else return;
         removed[sid] = true;
-        if (c.status === 'applied') applied[sid] = true;
-        else pending[sid] = true;
       });
     removedWorkIds.value = removed;
     pendingWorkIds.value = pending;

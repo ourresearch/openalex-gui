@@ -182,7 +182,7 @@
                   @click.stop="goToCuration(getPendingCuration(affiliation).id)"
                 >
                   <span class="curation-dot"></span>
-                  Pending
+                  {{ statusMeta(getPendingCuration(affiliation)).label }}
                 </span>
               </div>
             </td>
@@ -299,6 +299,7 @@ import { useStore } from 'vuex';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import RasWorksDialog from './RasWorksDialog.vue';
+import { statusMeta } from '@/composables/useCurationDescriptor';
 
 defineOptions({ name: 'AffiliationMatchingPanel' });
 
@@ -362,7 +363,7 @@ async function fetchUserCurations() {
     const curations = res.data.results || [];
     curations.forEach(c => {
       if (c.entity === 'ras') {
-        pendingCurations.value.set(c.entity_id, { id: c.id, action: c.action });
+        pendingCurations.value.set(c.entity_id, { id: c.id, action: c.action, status: c.status });
       }
     });
   } catch (err) {
@@ -829,7 +830,7 @@ async function submitCurations(action) {
     // Track pending curations for UI indicator (only the rows that actually
     // committed; skipped/error items aren't in the DB).
     created.forEach(c => {
-      pendingCurations.value.set(c.entity_id, { id: c.id, action: c.action });
+      pendingCurations.value.set(c.entity_id, { id: c.id, action: c.action, status: c.status });
     });
 
     // Clear selection after success

@@ -2,6 +2,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useStore } from 'vuex';
 import axios from 'axios';
 import { urlBase } from '@/apiConfig';
+import { isOpenCuration, latestCurationPerWork } from '@/composables/useCurationDescriptor';
 
 // Owner-only add/remove-works curation for the author entity page. Layers
 // pending state onto the EXISTING works list + selection store — it does not
@@ -23,6 +24,12 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
   // Cached so badges can be re-derived as the feed paginates without
   // re-hitting the API.
   let cachedCurations = [];
+
+  // What is still waiting on each work: the newest curation per work, kept
+  // only while open (pending or timed_out). A superseded edit, or a removal
+  // the author re-claimed since, is not pending (oxjob #2009).
+  const openLatest = () =>
+    Object.values(latestCurationPerWork(cachedCurations, shortId)).filter(isOpenCuration);
 
   const shortId = (id) =>
     (String(id || '').match(/[WA]\d+/i) || [''])[0].toUpperCase();
@@ -65,8 +72,8 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
   function applyReconcile() {
     const feed = feedIdSet();
     const next = {};
-    cachedCurations
-      .filter((c) => c.action === 'remove' && c.status !== 'applied')
+    openLatest()
+      .filter((c) => c.action === 'remove')
       .forEach((c) => {
         next[shortId(c.entity_id)] = c.id;
       });
@@ -108,11 +115,8 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
     const feed = feedIdSet();
 
     // Additions: replace-curations whose work isn't in the feed yet.
-    const addCurations = cachedCurations.filter(
-      (c) =>
-        c.action === 'replace' &&
-        c.status !== 'applied' &&
-        !feed.has(shortId(c.entity_id))
+    const addCurations = openLatest().filter(
+      (c) => c.action === 'replace' && !feed.has(shortId(c.entity_id))
     );
     if (addCurations.length) {
       const byWork = {};
@@ -141,11 +145,8 @@ export function useAuthorWorksCuration({ authorId, authorName, works }) {
 
     // Removals whose work isn't in the loaded feed (e.g. after a reload):
     // fetch them so the pending view can still show + cancel them.
-    const removeCurations = cachedCurations.filter(
-      (c) =>
-        c.action === 'remove' &&
-        c.status !== 'applied' &&
-        !feed.has(shortId(c.entity_id))
+    const removeCurations = openLatest().filter(
+      (c) => c.action === 'remove' && !feed.has(shortId(c.entity_id))
     );
     if (removeCurations.length) {
       const byWork = {};

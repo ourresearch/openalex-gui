@@ -318,7 +318,7 @@ const statusOptions = [
   { title: 'Pending', value: 'pending', icon: 'mdi-clock-outline' },
   { title: 'Applied', value: 'applied', icon: 'mdi-check-circle' },
   { title: 'Superseded', value: 'superseded', icon: 'mdi-swap-horizontal' },
-  { title: 'Timed out', value: 'timed_out', icon: 'mdi-close-circle' },
+  { title: 'Not seen live yet', value: 'timed_out', icon: 'mdi-clock-alert-outline' },
 ];
 
 const entityOptions = ['ras', 'authors', 'works'].map((value) => {

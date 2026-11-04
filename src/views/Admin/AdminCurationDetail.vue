@@ -114,7 +114,8 @@
               <span v-if="curation.last_check_error" class="dg-error">{{ curation.last_check_error }}</span>
             </div>
 
-            <template v-if="curation.status === 'pending'">
+            <!-- timed_out rows are still checked (oxjob #2009) -->
+            <template v-if="curation.status === 'pending' || curation.status === 'timed_out'">
               <div class="dg-label">next check</div>
               <div class="dg-main">{{ nextCheckText }}</div>
               <div class="dg-id">{{ curation.next_check_at ? formatExactDate(curation.next_check_at) : '' }}</div>

@@ -124,19 +124,53 @@ export function actionMeta(action) {
 }
 
 // Single source of truth for the curation lifecycle display (oxjob #198).
-// Driven by `curation.status` ('pending'|'applied'|'superseded'|
-// 'timed_out'); the backend keeps is_applied in sync but the gui no longer
-// reads it. Anything unknown/missing falls back to the pending presentation.
-// 'superseded' (oxjob #1458): a newer edit to the same item superseded it,
-// so it will never apply; `curation.superseded_by` names that edit.
+// Driven by `curation.status`, the one word users-api serves for a row
+// (curation_status.derived_status, oxjob #2009); the GUI, the MCP server and
+// the help docs give each word the same meaning:
+//   pending     waiting: under a week old, or the checker hasn't looked yet.
+//   timed_out   over a week old and checked, but not seen live yet. Not an
+//               error and not final: the checker keeps looking.
+//   applied     seen live once. History: a later edit can change it.
+//   superseded  a newer edit to the same item replaced it; it never applies.
+//               `curation.superseded_by` names that edit (oxjob #1458).
+//   not_applied (from the apply receipt, oxjob #2007) the data pipeline
+//               won't apply it, e.g. the work was merged away.
+// Anything unknown/missing falls back to the pending presentation.
 const STATUS_META = {
   applied: { label: 'Applied', icon: 'mdi-check-circle', color: 'success' },
   superseded: { label: 'Superseded', icon: 'mdi-swap-horizontal', color: 'medium-emphasis' },
-  timed_out: { label: 'Timed out', icon: 'mdi-close-circle', color: 'error' },
+  timed_out: { label: 'Not seen live yet', icon: 'mdi-clock-alert-outline', color: 'warning' },
   pending: { label: 'Pending', icon: 'mdi-clock-outline', color: 'medium-emphasis' },
+  not_applied: { label: 'Not applied', icon: 'mdi-cancel', color: 'medium-emphasis' },
 };
 export function statusMeta(curation) {
   return STATUS_META[curation?.status] || STATUS_META.pending;
+}
+
+// Still waiting to take effect: pending or timed_out. A superseded or
+// not_applied row never will and an applied one already did, so none of
+// those is "pending" anywhere (oxjob #2009: one user's 15 superseded adds
+// showed as "15 pending" on their profile forever).
+export function isOpenCuration(curation) {
+  return curation?.status === 'pending' || curation?.status === 'timed_out';
+}
+
+// The newest curation per work, as the data pipeline resolves them (latest
+// wins; a removal loses to a newer claim of the same author, oxjob #1430).
+// For curations about ONE author (fetchAuthorCurations), so every row is
+// about (work, that author). Returns { shortWorkId: curation }.
+export function latestCurationPerWork(curations, shortWorkId) {
+  const latest = {};
+  (curations || []).forEach((c) => {
+    const sid = shortWorkId(c.entity_id);
+    const prev = latest[sid];
+    // Newer by (created, id), as the pipeline orders; ISO timestamps compare
+    // as strings, and a missing created counts as oldest.
+    const a = c.created || '';
+    const b = prev?.created || '';
+    if (!prev || a > b || (a === b && String(c.id) > String(prev.id))) latest[sid] = c;
+  });
+  return latest;
 }
 
 // Human-readable name for the curated property. Grows as new properties ship —
