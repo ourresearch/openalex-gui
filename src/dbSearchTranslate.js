@@ -130,26 +130,27 @@ const LANGUAGES = {
 // Document types and publication types -> OpenAlex type or study design. null = no equivalent (left out, said so).
 const TYPES = {
   // Scopus DOCTYPE codes
-  ar: ['type', 'article'], re: ['type', 'review'], cp: ['type', 'article', 'OpenAlex has no conference-paper type; conference papers are articles'],
+  ar: ['type', 'article'], re: ['type', 'review'], cp: ['type', 'conference-paper'],
   ch: ['type', 'book-chapter'], bk: ['type', 'book'], ed: ['type', 'editorial'], le: ['type', 'letter'],
-  er: ['type', 'erratum'], dp: ['type', 'article', 'OpenAlex has no data-paper type; data papers are articles'],
+  er: ['type', 'erratum'], dp: ['type', 'data-paper'],
   sh: ['type', 'review', 'Scopus short surveys are reviews in OpenAlex'], no: null, ab: null, bz: null, tb: null, rp: ['type', 'report'],
   // names (Web of Science DT, PubMed [pt], Ovid .pt., EBSCO PT)
   article: ['type', 'article'], 'journal article': ['type', 'article'], 'research article': ['type', 'article'],
   'original article': ['type', 'article'], review: ['type', 'review'], 'review article': ['type', 'review'],
-  'proceedings paper': ['type', 'article', 'OpenAlex has no conference-paper type; conference papers are articles'],
-  'conference paper': ['type', 'article', 'OpenAlex has no conference-paper type; conference papers are articles'],
-  'book chapter': ['type', 'book-chapter'], book: ['type', 'book'], editorial: ['type', 'editorial'],
+  'proceedings paper': ['type', 'conference-paper'], 'conference paper': ['type', 'conference-paper'],
+  'meeting abstract': ['type', 'conference-abstract'], 'conference abstract': ['type', 'conference-abstract'],
+  'book chapter': ['type', 'book-chapter'], book: ['type', 'book'], 'book review': ['type', 'book-review'],
+  editorial: ['type', 'editorial'],
   'editorial material': ['type', 'editorial'], letter: ['type', 'letter'], erratum: ['type', 'erratum'],
   correction: ['type', 'erratum'], 'retracted publication': ['retracted', true], retraction: ['type', 'retraction'],
   preprint: ['type', 'preprint'], dissertation: ['type', 'dissertation'], thesis: ['type', 'dissertation'],
-  'data paper': ['type', 'article', 'OpenAlex has no data-paper type; data papers are articles'],
-  dataset: ['type', 'dataset'], report: ['type', 'report'],
+  'data paper': ['type', 'data-paper'], dataset: ['type', 'dataset'], report: ['type', 'report'],
+  software: ['type', 'software'],
   'systematic review': ['design', 'systematic-review'], 'meta-analysis': ['design', 'meta-analysis'],
   'meta analysis': ['design', 'meta-analysis'],
   'randomized controlled trial': ['design', 'randomized-controlled-trial'],
   'randomised controlled trial': ['design', 'randomized-controlled-trial'],
-  'meeting abstract': null, 'early access': null, note: null, 'news item': null, 'clinical trial': null,
+  'early access': null, note: null, 'news item': null, 'clinical trial': null,
   'case reports': null, comment: null, 'practice guideline': null, guideline: null,
 };
 

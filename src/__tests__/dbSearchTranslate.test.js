@@ -142,10 +142,16 @@ describe('limits', () => {
     expect(r.changes.find(c => c.ref === 'limits').result).toBe('left out');
   });
 
-  it('maps conference papers to articles, and says so', () => {
+  it('maps conference papers and data papers to their own types, with no note', () => {
     const r = translateSearch('TITLE-ABS-KEY(kelp) AND LIMIT-TO(DOCTYPE,"cp")');
-    expect(r.oql).toBe('get works where title-abstract-keywords has (kelp) and type is (article)');
-    expect(r.changes.some(c => /conference/.test(c.why))).toBe(true);
+    expect(r.oql).toBe('get works where title-abstract-keywords has (kelp) and type is (conference-paper)');
+    expect(r.changes.some(c => c.ref === 'limits')).toBe(false);
+    expect(oql('TITLE-ABS-KEY(kelp) AND LIMIT-TO(DOCTYPE,"dp")')).toBe('get works where title-abstract-keywords has (kelp) and type is (data-paper)');
+  });
+
+  it('maps Web of Science meeting abstracts and book reviews to their types', () => {
+    expect(oql('TS=(kelp) AND DT=("Meeting Abstract" OR "Book Review")'))
+      .toBe('get works where title-abstract-keywords has (kelp) and type is (conference-abstract or book-review)');
   });
 });
 
