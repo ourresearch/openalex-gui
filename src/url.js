@@ -1276,7 +1276,8 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         // No order chosen: send none, so the engine's default applies (charter decision 28)
         // and the sort menu names it (oxjob #1658: works were sent `cited_by_count:desc`,
         // so they never came in their real default, most cited (age-adjusted)).
-        query.sort = currentRoute.query.sort
+        // A semantic search has one order, closest by meaning first; the API 400s any sort (oxjob #2003).
+        if (!currentRoute.query["search.semantic"]) query.sort = currentRoute.query.sort
         query.per_page = getPerPage()
         // Semantic search returns at most SEMANTIC_MAX_PER_PAGE rows and the API
         // 400s a larger per_page; a user at 100/page would see that error on

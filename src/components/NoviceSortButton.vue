@@ -1,7 +1,8 @@
 <template>
   <!-- The legacy interface's sort menu (ExpertSerp, Settings > Labs > legacy UI). The new
-       results pages use SortMenu, bound to the query (oxjob #1658). -->
-  <v-menu>
+       results pages use SortMenu, bound to the query (oxjob #1658). Hidden on a semantic search, which
+       has one order, closest by meaning first; the API refuses any other (oxjob #2003). -->
+  <v-menu v-if="!isSemanticSearch">
     <template v-slot:activator="{ props }">
       <v-btn v-bind="props" icon variant="text" size="small">
         <v-icon color="grey-darken-1">mdi-sort-ascending</v-icon>
@@ -38,6 +39,7 @@ const store = useStore();
 
 const entityType = computed(() => store.getters.entityType);
 const selectedSort = computed(() => url.getSort(route));
+const isSemanticSearch = computed(() => !!route.query['search.semantic']);
 
 // Entity-specific sort options. If an entry is present here, it overrides
 // the facetConfigs-driven defaults so we can control collection + set for a page.

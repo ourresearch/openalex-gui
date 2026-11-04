@@ -34,3 +34,15 @@ describe("makeApiUrl clamps per_page for semantic search (#862)", () => {
         expect(perPageOf(apiUrl)).toBe("100");
     });
 });
+
+describe("makeApiUrl sends no sort with a semantic search (oxjob #2003)", () => {
+    it("drops the route's sort: semantic search has one order and the API 400s any other", () => {
+        const apiUrl = url.makeApiUrl(ROUTE({ "search.semantic": "protein folding", sort: "publication_year:desc" }));
+        expect(new URL(apiUrl).searchParams.get("sort")).toBeNull();
+    });
+
+    it("keeps the sort on other searches", () => {
+        const apiUrl = url.makeApiUrl(ROUTE({ search: "protein folding", sort: "publication_year:desc" }));
+        expect(new URL(apiUrl).searchParams.get("sort")).toBe("publication_year:desc");
+    });
+});
