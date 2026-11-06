@@ -1,5 +1,6 @@
 // Canonical icon per work type — single source of truth (#720).
-// Keys = the full live /types vocabulary (24 types as of 2026-11-07; libguides retired, #1647).
+// Keys = the full live /types vocabulary (25 types as of 2026-11-07; libguides retired, #1647;
+// study-registration added, #2063).
 // All names verified to exist in @mdi/font 7.4.47 (the GUI's installed version).
 // Intended home: openalex-gui/src/typeIcons.js. First consumer: #686 hero feed.
 
@@ -27,6 +28,7 @@ const typeIcons = {
   "retraction": "mdi-file-document-remove-outline",
   "paratext": "mdi-text-box-outline",
   "supplementary-materials": "mdi-paperclip",
+  "study-registration": "mdi-clipboard-text-clock-outline", // a study registered in a study registry (#2063)
   "other": "mdi-file-question-outline",
 };
 

@@ -487,6 +487,7 @@ onMounted(() => {
     'retraction': 'A notice formally withdrawing a published work.',
     'paratext': 'Publishing material about a venue or work, like covers and mastheads.',
     'supplementary-materials': 'Extra files that support a published work.',
+    'study-registration': 'A study registered in a study registry, such as a preregistration, a review protocol or a trial registration.',
     'other': "A work that doesn't fit any other category.",
   };
   const lastName = n => n.trim().split(/\s+/).pop();
