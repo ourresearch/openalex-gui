@@ -68,6 +68,7 @@ import teamImg15 from '@/assets/team/Nees-Jan-van-Eck.jpg';
 import teamImg16 from '@/assets/team/Maria-Gould.jpg';
 import teamImg17 from '@/assets/team/Viviana-Martinovich.jpg';
 import teamImg18 from '@/assets/team/Gael-Bernard.jpg';
+import teamImg19 from '@/assets/team/nick-selby.jpg';
 import PersonCard from "@/components/PersonCard";
 import StaticPage from "@/components/StaticPage/StaticPage.vue";
 import StaticSection from "@/components/StaticPage/StaticSection.vue";
@@ -156,6 +157,17 @@ export default {
         links: [
         ],
         bio: "Rohan is a software and data engineer working on OpenAlex's data pipeline. He holds a BA in Data Science from the University of California, Berkeley. In his free time he enjoys anything outdoors."
+      },
+
+      {
+        name: "Nick Selby",
+        img: teamImg19,
+        title: "Software Engineer",
+        fte: "full-time",
+        categories: ["staff"],
+        links: [
+        ],
+        bio: "Nick is a software engineer who is passionate about engineering that centers users and their communities. He has a background in renewable energy and holds a B.S. in Mechanical Engineering from the Georgia Institute of Technology, an M.S. in Mechanical Engineering from MIT, and a Ph.D. in Electrical Engineering and Computer Science from MIT."
       },
 
       {
