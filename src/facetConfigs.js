@@ -1126,6 +1126,25 @@ const facetConfigs = function (entityType) {
             semanticSearchAllowed: true,
             column: { export: { path: "type" } },
         },
+        // Whether the work's type is one the scholarly record has long counted
+        // (articles, books, chapters, theses, conference papers, preprints,
+        // reviews...), derived from `type` by elastic-api (oxjob #2064). Not
+        // "peer-reviewed": preprints and editorials count. displayName must equal
+        // the server registry's display_name (elastic-api label-consistency gate).
+        // No "edit": the value follows the type, so a fix edits the type. No
+        // semanticSearchAllowed until the vector index accepts the filter.
+        {
+            key: "is_traditional",
+            entityToFilter: "works",
+            displayName: "traditional scholarly work",
+            type: "boolean",
+            booleanValues: ["Not a traditional scholarly work", "Traditional scholarly work"],
+            category: "other",
+            actions: ["filter", "column", "group_by"],
+            icon: "mdi-book-open-variant",
+            extractFn: (entity) => entity.is_traditional,
+            column: { export: { path: "is_traditional" } },
+        },
         {
             key: "abstract",
             entityToFilter: "works",
