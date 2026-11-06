@@ -146,6 +146,8 @@ const TYPES = {
   preprint: ['type', 'preprint'], dissertation: ['type', 'dissertation'], thesis: ['type', 'dissertation'],
   'data paper': ['type', 'data-paper'], dataset: ['type', 'dataset'], report: ['type', 'report'],
   software: ['type', 'software'],
+  // no bibliographic database has this type; DataCite's StudyRegistration and OSF's word, typed as a limit (#2063)
+  'study registration': ['type', 'study-registration'], preregistration: ['type', 'study-registration'],
   'systematic review': ['design', 'systematic-review'], 'meta-analysis': ['design', 'meta-analysis'],
   'meta analysis': ['design', 'meta-analysis'],
   'randomized controlled trial': ['design', 'randomized-controlled-trial'],

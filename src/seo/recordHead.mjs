@@ -293,7 +293,11 @@ function organizationLd(i, type = 'Organization') {
   });
 }
 
-const WORK_LD_TYPES = { book: 'Book', 'book-chapter': 'Chapter', dissertation: 'Thesis', dataset: 'Dataset', software: 'SoftwareSourceCode' };
+// study-registration (#2063): a registered study plan is not an article, so it takes the generic CreativeWork.
+const WORK_LD_TYPES = {
+  book: 'Book', 'book-chapter': 'Chapter', dissertation: 'Thesis', dataset: 'Dataset', software: 'SoftwareSourceCode',
+  'study-registration': 'CreativeWork',
+};
 
 function workLd(w, canonical, abstract) {
   const doi = w.doi ? String(w.doi).replace(/^https?:\/\/(dx\.)?doi\.org\//i, '') : '';

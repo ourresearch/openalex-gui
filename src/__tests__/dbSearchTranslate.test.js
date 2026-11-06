@@ -149,6 +149,11 @@ describe('limits', () => {
     expect(oql('TITLE-ABS-KEY(kelp) AND LIMIT-TO(DOCTYPE,"dp")')).toBe('get works where title-abstract-keywords has (kelp) and type is (data-paper)');
   });
 
+  it('maps a preregistration or study registration limit to study-registration (oxjob #2063)', () => {
+    expect(oql('kelp[tiab] AND preregistration[pt]')).toBe('get works where title-abstract-keywords has (kelp) and type is (study-registration)');
+    expect(oql('kelp[tiab] AND "study registration"[pt]')).toBe('get works where title-abstract-keywords has (kelp) and type is (study-registration)');
+  });
+
   it('maps Web of Science meeting abstracts and book reviews to their types', () => {
     expect(oql('TS=(kelp) AND DT=("Meeting Abstract" OR "Book Review")'))
       .toBe('get works where title-abstract-keywords has (kelp) and type is (conference-abstract or book-review)');
