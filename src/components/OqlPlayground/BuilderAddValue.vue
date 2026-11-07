@@ -70,8 +70,9 @@ import { ref, computed, watch } from "vue";
 import { debounce } from 'lodash-es';
 import { edgeOn } from '@/edgeAutocomplete';
 import { api } from "@/api";
-import { getEnumValues } from "@/components/OqlPlayground/oqlEditorApi";
+import { getEnumValues, getGroupByValues } from "@/components/OqlPlayground/oqlEditorApi";
 import { parseNotQuery } from "@/components/OqlPlayground/notPrefix";
+import { groupByVocabRows } from "@/components/OqlPlayground/groupByVocab";
 
 defineOptions({ name: "BuilderAddValue" });
 
@@ -100,6 +101,9 @@ const props = defineProps({
   // the column accepts the null sentinel (catalog operators include "null"): offer an
   // "unknown" row that picks value null → `field is (unknown)` (#554's sentinel).
   nullable: { type: Boolean, default: false },
+  // { entity, key } for a closed-vocab keyword column with no entity endpoint (awards
+  // provenance, …; see groupByVocab.js): values come from the column's group_by buckets.
+  groupByVocab: { type: Object, default: null },
 });
 const emit = defineEmits(["add", "pick", "abandon"]);
 
@@ -169,7 +173,7 @@ const pick = (r) => {
 let runTicket = 0;
 let runAbort = null;
 const run = debounce(async (rawQ) => {
-  if (!isPicker.value || !props.autocompleteEntity) { results.value = []; return; }
+  if (!isPicker.value || (!props.autocompleteEntity && !props.groupByVocab)) { results.value = []; return; }
   // strip a typed `not ` prefix — the search runs on the real query (#603 r28)
   const q = parseNotQuery(rawQ).query;
   const ticket = ++runTicket;
@@ -178,7 +182,12 @@ const run = debounce(async (rawQ) => {
   runAbort = ctrl;
   loading.value = true;
   try {
-    if (props.listVocab) {
+    if (props.groupByVocab) {
+      const { entity, key } = props.groupByVocab;
+      const vocab = await getGroupByValues(entity, key);
+      if (ticket !== runTicket) return;
+      results.value = groupByVocabRows(vocab, q, entity);
+    } else if (props.listVocab) {
       const all = await getEnumValues(props.autocompleteEntity);
       if (ticket !== runTicket) return;
       const needle = (q || "").toLowerCase();

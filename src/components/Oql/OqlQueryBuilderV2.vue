@@ -370,6 +370,7 @@
                 :anchor-target="`[data-vid='${tok._targetId}_ph']`"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
                 :slug-values="tok._slugValues" :nullable="tok._nullable"
+                :group-by-vocab="tok._groupByVocab"
                 :external-search="typeOnQuery"
                 @pick="(p) => onPickEntityValueTo(tok._targetId, p, tok._draft)"
                 @abandon="onAbandonValue(tok._targetId)" />
@@ -390,6 +391,7 @@
                 :external-search="typeOnQuery"
                 :autocomplete-entity="tok._autocompleteEntity" :list-vocab="tok._listVocab"
                 :slug-values="tok._slugValues" :nullable="tok._nullable"
+                :group-by-vocab="tok._groupByVocab"
                 @pick="(p) => onPickEntityValue(tok, p)"
                 @abandon="onAbandonEntityValue(tok)" />
             </template>
@@ -916,6 +918,11 @@ const brickCtx = computed(() => ({
 const placeholderLabelFor = (p) =>
   `new ${((p && (p.display_name || p.name)) || "value").toLowerCase()}`;
 
+// The picker's group_by source ({ entity, key }) when column `col` is a closed-vocab
+// keyword column with no entity endpoint (awards provenance, …; groupByVocab.js), else null.
+const groupByVocabFor = (p, col) =>
+  (p && p._groupByVocab && col ? { entity: getRows.value, key: col } : null);
+
 // ---- enrich a raw token with edit metadata ---------------------------------
 // Short display aliases for field-chip labels (#575 round 5) — see enrichToken.
 // "title and abstract" (round 12, Jason): the SAME logical field has two catalog
@@ -965,6 +972,7 @@ function enrichToken(tok) {
     t._listVocab = isListVocabEntity(p);
     t._slugValues = isSlugAutocompleteEntity(p); // keywords: autocomplete + bare-slug values (r20)
     t._nullable = isNullableProperty(p); // picker offers "unknown" (the null sentinel)
+    t._groupByVocab = groupByVocabFor(p, col);
     t._sole = !!idx.sole[tok.id];
     // (oxjob #494: no more inline trailing "+" add-value chip — values are added by clicking the
     // gap in the value list, so `_addChip` / the `addvaluechip` token are gone.)
@@ -1488,7 +1496,7 @@ function draftBodyTokens(d) {
       tokens.push({ t: "addvalue", _targetId: d.id, _kind: kind,
         _autocompleteEntity: autocompleteEntityFor(p),
         _listVocab: isListVocabEntity(p), _slugValues: isSlugAutocompleteEntity(p),
-        _nullable: isNullableProperty(p), _draft: true });
+        _nullable: isNullableProperty(p), _groupByVocab: groupByVocabFor(p, d.column_id), _draft: true });
     }
   } else if (d.column_id && d.unary) {
     tokens.push(enrichToken({ t: "op", id: d.id, column_id: d.column_id, text: ` ${d.operator} `, _draft: true }));

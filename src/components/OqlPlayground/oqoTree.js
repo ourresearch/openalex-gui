@@ -23,6 +23,7 @@ export function valueKindForProperty(prop) {
   if (t === "date" || t === "datetime") return "date"; // → OqlDateChip (calendar picker)
   if (t === "openalex_id") return "entity";
   if (prop.entity_type) return "entity"; // list-vocab entity (formerly "enum")
+  if (prop._groupByVocab) return "entity"; // values picked from group_by (groupByVocab.js)
   return "text";
 }
 

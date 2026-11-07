@@ -139,6 +139,25 @@ export async function getEnumValues(entityType) {
   return out;
 }
 
+// Values of a group_by-picked closed vocabulary (awards provenance / funding_type,
+// locations version, …; see groupByVocab.js): the column's own group_by buckets over
+// the whole entity, most common first, cached for the session. There is no list
+// endpoint to page through, so `truncated` flags a full page — the vocabulary may then
+// hold values the list doesn't show, and the picker offers the typed text as-is.
+export const GROUP_BY_VOCAB_PAGE = 200;
+const _groupByVocabCache = {};
+export async function getGroupByValues(entity, key) {
+  const ck = `${entity}|${key}`;
+  if (_groupByVocabCache[ck]) return _groupByVocabCache[ck];
+  const groups = await api.getGroups(entity, key, { hideUnknown: true, perPage: GROUP_BY_VOCAB_PAGE });
+  const values = (groups || [])
+    .filter((g) => g && g.value != null && g.value !== "")
+    .map((g) => ({ value: String(g.value), display_name: String(g.displayValue || g.value), count: g.count }));
+  const out = { values, truncated: values.length >= GROUP_BY_VOCAB_PAGE };
+  _groupByVocabCache[ck] = out;
+  return out;
+}
+
 // Run an OQL query. Mirrors api.executeOql: POST /?oql=... ; the response carries
 // meta.x_query = {oql, oqo, url} + results.
 export async function runOql(oql) {

@@ -18,6 +18,7 @@
 
 import { api } from "@/api";
 import { getProperties } from "@/components/OqlPlayground/oqlEditorApi";
+import { tagGroupByVocab } from "@/components/OqlPlayground/groupByVocab";
 
 export default {
   namespaced: true,
@@ -37,7 +38,8 @@ export default {
     async loadProperties({ state, commit }, entity) {
       if (state.propertiesByEntity[entity]) return state.propertiesByEntity[entity];
       const data = await getProperties(entity);
-      const props = (data && data.properties && data.properties[entity]) || {};
+      // Closed-vocab keyword columns (awards provenance, …) become picker fields.
+      const props = tagGroupByVocab(entity, (data && data.properties && data.properties[entity]) || {});
       commit("setProperties", { entity, props });
       return props;
     },
