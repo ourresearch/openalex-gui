@@ -468,8 +468,9 @@ export const routes = [
     {path: '/careers', redirect: '/jobs'},
     // /jobs/draft was the stealth URL for the pitch page pre-launch; redirect, don't 404.
     {path: '/jobs/draft', redirect: '/jobs'},
-    // Community Lead listing (oxjob #662/#812).
-    {path: '/jobs/community-lead', name: 'JobsCommunityLead', component: () => import('@/views/JobsCommunityLeadPage.vue'), meta: {chrome: 'site'}},
+    // Community Lead listing removed 2026-11-09 once the role was filled (oxjob #1023); LinkedIn and
+    // other posts still link here.
+    {path: '/jobs/community-lead', redirect: '/jobs'},
     // Software Engineer listing removed 2026-11-02 once the role was filled (oxjob #1945); LinkedIn and
     // Hacker News posts still link here. The old slug was "Software & Data Engineer" until 2026-08-21.
     {path: '/jobs/software-engineer', redirect: '/jobs'},

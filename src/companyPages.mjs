@@ -79,10 +79,6 @@ export const COMPANY_PAGES = {
     title: 'Jobs',
     description: "Open roles at OpenAlex, the small nonprofit team building a free and open catalog of the world's research. Full-time and remote.",
   },
-  '/jobs/community-lead': {
-    title: 'Community Lead',
-    description: 'OpenAlex is hiring a Community Lead to own our relationships with the people who use OpenAlex and the institutions that support it. Full-time, remote.',
-  },
   '/jobs/operations-associate': {
     title: 'Operations Associate',
     description: 'OpenAlex is hiring an Operations Associate to own the forms, member paperwork and team logistics that keep a growing nonprofit running. Full-time, remote (US or Canada).',
