@@ -39,6 +39,23 @@ export function reservedFromEnv(max: number, env: Env = process.env) {
   return Math.min(n, max - 1)
 }
 
+// How long a request sat before this process got to it, from the X-Request-Start
+// stamp Heroku's router adds (ms since epoch). null without a readable stamp.
+export function queueAgeMs(stamp: string | undefined, now = Date.now()): number | null {
+  const t = Number(stamp)
+  return Number.isFinite(t) && t > 0 ? Math.max(0, now - t) : null
+}
+
+// An unverified request that waited longer than this gets the SPA shell at once
+// (SSR_MAX_QUEUE_MS, default 2000; 0 = off). A process that falls behind then
+// sheds its backlog cheaply instead of rendering pages whose callers will hit the
+// router's 30 s timeout (9 Nov: one process at a time, ~5,500 H12s an hour).
+const DEFAULT_MAX_QUEUE_MS = 2000
+export function maxQueueMsFromEnv(env: Env = process.env) {
+  const n = Number(env.SSR_MAX_QUEUE_MS || DEFAULT_MAX_QUEUE_MS)
+  return Number.isFinite(n) && n >= 0 ? n : DEFAULT_MAX_QUEUE_MS
+}
+
 export function createRenderGate({ max, reserved = 0, waitMs }: { max: number, reserved?: number, waitMs: number }) {
   let inFlight = 0
   const waiters: Array<() => void> = []
@@ -79,12 +96,20 @@ export function createRenderGate({ max, reserved = 0, waitMs }: { max: number, r
 // instead of a line per shed request).
 export function createSlotStats() {
   const zero = () => ({ verifiedRendered: 0, verifiedBusy: 0, othersRendered: 0, othersBusy: 0, othersShedEarly: 0,
-    gone: 0, heldTooLong: 0 })
+    othersLate: 0, gone: 0, heldTooLong: 0, queueMinMs: null as number | null, queueMaxMs: null as number | null })
   let c = zero()
   return {
     rendered(verified: boolean) { verified ? c.verifiedRendered++ : c.othersRendered++ },
     busy(verified: boolean) { verified ? c.verifiedBusy++ : c.othersBusy++ },
     shedEarly() { c.othersShedEarly++ },
+    // Shed because it had already waited too long (maxQueueMsFromEnv).
+    late() { c.othersLate++ },
+    queued(ms: number | null) {
+      if (ms === null) return
+      // min near 0 each minute; a min well above 0 means the router's clock and ours disagree.
+      c.queueMinMs = Math.min(c.queueMinMs ?? ms, ms)
+      c.queueMaxMs = Math.max(c.queueMaxMs ?? ms, ms)
+    },
     // Granted a slot after the caller had left; released at once.
     gone() { c.gone++ },
     // Released by the hold cap, not by the response ending.

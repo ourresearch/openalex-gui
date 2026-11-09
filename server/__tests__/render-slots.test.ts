@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest'
 import { createServer, type Server } from 'node:http'
 import { createApp, defineEventHandler, getQuery, toNodeListener } from 'h3'
-import { createRenderGate, isVerifiedCaller, reservedFromEnv, VERIFIED_BOT_HEADER } from '../lib/renderSlots'
+import { createRenderGate, isVerifiedCaller, maxQueueMsFromEnv, queueAgeMs, reservedFromEnv, VERIFIED_BOT_HEADER } from '../lib/renderSlots'
 import { HEADER as ASSISTANT_HEADER } from '../../assistantPages/index.mjs'
 
 const headers = (h: Record<string, string>) => (name: string) => h[name.toLowerCase()]
@@ -39,6 +39,32 @@ describe('reservedFromEnv', () => {
     [{ VERIFIED_BOT_TOKEN: 't', SSR_RESERVED_RENDERS: 'lots' }, 4],
   ])('%j -> %i of 12', (env, want) => {
     expect(reservedFromEnv(12, env)).toBe(want)
+  })
+})
+
+describe('queueAgeMs (Heroku X-Request-Start)', () => {
+  const now = 1_762_700_000_000
+  it.each([
+    [String(now - 2500), 2500],
+    [String(now + 300), 0], // router clock a little ahead
+  ])('%s -> %i ms', (stamp, want) => {
+    expect(queueAgeMs(stamp, now)).toBe(want)
+  })
+  it.each([[undefined], [''], ['soon'], ['0'], ['-5']])('%j -> null', (stamp) => {
+    expect(queueAgeMs(stamp as any, now)).toBe(null)
+  })
+})
+
+describe('maxQueueMsFromEnv', () => {
+  it.each([
+    [{}, 2000],
+    [{ SSR_MAX_QUEUE_MS: '' }, 2000],
+    [{ SSR_MAX_QUEUE_MS: '0' }, 0],
+    [{ SSR_MAX_QUEUE_MS: '5000' }, 5000],
+    [{ SSR_MAX_QUEUE_MS: 'lots' }, 2000],
+    [{ SSR_MAX_QUEUE_MS: '-1' }, 2000],
+  ])('%j -> %i', (env, want) => {
+    expect(maxQueueMsFromEnv(env)).toBe(want)
   })
 })
 
@@ -170,6 +196,14 @@ describe('record middleware with a reserve', () => {
     const e = render('/works/W15?hold=e'); await settle()
     expect(await render('/works/W16')).toBe('ssr')
     free('e'); expect(await e).toBe('ssr')
+  })
+
+  it('an unverified request that already waited over 2 s gets the shell before the API; verified ones still render', async () => {
+    const calls = apiGet.mock.calls.length
+    const stale = { 'x-request-start': String(Date.now() - 5000) }
+    expect(await render('/works/W31', stale)).toBe('spa; late')
+    expect(apiGet.mock.calls.length).toBe(calls) // no API calls spent on it
+    expect(await render('/works/W32', { ...stale, ...bot })).toBe('ssr')
   })
 
   it('a slot held past SSR_MAX_SLOT_HOLD_MS is released, so a hung render cannot keep it', async () => {
