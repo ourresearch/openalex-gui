@@ -85,26 +85,37 @@ describe('record middleware with a reserve', () => {
   const apiGet = vi.fn(async (path: string) => ({ status: 'ok', data: { id: `https://openalex.org/${path.split('?')[0].split('/')[1]}` } }))
   let server: Server
   let base = ''
-  let releaseHeld: () => void = () => {}
-  const held = new Promise<void>((resolve) => { releaseHeld = resolve })
+  // ?hold=<name> keeps that response (and its slot) open until free(<name>); ?hold alone until free('').
+  const holds = new Map<string, { done: Promise<void>, free: () => void }>()
+  const hold = (name: string) => {
+    if (!holds.has(name)) { let free = () => {}; const done = new Promise<void>((r) => { free = r }); holds.set(name, { done, free }) }
+    return holds.get(name)!
+  }
+  const free = (name: string) => hold(name).free()
+  const releaseHeld = () => free('')
 
   beforeAll(async () => {
     vi.stubEnv('VERIFIED_BOT_TOKEN', 'bot-secret')
     vi.stubEnv('SSR_MAX_CONCURRENT_RENDERS', '3')
     vi.stubEnv('SSR_RESERVED_RENDERS', '1')
+    vi.stubEnv('SSR_MAX_SLOT_HOLD_MS', '1500')
     vi.resetModules()
     vi.doMock('../lib/ssrApi', () => ({ apiGet: (...a: any[]) => apiGet(...(a as [string])), RECORD_TIMEOUT_MS: 1500, LIST_TIMEOUT_MS: 1500 }))
     const { default: records } = await import('../middleware/02.records')
     const app = createApp()
     app.use(records)
     // Stands in for the Nuxt render: ?hold keeps the response (and its slot) open.
-    app.use(defineEventHandler(async (event) => { if ('hold' in getQuery(event)) await held; return 'rendered' }))
+    app.use(defineEventHandler(async (event) => {
+      const q = getQuery(event)
+      if ('hold' in q) await hold(String(q.hold ?? '')).done
+      return 'rendered'
+    }))
     server = createServer(toNodeListener(app))
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', () => resolve()))
     base = `http://127.0.0.1:${(server.address() as any).port}`
   })
   afterAll(() => {
-    releaseHeld()
+    for (const h of holds.values()) h.free()
     vi.unstubAllEnvs()
     return new Promise<void>((resolve) => server.close(() => resolve()))
   })
@@ -133,5 +144,40 @@ describe('record middleware with a reserve', () => {
     releaseHeld()
     expect((await a).headers.get('x-openalex-render')).toBe('ssr')
     expect((await b).headers.get('x-openalex-render')).toBe('ssr')
+  })
+
+  const render = (path: string, headers: Record<string, string> = {}) =>
+    fetch(`${base}${path}`, { headers }).then((r) => r.headers.get('x-openalex-render'))
+  const bot = { [VERIFIED_BOT_HEADER]: 'bot-secret' }
+  const settle = () => new Promise((r) => setTimeout(r, 50))
+
+  it('a caller that leaves while waiting for a slot does not keep the slot', async () => {
+    // Fill all 3 slots: 2 unverified + 1 verified.
+    const a = render('/works/W11?hold=a'); await settle()
+    const b = render('/works/W12?hold=b'); await settle()
+    const c = render('/works/W13?hold=c', bot); await settle()
+    // A verified caller waits for a slot, then gives up (Heroku's router does at 30 s).
+    const gone = new AbortController()
+    const d = fetch(`${base}/works/W14`, { headers: bot, signal: gone.signal }).catch(() => null)
+    await settle()
+    gone.abort()
+    await d
+    await settle()
+    // Its slot is granted after it left; it must come straight back.
+    free('a'); await a; await settle()
+    free('b'); free('c'); await b; await c; await settle()
+    // All 3 free again: 2 unverified renders fit (one held, one rendered).
+    const e = render('/works/W15?hold=e'); await settle()
+    expect(await render('/works/W16')).toBe('ssr')
+    free('e'); expect(await e).toBe('ssr')
+  })
+
+  it('a slot held past SSR_MAX_SLOT_HOLD_MS is released, so a hung render cannot keep it', async () => {
+    const stuck = [render('/works/W21?hold=s'), render('/works/W22?hold=s')]
+    await settle()
+    expect(await render('/works/W23')).toBe('spa; busy') // 2 unverified slots taken
+    await new Promise((r) => setTimeout(r, 1600))
+    expect(await render('/works/W24')).toBe('ssr')
+    free('s'); await Promise.all(stuck)
   })
 })

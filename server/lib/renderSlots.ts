@@ -78,12 +78,17 @@ export function createRenderGate({ max, reserved = 0, waitMs }: { max: number, r
 // Per-process counts, logged once a minute by the middleware (one line per process,
 // instead of a line per shed request).
 export function createSlotStats() {
-  const zero = () => ({ verifiedRendered: 0, verifiedBusy: 0, othersRendered: 0, othersBusy: 0, othersShedEarly: 0 })
+  const zero = () => ({ verifiedRendered: 0, verifiedBusy: 0, othersRendered: 0, othersBusy: 0, othersShedEarly: 0,
+    gone: 0, heldTooLong: 0 })
   let c = zero()
   return {
     rendered(verified: boolean) { verified ? c.verifiedRendered++ : c.othersRendered++ },
     busy(verified: boolean) { verified ? c.verifiedBusy++ : c.othersBusy++ },
     shedEarly() { c.othersShedEarly++ },
+    // Granted a slot after the caller had left; released at once.
+    gone() { c.gone++ },
+    // Released by the hold cap, not by the response ending.
+    heldTooLong() { c.heldTooLong++ },
     take() { const out = c; c = zero(); return out },
   }
 }

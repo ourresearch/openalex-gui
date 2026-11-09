@@ -47,6 +47,7 @@ function spaShell(event: any, why: string) {
 // kept for verified crawlers and assistants, and only they wait (server/lib/renderSlots.ts).
 const MAX_RENDERS = Number(process.env.SSR_MAX_CONCURRENT_RENDERS) || 12
 const RENDER_WAIT_MS = 1000
+const MAX_SLOT_HOLD_MS = Number(process.env.SSR_MAX_SLOT_HOLD_MS) || 30_000
 const RESERVED = reservedFromEnv(MAX_RENDERS)
 const gate = createRenderGate({ max: MAX_RENDERS, reserved: RESERVED, waitMs: RENDER_WAIT_MS })
 const stats = createSlotStats()
@@ -59,7 +60,7 @@ setInterval(() => {
   if (!Object.values(c).some(Boolean)) return
   console.log(`[record-ssr] slots 60s: verified rendered=${c.verifiedRendered} busy=${c.verifiedBusy}; `
     + `others rendered=${c.othersRendered} busy=${c.othersBusy} shed=${c.othersShedEarly}; `
-    + `reserved=${RESERVED}/${MAX_RENDERS}`)
+    + `gone=${c.gone} held_too_long=${c.heldTooLong}; reserved=${RESERVED}/${MAX_RENDERS}`)
 }, STATS_EVERY_MS).unref()
 
 function redirect(event: any, location: string) {
@@ -133,9 +134,20 @@ export default defineEventHandler(async (event) => {
     if (verified) console.warn('[record-ssr] SPA fallback', ref.apiPath, 'busy', 'verified')
     return spaShell(event, 'busy')
   }
+  // #2104: the caller may have left while it waited (Heroku's router gives up at 30 s).
+  // Its response has closed already, so a close listener would never fire and the slot
+  // would leak; 12 leaks stuck a process on the shell for everyone until its restart.
+  if (event.node.req.socket?.destroyed || event.node.res.writableEnded) {
+    gate.release()
+    stats.gone()
+    return spaShell(event, 'client gone')
+  }
   stats.rendered(verified)
   let released = false
-  const release = () => { if (!released) { released = true; gate.release() } }
+  const release = () => { if (!released) { released = true; clearTimeout(cap); gate.release() } }
+  // Backstop for any other leak: no slot outlives the router's timeout.
+  const cap = setTimeout(() => { stats.heldTooLong(); release() }, MAX_SLOT_HOLD_MS)
+  cap.unref?.()
   event.node.res.once('close', release)
   event.node.res.once('finish', release)
 
