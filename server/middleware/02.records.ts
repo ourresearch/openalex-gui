@@ -19,6 +19,7 @@ import { defineEventHandler, getRequestHeader, sendRedirect, setResponseHeader, 
 import { isUnderRecordPrefix, parseRecordPath, pathFromApiId, trimWorksList, worksListApiPath, worksListPlan } from '../../src/ssr/recordRoutes.js'
 import { apiGet, LIST_TIMEOUT_MS, RECORD_TIMEOUT_MS } from '../lib/ssrApi'
 import { showsAgentNotice } from '../lib/agentNotice.mjs'
+import { createRenderGate, createSlotStats, isVerifiedCaller, reservedFromEnv } from '../lib/renderSlots'
 
 export const SPA_FALLBACK_HEADER = 'x-openalex-ssr-fallback'
 
@@ -42,29 +43,24 @@ function spaShell(event: any, why: string) {
 // request waits up to RENDER_WAIT_MS for a slot, else gets the SPA shell. Bounds the
 // server's memory under a crawler burst (a 90-wide burst took one process to ~1.1 GB
 // RSS on desk without it). shortcut: per process, not per dyno pool.
+// #2104: with VERIFIED_BOT_TOKEN set, SSR_RESERVED_RENDERS (default 4) of the slots are
+// kept for verified crawlers and assistants, and only they wait (server/lib/renderSlots.ts).
 const MAX_RENDERS = Number(process.env.SSR_MAX_CONCURRENT_RENDERS) || 12
 const RENDER_WAIT_MS = 1000
-let rendersInFlight = 0
-const renderWaiters: Array<() => void> = []
+const RESERVED = reservedFromEnv(MAX_RENDERS)
+const gate = createRenderGate({ max: MAX_RENDERS, reserved: RESERVED, waitMs: RENDER_WAIT_MS })
+const stats = createSlotStats()
 
-function acquireRenderSlot(): Promise<boolean> {
-  if (rendersInFlight < MAX_RENDERS) { rendersInFlight++; return Promise.resolve(true) }
-  return new Promise((resolve) => {
-    const grant = () => { clearTimeout(timer); rendersInFlight++; resolve(true) }
-    const timer = setTimeout(() => {
-      const i = renderWaiters.indexOf(grant)
-      if (i >= 0) renderWaiters.splice(i, 1)
-      resolve(false)
-    }, RENDER_WAIT_MS)
-    renderWaiters.push(grant)
-  })
-}
-
-function releaseRenderSlot() {
-  rendersInFlight--
-  const next = renderWaiters.shift()
-  if (next) next()
-}
+// One line per process a minute: how many record renders each kind of caller got and
+// how many got the shell because the slots were full ("shed" = before any API call).
+const STATS_EVERY_MS = 60_000
+setInterval(() => {
+  const c = stats.take()
+  if (!Object.values(c).some(Boolean)) return
+  console.log(`[record-ssr] slots 60s: verified rendered=${c.verifiedRendered} busy=${c.verifiedBusy}; `
+    + `others rendered=${c.othersRendered} busy=${c.othersBusy} shed=${c.othersShedEarly}; `
+    + `reserved=${RESERVED}/${MAX_RENDERS}`)
+}, STATS_EVERY_MS).unref()
 
 function redirect(event: any, location: string) {
   setResponseHeader(event, 'cache-control', CACHE_REDIRECT)
@@ -97,6 +93,15 @@ export default defineEventHandler(async (event) => {
   // the merged-id 301 and the 404, so a merged short id is two cheap hops.
   if (pathname !== ref.canonicalPath) return redirect(event, ref.canonicalPath + search)
 
+  // #2104: when only the reserved slots are free, unverified callers get the shell
+  // now, before any API call; verified crawlers and assistants go on.
+  const header = (name: string) => getRequestHeader(event, name)
+  const verified = isVerifiedCaller(header)
+  if (gate.shedsEarly(verified)) {
+    stats.shedEarly()
+    return spaShell(event, 'busy')
+  }
+
   // Start the list with the record, unless the list depends on the record
   // (sources: repositories list works in any location).
   const earlyPlan = ref.type !== 'sources' ? worksListPlan(ref.type, null) : null
@@ -122,12 +127,15 @@ export default defineEventHandler(async (event) => {
   if (canonical !== pathname) return redirect(event, canonical + search)
 
   const plan = earlyPlan ? null : worksListPlan(ref.type, rec.data)
-  if (!(await acquireRenderSlot())) {
-    console.warn('[record-ssr] SPA fallback', ref.apiPath, 'busy')
+  if (!(await gate.acquire(verified))) {
+    stats.busy(verified)
+    // Others are counted in the minute line only: a line each would be the scraper's volume.
+    if (verified) console.warn('[record-ssr] SPA fallback', ref.apiPath, 'busy', 'verified')
     return spaShell(event, 'busy')
   }
+  stats.rendered(verified)
   let released = false
-  const release = () => { if (!released) { released = true; releaseRenderSlot() } }
+  const release = () => { if (!released) { released = true; gate.release() } }
   event.node.res.once('close', release)
   event.node.res.once('finish', release)
 
@@ -140,7 +148,7 @@ export default defineEventHandler(async (event) => {
     apiPath: ref.apiPath,
     data: rec.data,
     works: earlyList || (plan ? fetchWorksList(plan, ref.id) : null),
-    agentNotice: showsAgentNotice((name: string) => getRequestHeader(event, name)),
+    agentNotice: showsAgentNotice(header),
   }
   setResponseHeader(event, 'x-openalex-render', 'ssr')
 })
