@@ -119,6 +119,7 @@ describe('record middleware with a reserve', () => {
   }
   const free = (name: string) => hold(name).free()
   const releaseHeld = () => free('')
+  let overloaded = false // the CPU load meter, switched by the test (server/lib/processHealth.ts)
 
   beforeAll(async () => {
     vi.stubEnv('VERIFIED_BOT_TOKEN', 'bot-secret')
@@ -127,6 +128,10 @@ describe('record middleware with a reserve', () => {
     vi.stubEnv('SSR_MAX_SLOT_HOLD_MS', '1500')
     vi.resetModules()
     vi.doMock('../lib/ssrApi', () => ({ apiGet: (...a: any[]) => apiGet(...(a as [string])), RECORD_TIMEOUT_MS: 1500, LIST_TIMEOUT_MS: 1500 }))
+    vi.doMock('../lib/processHealth', async (importOriginal) => ({
+      ...(await importOriginal<typeof import('../lib/processHealth')>()),
+      createLoadMeter: () => ({ tick() {}, overloaded: () => overloaded }),
+    }))
     const { default: records } = await import('../middleware/02.records')
     const app = createApp()
     app.use(records)
@@ -142,6 +147,8 @@ describe('record middleware with a reserve', () => {
   })
   afterAll(() => {
     for (const h of holds.values()) h.free()
+    vi.doUnmock('../lib/processHealth')
+    vi.doUnmock('../lib/ssrApi')
     vi.unstubAllEnvs()
     return new Promise<void>((resolve) => server.close(() => resolve()))
   })
@@ -204,6 +211,16 @@ describe('record middleware with a reserve', () => {
     expect(await render('/works/W31', stale)).toBe('spa; late')
     expect(apiGet.mock.calls.length).toBe(calls) // no API calls spent on it
     expect(await render('/works/W32', { ...stale, ...bot })).toBe('ssr')
+  })
+
+  it('while the process is CPU-saturated, unverified callers get the shell before the API; verified ones still render', async () => {
+    overloaded = true
+    const calls = apiGet.mock.calls.length
+    expect(await render('/works/W41')).toBe('spa; overloaded')
+    expect(apiGet.mock.calls.length).toBe(calls) // no API calls spent on it
+    expect(await render('/works/W42', bot)).toBe('ssr')
+    overloaded = false
+    expect(await render('/works/W43')).toBe('ssr')
   })
 
   it('a slot held past SSR_MAX_SLOT_HOLD_MS is released, so a hung render cannot keep it', async () => {

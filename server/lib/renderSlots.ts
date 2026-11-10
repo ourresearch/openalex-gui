@@ -96,7 +96,7 @@ export function createRenderGate({ max, reserved = 0, waitMs }: { max: number, r
 // instead of a line per shed request).
 export function createSlotStats() {
   const zero = () => ({ verifiedRendered: 0, verifiedBusy: 0, othersRendered: 0, othersBusy: 0, othersShedEarly: 0,
-    othersLate: 0, gone: 0, heldTooLong: 0, queueMinMs: null as number | null, queueMaxMs: null as number | null })
+    othersLate: 0, othersOverloaded: 0, gone: 0, heldTooLong: 0, queueMinMs: null as number | null, queueMaxMs: null as number | null })
   let c = zero()
   return {
     rendered(verified: boolean) { verified ? c.verifiedRendered++ : c.othersRendered++ },
@@ -104,6 +104,8 @@ export function createSlotStats() {
     shedEarly() { c.othersShedEarly++ },
     // Shed because it had already waited too long (maxQueueMsFromEnv).
     late() { c.othersLate++ },
+    // Shed because the process was CPU-saturated (server/lib/processHealth.ts).
+    overloaded() { c.othersOverloaded++ },
     queued(ms: number | null) {
       if (ms === null) return
       // min near 0 each minute; a min well above 0 means the router's clock and ours disagree.

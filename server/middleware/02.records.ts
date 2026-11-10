@@ -15,13 +15,14 @@
 // Paths under a record prefix that aren't a valid id (/works/W1/x, /keywords/a%2Fb)
 // get the SPA shell, as today. Runs after the front door (server/plugins/00.front-door.ts:
 // HTTPS, subdomain redirects, #1688 assistant pages) and before 03.paths.ts.
-import { monitorEventLoopDelay, performance, PerformanceObserver } from 'node:perf_hooks'
+import { monitorEventLoopDelay, PerformanceObserver } from 'node:perf_hooks'
 import { getHeapStatistics } from 'node:v8'
 import { defineEventHandler, getRequestHeader, sendRedirect, setResponseHeader, setResponseStatus } from 'h3'
 import { isUnderRecordPrefix, parseRecordPath, pathFromApiId, trimWorksList, worksListApiPath, worksListPlan } from '../../src/ssr/recordRoutes.js'
 import { apiGet, LIST_TIMEOUT_MS, RECORD_TIMEOUT_MS } from '../lib/ssrApi'
 import { showsAgentNotice } from '../lib/agentNotice.mjs'
 import { createRenderGate, createSlotStats, isVerifiedCaller, maxQueueMsFromEnv, queueAgeMs, reservedFromEnv } from '../lib/renderSlots'
+import { cpuSampler, createLoadMeter, eluSampler, shedEluFromEnv } from '../lib/processHealth'
 
 export const SPA_FALLBACK_HEADER = 'x-openalex-ssr-fallback'
 
@@ -54,6 +55,10 @@ const RESERVED = reservedFromEnv(MAX_RENDERS)
 const MAX_QUEUE_MS = maxQueueMsFromEnv()
 const gate = createRenderGate({ max: MAX_RENDERS, reserved: RESERVED, waitMs: RENDER_WAIT_MS })
 const stats = createSlotStats()
+// #2104: while this process's event loop has been ~always busy for a few seconds, unverified
+// callers get the shell (server/lib/processHealth.ts). SSR_SHED_ELU=0 turns it off.
+const load = createLoadMeter({ threshold: shedEluFromEnv(), sample: eluSampler() })
+setInterval(() => load.tick(), 1000).unref()
 
 // Process health for the minute line: is a slow process short of heap (GC time up,
 // heap near its limit) or short of CPU (event loop busy ~100% (elu), late, GC flat)?
@@ -61,31 +66,34 @@ const loopDelay = monitorEventLoopDelay({ resolution: 20 })
 loopDelay.enable()
 let gcMs = 0
 new PerformanceObserver((list) => { for (const e of list.getEntries()) gcMs += e.duration }).observe({ entryTypes: ['gc'] })
-let elu = performance.eventLoopUtilization()
+const minuteElu = eluSampler()
+const minuteCpu = cpuSampler()
 const mb = (bytes: number) => Math.round(bytes / 1048576)
 const ms = (ns: number) => Math.round(ns / 1e6)
 
 // One line per process a minute: how many record renders each kind of caller got and
-// how many got the shell because the slots were full ("shed" = before any API call)
-// or because they had already waited too long ("late").
+// how many got the shell because the slots were full ("shed" = before any API call),
+// because they had already waited too long ("late"), or because the process was
+// CPU-saturated ("overloaded").
 const STATS_EVERY_MS = 60_000
 setInterval(() => {
   const c = stats.take()
   const heap = getHeapStatistics()
-  const busy = performance.eventLoopUtilization(elu)
-  elu = performance.eventLoopUtilization()
+  const elu = minuteElu().utilization
   const loopP99 = ms(loopDelay.percentile(99))
   const loopMax = ms(loopDelay.max)
   const gc = Math.round(gcMs)
+  const cpuLine = minuteCpu()
   loopDelay.reset()
   gcMs = 0
   if (!Object.values(c).some(Boolean)) return
   console.log(`[record-ssr] slots 60s: verified rendered=${c.verifiedRendered} busy=${c.verifiedBusy}; `
-    + `others rendered=${c.othersRendered} busy=${c.othersBusy} shed=${c.othersShedEarly} late=${c.othersLate}; `
+    + `others rendered=${c.othersRendered} busy=${c.othersBusy} shed=${c.othersShedEarly} late=${c.othersLate} `
+    + `overloaded=${c.othersOverloaded}; `
     + `gone=${c.gone} held_too_long=${c.heldTooLong}; reserved=${RESERVED}/${MAX_RENDERS}; `
     + `queue min=${c.queueMinMs ?? '-'}ms max=${c.queueMaxMs ?? '-'}ms; `
     + `heap=${mb(heap.used_heap_size)}/${mb(heap.heap_size_limit)}MB gc=${gc}ms `
-    + `elu=${busy.utilization.toFixed(2)} loop p99=${loopP99}ms max=${loopMax}ms`)
+    + `elu=${elu.toFixed(2)} loop p99=${loopP99}ms max=${loopMax}ms ${cpuLine}`)
 }, STATS_EVERY_MS).unref()
 
 function redirect(event: any, location: string) {
@@ -128,6 +136,10 @@ export default defineEventHandler(async (event) => {
   if (!verified && MAX_QUEUE_MS > 0 && queued !== null && queued > MAX_QUEUE_MS) {
     stats.late()
     return spaShell(event, 'late')
+  }
+  if (!verified && load.overloaded()) {
+    stats.overloaded()
+    return spaShell(event, 'overloaded')
   }
   // #2104: when only the reserved slots are free, unverified callers get the shell
   // now, before any API call; verified crawlers and assistants go on.
