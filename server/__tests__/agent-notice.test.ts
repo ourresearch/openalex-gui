@@ -104,6 +104,7 @@ vi.mock('../lib/ssrApi', () => ({
   apiGet: (...args: any[]) => apiGet(...args),
   RECORD_TIMEOUT_MS: 1500,
   LIST_TIMEOUT_MS: 1500,
+  VERIFIED_TIMEOUT_MS: 5000,
 }))
 const { default: records } = await import('../middleware/02.records')
 

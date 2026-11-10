@@ -10,6 +10,7 @@ vi.mock('../lib/ssrApi', () => ({
   apiGet: (...args: any[]) => apiGet(...args),
   RECORD_TIMEOUT_MS: 1500,
   LIST_TIMEOUT_MS: 1500,
+  VERIFIED_TIMEOUT_MS: 5000,
 }))
 
 const { default: records } = await import('../middleware/02.records')
@@ -56,6 +57,20 @@ describe('record middleware redirects', () => {
     apiGet.mockResolvedValue({ status: 'notfound' })
     const res = await get('/works/W999')
     expect(res.status).toBe(404)
+  })
+
+  it('verified crawlers wait longer for the API than other callers (#2104)', async () => {
+    process.env.VERIFIED_BOT_TOKEN = 'bot-secret'
+    try {
+      apiGet.mockResolvedValue({ status: 'ok', data: { id: 'https://openalex.org/W7171967220', display_name: 'x' } })
+      await fetch(base + '/works/W7171967220', { headers: { 'x-openalex-verified-bot': 'bot-secret' } })
+      expect(apiGet).toHaveBeenCalledWith('works/W7171967220', 5000)
+      apiGet.mockClear()
+      await fetch(base + '/works/W7171967220', { headers: { 'x-openalex-verified-bot': 'wrong' } })
+      expect(apiGet).toHaveBeenCalledWith('works/W7171967220', 1500)
+    } finally {
+      delete process.env.VERIFIED_BOT_TOKEN
+    }
   })
 
   it('the canonical URL renders with the record', async () => {

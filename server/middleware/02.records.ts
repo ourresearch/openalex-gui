@@ -19,7 +19,7 @@ import { monitorEventLoopDelay, PerformanceObserver } from 'node:perf_hooks'
 import { getHeapStatistics } from 'node:v8'
 import { defineEventHandler, getRequestHeader, sendRedirect, setResponseHeader, setResponseStatus } from 'h3'
 import { isUnderRecordPrefix, parseRecordPath, pathFromApiId, trimWorksList, worksListApiPath, worksListPlan } from '../../src/ssr/recordRoutes.js'
-import { apiGet, LIST_TIMEOUT_MS, RECORD_TIMEOUT_MS } from '../lib/ssrApi'
+import { apiGet, LIST_TIMEOUT_MS, RECORD_TIMEOUT_MS, VERIFIED_TIMEOUT_MS } from '../lib/ssrApi'
 import { showsAgentNotice } from '../lib/agentNotice.mjs'
 import { createRenderGate, createSlotStats, isVerifiedCaller, maxQueueMsFromEnv, queueAgeMs, reservedFromEnv } from '../lib/renderSlots'
 import { cpuSampler, createLoadMeter, eluSampler, shedEluFromEnv } from '../lib/processHealth'
@@ -101,8 +101,8 @@ function redirect(event: any, location: string) {
   return sendRedirect(event, location, 301)
 }
 
-function fetchWorksList(plan: { filterKey: string, sort: string }, id: string) {
-  return apiGet(worksListApiPath(plan, id), LIST_TIMEOUT_MS, trimWorksList)
+function fetchWorksList(plan: { filterKey: string, sort: string }, id: string, timeoutMs: number) {
+  return apiGet(worksListApiPath(plan, id), timeoutMs, trimWorksList)
     .then((r) => (r.status === 'ok' ? r.data : null))
     .catch(() => null)
 }
@@ -151,11 +151,13 @@ export default defineEventHandler(async (event) => {
   // Start the list with the record, unless the list depends on the record
   // (sources: repositories list works in any location).
   const earlyPlan = ref.type !== 'sources' ? worksListPlan(ref.type, null) : null
-  const earlyList = earlyPlan ? fetchWorksList(earlyPlan, ref.id) : null
+  const listTimeout = verified ? VERIFIED_TIMEOUT_MS : LIST_TIMEOUT_MS
+  const earlyList = earlyPlan ? fetchWorksList(earlyPlan, ref.id, listTimeout) : null
 
-  const rec = await apiGet(ref.apiPath, RECORD_TIMEOUT_MS)
+  const rec = await apiGet(ref.apiPath, verified ? VERIFIED_TIMEOUT_MS : RECORD_TIMEOUT_MS)
   if (rec.status === 'unavailable') {
-    console.warn('[record-ssr] SPA fallback', ref.apiPath, rec.reason)
+    if (verified) console.warn('[record-ssr] SPA fallback', ref.apiPath, rec.reason, 'verified')
+    else console.warn('[record-ssr] SPA fallback', ref.apiPath, rec.reason)
     return spaShell(event, rec.reason)
   }
   if (rec.status === 'notfound') {
@@ -204,7 +206,7 @@ export default defineEventHandler(async (event) => {
   event.context.oxRecord = {
     apiPath: ref.apiPath,
     data: rec.data,
-    works: earlyList || (plan ? fetchWorksList(plan, ref.id) : null),
+    works: earlyList || (plan ? fetchWorksList(plan, ref.id, listTimeout) : null),
     agentNotice: showsAgentNotice(header),
   }
   setResponseHeader(event, 'x-openalex-render', 'ssr')

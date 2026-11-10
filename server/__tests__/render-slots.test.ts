@@ -127,7 +127,7 @@ describe('record middleware with a reserve', () => {
     vi.stubEnv('SSR_RESERVED_RENDERS', '1')
     vi.stubEnv('SSR_MAX_SLOT_HOLD_MS', '1500')
     vi.resetModules()
-    vi.doMock('../lib/ssrApi', () => ({ apiGet: (...a: any[]) => apiGet(...(a as [string])), RECORD_TIMEOUT_MS: 1500, LIST_TIMEOUT_MS: 1500 }))
+    vi.doMock('../lib/ssrApi', () => ({ apiGet: (...a: any[]) => apiGet(...(a as [string])), RECORD_TIMEOUT_MS: 1500, LIST_TIMEOUT_MS: 1500, VERIFIED_TIMEOUT_MS: 5000 }))
     vi.doMock('../lib/processHealth', async (importOriginal) => ({
       ...(await importOriginal<typeof import('../lib/processHealth')>()),
       createLoadMeter: () => ({ tick() {}, overloaded: () => overloaded }),

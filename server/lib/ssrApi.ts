@@ -15,6 +15,11 @@ export const SSR_USER_AGENT = 'openalex.org ssr (oxjob 1689)'
 const API_BASE = 'https://api.openalex.org/'
 export const RECORD_TIMEOUT_MS = Number(process.env.SSR_RECORD_TIMEOUT_MS) || 1500
 export const LIST_TIMEOUT_MS = Number(process.env.SSR_LIST_TIMEOUT_MS) || 1500
+// #2104: verified crawlers and assistants wait longer, for the record and its works list.
+// On a crowded process (slow event loop) 1.5 s ran out on 2-8% of their pages, which then
+// went out as the empty shell or without the list. Crawlers wait seconds without harm, and
+// the record call holds no render slot. Set it to 1500 to treat them like everyone else.
+export const VERIFIED_TIMEOUT_MS = Number(process.env.SSR_VERIFIED_TIMEOUT_MS) || 5000
 
 const CACHE_TTL_MS = 60_000
 const CACHE_MAX_BYTES = 32 * 1024 * 1024
