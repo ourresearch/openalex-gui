@@ -119,7 +119,7 @@
 
       <!-- Generic entity page (non-works) -->
       <v-row v-else>
-        <v-col v-if="showEntityPageStats" cols="12" md="7">
+        <v-col v-if="showEntityPageStats" cols="12" :md="hasSidebar ? 7 : 12">
           <!-- Repository sources get a Details/Harvest tab strip (oxjob #836);
                every other entity keeps the flat details card. -->
           <v-card v-if="isRepositorySource" variant="outlined" class="rounded-o bg-white">
@@ -149,7 +149,26 @@
             />
           </v-card>
 
-          <v-card v-if="!isComponentEntity" variant="outlined" class="rounded-o mt-3 bg-white">
+          <v-card v-if="showWorksList" variant="outlined" class="rounded-o mt-3 bg-white">
+            <!-- Works | Awards on author, topic and institution pages. Works stay
+                 the default; the switch shows only when there are awards. -->
+            <template v-if="awardsTabConfig && awardsCount > 0">
+              <v-tabs v-model="listTab" density="compact" bg-color="transparent" class="entity-list-tabs">
+                <v-tab value="works" class="text-none">
+                  Works<span v-if="entityData.works_count" class="ml-1 text-medium-emphasis">{{ filters.toPrecision(entityData.works_count) }}</span>
+                </v-tab>
+                <v-tab value="awards" class="text-none">
+                  Awards<span class="ml-1 text-medium-emphasis">{{ filters.toPrecision(awardsCount) }}</span>
+                </v-tab>
+              </v-tabs>
+              <v-divider />
+            </template>
+            <entity-awards-list
+              v-if="listTab === 'awards'"
+              :filter-key="awardsTabConfig.filterKey"
+              :entity-id="route.params.entityId"
+            />
+            <template v-else>
             <selection-toolbar :selectable="worksSelectable" :disable-master="isAuthorOwner && worksFilterActive">
               <template #trailing>
                 <v-spacer/>
@@ -334,6 +353,7 @@
                 View as search
               </v-btn>
             </div>
+            </template>
 
             <template v-if="isAuthorOwner">
               <AddWorksModal
@@ -394,7 +414,7 @@
 
         <!-- Component entities (oxjob #852) have no works metrics or group-bys —
              without the guard this renders as an empty white pill. -->
-        <v-col v-if="showEntityPageStats && !isComponentEntity" cols="12" md="5">
+        <v-col v-if="hasSidebar" cols="12" md="5">
           <v-card flat class="rounded-o px-2 pt-4 pb-3">
             <entity-metrics
               :data="entityData"
@@ -438,6 +458,7 @@ import { useAsyncData, useRequestEvent, useState } from '#app';  // #1689 Nuxt t
 
 import { api } from '@/api';
 import { url } from '@/url';
+import filters from '@/filters';
 import { getEntityConfig } from '@/entityConfigs';
 import { tagRecordData, recordDataFor } from '@/ssr/recordData';
 import { createSimpleFilter, filtersAsUrlStr } from '@/filterConfigs';
@@ -452,6 +473,7 @@ import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 import SelectionToolbar from '@/components/SelectionToolbar.vue';
 import GroupBy from '@/components/GroupBy/GroupBy.vue';
 import SourceHarvestTab from '@/components/Entity/SourceHarvestTab.vue';
+import EntityAwardsList from '@/components/Entity/EntityAwardsList.vue';
 import { useSelectionContext } from '@/composables/useSelectionContext';
 
 // Author curation components (feature-flagged display-name editors only)
@@ -470,8 +492,9 @@ const router = useRouter();
 const myEntityType = ref(route.params.entityType);
 const worksPage = ref(1);
 const worksLoadingMore = ref(false);
-// Non-default tabs: 'locations' (works pages), 'harvest' (repository sources, #836).
-const ENTITY_TABS = ['locations', 'harvest'];
+// Non-default tabs: 'locations' (works pages), 'harvest' (repository sources, #836),
+// 'awards' (the Works | Awards switch on author, topic and institution pages).
+const ENTITY_TABS = ['locations', 'harvest', 'awards'];
 const activeTab = ref(ENTITY_TABS.includes(route.query.tab) ? route.query.tab : 'details');
 
 const WORKS_PER_PAGE = 25;
@@ -578,16 +601,53 @@ const isRepositorySource = computed(() =>
   myEntityType.value === 'sources' && entityData.value?.type === 'repository'
 );
 
-const groupByKeys = computed(() => {
-  if (myEntityType.value === 'awards') {
-    return ['publication_year', 'primary_topic.id'];
-  }
-  return ['publication_year', 'primary_topic.id', 'type'];
-});
+const groupByKeys = computed(() => ['publication_year', 'primary_topic.id', 'type']);
 
 const isAward = computed(() => myEntityType.value === 'awards');
 
 const showEntityPageStats = computed(() => store.state.showEntityPageStats);
+
+// Awards get no sidebar: they have no works metrics, and the funded works'
+// year and topic panels spun forever on awards with no funded works and said
+// little on the rest. The details card takes the full width instead.
+const hasSidebar = computed(() => showEntityPageStats.value && !isComponentEntity.value && !isAward.value);
+
+// The works list, under the details card. An award with no funded works has none.
+const showWorksList = computed(() => {
+  if (isComponentEntity.value) return false;
+  if (isAward.value) return (entityData.value?.funded_outputs_count || 0) > 0;
+  return true;
+});
+
+// The Works | Awards switch: which awards filter names this entity.
+const AWARDS_TABS = {
+  authors: { filterKey: 'investigators.author.id' },
+  institutions: { filterKey: 'institution_awarded.lineage' },
+  topics: { filterKey: 'primary_topic.id' },
+};
+const awardsTabConfig = computed(() => AWARDS_TABS[myEntityType.value] || null);
+// Authors and institutions carry awards_count; topics don't, so ask the API.
+const fetchedAwardsCount = ref(null);
+const awardsCount = computed(() => {
+  if (!awardsTabConfig.value || !entityData.value) return 0;
+  return entityData.value.awards_count ?? fetchedAwardsCount.value ?? 0;
+});
+watch(() => [awardsTabConfig.value, entityData.value?.id], async ([config, id]) => {
+  fetchedAwardsCount.value = null;
+  if (import.meta.server || !config || !id || entityData.value.awards_count !== undefined) return;
+  const filter = createSimpleFilter('awards', config.filterKey, route.params.entityId);
+  const apiUrl = api.makeUrl('awards', { filter: filtersAsUrlStr([filter]), 'per-page': 1, select: 'id' }, true);
+  try {
+    const resp = await api.getResultsList(apiUrl);
+    if (entityData.value?.id === id) fetchedAwardsCount.value = resp?.meta?.count || 0;
+  } catch {
+    fetchedAwardsCount.value = 0;
+  }
+}, { immediate: true });
+const listTab = computed({
+  get: () => (activeTab.value === 'awards' && awardsTabConfig.value ? 'awards' : 'works'),
+  set: (v) => { activeTab.value = v === 'awards' ? 'awards' : 'details'; },
+});
 
 // Author curation computed properties
 const isAuthor = computed(() => myEntityType.value === 'authors');

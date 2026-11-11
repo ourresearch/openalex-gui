@@ -654,6 +654,12 @@ export const routes = [
 // (app/router.options.ts, app/plugins/02.router-guards.ts). The default export is
 // a late-bound proxy to whichever router instance is current, so url.js, filters.js
 // and friends keep their `import router from '@/router'`.
+const onlyTabChanged = (a = {}, b = {}) => {
+        const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+        keys.delete("tab");
+        return [...keys].every((k) => String(a[k]) === String(b[k]));
+};
+
 export function scrollBehavior(to, from, savedPosition) {
         if (to.hash) {
             return {
@@ -664,6 +670,10 @@ export function scrollBehavior(to, from, savedPosition) {
             return savedPosition;
         } else if (to.name === "Serp") {
             // do nothing
+            return false;
+        } else if (to.path === from.path && onlyTabChanged(to.query, from.query)) {
+            // Switching a record page's tab (Works | Awards, Locations, Harvest)
+            // keeps the reader where they are.
             return false;
         } else {
             return {left: 0, top: 0};

@@ -2151,6 +2151,28 @@ const facetConfigs = function (entityType) {
             icon: "mdi-cash-multiple",
             extractFn: (entity) => entity.awards_count,
         },
+        {
+            // Awards naming this author (as an investigator; elastic-api 23.1.0, oxjob #1847).
+            key: "awards_count",
+            entityToFilter: "authors",
+            type: "range",
+            category: "citation",
+            actions: ["filter", "sort", "column"],
+            actionsPopular: [],
+            icon: "mdi-cash-multiple",
+            extractFn: (entity) => entity.awards_count,
+        },
+        {
+            // Awards naming this institution (as the awarded institution; elastic-api 23.1.0, oxjob #1847).
+            key: "awards_count",
+            entityToFilter: "institutions",
+            type: "range",
+            category: "citation",
+            actions: ["filter", "sort", "column"],
+            actionsPopular: [],
+            icon: "mdi-cash-multiple",
+            extractFn: (entity) => entity.awards_count,
+        },
         // works_count / cited_by_count for funders are injected globally for
         // every entity (see worksCountFilters / citedByCountFilters below); the
         // per-entity copies that used to live here produced duplicate picker rows
@@ -3058,7 +3080,13 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "group_by"],
             actionsPopular: ["filter", "group_by"],
             icon: "mdi-town-hall",
-            extractFn: (entity) => entity.institution_awarded,
+            // No matched institution: show the recipients the funder named, linked
+            // where they carry an id (was "—" for e.g. G9001312159).
+            extractFn: (entity) => (entity.institution_awarded?.length
+                ? entity.institution_awarded
+                : (entity.recipients || [])
+                    .filter((r) => r?.id || r?.display_name)
+                    .map((r) => (r.id ? { id: r.id, display_name: r.display_name } : r.display_name))),
         },
         {
             key: "institution_awarded.country_code",
@@ -3070,7 +3098,9 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "group_by"],
             actionsPopular: ["filter", "group_by"],
             icon: "mdi-earth",
-            extractFn: (entity) => entity.institution_awarded?.country_code,
+            // institution_awarded is a list, so the old `.country_code` was always empty.
+            extractFn: (entity) => [...new Set((entity.institution_awarded || [])
+                .map((i) => i?.country_code).filter(Boolean))],
         },
         {
             key: "display_name",
@@ -3223,11 +3253,13 @@ const facetConfigs = function (entityType) {
             icon: "mdi-identifier",
         },
         {
+            // Not offered: the awards index has no funder.ror values yet
+            // (filter=funder.ror:!null returns 0, 2026-11-11). Filter on funder.id.
             key: "funder.ror",
             entityToFilter: "awards",
             type: "search",
             category: "funder",
-            actions: ["filter"],
+            actions: [],
             actionsPopular: [],
             icon: "mdi-identifier",
         },
@@ -3257,6 +3289,41 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.lead_investigator?.affiliation?.name,
         },
         {
+            // Investigators tied to OpenAlex author profiles (elastic-api 23.1.0,
+            // oxjob #1847). Without these entries the API's OQL parser rejects the
+            // filters (no "gui" in supported_by), so ?filter=investigators.author.id:A…
+            // fell out to OQL marked invalid.
+            key: "lead_investigator.author.id",
+            entityToFilter: "awards",
+            entityToSelect: "authors",
+            displayName: "lead investigator",
+            type: "selectEntity",
+            isManyOptions: true,
+            category: "investigator",
+            actions: ["filter", "group_by"],
+            actionsPopular: [],
+            icon: "mdi-account-outline",
+            extractFn: (entity) => (entity.lead_investigator?.author?.id ? [entity.lead_investigator.author] : []),
+        },
+        {
+            // Every investigator, lead and co-lead included (the API's
+            // investigators_full), which is what authors' awards_count counts.
+            key: "investigators.author.id",
+            entityToFilter: "awards",
+            entityToSelect: "authors",
+            displayName: "investigator",
+            type: "selectEntity",
+            isManyOptions: true,
+            category: "investigator",
+            actions: ["filter", "group_by"],
+            actionsPopular: ["filter"],
+            icon: "mdi-account-outline",
+            extractFn: (entity) => [entity.lead_investigator, entity.co_lead_investigator,
+                ...(Array.isArray(entity.investigators) ? entity.investigators : [])]
+                .map((inv) => inv?.author)
+                .filter((a, i, all) => a?.id && all.findIndex((b) => b?.id === a.id) === i),
+        },
+        {
             key: "investigators",
             entityToFilter: "awards",
             type: "selectEntity",
@@ -3266,18 +3333,28 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-account-outline",
             extractFn: (entity) => {
-                // Combine lead_investigator, co_lead_investigator, and investigators array
-                // Return plain strings (no links) since investigators aren't disambiguated
+                // Lead, co-lead, then the rest. Each person links to their author
+                // profile when the API ties them to one (investigators[].author,
+                // oxjob #1847); the rest stay plain names. The name is the funder's.
                 const investigators = [];
-                const addInvestigator = (inv) => {
-                    const name = [inv.given_name, inv.family_name].filter(Boolean).join(' ');
-                    if (name) investigators.push(name);
+                const seen = new Set();
+                const addInvestigator = (inv, role) => {
+                    if (!inv) return;
+                    const name = [inv.given_name, inv.family_name].filter(Boolean).join(' ')
+                        || inv.author?.display_name;
+                    if (!name) return;
+                    const key = inv.author?.id || name;
+                    if (seen.has(key)) return;
+                    seen.add(key);
+                    investigators.push({
+                        id: inv.author?.id || null,
+                        display_name: role ? `${name} (${role})` : name,
+                    });
                 };
-                if (entity.lead_investigator) addInvestigator(entity.lead_investigator);
-                if (entity.co_lead_investigator) addInvestigator(entity.co_lead_investigator);
-                if (entity.investigators && Array.isArray(entity.investigators)) {
-                    entity.investigators.forEach(addInvestigator);
-                }
+                addInvestigator(entity.lead_investigator, 'lead');
+                addInvestigator(entity.co_lead_investigator, 'co-lead');
+                (Array.isArray(entity.investigators) ? entity.investigators : [])
+                    .forEach((inv) => addInvestigator(inv));
                 return investigators;
             },
         },
@@ -3292,20 +3369,32 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-town-hall",
             extractFn: (entity) => {
-                // Collect all unique affiliations from all investigators
-                // Return plain strings since affiliations aren't linked to institution entities
-                const seen = new Set();
-                const addAffiliation = (inv) => {
-                    if (inv?.affiliation?.name && !seen.has(inv.affiliation.name)) {
-                        seen.add(inv.affiliation.name);
-                    }
+                // The awarded institutions (linked), then each investigator's
+                // matched institutions (linked), then any affiliation or recipient
+                // name that matched none of them (plain text).
+                const items = [];
+                const seenIds = new Set();
+                const seenNames = new Set();
+                const norm = (name) => String(name || '').trim().toLowerCase();
+                const addLinked = (inst) => {
+                    if (!inst?.id || seenIds.has(inst.id)) return;
+                    seenIds.add(inst.id);
+                    seenNames.add(norm(inst.display_name));
+                    items.push({ id: inst.id, display_name: inst.display_name });
                 };
-                if (entity.lead_investigator) addAffiliation(entity.lead_investigator);
-                if (entity.co_lead_investigator) addAffiliation(entity.co_lead_investigator);
-                if (entity.investigators && Array.isArray(entity.investigators)) {
-                    entity.investigators.forEach(addAffiliation);
-                }
-                return Array.from(seen);
+                const addName = (name) => {
+                    if (!name || seenNames.has(norm(name))) return;
+                    seenNames.add(norm(name));
+                    items.push({ id: null, display_name: name });
+                };
+                const people = [entity.lead_investigator, entity.co_lead_investigator,
+                    ...(Array.isArray(entity.investigators) ? entity.investigators : [])].filter(Boolean);
+                (entity.institution_awarded || []).forEach(addLinked);
+                people.forEach((inv) => (inv.institutions || []).forEach(addLinked));
+                people.forEach((inv) => addName(inv.affiliation?.name));
+                (entity.recipients || []).forEach((r) => (r?.id ? addLinked(r) : addName(r?.display_name)));
+                // A list of plain names renders as text; one link renders the mixed list.
+                return items.some((i) => i.id) ? items : items.map((i) => i.display_name);
             },
         },
         {
