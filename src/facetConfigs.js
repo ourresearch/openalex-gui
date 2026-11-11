@@ -2155,6 +2155,7 @@ const facetConfigs = function (entityType) {
             // Awards naming this author (as an investigator; elastic-api 23.1.0, oxjob #1847).
             key: "awards_count",
             entityToFilter: "authors",
+            displayName: "awards count",
             type: "range",
             category: "citation",
             actions: ["filter", "sort", "column"],
@@ -2166,6 +2167,7 @@ const facetConfigs = function (entityType) {
             // Awards naming this institution (as the awarded institution; elastic-api 23.1.0, oxjob #1847).
             key: "awards_count",
             entityToFilter: "institutions",
+            displayName: "awards count",
             type: "range",
             category: "citation",
             actions: ["filter", "sort", "column"],
@@ -3296,7 +3298,7 @@ const facetConfigs = function (entityType) {
             key: "lead_investigator.author.id",
             entityToFilter: "awards",
             entityToSelect: "authors",
-            displayName: "lead investigator",
+            displayName: "lead investigator profile",
             type: "selectEntity",
             isManyOptions: true,
             category: "investigator",
@@ -3311,7 +3313,7 @@ const facetConfigs = function (entityType) {
             key: "investigators.author.id",
             entityToFilter: "awards",
             entityToSelect: "authors",
-            displayName: "investigator",
+            displayName: "investigator profile",
             type: "selectEntity",
             isManyOptions: true,
             category: "investigator",
