@@ -91,6 +91,27 @@
         </template>
       </v-select>
 
+      <!-- Submitted-by filter (oxjob #435): "Me", the org's members when the
+           viewer can list them, and anyone already shown in the table. -->
+      <v-select
+        v-model="submitterFilter"
+        :items="submitterOptions"
+        variant="outlined"
+        density="compact"
+        hide-details
+        clearable
+        label="Submitted by"
+        class="filter-select filter-select--submitter"
+      >
+        <template #item="{ item, props: itemProps }">
+          <v-list-item v-bind="itemProps" :prepend-icon="item.raw.icon" />
+        </template>
+        <template #selection="{ item }">
+          <v-icon :icon="item.raw.icon" size="small" class="mr-1" />
+          {{ item.title }}
+        </template>
+      </v-select>
+
     </div>
 
     <!-- Error alert -->
@@ -202,6 +223,24 @@
                   :secondary="curation.user_id || ''"
                 />
               </v-tooltip>
+              <v-tooltip
+                v-if="curation.user_id && submitterFilter !== curation.user_id"
+                location="bottom"
+                text="Show only this person's curations"
+              >
+                <template #activator="{ props: tipProps }">
+                  <v-btn
+                    v-bind="tipProps"
+                    icon="mdi-filter-variant"
+                    variant="text"
+                    size="x-small"
+                    density="comfortable"
+                    class="cur-owner-filter"
+                    :aria-label="`Show only curations by ${curation.user_name || curation.user_id}`"
+                    @click="filterBySubmitter(curation)"
+                  />
+                </template>
+              </v-tooltip>
             </td>
 
             <!-- Created: short age, links to the curation detail page -->
@@ -255,6 +294,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { useStore } from 'vuex';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import { curationDescriptor, useEntityResolver, actionMeta, entityMeta, refIcon, propertyLabel, formatRelativeShort, formatExactDate, statusMeta } from '@/composables/useCurationDescriptor';
@@ -283,6 +323,53 @@ const entityFilter = ref(null);
 const actionFilter = ref(null);
 const statusFilter = ref(null);
 const { entityMap, resolve: resolveEntities } = useEntityResolver();
+
+// Submitted by (oxjob #435). The API narrows to one user_id within what the
+// viewer may already see; it never widens. Options: "Me", the org's members
+// (only owners get the roster from GET /organizations/:id), and every
+// submitter seen in a loaded page, so curators and site-wide users can pick
+// anyone shown in the table.
+const store = useStore();
+const myUserId = computed(() => store.getters['user/userId']);
+const submitterFilter = ref(null);
+const knownSubmitters = ref(new Map()); // user_id -> display name
+function rememberSubmitters(rows) {
+  let changed = false;
+  for (const c of rows) {
+    if (c.user_id && !knownSubmitters.value.has(c.user_id)) {
+      knownSubmitters.value.set(c.user_id, c.user_name || c.user_id);
+      changed = true;
+    }
+  }
+  if (changed) knownSubmitters.value = new Map(knownSubmitters.value);
+}
+const submitterOptions = computed(() => {
+  const opts = [];
+  if (myUserId.value) {
+    opts.push({ title: 'Me', value: myUserId.value, icon: 'mdi-account-circle' });
+  }
+  const others = [...knownSubmitters.value.entries()]
+    .filter(([id]) => id !== myUserId.value)
+    .map(([id, name]) => ({ title: name, value: id, icon: 'mdi-account-outline' }))
+    .sort((a, b) => a.title.localeCompare(b.title));
+  return opts.concat(others);
+});
+function filterBySubmitter(curation) {
+  rememberSubmitters([curation]);
+  submitterFilter.value = curation.user_id;
+}
+async function loadOrgMembers() {
+  // Org settings page only; site-wide pages list too many people for a roster.
+  const orgId = store.getters['user/organizationId'];
+  if (!orgId || route.path.startsWith('/admin') || route.path.startsWith('/settings/site-')) return;
+  try {
+    const res = await axios.get(`${urlBase.userApi}/organizations/${orgId}`, axiosConfig({ userAuth: true }));
+    const members = res.data?.members || [];
+    rememberSubmitters(members.map((m) => ({ user_id: m.id, user_name: m.display_name || m.email })));
+  } catch {
+    // Curators and members get no roster: the table's submitters still fill the list.
+  }
+}
 
 // Per-curation descriptor cache (stable for a given row id)
 const descriptorCache = new Map();
@@ -374,6 +461,10 @@ async function fetchCurations() {
       params.set('status', statusFilter.value);
     }
 
+    if (submitterFilter.value) {
+      params.set('user_id', submitterFilter.value);
+    }
+
     const res = await axios.get(
       `${urlBase.userApi}/curations?${params.toString()}`,
       axiosConfig({ userAuth: true })
@@ -383,6 +474,7 @@ async function fetchCurations() {
     totalCount.value = res.data.meta?.total_count || 0;
     totalPages.value = res.data.meta?.total_pages || 1;
     totalCountCapped.value = !!res.data.meta?.total_count_capped;
+    rememberSubmitters(curations.value);
     resolveEntities(curations.value);
   } catch (e) {
     error.value = e?.response?.data?.message || 'Failed to fetch curations.';
@@ -437,9 +529,15 @@ watch(statusFilter, () => {
   fetchCurations();
 });
 
+watch(submitterFilter, () => {
+  page.value = 1;
+  fetchCurations();
+});
+
 // Load curations on mount
 onMounted(() => {
   fetchCurations();
+  loadOrgMembers();
 });
 </script>
 
@@ -535,5 +633,21 @@ onMounted(() => {
 /* "Not seen live yet" (oxjob #2009) wrapped to three lines at 150px. */
 .filter-select--status {
   max-width: 210px;
+}
+
+/* Submitted by (oxjob #435): names are longer than the other filters' words. */
+.filter-select--submitter {
+  max-width: 220px;
+}
+
+.cur-owner-filter {
+  margin-left: 2px;
+  opacity: 0.5;
+  vertical-align: middle;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+  }
 }
 </style>
