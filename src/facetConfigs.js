@@ -925,7 +925,9 @@ const facetConfigs = function (entityType) {
             key: "primary_location.source.is_in_doaj",
             entityToFilter: "works",
             type: "boolean",
-            booleanValues: ["Not in DOAJ", "In DOAJ"],
+            // Journal level (the journal is on DOAJ's journal list). Whether DOAJ's article
+            // index holds the work itself is `indexed_in:doaj` (oxjob #2184).
+            booleanValues: ["Not in a DOAJ journal", "In a DOAJ journal"],
             category: "source",
             actions: ["filter", "group_by",],
             icon: "mdi-book-open-outline",
