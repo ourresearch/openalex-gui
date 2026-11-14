@@ -134,7 +134,7 @@
           <v-list-item @click="toggleXpac">
             <v-list-item-title>Include expanded index</v-list-item-title>
             <v-list-item-subtitle class="menu-subtitle">
-              192M works from lower-quality sources (xpac)
+              192M works from lower-quality sources, plus pieces of other works (xpac)
             </v-list-item-subtitle>
             <template #append>
               <v-switch
@@ -385,7 +385,7 @@
               <span class="control-label" :style="isXpacEnabled ? 'color: white' : ''">xpac</span>
             </v-btn>
           </template>
-          <span>Include 'expansion pack' works. Better coverage (192M new works from DataCite and repositories), but data quality is lower.</span>
+          <span>Include 'expansion pack' works. Better coverage (192M new works from DataCite and repositories), but data quality is lower. Also shows pieces of other works (front matter, figures, files, series records), which are left out by default.</span>
         </v-tooltip>
       </template>
     </div>
