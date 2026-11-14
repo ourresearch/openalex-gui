@@ -179,6 +179,10 @@ const facetCategories = {
         "citation",
         "other",
     ],
+    relationships: [
+        "citation",
+        "other",
+    ],
     keywords: [
         "citation",
         "other",
@@ -734,20 +738,72 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.primary_location.source,
         },
 
-        // works: the work this work is part of, e.g. a chapter's book (oxjob #1554).
-        // A work id; the filter lists a book's chapters. displayName must equal the
-        // registry display_name (label-consistency gate).
+        // works: parent and child works (oxjob #2065). A work that is part of another
+        // names its parents in `parent_works` [{id, display_name, relationship}]: a
+        // chapter's book, a figure's article. The filter on a work id lists that work's
+        // parts (a book's chapters). This facet replaces "volume" (volume.id, oxjob
+        // #1554), retired by the API. Each displayName must equal the registry
+        // display_name (elastic-api label-consistency gate).
         {
-            key: "volume.id",
+            key: "parent_works.id",
             entityToFilter: "works",
             entityToSelect: "works",
-            displayName: "volume",
+            displayName: "parent work",
             type: "selectEntity",
             isManyOptions: true,
             category: "source",
             actions: ["filter", "group_by",],
             icon: "mdi-book-open-page-variant-outline",
-            extractFn: (entity) => entity.volume,
+            extractFn: (entity) => entity.parent_works,
+        },
+        // How the work relates to its parent: volume, component, data-series, part
+        // (the /relationships vocabulary).
+        {
+            key: "parent_works.relationship",
+            entityToFilter: "works",
+            entityToSelect: "relationships",
+            displayName: "relationship to parent work",
+            type: "selectEntity",
+            category: "other",
+            actions: ["filter", "group_by",],
+            icon: "mdi-file-tree-outline",
+            extractFn: (entity) => (entity.parent_works || []).map((p) => p.relationship),
+        },
+        {
+            key: "has_parent_work",
+            entityToFilter: "works",
+            displayName: "has parent work",
+            type: "boolean",
+            booleanValues: ["Has no parent work", "Has a parent work"],
+            category: "other",
+            actions: ["filter", "group_by",],
+            icon: "mdi-file-tree-outline",
+            extractFn: (entity) => (entity.parent_works || []).length > 0,
+        },
+        // The work itself and every work above it; lineage:W123 lists W123 and every
+        // work under it. Filter only: the API groups by parent_works.id instead.
+        {
+            key: "lineage",
+            entityToFilter: "works",
+            entityToSelect: "works",
+            displayName: "work lineage",
+            type: "selectEntity",
+            isManyOptions: true,
+            category: "other",
+            actions: ["filter",],
+            icon: "mdi-file-tree-outline",
+            extractFn: (entity) => entity.lineage,
+        },
+        {
+            key: "child_works_count",
+            entityToFilter: "works",
+            displayName: "child works count",
+            type: "range",
+            category: "other",
+            actions: ["filter", "column",],
+            icon: "mdi-file-tree-outline",
+            extractFn: (entity) => entity.child_works_count,
+            column: { export: { path: "child_works_count" } },
         },
 
         // works: source across all locations (primary + alternate)
@@ -3648,6 +3704,15 @@ const facetConfigs = function (entityType) {
             extractFn: (e) => e.description,
         },
         {
+            // oxjob #2065: what a parent-child relationship between works means.
+            key: "description",
+            entityToFilter: "relationships",
+            type: "search",
+            category: "other",
+            icon: "mdi-file-tree-outline",
+            extractFn: (e) => e.description,
+        },
+        {
             // oxjob #1312: the PubMed publication types mapped into this design.
             // Entity-page row only; not a filter.
             key: "pubmed_publication_types",
@@ -3876,6 +3941,16 @@ const facetConfigs = function (entityType) {
         {
             key: "display_name",
             isIdentityColumn: true,
+            entityToFilter: "relationships",
+            type: "search",
+            actions: ["column"],
+            category: "other",
+            icon: "mdi-file-tree-outline",
+            extractFn: (entity) => entity.display_name,
+        },
+        {
+            key: "display_name",
+            isIdentityColumn: true,
             entityToFilter: "source-lists",
             type: "search",
             actions: ["column"],
@@ -3992,9 +4067,9 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-dots-horizontal",
         },
-        // oxjob #1554 (Jason, 2026-10-10): no "biblio.volume" facet. "volume" is the volume
-        // itself (volume.id above, a chapter's book); filtering on the citation's volume
-        // number is no longer supported (the API keeps the value in the work record only).
+        // oxjob #1554 (Jason, 2026-10-10): no "biblio.volume" facet: filtering on the
+        // citation's volume number is not supported (the API keeps the value in the work
+        // record only). A chapter's book is its parent work (parent_works.id above).
         {
             key: "biblio.issue",
             entityToFilter: "works",
@@ -4646,8 +4721,9 @@ const facetConfigs = function (entityType) {
     const citedByCountFilters = getEntityConfigs()
         .map(c => c.name)
         // #294: exclude 'locations' too — /locations has no works_count/cited_by_count
-        // field, so the injected filter+sort chips 400.
-        .filter(name => name !== 'works' && name !== 'awards' && name !== 'locations')
+        // field, so the injected filter+sort chips 400. oxjob #2065: /relationships
+        // has works_count but no cited_by_count.
+        .filter(name => name !== 'works' && name !== 'awards' && name !== 'locations' && name !== 'relationships')
         .map(name => {
             return {
                 key: "cited_by_count",
