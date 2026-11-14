@@ -798,6 +798,8 @@ const facetConfigs = function (entityType) {
             key: "child_works_count",
             entityToFilter: "works",
             displayName: "child works count",
+            // the work page's metric: "Parts: 12", linked to parent_works.id:<this work>
+            displayNameOnEntityPage: "parts",
             type: "range",
             category: "other",
             actions: ["filter", "column",],

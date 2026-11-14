@@ -77,11 +77,11 @@ describe("facet picker (all entities — #621)", () => {
       "keywords", "topics", "subfields", "fields", "domains", "sdgs", "countries",
       "continents", "languages", "types", "source-types", "institution-types",
       "licenses", "oa-statuses", "indexes", "source-lists", "study-designs",
-      "locations", "awards",
+      "relationships", "locations", "awards",
     ]) {
       expect(ALL_ENTITY_TYPES, `missing entity ${e}`).toContain(e);
     }
-    expect(ALL_ENTITY_TYPES.length).toBe(26);
+    expect(ALL_ENTITY_TYPES.length).toBe(27);
   });
 
   // Every entity the builder can drive must offer at least one buildable filter,

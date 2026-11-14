@@ -29,7 +29,7 @@ const SINGULAR = {
   countries: 'country', continents: 'continent', languages: 'language', types: 'work type',
   'source-types': 'source type', 'institution-types': 'institution type', licenses: 'license',
   'oa-statuses': 'open access status', indexes: 'index', 'source-lists': 'source list',
-  'study-designs': 'study design', locations: 'location',
+  'study-designs': 'study design', relationships: 'relationship', locations: 'location',
 };
 
 const INSTITUTION_TYPES = {

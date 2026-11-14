@@ -329,6 +329,7 @@ const unworkSubheader = computed(() => {
     "oa-statuses": [r.description],
     "source-lists": [r.maintainer, r.description],
     "study-designs": [r.description],
+    relationships: [r.description],
   };
 
   return (factsToShow[myEntityType.value] || [])

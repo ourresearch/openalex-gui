@@ -34,6 +34,7 @@ Disallow: /oa-statuses?
 Disallow: /indexes?
 Disallow: /source-lists?
 Disallow: /study-designs?
+Disallow: /relationships?
 Disallow: /locations?
 Disallow: /q?
 Disallow: /admin

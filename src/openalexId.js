@@ -68,6 +68,7 @@ const ALL_ENTITY_TYPES = [
     'indexes',
     'source-lists',
     'study-designs',
+    'relationships',
     'locations',
 ];
 

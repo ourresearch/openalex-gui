@@ -124,6 +124,7 @@ export const defaultChipsByEntity = {
   "oa-statuses": [],
   "source-lists": [],
   "study-designs": [],
+  relationships: [],
   // Component entity (oxjob #852): the repository-manager audit set — filter
   // to your source, then slice by version / license / OA.
   locations: [

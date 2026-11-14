@@ -71,6 +71,10 @@
    "displayName": "publishers",
    "displayNameSingular": "publisher"
   },
+  "relationships": {
+   "displayName": "relationships",
+   "displayNameSingular": "relationship"
+  },
   "sdgs": {
    "displayName": "Sustainable Development Goals",
    "displayNameSingular": "Sustainable Development Goal"
@@ -663,6 +667,23 @@
    "updated_date": "updated date",
    "works_count": "works count"
   },
+  "relationships": {
+   "collection": "collection",
+   "created_date": "created date",
+   "description": "description",
+   "display_name": "name",
+   "display_name.search": "display name",
+   "from_created_date": "from created date",
+   "from_updated_date": "from updated date",
+   "id": "id",
+   "relevance_score": "relevance score",
+   "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
+   "updated_date": "updated date",
+   "works_api_url": "works api url",
+   "works_count": "works count"
+  },
   "sdgs": {
    "cited_by_count": "citation count",
    "collection": "collection",
@@ -950,6 +971,7 @@
    "biblio.first_page": "first page",
    "biblio.issue": "issue",
    "biblio.last_page": "last page",
+   "child_works_count": "child works count",
    "citation_normalized_percentile": "citation normalized percentile",
    "citation_normalized_percentile.is_in_top_10_percent": "top 10% cited",
    "citation_normalized_percentile.is_in_top_1_percent": "top 1% cited",
@@ -998,6 +1020,7 @@
    "has_oa_submitted_version": "has oa submitted version",
    "has_old_authors": "has old authors",
    "has_orcid": "has ORCID",
+   "has_parent_work": "has parent work",
    "has_pdf_url": "has pdf url",
    "has_pmcid": "has PMCID",
    "has_pmid": "PubMed",
@@ -1025,6 +1048,7 @@
    "keywords": "keywords",
    "keywords.id": "keyword",
    "language": "language",
+   "lineage": "work lineage",
    "locations": "locations",
    "locations.is_accepted": "any location accepted",
    "locations.is_oa": "any location OA",
@@ -1050,6 +1074,9 @@
    "open_access.any_repository_has_fulltext": "has repository fulltext",
    "open_access.is_oa": "open access",
    "open_access.oa_status": "open access status",
+   "parent_works": "parent works",
+   "parent_works.id": "parent work",
+   "parent_works.relationship": "relationship to parent work",
    "primary_location": "primary location",
    "primary_location.is_accepted": "primary accepted",
    "primary_location.is_oa": "primary OA",
@@ -1115,9 +1142,7 @@
    "topics.subfield.id": "subfield",
    "type": "type",
    "updated_date": "updated date",
-   "versions": "versions",
-   "volume": "volume",
-   "volume.id": "volume"
+   "versions": "versions"
   }
  },
  "aliases": {
@@ -1186,6 +1211,9 @@
    "openalex_id": "ids.openalex",
    "ror": "ids.ror",
    "wikidata": "ids.wikidata",
+   "default.search": "text.search"
+  },
+  "relationships": {
    "default.search": "text.search"
   },
   "sdgs": {

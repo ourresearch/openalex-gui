@@ -40,6 +40,7 @@ const entityConfigs = reactive({
             "study_designs.id",
             "abstract",
             "primary_location.source.id",
+            "parent_works.id",   // oxjob #2065: the works this work is part of (a chapter's book)
             "doi",
             "authorships.author.id",
             "authorships.institutions.lineage",
@@ -65,6 +66,9 @@ const entityConfigs = reactive({
             "cites",
             "cited_by",
             "related_to",
+            // oxjob #2065: how many works name this one as a parent; opens them
+            // (parent_works.id:<this work>). Hidden when 0 (EntityDatumRow).
+            "child_works_count",
         ],
         groupByDefaults: [
             "publication_year",
@@ -820,6 +824,34 @@ const entityConfigs = reactive({
             "pubmed_publication_types",
         ],
     },
+    // oxjob #2065: the kinds of link between a work and its parent work (closed
+    // vocabulary of four: volume, component, data-series, part). No cited_by_count.
+    relationships: {
+        icon: "mdi-file-tree-outline",
+        name: "relationships",
+        entityType: "relationships",
+        nameSingular: "relationship",
+        // authored identity, as study-designs: the live /meta catalog agrees
+        displayName: "relationships",
+        displayNameSingular: "relationship",
+        exportMode: "client",
+        exportColumns: [
+            { key: "id", label: "ID" },
+            { key: "display_name", label: "Name" },
+            { key: "description", label: "Description" },
+            { key: "works_count", label: "Works Count" },
+        ],
+        category: "research-output",
+        descr: "How a work is part of its parent work: volume, component, data series, part",
+        placeholder: "Search relationships",
+        filterKey: "parent_works.relationship",
+        hasAutocomplete: false,
+        isNative: false,
+        rowsToShowOnEntityPage: [
+            "description",
+        ],
+        metricsToShowOnEntityPage: ["works_count"],
+    },
     "locations": {
         icon: "mdi-file-document-outline",
         name: "locations",
@@ -940,6 +972,7 @@ const metricsPriorityOrder = [
     "cites",
     "cited_by",
     "related_to",
+    "child_works_count",
 ]
 
 const defaultMetricsToShowOnEntityPage = ["works_count", "cited_by_count"];

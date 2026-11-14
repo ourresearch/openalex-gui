@@ -257,6 +257,8 @@ const isDisplayed = computed(() => {
     return true;
   }
   if (isValueAnArray.value) return !!rawValue.value.length;
+  // A work's count of parts shows only when it has parts (oxjob #2065).
+  if (props.filterKey === 'child_works_count') return rawValue.value > 0;
   // An institution's wider works counts show only when they add works (#1823).
   const narrower = INSTITUTION_NARROWER_COUNT[props.filterKey];
   if (narrower && entityType.value === 'institutions') {
@@ -325,8 +327,11 @@ const valueWorksCountLink = computed(() => {
   }
   return null;
 });
-const valueUnlinkedCount = computed(() => (typeof rawValue.value === 'number' && filterConfig.value.type !== 'selectEntity' ? rawValue.value : null));
-const valueLinkedCount = computed(() => (typeof rawValue.value === 'number' && filterConfig.value.type === 'selectEntity' ? rawValue.value : null));
+// A count that opens the records it counts: the work-link facets (cited_by, cites,
+// related_to) and a work's parts, which are the works whose parent it is (oxjob #2065).
+const isLinkedCount = computed(() => filterConfig.value.type === 'selectEntity' || props.filterKey === 'child_works_count');
+const valueUnlinkedCount = computed(() => (typeof rawValue.value === 'number' && !isLinkedCount.value ? rawValue.value : null));
+const valueLinkedCount = computed(() => (typeof rawValue.value === 'number' && isLinkedCount.value ? rawValue.value : null));
 const isValueUsd = computed(() => props.filterKey === 'apc_paid.value_usd');
 const isAwardAmount = computed(() => props.filterKey === 'amount' && entityType.value === 'awards');
 const awardCurrencySymbol = computed(() => {
@@ -375,6 +380,7 @@ const pluralizeCount = computed(() => {
 const filterKeyForMakingLinks = computed(() => {
   if (props.filterKey === 'cites') return 'cited_by';
   else if (props.filterKey === 'cited_by') return 'cites';
+  else if (props.filterKey === 'child_works_count') return 'parent_works.id';
   else return props.filterKey;
 });
 </script>

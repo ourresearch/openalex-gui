@@ -31,7 +31,7 @@ export function recordLinkHeader(recordId) {
 }
 
 // Record pages: /<entity type>/<id>, not the list pages (/works) or anything deeper.
-const RECORD_PATH = /^\/(works|authors|sources|institutions|topics|keywords|publishers|funders|awards|concepts|subfields|fields|domains|sdgs|countries|continents|languages|types|source-types|institution-types|licenses|oa-statuses|indexes|source-lists|study-designs|locations)\/[^/]+\/?$/;
+const RECORD_PATH = /^\/(works|authors|sources|institutions|topics|keywords|publishers|funders|awards|concepts|subfields|fields|domains|sdgs|countries|continents|languages|types|source-types|institution-types|licenses|oa-statuses|indexes|source-lists|study-designs|relationships|locations)\/[^/]+\/?$/;
 
 export const isRecordPath = (path) => RECORD_PATH.test(String(path || '').split('?')[0]);
 
