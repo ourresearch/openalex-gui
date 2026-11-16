@@ -258,7 +258,9 @@ const exportColumnKeys = ref([]);
 const allFormatOptions = [
   { label: 'CSV (Excel)', value: 'csv-excel' },
   { label: 'CSV', value: 'csv' },
-  { label: 'Endnote', value: 'ris' },
+  // The file is RIS (.ris), which EndNote, Zotero and Mendeley all read; the label
+  // names it, like 'CSV (Excel)' (ZD 8373, 24335; oxjob #1028)
+  { label: 'EndNote (RIS)', value: 'ris' },
   { label: 'BibTeX', value: 'bibtex' },
   { label: 'Text', value: 'wos-plaintext' },
 ];
@@ -321,7 +323,7 @@ const formatOptions = computed(() =>
 const calculationFile = computed(() => calculationExportFile(store.state.resultsObject));
 const isCsvFormat = computed(() => exportFormat.value === 'csv' || exportFormat.value === 'csv-excel');
 
-// RIS (Endnote), BibTeX, and WoS-plaintext (Text) are fixed-shape, works-only
+// RIS (EndNote), BibTeX, and WoS-plaintext (Text) are fixed-shape, works-only
 // presets — the user can't pick columns. We still show the column picker for
 // continuity, but disabled, with the preset's fields listed as static chips.
 // These lists mirror the server serializers in openalex-users-api
@@ -344,8 +346,8 @@ const PRESET_COLUMNS = {
     'Corresponding author', 'ResearcherIDs', 'ORCIDs', 'Funding',
     'Citation count', 'Reference count', 'Publisher', 'ISSN', 'eISSN',
     'Publication month', 'Publication year', 'Volume', 'Issue', 'First page',
-    'Last page', 'DOI', 'Page count', 'PubMed ID', 'Open access status',
-    'Export date',
+    'Last page', 'DOI', 'Page count', 'OpenAlex ID', 'PubMed ID',
+    'Open access status', 'Export date',
   ],
 };
 const isPresetFormat = computed(() => exportFormat.value in PRESET_COLUMNS);
