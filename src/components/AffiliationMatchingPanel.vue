@@ -491,7 +491,11 @@ async function fetchSuggestions() {
       axiosConfig()
     );
     const displayName = res.data.display_name || '';
-    const alternatives = res.data.display_name_alternatives || [];
+    // ROR acronyms (CIHAM, IAO) are names curators search for too (ZD 26466, oxjob #1924).
+    const alternatives = [
+      ...(res.data.display_name_acronyms || []),
+      ...(res.data.display_name_alternatives || []),
+    ];
     const seen = new Set([displayName.toLowerCase()]);
     const deduped = [];
     for (const name of alternatives) {
