@@ -4081,7 +4081,7 @@ export const oqlCorpus = [
     "oxurl_status": "has-oxurl",
     "status": "ok",
     "oql": "works where created date >= (2024-01-01)",
-    "note": "The created/updated axes parse exactly like publication `date` (render words 'created date'/'updated date' = registry display_names). NOTE: created/updated are Premium/Institutional/Partner only — free/personal/anon keys get HTTP 200 {\"error\":\"Plan upgrade required\"} at query time (sort=created_date is gated too). OQL surfaces the field; the engine enforces the plan gate. Do NOT use this axis in free-tier example links — `date` (publication) is the free axis.",
+    "note": "The created/updated axes parse exactly like publication `date` (render words 'created date'/'updated date' = registry display_names). NOTE: created/updated are daily sync (Member+ and Partner plans) — free/personal/anon keys get HTTP 403 {\"error\":\"Plan upgrade required\"} at query time (sort=created_date is gated too). OQL surfaces the field; the API proxy enforces the plan gate (oxjobs #1689, #1850). Do NOT use this axis in free-tier example links — `date` (publication) is the free axis.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",

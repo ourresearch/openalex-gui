@@ -265,6 +265,7 @@ const getErrorDisplayText = (exp) => {
     'api_key_missing': 'API key required',
     'api_key_invalid': 'Invalid API key',
     'openalex_rate_limited': 'Rate limited',
+    'plan_required': 'Needs a paid plan',  // the sync filters (oxjob #1850)
     'openalex_error': 'API error',
     'export_timeout': 'Timed out',
     'export_internal_error': 'Error',
