@@ -99,7 +99,7 @@
 <script setup>
 import { reactive, ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 
@@ -109,6 +109,7 @@ const emit = defineEmits(['filed']);
 
 const store = useStore();
 const router = useRouter();
+const route = useRoute();
 
 const userId = computed(() => store.getters['user/userId']);
 const accountName = computed(() => store.getters['user/userName'] || '');
@@ -131,8 +132,9 @@ const submitting = ref(false);
 const filed = ref(false);
 const filedId = ref(null);
 
-function goLogin() { router.push({ name: 'Login' }); }
-function goSignup() { router.push({ name: 'Signup' }); }
+// Come back here after signing in, prefill included (oxjob #1397).
+function goLogin() { router.push({ name: 'Login', query: { redirect: route.fullPath } }); }
+function goSignup() { router.push({ name: 'Signup', query: { redirect: route.fullPath } }); }
 
 // ---- draft persistence ----
 // Support requests are often long and written while the user is already annoyed;
@@ -149,6 +151,28 @@ try {
   const saved = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
   if (saved) Object.assign(form, blankForm(), saved);
 } catch (e) { /* corrupt draft — ignore */ }
+
+// ---- prefill from the URL (oxjob #1397) ----
+// A work page's "Report a problem" opens /support?subject=…&body=… with the
+// work filled in. It fills empty fields and never overwrites a draft: a draft
+// that doesn't already hold the prefilled text gets it appended below. The
+// watcher below saves the result as the draft, so it also survives the
+// log-in round trip for a logged-out visitor.
+function queryText(v, max) {
+  const s = Array.isArray(v) ? v[0] : v;
+  return typeof s === 'string' ? s.slice(0, max) : '';
+}
+if (route.name === 'Support') {
+  const subject = queryText(route.query.subject, 150).trim();
+  const body = queryText(route.query.body, 2000);
+  if (subject && !form.subject.trim()) form.subject = subject;
+  if (body.trim()) {
+    if (!form.body.trim()) form.body = body;
+    else if (!form.body.includes(body.trim())) form.body = `${form.body.trimEnd()}\n\n${body}`;
+  }
+  // Set before the watcher exists, so save now.
+  if (subject || body.trim()) saveDraft();
+}
 
 let saveTimer = null;
 watch(form, () => {

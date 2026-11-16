@@ -39,6 +39,7 @@
         />
         <entity-more-menu
           :api-url="apiUrl"
+          :report-to="reportTo"
           :show-export="canExport"
           show-close-item
           :z-index="10001"
@@ -114,6 +115,7 @@
             />
             <entity-more-menu
               :api-url="apiUrl"
+              :report-to="reportTo"
               :show-export="canExport"
               @export="onExport"
             />
@@ -298,6 +300,20 @@ const displayTitle = computed(() => {
     return filters.getAwardDisplayTitle(props.entityData);
   }
   return props.entityData?.display_name;
+});
+
+// "Report a problem" (oxjob #1397): works only, by decision; it opens the
+// support form with the work filled in.
+const reportTo = computed(() => {
+  if (myEntityType.value !== 'works' || !shortId.value) return null;
+  const wid = shortId.value.toUpperCase();
+  return {
+    name: 'Support',
+    query: {
+      subject: `Problem with ${wid}`,
+      body: `https://openalex.org/works/${wid}\n\nWhat's wrong: `,
+    },
+  };
 });
 
 // Compute the API URL with data-version parameter if needed

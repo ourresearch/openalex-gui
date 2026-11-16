@@ -29,6 +29,13 @@
         title="View in API"
         @click="$store.commit('openApiDialog', apiUrl)"
       />
+      <!-- Opens the support form with this record filled in (oxjob #1397). -->
+      <v-list-item
+        v-if="reportTo"
+        prepend-icon="mdi-flag-outline"
+        title="Report a problem"
+        :to="reportTo"
+      />
       <!-- Fly-in only: it has no other in-menu close. Same double-chevron as
            the control bar's close button. #641 -->
       <template v-if="showCloseItem">
@@ -51,6 +58,8 @@ defineProps({
   // No URL, no "View in API" item (a private collection reads as not found
   // without the owner's key, so its page leaves this out).
   apiUrl: { type: String, default: "" },
+  // A route location for the support form, prefilled; none, no item.
+  reportTo: { type: Object, default: null },
   showExport: { type: Boolean, default: false },
   exportLabel: { type: String, default: "Export as CSV" },
   showCloseItem: { type: Boolean, default: false },
