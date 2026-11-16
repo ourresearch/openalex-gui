@@ -9,7 +9,6 @@
 </template>
 
 <script setup>
-import { capitalize } from 'lodash-es';
 import { ref, computed, watch, defineAsyncComponent } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
@@ -21,6 +20,7 @@ import { api } from '@/api';
 import { createFetchSequencer } from '@/serpFetchSeq';
 import { savedSearchIdState } from '@/savedSearchIdentity';
 import { entityConfigs } from '@/entityConfigs';
+import { serpTitle } from '@/serpTitle';
 import { filtersFromUrlStr } from '@/filterConfigs';
 import { refusalText } from '@/requestRefusal';
 import { inboundRunParams } from '@/store/query.store';
@@ -76,8 +76,9 @@ const effectiveEntityType = computed(() => {
 const selectedEntityType = effectiveEntityType;
 const selectedEntityTypeConfig = computed(() => entityConfigs[selectedEntityType.value]);
 
+// The tab title names what was searched, so tabs and history are told apart (ZD 8148, oxjob #635).
 useHead({
-  title: computed(() => capitalize(selectedEntityTypeConfig.value.displayName) + ' search'),
+  title: computed(() => serpTitle(selectedEntityTypeConfig.value.displayName, route.query)),
 });
 
 const userId = computed(() => store.getters['user/userId']);
