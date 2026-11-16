@@ -72,6 +72,15 @@ const listedInLabels = {
     "ddh": "Diamond Discovery Hub",
     // International OA Journal Recommended List (Tsinghua / CUJS / CNPIEC; ZD 26281, 2026-10-25)
     "oarl": "International OA Journal Recommended List (OARL)",
+    // SINTA (Indonesia) and TCI (Thailand) national lists (ZD 26568, oxjob #1205, 2026-11-16)
+    "sinta-s1": "SINTA (Indonesia), S1",
+    "sinta-s2": "SINTA (Indonesia), S2",
+    "sinta-s3": "SINTA (Indonesia), S3",
+    "sinta-s4": "SINTA (Indonesia), S4",
+    "sinta-s5": "SINTA (Indonesia), S5",
+    "sinta-s6": "SINTA (Indonesia), S6",
+    "tci-1": "TCI (Thailand), Tier 1",
+    "tci-2": "TCI (Thailand), Tier 2",
 };
 
 const isListedInKey = (filterKey) =>
