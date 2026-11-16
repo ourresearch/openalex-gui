@@ -78,6 +78,15 @@ const getFacetConfig = function (entityType, key) {
 }
 
 
+// Filter keys an older GUI wrote that the API never accepted, so no server alias
+// folds them; without this, old links and saved searches get the API's 400.
+// `awards.funder.id`: the works funder filter from Nov 2025 to Jan 2026, when
+// 389850a1 moved it to funders.id (ZD 6488, oxjob #1086).
+const LEGACY_FILTER_KEYS = {
+    works: { "awards.funder.id": "funders.id" },
+}
+
+
 /**
  * The key a filter should carry: the canonical server key when the key is an
  * alias the server folds to it AND the GUI has a facet for the canonical key
@@ -90,6 +99,8 @@ const getFacetConfig = function (entityType, key) {
  * @returns {string}
  */
 const canonicalFilterKey = function (entityType, key) {
+    const legacy = LEGACY_FILTER_KEYS[entityType]?.[key]
+    if (legacy) return legacy
     const canonical = canonicalFacetKey(entityType, key)
     return (canonical !== key && findExactFacetConfig(entityType, canonical)) ? canonical : key
 }
