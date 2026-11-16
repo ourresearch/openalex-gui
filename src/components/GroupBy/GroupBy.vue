@@ -272,7 +272,7 @@ import { searchParamKeys } from '@/searchParamKeys';
 import filters from '@/filters';
 import { facetConfigs } from '@/facetConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
-import { filtersFromUrlStr, createSimpleFilter, facetDialogSelection, applyFacetDialogSelection } from '@/filterConfigs';
+import { filtersFromUrlStr, createSimpleFilter, facetDialogSelection, applyFacetDialogSelection, widgetBaseFilters } from '@/filterConfigs';
 import { selectedValues as oqoSelectedValues, selectedRange as oqoSelectedRange, sameValue } from '@/components/Oql/refinements';
 import { exportArrayToCsv } from '@/utils/csvExport';
 import { initialGroupsRequest, needsGroupsFetch, beginGroupsRequest, settleGroupsRequest } from '@/groupsRequestState';
@@ -338,9 +338,23 @@ const isSelected = computed({
       else store.dispatch(isYearWidget.value ? 'query/setRangeRefinement' : 'query/removeRefinement', { columnId: props.filterKey });
       return;
     }
+    if (props.isEntityPage) {
+      // A boolean donut (open access) on an entity page opens this entity's
+      // matching works, not every one in OpenAlex (ZD 2837's chart; oxjob #1086).
+      if (to) url.pushNewFilters([...baseFilters(), createSimpleFilter(props.entityType, props.filterKey, true)], props.entityType);
+      return;
+    }
     if (to) url.upsertFilter(props.entityType, props.filterKey, true);
     else url.deleteFilter(props.entityType, props.filterKey);
   }
+});
+
+// What a click here builds on: the URL's filters on a search page, the page's own
+// works filter on an entity page (oxjob #1086; see widgetBaseFilters).
+const baseFilters = () => widgetBaseFilters({
+  isEntityPage: props.isEntityPage,
+  filterBy: props.filterBy,
+  routeFilters: url.readFilters(route),
 });
 
 const searchStringPlaceholder = computed(() => {
@@ -530,7 +544,7 @@ const applySelections = () => {
   const newFilters = applyFacetDialogSelection({
     entityType: props.entityType,
     filterKey: props.filterKey,
-    currentFilters: url.readFilters(route),
+    currentFilters: baseFilters(),
     selectedValues: localSelection.value,
   });
   url.pushNewFilters(newFilters, props.entityType);
@@ -543,7 +557,11 @@ const addFilter = (id) => {
     isDialogOpen.value = false;
     return;
   }
-  url.createFilter(props.entityType, props.filterKey, id);
+  if (props.isEntityPage) {
+    url.pushNewFilters([...baseFilters(), createSimpleFilter(props.entityType, props.filterKey, id)], props.entityType);
+  } else {
+    url.createFilter(props.entityType, props.filterKey, id);
+  }
   isDialogOpen.value = false;
 };
 
@@ -704,7 +722,7 @@ watch(isDialogOpen, (to) => {
     // Seed from the current filters: only what the checklist can show ticked (#1942).
     localSelection.value = oqlMode.value
       ? [...selectedGroupIds.value]
-      : facetDialogSelection(url.readFilters(route), props.filterKey);
+      : facetDialogSelection(baseFilters(), props.filterKey);
   } else {
     closeDialog();
   }

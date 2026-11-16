@@ -434,6 +434,18 @@ const applyEntitySelection = function ({
 }
 
 
+// The filters a sidebar widget's click builds on (GroupBy.vue). On an entity page
+// (an author, a source, an institution...) the page's own works filter rides in
+// `filterBy` and the URL carries no ?filter=, so building on the URL alone sent
+// the click to the whole corpus: a year ticked in an author's "More..." list
+// (ZD 8363), a work type picked in an institution's "More..." list (ZD 8768's
+// page), and the open-access donut if one is shown there (ZD 2837's source-page
+// chart, since removed from entity pages). oxjob #1086.
+const widgetBaseFilters = function ({ isEntityPage, filterBy, routeFilters }) {
+    return isEntityPage ? [...(filterBy || [])] : [...(routeFilters || [])]
+}
+
+
 // The facet "More..." dialog (GroupBy.vue) owns one field's plain values in
 // un-negated clauses, OR'd. A collection or a negated clause keeps its own
 // clause and the picks get another (same-key clauses AND): the API refuses a
@@ -488,6 +500,7 @@ export {
     applyEntitySelection,
     facetDialogSelection,
     applyFacetDialogSelection,
+    widgetBaseFilters,
     copySimpleFilter,
     createDisplayFilter,
     createFilterId,
