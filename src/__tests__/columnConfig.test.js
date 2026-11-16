@@ -299,3 +299,17 @@ describe("getColumnExportSpecs (ordered list, drops unresolved)", () => {
         expect(getColumnExportSpecs("works", null)).toEqual([]);
     });
 });
+
+describe("authors has_orcid column (ZD 23622)", () => {
+    it("reads the author's ORCID, not a has_orcid key the record never has", () => {
+        const col = resolveColumn("authors", "has_orcid");
+        expect(col.extractFn({ orcid: "https://orcid.org/0000-0002-9070-9704" })).toBe(true);
+        expect(col.extractFn({ orcid: null, ids: {} })).toBe(false);
+    });
+
+    it("sources has_issn reads the source's ISSNs the same way", () => {
+        const col = resolveColumn("sources", "has_issn");
+        expect(col.extractFn({ issn_l: "0028-0836", issn: ["0028-0836"] })).toBe(true);
+        expect(col.extractFn({ issn_l: null, issn: null })).toBe(false);
+    });
+});

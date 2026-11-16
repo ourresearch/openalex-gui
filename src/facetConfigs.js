@@ -1673,6 +1673,9 @@ const facetConfigs = function (entityType) {
             key: "has_orcid",
             entityToFilter: "authors",
             entityToSelect: "authors",
+            // Filter-only in the API: the author JSON has `orcid`, no `has_orcid`, so the column was always
+            // blank (ZD 23622). Same fix as the works booleans (derivedWorkBoolean, #1209).
+            extractFn: (e) => !!(e?.orcid || e?.ids?.orcid),
             type: "boolean",
             booleanValues: ["No ORCID", "Has ORCID"],
             actions: ["filter", "group_by"],
@@ -4610,6 +4613,8 @@ const facetConfigs = function (entityType) {
         {
             key: "has_issn",
             entityToFilter: "sources",
+            // Filter-only in the API, like authors' has_orcid: read the source's ISSNs (ZD 23622's sibling).
+            extractFn: (e) => !!(e?.issn_l || e?.issn?.length),
             type: "boolean",
             booleanValues: ["not has issn", "has issn"],
             category: "ids",
