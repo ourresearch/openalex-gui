@@ -22,6 +22,14 @@ vi.mock("@/views/PageNotFound.vue", () => ({ default: stub }));
 vi.mock("@/views/Settings/SettingsBase.vue", () => ({ default: stub }));
 vi.mock("@/views/Me/MeProfile.vue", () => ({ default: stub }));
 vi.mock("@/views/Settings/SettingsOrgUsage.vue", () => ({ default: stub }));
+// The external-id guard (ZD 3515, oxjob #1092) looks the record up through the API.
+const { apiGet } = vi.hoisted(() => ({
+  apiGet: vi.fn(async (path) => {
+    if (path === "authors/orcid:0000-0002-7680-4721") return { id: "https://openalex.org/A5079349474" };
+    throw Object.assign(new Error("not found"), { response: { status: 404 } });
+  }),
+}));
+vi.mock("@/api", () => ({ api: { get: apiGet } }));
 
 const { routes, scrollBehavior, installGuards, setAppRouter } = await import("@/router/index.js");
 const { sanitizeRedirectPath } = await import("@/util");
@@ -93,6 +101,25 @@ describe("navigation guards on vue-router 5", () => {
     expect(r.name).toBe("EntityPage");
     expect(r.params).toEqual({ entityType: "keywords", entityId: "kelp" });
     expect(r.query).toEqual({ tab: "works" });
+  });
+
+  it("an external id in a record URL goes to the record's OpenAlex id (ZD 3515)", async () => {
+    const r = await go("/authors/orcid:0000-0002-7680-4721?tab=awards");
+    expect(r.name).toBe("EntityPage");
+    expect(r.params).toEqual({ entityType: "authors", entityId: "A5079349474" });
+    expect(r.query).toEqual({ tab: "awards" });
+  });
+
+  it("an external id the API doesn't know stays put (the page shows not found)", async () => {
+    const r = await go("/authors/orcid:0000-0000-0000-0000");
+    expect(r.name).toBe("EntityPage");
+    expect(r.params.entityId).toBe("orcid:0000-0000-0000-0000");
+  });
+
+  it("an OpenAlex id makes no lookup", async () => {
+    apiGet.mockClear();
+    expect((await go("/authors/A5079349474")).params.entityId).toBe("A5079349474");
+    expect(apiGet).not.toHaveBeenCalled();
   });
 
   it("location pages still get entityType set by their guard", async () => {

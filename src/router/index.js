@@ -6,6 +6,8 @@ import {getEntityConfigs} from "@/entityConfigs";
 import * as openalexId from "@/openalexId";
 import {url} from "@/url";
 import {shouldAwaitLiveUser} from "@/store/userBoot";
+import {isServerRender} from "@/utils/env";
+import {canonicalRecordId} from "@/ssr/recordRoutes.js";
 
 // Route views (oxjob #860, bundle diet): everything except the hot paths
 // (home, SERP, entity page, auth pages, 404) is a lazy `() => import()` so it
@@ -722,6 +724,34 @@ const entityRouteFixup = function (to) {
     return null;
 }
 
+// An external id in a record URL (/authors/orcid:0000-0002-7680-4721, /institutions/ror:…,
+// /sources/issn:…): the API finds the record by it, but the page's works list, sidebar
+// and awards filter on the URL's id, and the API refuses an external id in a filter
+// (400; 403 in 2024), so the page rendered half (ZD 3515, oxjob #1092). Look the record
+// up once and go to its OpenAlex id, as the API's own id would. Unknown id or a failed
+// lookup: carry on, and the page shows its usual not-found state.
+const EXTERNAL_ID = /^[a-z][a-z_]*:./i;
+const externalIdRedirect = async function (to) {
+    if (isServerRender || to.name !== 'EntityPage') return null;
+    const { entityType, entityId } = to.params;
+    if (typeof entityId !== 'string' || !EXTERNAL_ID.test(entityId)) return null;
+    try {
+        const { api } = await import('@/api');
+        const record = await api.get(`${entityType}/${entityId}`);
+        const shortId = openalexId.getShortId(record?.id);
+        if (!shortId || shortId.includes(':')) return null;
+        return {
+            name: 'EntityPage',
+            params: { entityType, entityId: canonicalRecordId(entityType, shortId) },
+            query: to.query,
+            hash: to.hash,
+            replace: true,
+        };
+    } catch (e) {
+        return null;
+    }
+}
+
 export function installGuards(router, store) {
 // The one live fetchUser started by the guard below (deduped across the
 // redirect-and-rerun cases of beforeEach).
@@ -733,6 +763,8 @@ router.beforeEach(async (to) => {
 
     const entityRedirect = entityRouteFixup(to);
     if (entityRedirect) return entityRedirect;
+    const externalRedirect = await externalIdRedirect(to);
+    if (externalRedirect) return externalRedirect;
 
     // Handle legacy v2 parameter - convert to data-version=2
     if (to.query.v2 !== undefined) {
