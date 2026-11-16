@@ -60,6 +60,14 @@ export function signedOutUser() {
     }
 }
 
+// users-api's limit on a saved search's name and description (views.py character_limit).
+export const SAVED_SEARCH_NAME_MAX = 400
+
+export function capSavedSearchName(name) {
+    if (typeof name !== "string" || name.length <= SAVED_SEARCH_NAME_MAX) return name
+    return Array.from(name).slice(0, SAVED_SEARCH_NAME_MAX - 1).join("").trimEnd() + "…"
+}
+
 export default {
     namespaced: true,
     // #1689: a function, so each store instance (one per SSR request) gets its own state.
@@ -666,6 +674,9 @@ export default {
         // create
         async createSearch({commit, dispatch}, {search_url, name, description, has_alert}) {
             const id = shortUuid.generate()
+            // The toolbar names a search after its query text, and users-api refuses a name over
+            // 400 characters: a long Boolean search failed to save with no message (ZD 26666, oxjob #1091).
+            name = capSavedSearchName(name)
 
             // add id to search_url
             const searchUrlObj = new URL(search_url)
@@ -684,14 +695,21 @@ export default {
             )
             let resp
             try {
-                resp = await put(has_alert ?? false)
+                try {
+                    resp = await put(has_alert ?? false)
+                } catch (e) {
+                    // The API refuses alerts it can't run, with the reason, e.g. a works
+                    // collection never gains new works (oxjob #1505). Save the search
+                    // without the alert and say why.
+                    if (!(has_alert && e?.response?.status === 400 && e.response.data?.message)) throw e
+                    resp = await put(false)
+                    commit("snackbar", {msg: e.response.data.message, color: "error"}, {root: true})
+                }
             } catch (e) {
-                // The API refuses alerts it can't run, with the reason, e.g. a works
-                // collection never gains new works (oxjob #1505). Save the search
-                // without the alert and say why.
-                if (!(has_alert && e?.response?.status === 400 && e.response.data?.message)) throw e
-                resp = await put(false)
-                commit("snackbar", {msg: e.response.data.message, color: "error"}, {root: true})
+                // A save the API refuses says why instead of failing silently (oxjob #1091).
+                const reason = e?.response?.data?.message
+                commit("snackbar", {msg: "Couldn't save this search" + (reason ? `: ${reason}` : "."), color: "error"}, {root: true})
+                throw e
             }
             await dispatch("fetchSavedSearches") // have to update the list
             await url.pushSearchUrlToRoute(navigation, search_url);
