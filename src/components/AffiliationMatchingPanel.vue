@@ -175,7 +175,12 @@
             </td>
             <td class="py-3" @click="openWorksDialog(affiliation)">
               <div class="d-flex align-center flex-wrap" style="gap: 6px;">
-                <span>{{ affiliation.raw_affiliation_string }}</span>
+                <!-- The searched words, marked like Ctrl+F (oxjob #1364, ZD 24627) -->
+                <span>
+                  <template v-for="(seg, i) in segmentsFor(affiliation.raw_affiliation_string)" :key="i">
+                    <mark v-if="seg.hit" class="ras-hit">{{ seg.text }}</mark><template v-else>{{ seg.text }}</template>
+                  </template>
+                </span>
                 <span
                   v-if="getPendingCuration(affiliation)"
                   class="curation-label"
@@ -300,6 +305,7 @@ import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig';
 import RasWorksDialog from './RasWorksDialog.vue';
 import { statusMeta } from '@/composables/useCurationDescriptor';
+import { parseSearchTerms, highlightSegments } from '@/utils/highlightTerms';
 
 defineOptions({ name: 'AffiliationMatchingPanel' });
 
@@ -343,6 +349,9 @@ const showWorksDialog = ref(false);
 const selectedRas = ref('');
 const showSuggestionsDialog = ref(false);
 const suggestions = ref([]);
+// The words of the search the shown rows came from (not the box as the user types on).
+const shownTerms = ref([]);
+const segmentsFor = (text) => highlightSegments(text, shownTerms.value);
 const isFetchingSuggestions = ref(false);
 const suggestionsError = ref(null);
 const suggestionsCache = ref(null);
@@ -593,6 +602,7 @@ async function fetchAffiliations() {
   try {
     const params = searchParams();
     const search = params.toString();
+    const terms = parseSearchTerms(params.get('q'));
     if (search !== pageCursorsSearch) {
       pageCursors.value = new Map();
       pageCursorsSearch = search;
@@ -620,6 +630,7 @@ async function fetchAffiliations() {
     }
 
     affiliations.value = response.data.results || [];
+    shownTerms.value = terms;
     totalResults.value = response.data.meta?.count || 0;
     selectedIds.value = new Set();
   } catch (err) {
@@ -925,6 +936,13 @@ watch(currentPage, () => {
 
 .curation-label:hover {
   color: #6B6B6B;
+}
+
+.ras-hit {
+  background-color: #fff3a3;
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
 }
 
 .curation-dot {
