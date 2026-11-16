@@ -50,6 +50,9 @@ const entityConfigs = reactive({
             "primary_topic.subfield.id",
             "primary_topic.field.id",
             "primary_topic.domain.id",
+            // oxjob #1686: the work's keywords, each a link to its keyword page. Crawlers read ~100K work
+            // pages a day but almost never reach keyword pages (no page linked them except topic pages).
+            "keywords.id",
             "sustainable_development_goals.id",
             null,
             "open_access.oa_status",
