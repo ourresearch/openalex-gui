@@ -661,6 +661,31 @@ const facetConfigs = function (entityType) {
             icon: "mdi-file-pdf-box",
         },
         {
+            // The links themselves, as columns (ZD 23972, oxjob #1027): the old dump-all
+            // CSV shipped best_oa_location.pdf_url and open_access.oa_url, and the column
+            // picker (#304) dropped them; "PDF-linked" (has_content.pdf) is only a yes/no.
+            key: "best_oa_location.pdf_url",
+            entityToFilter: "works",
+            displayName: "PDF URL",
+            type: "url",
+            actions: ["column"],
+            category: "open access",
+            icon: "mdi-file-pdf-box",
+            extractFn: (entity) => entity.best_oa_location?.pdf_url,
+            column: { label: "PDF URL", render: { kind: "text" }, export: { path: "best_oa_location.pdf_url" } },
+        },
+        {
+            key: "open_access.oa_url",
+            entityToFilter: "works",
+            displayName: "Open access URL",
+            type: "url",
+            actions: ["column"],
+            category: "open access",
+            icon: "mdi-lock-open-outline",
+            extractFn: (entity) => entity.open_access?.oa_url,
+            column: { label: "Open access URL", render: { kind: "text" }, export: { path: "open_access.oa_url" } },
+        },
+        {
             key: "best_oa_location.license",
             entityToFilter: "works",
             entityToSelect: "licenses",

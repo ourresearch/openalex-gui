@@ -351,16 +351,27 @@ const getSearchRoute = (exp) => {
     if (match) expEntityType = match[1];
   }
 
-  // Extract filter from query_url (e.g., "https://api.openalex.org/works?filter=...")
+  // Rebuild the search from query_url (e.g. "https://api.openalex.org/works?filter=...&search=...").
+  // An export's search terms and OQL ride there too; with the filter alone, "View search" opened a
+  // different (often far bigger) result set than the one exported (ZD 2230, oxjob #1027).
   if (exp.query_url) {
     try {
       const url = new URL(exp.query_url);
-      const filter = url.searchParams.get('filter');
-      if (filter) {
+      const oql = url.searchParams.get('oql');
+      if (oql) {
+        return { path: '/q', query: { oql } };
+      }
+      const query = {};
+      for (const [key, value] of url.searchParams) {
+        if (value && (key === 'filter' || key === 'sort' || key === 'search' || key.startsWith('search.'))) {
+          query[key] = value;
+        }
+      }
+      if (Object.keys(query).length) {
         return {
           name: 'Serp',
           params: { entityType: expEntityType },
-          query: { filter },
+          query,
         };
       }
     } catch (e) {
