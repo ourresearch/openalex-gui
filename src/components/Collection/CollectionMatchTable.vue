@@ -3,8 +3,21 @@
     <div class="d-flex align-center mb-3">
       <div class="text-body-2">
         <span class="font-weight-medium">{{ matchedCount }}</span> matched,
-        <span class="font-weight-medium text-error">{{ unmatchedCount }}</span> unmatched
+        <span class="font-weight-medium text-error">{{ unmatchedCount }}</span> unmatched<template v-if="failedCount">,
+          <span class="font-weight-medium text-warning">{{ failedCount }}</span> lookup failed
+        </template>
         <span v-if="totalCount" class="text-grey">/ {{ totalCount }} total</span>
+        <v-btn
+          v-if="failedCount"
+          class="ml-1"
+          variant="text"
+          size="small"
+          color="primary"
+          prepend-icon="mdi-refresh"
+          @click="emit('retry')"
+        >
+          Try again
+        </v-btn>
       </div>
       <v-spacer />
       <v-btn-toggle
@@ -49,9 +62,9 @@
                     <v-icon
                       v-bind="tip"
                       size="x-small"
-                      :color="row.resolved ? 'success' : 'error'"
+                      :color="row.resolved ? 'success' : (row.failed ? 'warning' : 'error')"
                     >
-                      {{ row.resolved ? 'mdi-check' : 'mdi-close' }}
+                      {{ row.resolved ? 'mdi-check' : (row.failed ? 'mdi-alert-circle-outline' : 'mdi-close') }}
                     </v-icon>
                   </template>
                 </v-tooltip>
@@ -85,11 +98,15 @@ import { ref, computed } from "vue";
 const props = defineProps({
   rows: { type: Array, default: () => [] },
 });
+// "retry": look up again the lines whose lookup failed (oxjob #1923).
+const emit = defineEmits(["retry"]);
 
 const filterMode = ref("all");
 
 const matchedCount = computed(() => props.rows.filter(r => !!r.resolved).length);
-const unmatchedCount = computed(() => props.rows.filter(r => !r.resolved).length);
+// A failed lookup (the API was busy) is not "unmatched": the ID may well exist.
+const unmatchedCount = computed(() => props.rows.filter(r => !r.resolved && !r.failed).length);
+const failedCount = computed(() => props.rows.filter(r => r.failed).length);
 const totalCount = computed(() => props.rows.length);
 
 const filteredRows = computed(() => {

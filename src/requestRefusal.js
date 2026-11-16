@@ -100,18 +100,31 @@ export function refusalReason(e) {
     return { short: SHORT_REASON[kind] || null, canRetry: !SHORT_REASON[kind] };
 }
 
+// Refusals that clear on their own: worth more tries when a caller asks for them.
+const TRANSIENT_KINDS = new Set(["throttle", "rate_limited", "timeout", "network"]);
+const isTransient = (refusal) => TRANSIENT_KINDS.has(refusal.kind)
+    || (refusal.kind === "other" && refusal.status >= 500);
+
 // The refusal policy every API call shares: wait out a short throttle once and retry;
 // show the "today's free limit" dialog to a signed-out visitor whose budget is spent.
 // `send` makes the request; `onDailyLimitSignedOut` opens the dialog; `isSignedIn` and
 // `wait` are passed in so this stays a plain module (tests drive it without a store).
-export async function withRefusalPolicy(send, { isSignedIn, onDailyLimitSignedOut, wait } = {}) {
+// `retries` (default 0) opts in to more: a caller that sends many requests in a row
+// (the collection import, oxjob #1923) retries any transient refusal that many times,
+// waiting Retry-After, else 1, 2, 4 s. A spent budget or a plan gate is never retried.
+export async function withRefusalPolicy(send, { isSignedIn, onDailyLimitSignedOut, wait, retries = 0 } = {}) {
+    const pause = wait || defaultWait;
     for (let attempt = 0; ; attempt++) {
         try {
             return await send();
         } catch (e) {
             const refusal = classifyRequestError(e);
             if (refusal.kind === "throttle" && attempt === 0) {
-                await (wait || defaultWait)(refusal.retryAfterMs);
+                await pause(refusal.retryAfterMs);
+                continue;
+            }
+            if (attempt < retries && isTransient(refusal)) {
+                await pause(refusal.retryAfterMs ?? 1000 * 2 ** attempt);
                 continue;
             }
             if (refusal.kind === "daily_limit" && !isSignedIn?.()) onDailyLimitSignedOut?.();

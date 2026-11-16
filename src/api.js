@@ -81,9 +81,10 @@ const api = (function () {
         return url;
     }
 
-    const getUrl = async function (url, config) {
+    const getUrl = async function (url, config, { retries } = {}) {
         // config: extra axios options (e.g. {signal} to abort a stale
         // autocomplete request) merged over the standard auth headers.
+        // retries: extra tries on transient refusals (withRefusalPolicy).
         config = config ? {...axiosConfig(), ...config} : axiosConfig();
         
         if (!url.startsWith("http")) { 
@@ -106,14 +107,15 @@ const api = (function () {
             return cachedResponse;
         }
 
-        const res = await sendWithRefusalPolicy(() => axios.get(url, config));
+        const res = await sendWithRefusalPolicy(() => axios.get(url, config), { retries });
         stockCache(url, res.data);
         return res.data;
     }
 
     // GET and the OQL POSTs share one refusal policy (withRefusalPolicy, oxjob #2002).
-    const sendWithRefusalPolicy = function (send) {
+    const sendWithRefusalPolicy = function (send, { retries } = {}) {
         return withRefusalPolicy(send, {
+            retries,
             isSignedIn: () => !!store.state.user.id,
             onDailyLimitSignedOut: () => store.commit('showCreditLimitDialog'),
         });

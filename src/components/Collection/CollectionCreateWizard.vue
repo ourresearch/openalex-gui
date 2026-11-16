@@ -128,7 +128,7 @@
                     rounded
                   />
                 </div>
-                <collection-match-table v-else :rows="resolvedRows" />
+                <collection-match-table v-else :rows="resolvedRows" @retry="retryFailedLookups" />
                 <div v-if="step3Error" class="text-error text-body-2 mt-3">{{ step3Error }}</div>
               </div>
             </v-stepper-window-item>
@@ -138,6 +138,9 @@
               <div class="pa-4">
                 <div class="text-body-2 text-grey mb-3">
                   {{ matchedCount }} entit{{ matchedCount === 1 ? "y" : "ies" }} will be added.
+                  <span v-if="failedCount" class="text-warning">
+                    {{ failedCount }} line{{ failedCount === 1 ? "" : "s" }} could not be looked up and will be left out.
+                  </span>
                   Give your collection a name.
                 </div>
                 <v-text-field
@@ -299,6 +302,7 @@ const resolveProgress = computed(() =>
   resolveTotal.value ? (resolveDone.value / resolveTotal.value) * 100 : 0
 );
 const matchedCount = computed(() => resolvedRows.value.filter(r => !!r.resolved).length);
+const failedCount = computed(() => resolvedRows.value.filter(r => r.failed).length);
 
 // Reactive client-side validation message for step 2 — flips on instantly
 // when the line count exceeds the cap.
@@ -445,7 +449,6 @@ async function runResolutionIfNeeded() {
   step3Error.value = "";
   try {
     const rows = await resolveIds(inputLines.value, entityType.value, {
-      concurrency: 8,
       onProgress: (done, total) => {
         resolveDone.value = done;
         resolveTotal.value = total;
@@ -458,6 +461,30 @@ async function runResolutionIfNeeded() {
     // place; render reactivity is preserved because we reassign the ref.
     await enrichDisplayNames(rows, entityType.value);
     resolvedRows.value = [...rows];
+  } catch (e) {
+    step3Error.value = `Resolution failed: ${e.message || e}`;
+  } finally {
+    resolving.value = false;
+  }
+}
+
+// The table's "Try again" (oxjob #1923): look up only the lines whose lookup
+// failed (the API was busy) and put the answers back in place.
+async function retryFailedLookups() {
+  const failedIdxs = resolvedRows.value.flatMap((r, i) => (r.failed ? [i] : []));
+  if (!failedIdxs.length) return;
+  resolving.value = true;
+  resolveDone.value = 0;
+  resolveTotal.value = failedIdxs.length;
+  step3Error.value = "";
+  try {
+    const retried = await resolveIds(failedIdxs.map(i => resolvedRows.value[i].input), entityType.value, {
+      onProgress: (done) => { resolveDone.value = done; },
+    });
+    await enrichDisplayNames(retried, entityType.value);
+    const rows = [...resolvedRows.value];
+    failedIdxs.forEach((rowIdx, j) => { rows[rowIdx] = retried[j]; });
+    resolvedRows.value = rows;
   } catch (e) {
     step3Error.value = `Resolution failed: ${e.message || e}`;
   } finally {

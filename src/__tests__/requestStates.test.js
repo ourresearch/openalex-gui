@@ -160,6 +160,46 @@ describe("one refusal policy for GET and the OQL POSTs (withRefusalPolicy)", () 
     await expect(withRefusalPolicy(() => Promise.reject(gate), { isSignedIn: () => false, onDailyLimitSignedOut: dialog })).rejects.toBe(gate);
     expect(dialog).not.toHaveBeenCalled();
   });
+
+  // oxjob #1923: the collection import sends many lookups in a row and opts in to more tries.
+  const networkError = () => Object.assign(new Error("Network Error"), { request: {} });
+
+  it("without retries, a network error or a 503 is thrown at once (unchanged)", async () => {
+    const send = vi.fn().mockRejectedValue(networkError());
+    await expect(withRefusalPolicy(send, { wait: noWait })).rejects.toThrow("Network Error");
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries: 3 waits out transient refusals, backing off 1, 2, 4 s when there is no Retry-After", async () => {
+    const wait = vi.fn(() => Promise.resolve());
+    const send = vi.fn()
+      .mockRejectedValueOnce(networkError())
+      .mockRejectedValueOnce(httpError(503))
+      .mockRejectedValueOnce(httpError(429, { message: "Too many concurrent requests" }))
+      .mockResolvedValueOnce({ data: "ok" });
+    await expect(withRefusalPolicy(send, { wait, retries: 3 })).resolves.toEqual({ data: "ok" });
+    expect(wait.mock.calls.map(c => c[0])).toEqual([1000, 2000, 4000]);
+  });
+
+  it("retries: 3 waits Retry-After on a per-second limit, and gives up after 4 tries", async () => {
+    const wait = vi.fn(() => Promise.resolve());
+    const send = vi.fn().mockRejectedValue(httpError(429, { message: "Rate limit exceeded: 10 requests per second.", retryAfter: 1 }));
+    await expect(withRefusalPolicy(send, { wait, retries: 3 })).rejects.toMatchObject({ response: { status: 429 } });
+    expect(send).toHaveBeenCalledTimes(4);
+    expect(wait.mock.calls.map(c => c[0])).toEqual([1000, 1000, 1000]);
+  });
+
+  it("retries never retry a spent budget, a plan gate or a bad query", async () => {
+    for (const e of [
+      httpError(429, { message: "Insufficient budget. ..." }, { "retry-after": "40000" }),
+      httpError(429, { error: "Plan upgrade required", message: "..." }),
+      httpError(400, { message: "Invalid filter" }),
+    ]) {
+      const send = vi.fn().mockRejectedValue(e);
+      await expect(withRefusalPolicy(send, { wait: noWait, retries: 3 })).rejects.toBe(e);
+      expect(send).toHaveBeenCalledTimes(1);
+    }
+  });
 });
 
 describe("which saved search is this page? (savedSearchIdentity)", () => {
