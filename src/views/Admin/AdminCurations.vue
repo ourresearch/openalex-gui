@@ -465,6 +465,13 @@ async function fetchCurations() {
       params.set('user_id', submitterFilter.value);
     }
 
+    // My Organization -> Curations lists the org's curations, also for a site
+    // curator or admin, whom the API otherwise gives the whole site (oxjob #435,
+    // ZD 8746). Site Admin -> Curations and /admin send no scope.
+    if (curationBasePath.value === '/settings/curations') {
+      params.set('scope', 'org');
+    }
+
     const res = await axios.get(
       `${urlBase.userApi}/curations?${params.toString()}`,
       axiosConfig({ userAuth: true })
