@@ -89,6 +89,7 @@ import { useDisplay } from 'vuetify';
 import { api } from '@/api';
 import * as openalexId from '@/openalexId';
 import { canonicalRecordId } from '@/ssr/recordRoutes';
+import { drawerCloseKey } from '@/drawerCloseKey';
 import EntityNew from '@/components/Entity/EntityNew.vue';
 import EntityHeader from '@/components/Entity/EntityHeader.vue';
 import EntityMetrics from '@/components/Entity/EntityMetrics.vue';
@@ -186,9 +187,11 @@ watch(() => route.query.zoom, seedFromLegacyZoomParam, { immediate: true });
 // clicking through to a different page/entity) would otherwise leave it open
 // over the new page. Close it on any genuine route transition — keyed off
 // name+params so query-only changes (paging, search, or our own `?zoom=` strip
-// above) DON'T close it. Non-immediate so it never clears the initial seed.
+// above) DON'T close it, except a new ?filter=: a link inside the drawer
+// re-filtering this same /works page (drawerCloseKey, ZD 6021, oxjob #1086).
+// Non-immediate so it never clears the initial seed.
 watch(
-  () => `${String(route.name)}|${JSON.stringify(route.params)}`,
+  () => drawerCloseKey(route),
   () => { if (zoomId.value) setZoomId(null); },
 );
 
