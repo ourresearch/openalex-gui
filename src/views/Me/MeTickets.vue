@@ -164,8 +164,8 @@ function openTicket(ticket) {
   router.push({ name: 'settings-ticket-detail', params: { ticketId: ticket.id } });
 }
 
-const statusLabel = (ticket) => ticketStatusLabel(ticket.status);
-const statusColor = (ticket) => ticketStatusColor(ticket.status);
+const statusLabel = (ticket) => ticketStatusLabel(ticket);
+const statusColor = (ticket) => ticketStatusColor(ticket);
 
 const formatRelativeTime = (dateString) => {
   if (!dateString) return '';

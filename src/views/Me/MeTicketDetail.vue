@@ -123,8 +123,8 @@ const replyBody = ref('');
 const submitting = ref(false);
 const replyError = ref('');
 
-const statusLabel = computed(() => ticketStatusLabel(ticket.value?.status));
-const statusColor = computed(() => ticketStatusColor(ticket.value?.status));
+const statusLabel = computed(() => ticketStatusLabel(ticket.value || {}));
+const statusColor = computed(() => ticketStatusColor(ticket.value || {}));
 
 onMounted(fetchTicket);
 
