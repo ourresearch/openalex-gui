@@ -268,6 +268,7 @@ import { useStore } from 'vuex';
 
 import { api } from '@/api';
 import { url } from '@/url';
+import { searchParamKeys } from '@/searchParamKeys';
 import filters from '@/filters';
 import { facetConfigs } from '@/facetConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
@@ -584,7 +585,12 @@ const groupsRequestSignature = () => {
   // (#642, found by Inist). The fetch itself is corpus-correct: makeGroupByUrl
   // reads the corpus selection from the live route.
   const corpusSig = url.corpusFromRouteQuery(route.query) || (route.query.include_xpac === 'true' ? 'all' : 'core');
-  return `url:${props.entityType}:${props.filterKey}:corpus=${corpusSig}:${JSON.stringify(apiRequestFilters.value)}`;
+  // The search scope and text ride top-level ?search.* params, not ?filter=, and
+  // makeGroupByUrl copies them into the facet request; without them here, switching
+  // Title & abstract <-> Title, abstract & fulltext never refetched the facets
+  // (ZD 24223, oxjob #1108).
+  const searchSig = searchParamKeys.filter(k => route.query[k]).map(k => `${k}=${route.query[k]}`).join('&');
+  return `url:${props.entityType}:${props.filterKey}:corpus=${corpusSig}:search=${searchSig}:${JSON.stringify(apiRequestFilters.value)}`;
 };
 // Each query's counts are fetched once: getGroups skips a signature whose counts are
 // shown or on their way (needsGroupsFetch), by value, no sticky flag (the #464/#562
