@@ -1387,6 +1387,21 @@ const facetConfigs = function (entityType) {
             icon: "mdi-close-octagon",
             semanticSearchAllowed: true,
         },
+        // oxjob #2264: pulled = the publisher, host or authors retracted, withdrew or removed the work (every
+        // retracted work is pulled). Semantic search checks it on the works index (elastic-api core/vector_index).
+        {
+            key: "is_pulled",
+            entityToFilter: "works",
+            displayName: "pulled",
+            type: "boolean",
+            booleanValues: ["Isn't pulled", "Is pulled"],
+            category: "other",
+            actions: ["filter", "column", "group_by"],
+            icon: "mdi-close-octagon-outline",
+            semanticSearchAllowed: true,
+            extractFn: (entity) => entity.is_pulled,
+            column: { export: { path: "is_pulled" } },
+        },
         {
             key: "language",
             entityToSelect: "languages",
