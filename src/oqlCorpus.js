@@ -2576,13 +2576,13 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "zendesk ticket",
-      "label": "OpenAlex zd#8101 — Claire's real systematic review",
+      "label": "OpenAlex zd#8101 — a user's real systematic review",
       "url": "https://openalex.zendesk.com/agent/tickets/8101"
     },
     "oxurl_status": "oql-only",
     "status": "ok",
     "oql": "works where title has (\n    (\n      Boy or Girl or Minors or Prepubescent or adolescent or boys or child's\n      or children or girls or juvenile or preadolescent or preteen or pubertal\n      or pubescent or schoolboy or schoolchild or schoolgirl or teen or tweenage\n      or tweens or youth or youths or \"Pre pubescent\" or \"early adolescent\"\n      or \"pre adolescent\" or \"pre pubertal\" or \"school aged\" or \"young people\"\n      or \"young person\"\n    )\n    and (\n      Height or bodyweight or fat or fatness or obese or obesity or overweight\n      or thin or thinness or weight or \"anti fat\" or \"being fat\" or \"being thin\"\n      or \"body esteem\" or \"body hatred\" or \"body ideal\" or \"body image\"\n      or \"body positive\" or \"body shame\" or \"body shape\" or \"body size\"\n      or \"body sizes\" or \"fat ideal\" or \"ideal body\" or \"thin ideal\"\n      or \"weight bias\"\n    )\n  )\n  and full text has (\n    Britain or England or GB or Scotland or Scottish or UK or Wales or Welsh\n    or \"English adolescent\" or \"English children\" or \"English girls\"\n    or \"English schoolchild\" or \"English teen\" or \"English young people\"\n    or \"North Ireland\" or \"North Irish\" or \"Northern Ireland\"\n    or \"Northern Irish\" or \"United Kingdom\" or \"english boys\"\n    or \"english school\"\n  )\n  and title-abstract has (\n    (\n      attitude or attitudes or beliefs or diaries or diary or experiences\n      or in-depth or indepth or informal or open or perceptions or perspective\n      or perspectives or qualitative or semistructured or unstructured\n      or \"focus group\" or \"focus groups\" or \"lived experience\" or \"open ended\"\n      or \"semi structured\"\n    )\n    and (\n      attitude or attitudes or beliefs or diaries or diary or experiences\n      or interview or interviews or perceptions or perspective or perspectives\n      or qualitative or questionnaire or questionnaires or \"focus group\"\n      or \"focus groups\" or \"lived experience\"\n    )\n  )",
-    "note": "The real zd#8101 systematic-review tree (Claire): a 5-block AND of large OR-synonym groups, each block scoped to a different search field (title / title & abstract x2 / anywhere). 114 leaves. No explicit oqo oracle — the harness asserts OQO->OQL->OQO identity through the whole tree.",
+    "note": "The real zd#8101 systematic-review tree: a 5-block AND of large OR-synonym groups, each block scoped to a different search field (title / title & abstract x2 / anywhere). 114 leaves. No explicit oqo oracle — the harness asserts OQO->OQL->OQO identity through the whole tree.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -4511,13 +4511,13 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "zendesk ticket",
-      "label": "OpenAlex zd#8101 — Claire (Vaping & Health SR): subject-heading/MeSH concept → OpenAlex keyword membership",
+      "label": "OpenAlex zd#8101 — SR user (Vaping & Health SR): subject-heading/MeSH concept → OpenAlex keyword membership",
       "url": "https://openalex.zendesk.com/agent/tickets/8101"
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
     "oql": "works where keyword is (\n    not animal-model [Animal model]\n    and electronic-cigarette [Electronic cigarette]\n  )\n  and language is (en [English])\n  and year >= (2003)\n  and year <= (2025)\n  and type is (article)",
-    "note": "zd#8101 \"Vaping & Health Living Map\" (Claire Stansfield, UCL EPPI-Centre),\nOpenAlex Custom-filter line 9, run May 2025, 3433 hits. Round-trip verified\n(URL→OQO→OQL→OQO identity, 2026-06-10). A clean ok row AND a worked example of\nthe subject-heading-explosion → OpenAlex-keyword mapping: her one keyword\nmembership is the abbreviation of full source-DB controlled-vocabulary blocks.\nORIGIN QUERIES (verbatim, the gold-standard intent she abbreviated from):\n  EMBASE (OVID):  1  exp electronic cigarette/   2  exp Vaping/\n  PubMed:         Electronic Nicotine Delivery Systems[MeSH] OR Vaping[MESH]\n  animal exclusion `keywords.id:!keywords/animal-model` abbreviates\n    EMBASE line 23: (exp animal/ or exp invertebrate/ or nonhuman/ or animal\n    experiment/ or animal model/ or exp plant/ or exp fungus/) not (exp human/\n    or human tissue/ or human experiment/)\nFull origin strategies (EMBASE/ASSIA/PubMed) archived in\noxjobs working/oql-bulletproof/evidence/zd8101_vaping_and_health.txt",
+    "note": "zd#8101 vaping & health review (a systematic reviewer),\nOpenAlex Custom-filter line 9, run May 2025, 3433 hits. Round-trip verified\n(URL→OQO→OQL→OQO identity, 2026-06-10). A clean ok row AND a worked example of\nthe subject-heading-explosion → OpenAlex-keyword mapping: the one keyword\nmembership is the abbreviation of full source-DB controlled-vocabulary blocks.\nORIGIN QUERIES (verbatim, the gold-standard intent the user abbreviated from):\n  EMBASE (OVID):  1  exp electronic cigarette/   2  exp Vaping/\n  PubMed:         Electronic Nicotine Delivery Systems[MeSH] OR Vaping[MESH]\n  animal exclusion `keywords.id:!keywords/animal-model` abbreviates\n    EMBASE line 23: (exp animal/ or exp invertebrate/ or nonhuman/ or animal\n    experiment/ or animal model/ or exp plant/ or exp fungus/) not (exp human/\n    or human tissue/ or human experiment/)\nFull origin strategies (EMBASE/ASSIA/PubMed) archived in\noxjobs working/oql-bulletproof/evidence/zd8101_vaping_and_health.txt",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -4562,13 +4562,13 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "zendesk ticket",
-      "label": "OpenAlex zd#8101 — Claire (Vaping & Health SR): title-field OR of term variants (display_name.search)",
+      "label": "OpenAlex zd#8101 — SR user (Vaping & Health SR): title-field OR of term variants (display_name.search)",
       "url": "https://openalex.zendesk.com/agent/tickets/8101"
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
     "oql": "works where keyword is (not animal-model [Animal model])\n  and language is (en [English])\n  and year >= (2003)\n  and year <= (2025)\n  and type is (article)\n  and title has (vape or vaper or vapers or vapes or vaping)",
-    "note": "zd#8101 \"Vaping & Health Living Map\" (Claire), OpenAlex Custom-filter line 7,\nrun May 2025, 3342 hits. Round-trip verified (identity, 2026-06-10). The\ntitle-scoped (display_name.search) slice — OpenAlex `display_name.search` ==\nthe source DBs' title field (`.ti` / `[ti]` / `TI(...)`).\nORIGIN QUERIES (verbatim, title field only):\n  EMBASE (OVID):  18  (vape or vapes or vaper or vapers or vaping).ti,kf,ot.\n  PubMed:         vape[ti] or vapes[ti] or vaper[ti] or vapers[ti] or vaping[ti]\n  ASSIA (ProQuest): TI(vape OR vapes OR vaper OR vapers OR vaping)\nFull origin strategies archived in\noxjobs working/oql-bulletproof/evidence/zd8101_vaping_and_health.txt",
+    "note": "zd#8101 vaping & health review, OpenAlex Custom-filter line 7,\nrun May 2025, 3342 hits. Round-trip verified (identity, 2026-06-10). The\ntitle-scoped (display_name.search) slice — OpenAlex `display_name.search` ==\nthe source DBs' title field (`.ti` / `[ti]` / `TI(...)`).\nORIGIN QUERIES (verbatim, title field only):\n  EMBASE (OVID):  18  (vape or vapes or vaper or vapers or vaping).ti,kf,ot.\n  PubMed:         vape[ti] or vapes[ti] or vaper[ti] or vapers[ti] or vaping[ti]\n  ASSIA (ProQuest): TI(vape OR vapes OR vaper OR vapers OR vaping)\nFull origin strategies archived in\noxjobs working/oql-bulletproof/evidence/zd8101_vaping_and_health.txt",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -4638,13 +4638,13 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "zendesk ticket",
-      "label": "OpenAlex zd#8101 — Claire (UCL EPPI-Centre): within-field NOT (`!`) excludes an exact phrase",
+      "label": "OpenAlex zd#8101 — SR user: within-field NOT (`!`) excludes an exact phrase",
       "url": "https://openalex.zendesk.com/agent/tickets/8101"
     },
     "oxurl_status": "has-oxurl",
     "status": "ok",
     "oql": "works where title-abstract has (teacher and not \"academic teacher\")",
-    "note": "zd#8101 (Claire Stansfield): the compact OpenAlex within-`.search` NOT operator\n`term!\"phrase\"` = term AND NOT the EXACT phrase. Classic URL\n`title_and_abstract.search:teacher!\"academic teacher\"` is live-verified: `teacher`\n2,315,754 − exact \"academic teacher\" 2,378 = 2,313,376. The OXURL→OQO parser used\nto keep the whole string as one opaque has value, dropping the `!` so the NOT\nsilently became an AND (252,100). Quoted operand → exact (`.search.exact`); bare →\nstemmed (`.search`). oxjob #431 (parser-only fix); the OQL renderer/grammar already\nexpressed within-field NOT via `does not have`, and OQO→ES execution is verified\nto honor the negation (count identity A == teacher − exact-phrase, works-v33).\nKNOWN url_renderer GAP (follow-up): the stored `oxurl` is the expanded\n`…search.exact:!\"academic teacher\"` form, which the classic API REJECTS (no\nstandalone `!` on a `.search` filter). The classic-executable form is the compact\n`…search:teacher!\"academic teacher\"`. Same pre-existing class as row 71's\n`…search:!pediatric`; left has-oxurl by that precedent until the renderer renders\nthe compact form.",
+    "note": "zd#8101 (a systematic reviewer): the compact OpenAlex within-`.search` NOT operator\n`term!\"phrase\"` = term AND NOT the EXACT phrase. Classic URL\n`title_and_abstract.search:teacher!\"academic teacher\"` is live-verified: `teacher`\n2,315,754 − exact \"academic teacher\" 2,378 = 2,313,376. The OXURL→OQO parser used\nto keep the whole string as one opaque has value, dropping the `!` so the NOT\nsilently became an AND (252,100). Quoted operand → exact (`.search.exact`); bare →\nstemmed (`.search`). oxjob #431 (parser-only fix); the OQL renderer/grammar already\nexpressed within-field NOT via `does not have`, and OQO→ES execution is verified\nto honor the negation (count identity A == teacher − exact-phrase, works-v33).\nKNOWN url_renderer GAP (follow-up): the stored `oxurl` is the expanded\n`…search.exact:!\"academic teacher\"` form, which the classic API REJECTS (no\nstandalone `!` on a `.search` filter). The classic-executable form is the compact\n`…search:teacher!\"academic teacher\"`. Same pre-existing class as row 71's\n`…search:!pediatric`; left has-oxurl by that precedent until the renderer renders\nthe compact form.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -4672,7 +4672,7 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "zendesk ticket",
-      "label": "OpenAlex zd#8101 — Claire: geographic within-field NOT (`England!\"New England\"`)",
+      "label": "OpenAlex zd#8101 — SR user: geographic within-field NOT (`England!\"New England\"`)",
       "url": "https://openalex.zendesk.com/agent/tickets/8101"
     },
     "oxurl_status": "has-oxurl",
@@ -6520,13 +6520,13 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "zendesk ticket",
-      "label": "zd#8101 — Claire (Vaping & Health SR): main vape/nicotine concept block",
+      "label": "zd#8101 — SR user (Vaping & Health SR): main vape/nicotine concept block",
       "url": "https://openalex.zendesk.com/agent/tickets/8101"
     },
     "oxurl_status": "oql-only",
     "status": "ok",
     "oql": "works where keyword is (not animal-model [Animal model])\n  and language is (en [English])\n  and year >= (2003)\n  and year <= (2025)\n  and type is (article)\n  and title-abstract has (\n    vapes or \"e vape\" or \"e vapes\" or \"e vaping\" or \"e vaping\" or \"e vapor\"\n    or \"e vapors\" or \"e vapour\" or \"e vapours\" or \"liquid nicotine\"\n    or \"nicotine aerosol\" or \"nicotine bag\" or \"nicotine bags\" or \"nicotine gum\"\n    or \"nicotine gummies\" or \"nicotine inhaler\" or \"nicotine lozenge\"\n    or \"nicotine microtab\" or \"nicotine microtablet\" or \"nicotine microtablets\"\n    or \"nicotine microtabs\" or \"nicotine pouch\" or \"nicotine pouches\"\n    or \"nicotine spray\" or \"nicotine tablet\" or \"nicotine tablets\"\n    or within 8 (\"nicotine\", \"snus\") or \"oral nicotine product\" or \"vape device\"\n    or \"vape free\" or \"vape product\" or \"vape use\"\n    or within 1 (\"vape\", \"flavor\") or within 1 (\"vape\", \"flavor\")\n    or within 1 (\"vape\", \"flavored\") or within 1 (\"vape\", \"flavoring\")\n    or within 1 (\"vape\", \"flavour\") or within 1 (\"vape\", \"flavoured\")\n    or within 1 (\"vape\", \"flavouring\") or \"vaping device\" or \"vaping free\"\n    or \"vaping product\" or within 1 (\"vaping\", \"flavor\")\n    or within 1 (\"vaping\", \"flavor\") or within 1 (\"vaping\", \"flavored\")\n    or within 1 (\"vaping\", \"flavoring\") or within 1 (\"vaping\", \"flavour\")\n    or within 1 (\"vaping\", \"flavoured\") or within 1 (\"vaping\", \"flavouring\")\n    or \"evape\" or \"evapes\" or \"evaping\" or (cigarette and evaping)\n    or (cigarette and vape) or (cigarette and vaper) or (cigarette and vapers)\n    or (cigarette and vaping) or (cigarette and vapor)\n    or (cigarette and vaporiser) or (cigarette and vaporizer)\n    or (cigarette and vapour) or (cigarette and vapouriser)\n    or (cigarette and vapourizer) or (cigarette and \"e-vaping\")\n    or (evaping and nicotine) or (nicotine and vape) or (nicotine and vaper)\n    or (nicotine and vapers) or (nicotine and vaping) or (nicotine and vapor)\n    or (nicotine and vaporiser) or (nicotine and vaporizer)\n    or (nicotine and vapour) or (nicotine and vapouriser)\n    or (nicotine and vapourizer) or (nicotine and \"e-vaping\")\n  )",
-    "note": "Claire's real run query (line 10, 3,474 hits): the vape/nicotine concept block. Her `+` pairs were hand-rolled PROXIMITY attempts ported from PubMed `[Title/Abstract:~N]` / EMBASE `adjN` — now expressed faithfully as `within N words` (nicotine+snus -> \"nicotine snus\" within 8 words; vape+flavor -> \"vape flavor\" within 1 word). Her EMBASE line-20 group, `(vape... and (nicotine|cigarette...))`, was genuine AND, kept as (a and b). Plus year/type/language scalars and a negated keyword filter. oql-only (mixes proximity/exact and stemmed match modes).",
+    "note": "The user's real run query (line 10, 3,474 hits): the vape/nicotine concept block. Her `+` pairs were hand-rolled PROXIMITY attempts ported from PubMed `[Title/Abstract:~N]` / EMBASE `adjN` — now expressed faithfully as `within N words` (nicotine+snus -> \"nicotine snus\" within 8 words; vape+flavor -> \"vape flavor\" within 1 word). Her EMBASE line-20 group, `(vape... and (nicotine|cigarette...))`, was genuine AND, kept as (a and b). Plus year/type/language scalars and a negated keyword filter. oql-only (mixes proximity/exact and stemmed match modes).",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -7191,13 +7191,13 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "zendesk ticket",
-      "label": "zd#8101 — Claire (Vaping & Health SR): her own mis-quoted line (footgun)",
+      "label": "zd#8101 — SR user (Vaping & Health SR): a mis-quoted line (footgun)",
       "url": "https://openalex.zendesk.com/agent/tickets/8101"
     },
     "oxurl_status": null,
     "status": "error",
     "oql": "works where title-abstract has (\"e cigarette\" or \"Vype|VUSE|\"e Voke\" or Juul or \"e liquid\")",
-    "note": "Claire's KNOWN-BAD line 8 (she flagged it and sent the corrected line 11 = row 163): an unbalanced quote `\"Vype|VUSE|\"e Voke\"` swallows the rest of the OR-list into one unterminated string. A real librarian hit this; OQL surfaces it loudly as OQL_UNTERMINATED_STRING (vs the classic URL silently mis-scoping the phrase). Origin DBs: as line 11.",
+    "note": "The original's KNOWN-BAD line 8 (the user flagged it and sent the corrected line 11 = row 163): an unbalanced quote `\"Vype|VUSE|\"e Voke\"` swallows the rest of the OR-list into one unterminated string. A real librarian hit this; OQL surfaces it loudly as OQL_UNTERMINATED_STRING (vs the classic URL silently mis-scoping the phrase). Origin DBs: as line 11.",
     "diagnostic": "OQL_UNTERMINATED_STRING",
     "oqo": null,
     "oxurl": null
@@ -7212,13 +7212,13 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "zendesk ticket",
-      "label": "zd#8101 — Claire (Vaping & Health SR): nicotine-delivery + brand block (corrected)",
+      "label": "zd#8101 — SR user (Vaping & Health SR): nicotine-delivery + brand block (corrected)",
       "url": "https://openalex.zendesk.com/agent/tickets/8101"
     },
     "oxurl_status": "oql-only",
     "status": "ok",
     "oql": "works where keyword is (not animal-model [Animal model])\n  and language is (en [English])\n  and year >= (2003)\n  and year <= (2025)\n  and type is (article)\n  and title-abstract has (\n    Juul or \"VUSE\" or \"Vype\" or \"Geek Bar\"\n    or within 4 (\"cigarette\", \"ultra sonic\") or \"e Voke\" or \"e cigar\"\n    or \"e cigarette\" or \"e cigarettes\" or \"e liquid\" or \"e liquids\"\n    or within 4 (\"electric\", \"cigarette\") or within 4 (\"electric\", \"nicotine\")\n    or within 4 (\"electrical\", \"cigarette\")\n    or within 4 (\"electrical\", \"nicotine\")\n    or within 4 (\"electronic\", \"cigarette\")\n    or within 4 (\"electronic\", \"nicotine\")\n    or within 4 (\"nicotine\", \"delivering system\")\n    or within 4 (\"nicotine\", \"delivery device\")\n    or within 4 (\"nicotine\", \"delivery product\")\n    or within 4 (\"nicotine\", \"delivery system\")\n    or within 4 (\"nicotine\", \"delivery system\")\n    or within 4 (\"nicotine\", \"ultra sonic\") or \"u cigar\" or \"u cigarette\"\n    or \"u cigarettes\" or \"u cigars\" or within 4 (\"ultrasonic\", \"cigarette\")\n    or within 4 (\"ultrasonic\", \"nicotine\")\n  )",
-    "note": "Claire's corrected line 11 (20 hits): nicotine-delivery + brand block. nicotine+\"delivery system\" etc were EMBASE `adj4` / PubMed `[~4]` proximity -> \"nicotine\" within 4 words of \"delivery system\"; electronic+cigarette / electronic+nicotine etc were `adj4` -> within 4 words. Brand-name phrases (Vype, VUSE, Juul, Geek Bar) stay plain. Same scalar + negated-keyword tail as row 161. (Fixes the mis-quoted line 8 = row 162.)",
+    "note": "The user's corrected line 11 (20 hits): nicotine-delivery + brand block. nicotine+\"delivery system\" etc were EMBASE `adj4` / PubMed `[~4]` proximity -> \"nicotine\" within 4 words of \"delivery system\"; electronic+cigarette / electronic+nicotine etc were `adj4` -> within 4 words. Brand-name phrases (Vype, VUSE, Juul, Geek Bar) stay plain. Same scalar + negated-keyword tail as row 161. (Fixes the mis-quoted line 8 = row 162.)",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -7410,13 +7410,13 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "zendesk ticket",
-      "label": "zd#8101 — Claire (Educational accountability SR): 5-block AND strategy",
+      "label": "zd#8101 — SR user (Educational accountability SR): 5-block AND strategy",
       "url": "https://openalex.zendesk.com/agent/tickets/8101"
     },
     "oxurl_status": "oql-only",
     "status": "ok",
     "oql": "works where title-abstract has (\n    review\n    and (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or secondary vocational education or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      Policies or context or electoral or policy or political or reform\n      or reforming or \"national standards\" or \"school improvement\" or influence*\n    )\n    and (evidence or literature)\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and type is (\n    book\n    or book-chapter\n    or dissertation\n    or erratum\n    or other\n    or report\n    or retraction\n  )",
-    "note": "Claire's real run query (block 1, 152 hits): FIVE title-abstract search groups AND-ed (accountability x school-type x policy/reform x review x evidence), plus a grey-literature `type is (book-chapter or book or dissertation or report or ...)` OR and a per-year `year is (2014 or ... or 2025)` list. Her stray leading quote on the first group is fixed here to the intended phrases. Origin DBs: APA PsycInfo / Web of Science.",
+    "note": "The user's real run query (block 1, 152 hits): FIVE title-abstract search groups AND-ed (accountability x school-type x policy/reform x review x evidence), plus a grey-literature `type is (book-chapter or book or dissertation or report or ...)` OR and a per-year `year is (2014 or ... or 2025)` list. Her stray leading quote on the first group is fixed here to the intended phrases. Origin DBs: APA PsycInfo / Web of Science.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -8032,13 +8032,13 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "zendesk ticket",
-      "label": "zd#8101 — Claire (Educational accountability SR): inspection-agency names",
+      "label": "zd#8101 — SR user (Educational accountability SR): inspection-agency names",
       "url": "https://openalex.zendesk.com/agent/tickets/8101"
     },
     "oxurl_status": "oql-only",
     "status": "ok",
     "oql": "works where year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title-abstract has (\n    DEPP or EQAO or HGIOS or OFSTED or Onderwijsinspectie\n    or \"Conseil de l'Evaluation de l'Ecole\"\n    or \"Direction de l'Evaluation de la Prospective et de l'Evaluation\"\n    or \"Education Scotland\" or \"Educational Quality and Accountability Office\"\n    or \"FINEEC Evaluation*\" or \"General Inspectorate\"\n    or \"How Good is Our School\" or \"Institute for Development of Education\"\n    or \"Instytut Rozwoju Edukacji\" or \"Kurator Oświaty\"\n    or \"Ocena jakości pracy szkoły\" or \"Odpowiedzialność szkoły\"\n    or \"Plany Rozwoju Szkoły\" or \"Samodzielna ocena szkoły\"\n    or (Estyn and accountability) or (Estyn and inspection)\n    or (Estyn and inspectors) or (Finland and \"Education Evaluation Centre\")\n    or (Ireland and \"Department of Education\")\n    or (Ireland and \"Education and Training Inspectorate\")\n    or (Irish and \"Department of Education\")\n    or (Irish and \"Education and Training Inspectorate\")\n    or (Japan and \"Ministry of Education\")\n    or (Japanese and \"Ministry of Education\")\n    or (Netherlands and \"Inspectorate of Education\")\n    or (Ontario and \"standard of instruction\")\n    or (Poland and \"Ministry of Education\")\n    or (Poland and \"regional education authority\")\n    or (Polish and \"Ministry of Education\")\n    or (Polish and \"regional education authority\") or (SEAB and Singapore)\n    or (Singapore and \"MOE\")\n    or (Singapore and \"Examinations and Assessment Board\")\n    or (Singapore and \"Ministry of Education\")\n    or (\"Dutch\" and \"Inspectorate of Education\")\n    or (\"Finnish\" and \"Education Evaluation Centre\")\n    or (\"Education Review Office\" and \"New Zealand\")\n  )\n  and type is (\n    book\n    or book-chapter\n    or dissertation\n    or erratum\n    or other\n    or report\n    or retraction\n  )",
-    "note": "Claire's block 3 (622 hits): a large OR of national school-inspection agency names, several as `+` co-occurrence (Ontario+\"standard of instruction\", \"Education Review Office\"+\"New Zealand\", Estyn+accountability) -> parenthesized AND pairs. Grey-lit type + year tail.",
+    "note": "The user's block 3 (622 hits): a large OR of national school-inspection agency names, several as `+` co-occurrence (Ontario+\"standard of instruction\", \"Education Review Office\"+\"New Zealand\", Estyn+accountability) -> parenthesized AND pairs. Grey-lit type + year tail.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -8587,13 +8587,13 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "zendesk ticket",
-      "label": "zd#8101 — Claire (Educational accountability SR): country block with within-field NOT",
+      "label": "zd#8101 — SR user (Educational accountability SR): country block with within-field NOT",
       "url": "https://openalex.zendesk.com/agent/tickets/8101"
     },
     "oxurl_status": "oql-only",
     "status": "ok",
     "oql": "works where year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title-abstract has (\n    (\n      Britain or Dutch or Estonia or Finland or Finnish or Flemish or France\n      or French or Ireland or Irish or Japan or Japanese or Netherlands\n      or Ontarian or Ontario or Poland or Polish or Scotland or Scottish\n      or Singapore or Singaporean or Welsh or \"U.K.\" or \"UK\" or \"New Zealand\"\n      or \"United Kingdom\" or (British and not \"British Columbia\")\n      or (England and not \"New England\") or (Wales and not \"New South Wales\")\n    )\n    and (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or secondary vocational education or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and type is (\n    book\n    or book-chapter\n    or dissertation\n    or erratum\n    or other\n    or report\n    or retraction\n  )",
-    "note": "Claire's block 2 (429 hits) — the showcase idiom: country/region names where a homonym is EXCLUDED inside the search value via WoS-style `!` (England!\"New England\", Wales!\"New South Wales\", British!\"British Columbia\"). OQL spells each as (term and not \"phrase\"). Origin: WoS `school NOT \"primary school\"`, PsycInfo `(teacher not \"academic teacher\")`. (See #431 for the OXURL->OQO `!` parser gap; OQL itself expresses it fine.)",
+    "note": "The user's block 2 (429 hits) — the showcase idiom: country/region names where a homonym is EXCLUDED inside the search value via WoS-style `!` (England!\"New England\", Wales!\"New South Wales\", British!\"British Columbia\"). OQL spells each as (term and not \"phrase\"). Origin: WoS `school NOT \"primary school\"`, PsycInfo `(teacher not \"academic teacher\")`. (See #431 for the OXURL->OQO `!` parser gap; OQL itself expresses it fine.)",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
@@ -9317,13 +9317,13 @@ export const oqlCorpus = [
     ],
     "provenance": {
       "type": "zendesk ticket",
-      "label": "zd#8101 — Claire (Educational accountability SR): country via address filter",
+      "label": "zd#8101 — SR user (Educational accountability SR): country via address filter",
       "url": "https://openalex.zendesk.com/agent/tickets/8101"
     },
     "oxurl_status": "oql-only",
     "status": "ok",
     "oql": "works where country is (\n    CA [Canada] or EE [Estonia] or FI [Finland] or FR [France]\n    or GB [United Kingdom] or IE [Ireland] or JP [Japan] or NL [Netherlands]\n    or NZ [New Zealand] or PL [Poland] or SG [Singapore]\n  )\n  and year is (\n    2014 or 2015 or 2016 or 2017 or 2018 or 2019 or 2020 or 2021 or 2022 or 2023\n    or 2024 or 2025\n  )\n  and title-abstract has (\n    (\n      HAVO or VWO or atheneum or gymnasium or schooling\n      or secondary vocational education or \"Elementary Education\"\n      or \"Multi Academy Trust\" or \"Multi Academy Trusts\" or \"School Academies\"\n      or \"School Academy\" or \"basic school\" or \"basic school\" or \"basic schools\"\n      or \"basic schools\" or \"comprehensive school\" or \"comprehensive schools\"\n      or \"elementary school\" or \"elementary schools\" or \"grade school\"\n      or \"grade schools\" or \"grammar school\" or \"grammar schools\"\n      or \"high school\" or \"high schools\" or \"intermediate school\"\n      or \"intermediate schools\" or \"middle school\" or \"middle schools\"\n      or \"post primary school\" or \"post primary schools\"\n      or \"post-primary education\" or \"postprimary education\"\n      or \"postprimary education\" or \"postprimary school\"\n      or \"postprimary schools\" or \"school system\" or \"secondary education\"\n      or \"secondary school\" or \"secondary schools\" or \"technical school\"\n      or \"technical schools\" or \"university preparatory education\"\n      or \"vocational school\" or \"vocational schools\"\n      or (adolescents and education) or (education and \"young people\")\n      or (teacher and not \"academic teacher\")\n      or (teachers and not \"academic teachers\")\n    )\n    and (\n      \"Self-Assessment\" or \"Annual School Review\" or \"Annual School Reviews\"\n      or \"School Assessment\" or \"School Development Plan\"\n      or \"School Development Plans\" or \"School Improvement Plan\"\n      or \"School Improvement Plans\" or \"educational accountability\"\n      or \"evaluation structures\" or \"school accountability\" or \"school audit\"\n      or \"school effectiveness\" or \"school effectiveness\" or \"school evaluation\"\n      or \"school excellence\" or \"school improvement\" or \"school inspection\"\n      or \"school inspector\" or \"school performance\" or \"school quality\"\n      or \"school self-assessment\" or \"school self-evaluation\"\n      or \"shool oversight\" or \"special measures\"\n      or (school and \"educational quality\")\n    )\n  )\n  and type is (\n    book\n    or book-chapter\n    or dissertation\n    or erratum\n    or other\n    or report\n    or retraction\n  )",
-    "note": "Claire's block 4 (129 hits): the SAME strategy as row 166 but expressing country via the AUTHOR-AFFILIATION address field — `country is (countries/gb or countries/fr or ...)` — instead of name-matching in the text. A clean example of one librarian intent realized two ways (text block vs entity filter) in one corpus.",
+    "note": "The user's block 4 (129 hits): the SAME strategy as row 166 but expressing country via the AUTHOR-AFFILIATION address field — `country is (countries/gb or countries/fr or ...)` — instead of name-matching in the text. A clean example of one librarian intent realized two ways (text block vs entity filter) in one corpus.",
     "diagnostic": "",
     "oqo": {
       "get_rows": "works",
