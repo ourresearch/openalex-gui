@@ -1,5 +1,5 @@
 <template>
-  <SettingsSection v-if="isEligible" title="High-volume user keys">
+  <SettingsSection v-if="isEligible && slotCount !== 0" title="High-volume user keys">
     <template #subtitle>
       <div class="text-body-2 text-medium-emphasis mb-2">
         Raise selected members' personal API keys to a <strong>{{ boostCapDisplay }}</strong> cost cap.
@@ -184,7 +184,8 @@ const store = useStore();
 
 const loading = ref(true);
 const slots = ref([]);
-const slotCount = ref(0);
+// null until loaded; an org whose contract has no high-volume slots (slot_count 0, e.g. Ai2) doesn't see the section.
+const slotCount = ref(null);
 const filledCount = ref(0);
 const auditEntries = ref([]);
 const usageRefreshToken = ref(0);
