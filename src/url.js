@@ -799,6 +799,16 @@ const filterSearchKeyToType = {
     'semantic.search': 'search.semantic',
 }
 
+// The API refuses a GET whose request line is over 8,190 bytes (counted after its proxy
+// re-encodes the URL). encodeURIComponent over-counts that (a space is 3 bytes here), so
+// 7,000 leaves room for the path and the other params; a query just under the line
+// runs as OQL, which works for any length.
+const LONG_SEARCH_URL_BYTES = 7000
+const searchTooLongForUrl = function (searchString, filter) {
+    const bytes = encodeURIComponent(searchString || '').length + encodeURIComponent(filter || '').length
+    return bytes > LONG_SEARCH_URL_BYTES
+}
+
 // In canonical-OQL mode (oql flag + `?oql=` URL) a search-box edit must run as OQL,
 // exactly like a chip edit (pushNewFilters): translate the current chips + the new
 // search to OQL and push the `/q?oql=` route. Before this, setNewSearch spread
@@ -806,11 +816,18 @@ const filterSearchKeyToType = {
 // query landed on `/q?oql=works&search.title_and_abstract=…`, which executed the
 // bare `oql=works` (327M works) and ignored the search, with no error (oxjob #1245,
 // Inist 2.7). Returns true when it handled the navigation; false → legacy path.
+//
+// A search too long for a URL runs as OQL too, from any route (oxjob #941, ZD 3489).
+// The flat `?search.*=` SERP fetches with a GET (makeApiUrl → api.getResultsList), and
+// the API caps a request line at 8,190 bytes, so a long Boolean search pasted in the box
+// failed with "Request URL too long". The `/q?oql=` route POSTs the query (no cap), and
+// the translate itself switches to POST past its own limit (api.getQuery).
 const pushSearchAsOql = async function (entityType, searchType, searchString) {
     const route = router.currentRoute.value
-    const inOqlMode = !!store.getters?.featureFlags?.['oql'] && !!route?.query?.oql
-    if (!inOqlMode) return false
+    const oqlFlag = !!store.getters?.featureFlags?.['oql']
+    const inOqlMode = oqlFlag && !!route?.query?.oql
     const filter = chipFilterStr(route)
+    if (!inOqlMode && !(oqlFlag && searchTooLongForUrl(searchString, filter))) return false
     if (!filter && !searchString) return false   // nothing left: fall to the clean entity SERP
     const query = {}
     if (searchString) {
@@ -1496,6 +1513,7 @@ const url = {
 
     setSearch,
     setNewSearch,
+    searchTooLongForUrl,
     getSearchFromRoute,
     filterSearchRedirectQuery,
     clearNewSearch,
