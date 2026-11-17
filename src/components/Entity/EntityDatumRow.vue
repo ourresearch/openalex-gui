@@ -317,13 +317,13 @@ const valueWorksCountLink = computed(() => {
   // linked to the institution itself, the widest count the lineage filter. No
   // filter selects "with children but not predecessors", so that count has no link (#1823).
   if (props.filterKey === 'works_count' && entityType.value === 'institutions') {
-    return filters.entityWorksLink(props.data?.id, props.data, 'authorships.institutions.id');
+    return filters.entityWorksLink(props.data?.id, 'authorships.institutions.id');
   }
   if (props.filterKey === 'works_count_with_children_and_predecessors') {
-    return filters.entityWorksLink(props.data?.id, props.data);
+    return filters.entityWorksLink(props.data?.id);
   }
   if (props.filterKey === 'works_count' || props.filterKey === 'funded_outputs_count') {
-    return filters.entityWorksLink(props.data?.id, props.data);
+    return filters.entityWorksLink(props.data?.id);
   }
   return null;
 });

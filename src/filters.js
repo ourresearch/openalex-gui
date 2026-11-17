@@ -30,15 +30,16 @@ const entityPageTarget = (parsed) => {
 };
 
 const filters = {
-  entityWorksLink(id, entityData, filterKeyOverride) {
+  // The link behind an entity's works count: it opens the works the count counts.
+  // A source's works_count counts the works whose PRIMARY location is the source,
+  // repositories included, so a repository's count opens the primary filter too;
+  // its any-location works sit on the page's works list, the More menu and the
+  // Harvest tab (oxjob #106: EUR's 81,500 used to open a list of 221,860).
+  entityWorksLink(id, filterKeyOverride) {
     const entityType = openalexId.getEntityType(id);
     if (!id || !entityType) { return; }
     const shortId = openalexId.getShortId(id);
-    // For repository sources, use locations.source.id to show all works
-    // where this repo appears in any location (not just primary)
-    const isRepository = entityType === 'sources' && entityData?.type === 'repository';
-    const filterKey = filterKeyOverride
-      || (isRepository ? 'locations.source.id' : entityConfigs[entityType].filterKey);
+    const filterKey = filterKeyOverride || entityConfigs[entityType].filterKey;
     const filter = createSimpleFilter(
       "works",
       filterKey,
