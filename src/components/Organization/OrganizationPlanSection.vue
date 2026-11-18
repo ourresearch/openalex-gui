@@ -175,7 +175,7 @@ const planBenefits = computed(() => {
   if (!props.organization?.plan) return [];
   const plan = plans.value.find(p => p.name === props.organization.plan);
   const benefits = [...(plan?.benefits || [])];
-  // An org with a contracted budget no plan carries (users-api migration 130, e.g. Ai2's $600/day) shows its
+  // An org with a contracted budget no plan carries (users-api migration 130) shows its
   // real daily budget, not the plan's.
   const orgBudget = props.organization.api_max_per_day;
   if (plan && orgBudget != null && orgBudget !== plan.api_max_per_day) {

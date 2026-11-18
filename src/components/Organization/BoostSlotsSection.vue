@@ -184,7 +184,7 @@ const store = useStore();
 
 const loading = ref(true);
 const slots = ref([]);
-// null until loaded; an org whose contract has no high-volume slots (slot_count 0, e.g. Ai2) doesn't see the section.
+// null until loaded; an org whose contract has no high-volume slots (slot_count 0) doesn't see the section.
 const slotCount = ref(null);
 const filledCount = ref(0);
 const auditEntries = ref([]);
