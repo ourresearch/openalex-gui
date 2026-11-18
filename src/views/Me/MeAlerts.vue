@@ -23,11 +23,15 @@
             @click:row="(event, { item }) => openSavedSearch(item.id)"
           >
             <template #item.name="{ item }">
-              <v-icon color="grey" start>mdi-bell</v-icon>
-              {{ item.name }}
-              <!-- Alerts switched on before the API refused them, e.g. a works collection (oxjob #1505) -->
-              <div v-if="item.cannot_alert" class="text-caption text-medium-emphasis">
-                {{ item.cannot_alert.message }}
+              <div class="d-flex align-start py-2">
+                <v-icon color="grey" start size="small" class="mt-1">mdi-bell</v-icon>
+                <div>
+                  {{ item.name }}
+                  <!-- Alerts switched on before the API refused them, e.g. a works collection (oxjob #1505) -->
+                  <div v-if="item.cannot_alert" class="text-caption text-medium-emphasis">
+                    {{ item.cannot_alert.message }}
+                  </div>
+                </div>
               </div>
             </template>
             <template #item.alert_frequency="{ item }">
