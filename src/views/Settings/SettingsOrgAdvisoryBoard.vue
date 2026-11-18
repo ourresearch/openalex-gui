@@ -20,8 +20,9 @@
 
     <template v-else>
       <!-- Not a member org -->
-      <v-alert v-if="benefits && !benefits.benefits_eligible" type="info" variant="tonal" class="mb-6">
-        Nominating and voting for the Community Advisory Board is an OpenAlex membership benefit.
+      <v-alert v-if="benefits && !cabEligible" type="info" variant="tonal" class="mb-6">
+        Nominating and voting for the Community Advisory Board are open to listed OpenAlex members
+        (Member, Member+ or Partner).
         <router-link to="/pricing/institutions">Learn about membership</router-link>.
       </v-alert>
 
@@ -78,7 +79,7 @@
         </v-card>
 
         <!-- ============ NOMINATIONS PHASE ============ -->
-        <template v-if="election.phase === 'nominations' && benefits?.benefits_eligible">
+        <template v-if="election.phase === 'nominations' && cabEligible">
           <!-- Existing nomination status -->
           <v-card v-if="nomination && nomination.status !== 'withdrawn' && !showForm" variant="outlined" class="mb-6">
             <v-card-text>
@@ -179,8 +180,8 @@
                 information; individual ballots aren't published.
               </p>
 
-              <v-alert v-if="!benefits?.benefits_eligible" type="info" variant="tonal" density="compact" class="mb-4">
-                Voting is open to member organizations.
+              <v-alert v-if="!cabEligible" type="info" variant="tonal" density="compact" class="mb-4">
+                Voting is open to listed member organizations (Member, Member+ or Partner).
               </v-alert>
               <v-alert v-else-if="!canEdit" type="info" variant="tonal" density="compact" class="mb-4">
                 Only your organization's owner accounts can cast its ballot.
@@ -295,7 +296,10 @@ const organizationRole = computed(() => store.state.user.organizationRole);
 const canEdit = computed(() => organizationRole.value === 'owner');
 const nomination = computed(() => benefits.value?.nomination || null);
 const ballot = computed(() => benefits.value?.ballot || null);
-const canVote = computed(() => canEdit.value && benefits.value?.benefits_eligible);
+// Advisory board elections are for listed members only (users-api cab_eligible); fall back to
+// benefits_eligible until the API serves the new field.
+const cabEligible = computed(() => benefits.value?.cab_eligible ?? benefits.value?.benefits_eligible);
+const canVote = computed(() => canEdit.value && cabEligible.value);
 
 const phaseChip = computed(() => ({
   nominations: { color: 'primary', label: 'Nominations open' },
