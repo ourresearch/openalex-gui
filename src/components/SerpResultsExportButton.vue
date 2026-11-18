@@ -70,7 +70,7 @@
                   try again in a moment.
                 </template>
                 <template v-else-if="rateLimitData && !hasInsufficientTokens">
-                  Exporting {{ resultsCount === 1 ? 'this row' : `these ${resultsCount.toLocaleString()} ${rowsNoun}` }} will cost approximately
+                  Exporting {{ exportCount === 1 ? 'this row' : `these ${exportCount.toLocaleString()} ${rowsNoun}` }} will cost approximately
                   {{ formatUsd(costUsd, costUsd > 0 && costUsd < 0.001 ? 4 : 3) }} of your remaining {{ formatUsd(totalAvailableUsd) }} budget.
                 </template>
                 <template v-else-if="rateLimitData && hasInsufficientTokens">
@@ -78,7 +78,7 @@
                   {{ formatUsd(totalAvailableUsd) }} remaining.
                 </template>
                 <template v-else>
-                  Exporting {{ resultsCount.toLocaleString() }} {{ resultsCount === 1 ? 'row' : rowsNoun }}.
+                  Exporting {{ exportCount.toLocaleString() }} {{ exportCount === 1 ? 'row' : rowsNoun }}.
                 </template>
               </div>
             </div>
@@ -101,6 +101,26 @@
                   v-model="exportFormat"
                   :items="formatOptions"
                   item-title="label"
+                  item-value="value"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  class="export-setting-row__control"
+                />
+              </div>
+
+              <div v-if="canLimitRows" class="export-setting-row d-flex align-center">
+                <div class="export-setting-row__text pr-4">
+                  <div class="export-setting-row__label">Rows</div>
+                  <div class="export-setting-row__desc">
+                    In the order shown (most relevant first, for a search).
+                  </div>
+                </div>
+                <v-spacer />
+                <v-select
+                  v-model="rowLimit"
+                  :items="rowLimitChoices"
+                  item-title="title"
                   item-value="value"
                   variant="outlined"
                   density="compact"
@@ -220,6 +240,7 @@ import { resolveExportSelection, idsOpenAlexFilter } from '@/utils/selectionExpo
 import ColumnEditorPanel from '@/components/Results/Table/ColumnEditorPanel.vue';
 import { isPipelineResponse, exportRows, exportCredits, calculationExportFile } from '@/oqlPipeline';
 import { pickOql } from '@/oqlForm';
+import { rowLimitOptions, exportRowCount } from '@/components/exportRowLimit';
 
 const props = defineProps({
   // Fixed query from outside the search page: { filter, count }, and optionally
@@ -248,6 +269,8 @@ const exportFormat = ref('csv-excel');
 const rateLimitData = ref(null);
 const submittedExport = ref(null);
 const includeAbstracts = ref(false);
+// Export only the first N rows, in the list's order (oxjob #635); null = all rows.
+const rowLimit = ref(null);
 
 // Ephemeral column draft for THIS export only (job #304). Seeded from the shared
 // column state on dialog open, edited via the inline ColumnEditorPanel, and read
@@ -312,6 +335,11 @@ const resultsCount = computed(() =>
     ? exportSelection.value.count
     : (store.state?.resultsObject?.meta?.count ?? 0)
 );
+// A list export can stop after the first N rows; a selection or a calculation is exported whole.
+const canLimitRows = computed(() =>
+  !isCalculation.value && !exportSelection.value.scoped && rowLimitOptions(resultsCount.value).length > 1);
+const rowLimitChoices = computed(() => rowLimitOptions(resultsCount.value));
+const exportCount = computed(() => exportRowCount(resultsCount.value, canLimitRows.value ? rowLimit.value : null));
 const rowsNoun = computed(() =>
   isCalculation.value ? 'groups'
   : exportSelection.value.scoped ? 'selected rows' : 'rows');
@@ -357,7 +385,7 @@ const presetColumns = computed(() => PRESET_COLUMNS[exportFormat.value] ?? []);
 // resizes the dialog (the jarring shrink). 760 fits the 50/50 column editor.
 const dialogMaxWidth = computed(() => (isCalculation.value ? 560 : 760));
 const perPage = computed(() => entityType.value === 'works' ? 100 : 200);
-const queriesNeeded = computed(() => Math.ceil(resultsCount.value / perPage.value));
+const queriesNeeded = computed(() => Math.ceil(exportCount.value / perPage.value));
 
 // Live source of truth for the user's column selection (URL > localStorage >
 // per-entity defaults). Shared with the table-view picker so CSV export is a
@@ -436,6 +464,7 @@ function openExportDialog() {
   exportFormat.value = isCalculation.value ? 'calculation' : 'csv-excel';
   submittedExport.value = null;
   includeAbstracts.value = false;
+  rowLimit.value = null;
   // Seed the ephemeral export-column draft from EXACTLY what's on screen (job
   // #304): in table view that's the table's current columns; in list view it's
   // the entity's default columns (what the list item represents). List view
@@ -548,6 +577,13 @@ async function startExport() {
     body.oql = canonicalOql.value;
   } else if (filterStr) {
     body.filter = filterStr;
+  }
+
+  // First N rows (oxjob #635): the service stops after max_rows, in the order the list shows, so a sort the user
+  // picked rides along (without one, a search keeps its relevance order).
+  if (canLimitRows.value && rowLimit.value) {
+    body.max_rows = rowLimit.value;
+    if (!body.oql && !props.scope && route.query.sort) body.sort = route.query.sort;
   }
 
   // CSV export is a snapshot of the user's current column selection (#304
