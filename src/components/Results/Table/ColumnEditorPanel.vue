@@ -11,6 +11,18 @@
     <div class="ce-available d-flex flex-column" :class="{ 'ce-available--disabled': disabled }">
       <div class="ce-col-header d-flex align-center">
         <span class="flex-shrink-0">Available ({{ availableCount }})</span>
+        <!-- "Add all" (oxjob #635): only where the embedder asks for it (the
+             export dialog). With a search active it adds just the matches. -->
+        <v-btn
+          v-if="showAddAll"
+          variant="text"
+          size="small"
+          density="comfortable"
+          class="text-none ml-1 ce-add-all"
+          @click="addAll"
+        >
+          Add all
+        </v-btn>
         <v-spacer />
         <v-text-field
           ref="searchFieldRef"
@@ -123,6 +135,7 @@ import { ref, computed, onMounted } from 'vue';
 import filters from '@/filters';
 import { facetsByCategory, getFacetConfig } from '@/facetConfigUtils';
 import { resolveColumn, isColumnEligible, hasIdsSibling } from '@/components/Results/Table/columnConfig';
+import { withAllAdded } from '@/components/Results/Table/columnEditorKeys';
 
 defineOptions({ name: 'ColumnEditorPanel' });
 
@@ -158,6 +171,9 @@ const props = defineProps({
   // Keys to hide from the Available side (e.g. admin-gated group_bys for
   // non-admins). Passed through to facetsByCategory's exclude list.
   excludeKeys: { type: Array, default: () => [] },
+  // Show an "Add all" button on the Available header (oxjob #635). Off by
+  // default: the table view and the stats rail don't offer it.
+  allowAddAll: { type: Boolean, default: false },
 });
 const emit = defineEmits(['update:modelValue']);
 
@@ -202,6 +218,14 @@ const selectedCount = computed(() =>
 const availableCount = computed(() =>
   categories.value.reduce((n, cat) => n + cat.items.length, 0),
 );
+
+const showAddAll = computed(() =>
+  props.allowAddAll && !props.disabled && props.mode === 'column' && availableCount.value > 0,
+);
+
+function addAll() {
+  commit(withAllAdded(props.modelValue, categories.value));
+}
 
 // ---- collapsible category headings (#601 r2) ----
 // All categories start CLOSED (r3) — the point of collapse is scanning every

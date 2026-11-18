@@ -156,6 +156,7 @@
                 height="46vh"
                 :disabled="isPresetFormat"
                 :preset-labels="presetColumns"
+                allow-add-all
               />
             </div>
           </v-card-text>
