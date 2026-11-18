@@ -118,6 +118,10 @@ const navConfigs = [
                 name: "Terms",
                 to: "/terms",
             },
+            {
+                name: "Security",
+                href: "https://help.openalex.org/security/",
+            },
         ],
     },
 ]
