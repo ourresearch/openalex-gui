@@ -17,8 +17,10 @@ import { withRefusalPolicy } from '@/requestRefusal';
 import { getEntityType } from '@/openalexId';
 import { findLinks } from '@/components/OqlPlayground/oqlLinks';
 
-// Routes whose answer is a query to run (the help desk answers in words instead).
-export const QUERY_ROUTES = new Set(['query', 'title', 'search_string']);
+// Routes whose answer is a query to run (the help desk answers in words instead). The query writer's
+// free routes (#2432): an identifier, the full name of an institution, journal, funder or person, and
+// plain keywords, answered with no model.
+export const QUERY_ROUTES = new Set(['query', 'title', 'search_string', 'id', 'name', 'keywords']);
 
 /** Ask the model. Resolves to the answer; rejects with an Error whose message is fit to show.
  *  `history` is context only (#1494 reads it so); `currentQuery` is what a follow-up edits. */
