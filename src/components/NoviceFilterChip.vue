@@ -440,7 +440,7 @@ function applyRange() {
 const LOCAL_LIST_ENTITIES = new Set([
   'types', 'source-types', 'institution-types', 'continents',
   'sdgs', 'licenses', 'oa-statuses', 'domains', 'source-lists',
-  'study-designs', 'relationships',
+  'study-designs', 'relationships', 'contributor-roles',
 ]);
 
 const loadEntities = async (searchString) => {

@@ -1,7 +1,7 @@
 {
- "version": "22.1.0",
- "fingerprint": "1d0b92915f53bc69f64bf735af72d131486262c3830f7110f093144ff4d05282",
- "generatedAt": "2026-11-04T06:45:32.704Z",
+ "version": "24.3.0",
+ "fingerprint": "3bc3791ce6382765b263e6eebd12b58f7c0151a1b0a7f6c082e1c337ad506e50",
+ "generatedAt": "2026-11-19T03:52:56.848Z",
  "entities": {
   "authors": {
    "displayName": "authors",
@@ -18,6 +18,10 @@
   "continents": {
    "displayName": "continents",
    "displayNameSingular": "continent"
+  },
+  "contributor-roles": {
+   "displayName": "contributor roles",
+   "displayNameSingular": "contributor role"
   },
   "countries": {
    "displayName": "countries",
@@ -120,6 +124,8 @@
    "affiliations.institution.lineage": "affiliation institution lineage",
    "affiliations.institution.ror": "affiliation institution ROR",
    "affiliations.institution.type": "past institutions type",
+   "awards_api_url": "awards api url",
+   "awards_count": "awards count",
    "block_key": "block key",
    "cited_by_count": "citation count",
    "collection": "collection",
@@ -212,12 +218,18 @@
    "institution_awarded.ror": "institution awarded ror",
    "institution_awarded.type": "institution awarded type",
    "investigators": "investigator",
+   "investigators.author.id": "investigator profile",
+   "investigators.institutions.id": "investigators institutions id",
+   "keywords": "keywords",
+   "keywords.id": "keyword",
    "landing_page_url": "landing page",
    "lead_investigator": "lead investigator",
    "lead_investigator.affiliation.country": "investigator country",
    "lead_investigator.affiliation.name": "investigator affiliation",
+   "lead_investigator.author.id": "lead investigator profile",
    "lead_investigator.family_name": "lead investigator family name",
    "lead_investigator.given_name": "lead investigator given name",
+   "lead_investigator.institutions.id": "lead investigator institutions id",
    "lead_investigator.orcid": "lead investigator orcid",
    "parent_awards": "parent awards",
    "parent_awards.funder.id": "parent awards funder id",
@@ -249,6 +261,8 @@
    "sub_awards.id": "sub awards id",
    "sub_awards.relationship": "sub awards relationship",
    "sub_awards_count": "sub awards count",
+   "sustainable_development_goals": "sustainable development goals",
+   "sustainable_development_goals.id": "SDG",
    "text.search": "text",
    "to_created_date": "to created date",
    "to_updated_date": "to updated date",
@@ -310,6 +324,25 @@
    "to_created_date": "to created date",
    "to_updated_date": "to updated date",
    "updated_date": "updated date",
+   "works_count": "works count"
+  },
+  "contributor-roles": {
+   "cited_by_count": "citation count",
+   "collection": "collection",
+   "created_date": "created date",
+   "description": "description",
+   "display_name": "name",
+   "display_name.search": "display name",
+   "from_created_date": "from created date",
+   "from_updated_date": "from updated date",
+   "id": "id",
+   "ids": "ids",
+   "relevance_score": "relevance score",
+   "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
+   "updated_date": "updated date",
+   "works_api_url": "works api url",
    "works_count": "works count"
   },
   "countries": {
@@ -388,6 +421,7 @@
   },
   "funders": {
    "alternate_titles": "alternate names",
+   "awards_api_url": "awards api url",
    "awards_count": "awards count",
    "cited_by_count": "citation count",
    "collection": "collection",
@@ -423,6 +457,7 @@
    "to_created_date": "to created date",
    "to_updated_date": "to updated date",
    "updated_date": "updated date",
+   "works_api_url": "works api url",
    "works_count": "works count"
   },
   "indexes": {
@@ -463,6 +498,8 @@
   },
   "institutions": {
    "associated_institutions": "associated institutions",
+   "awards_api_url": "awards api url",
+   "awards_count": "awards count",
    "cited_by_count": "citation count",
    "collection": "collection",
    "continent": "continent",
@@ -677,6 +714,7 @@
    "from_updated_date": "from updated date",
    "id": "id",
    "relevance_score": "relevance score",
+   "standard_terms": "standard terms",
    "text.search": "text",
    "to_created_date": "to created date",
    "to_updated_date": "to updated date",
@@ -905,6 +943,7 @@
    "from_created_date": "from created date",
    "from_updated_date": "from updated date",
    "id": "id",
+   "is_traditional": "traditional scholarly work",
    "relevance_score": "relevance score",
    "text.search": "text",
    "to_created_date": "to created date",
@@ -917,6 +956,7 @@
    "abstract.search": "abstract",
    "abstract.search.exact": "abstract",
    "abstract_inverted_index": "abstract inverted index",
+   "alternate_titles": "alternate titles",
    "apc_list": "apc list",
    "apc_list.currency": "APC list currency",
    "apc_list.provenance": "APC list provenance",
@@ -932,6 +972,7 @@
    "authorships.affiliations.institution_ids": "affiliation institution",
    "authorships.author.id": "author",
    "authorships.author.orcid": "ORCID",
+   "authorships.contributor_roles.id": "contributor role",
    "authorships.countries": "country",
    "authorships.institutions.continent": "continent",
    "authorships.institutions.country_code": "institution country",
@@ -1043,7 +1084,9 @@
    "institutions_distinct_count": "institutions count",
    "is_authors_truncated": "is authors truncated",
    "is_paratext": "is paratext",
+   "is_pulled": "pulled",
    "is_retracted": "retracted",
+   "is_traditional": "traditional scholarly work",
    "keyword.search": "keyword",
    "keywords": "keywords",
    "keywords.id": "keyword",
@@ -1162,6 +1205,9 @@
    "default.search": "text.search"
   },
   "continents": {
+   "default.search": "text.search"
+  },
+  "contributor-roles": {
    "default.search": "text.search"
   },
   "countries": {

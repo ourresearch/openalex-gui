@@ -43,6 +43,7 @@ const entityConfigs = reactive({
             "parent_works.id",   // oxjob #2065: the works this work is part of (a chapter's book)
             "doi",
             "authorships.author.id",
+            "authorships.contributor_roles.id",   // oxjob #2075: the CRediT roles its authors played
             "authorships.institutions.lineage",
             "language",
             null,
@@ -854,6 +855,34 @@ const entityConfigs = reactive({
             "description",
         ],
         metricsToShowOnEntityPage: ["works_count"],
+    },
+    // oxjob #2075: the CRediT contributor roles (credit.niso.org), the part an author
+    // played on a work, as the publisher tagged it per author (closed vocabulary of 14).
+    "contributor-roles": {
+        icon: "mdi-account-cog-outline",
+        name: "contributor-roles",
+        entityType: "contributor-roles",
+        nameSingular: "contributor role",
+        // authored identity, as study-designs: the /meta catalog agrees
+        displayName: "contributor roles",
+        displayNameSingular: "contributor role",
+        exportMode: "client",
+        exportColumns: [
+            { key: "id", label: "ID" },
+            { key: "display_name", label: "Name" },
+            { key: "description", label: "Description" },
+            { key: "works_count", label: "Works Count" },
+            { key: "cited_by_count", label: "Cited By Count" },
+        ],
+        category: "people-orgs",
+        descr: "The part an author played on a work: conceptualization, software, writing and more",
+        placeholder: "Search contributor roles",
+        filterKey: "authorships.contributor_roles.id",
+        hasAutocomplete: false,
+        isNative: false,
+        rowsToShowOnEntityPage: [
+            "description",
+        ],
     },
     "locations": {
         icon: "mdi-file-document-outline",

@@ -179,6 +179,10 @@ const facetCategories = {
         "citation",
         "other",
     ],
+    "contributor-roles": [
+        "citation",
+        "other",
+    ],
     relationships: [
         "citation",
         "other",
@@ -634,6 +638,28 @@ const facetConfigs = function (entityType) {
             // dropped because the config had no extractFn / column.render).
             column: { render: { kind: "stringList" } },
             extractFn: (entity) => entity.corresponding_author_ids || [],
+        },
+        {
+            // oxjob #2075: the CRediT roles the work's authors played, as the publisher
+            // tagged them per author (closed contributor-roles vocabulary). displayName
+            // must equal the registry display_name (label-consistency gate).
+            key: "authorships.contributor_roles.id",
+            entityToSelect: "contributor-roles",
+            entityToFilter: "works",
+            displayName: "contributor role",
+            type: "selectEntity",
+            displayNullAs: "Unknown",
+            category: "author",
+            actions: ["filter", "group_by"],
+            icon: "mdi-account-cog-outline",
+            // Every author's roles, once each (by id), in the order they first appear:
+            // the work page's "Contributor roles" row.
+            extractFn: (entity) => {
+                const seen = new Set();
+                return (entity.authorships || [])
+                    .flatMap((a) => a?.contributor_roles || [])
+                    .filter((role) => role?.id && !seen.has(role.id) && seen.add(role.id));
+            },
         },
         // works: open access
         {
@@ -3749,6 +3775,15 @@ const facetConfigs = function (entityType) {
             extractFn: (e) => e.description,
         },
         {
+            // oxjob #2075: what a CRediT role means.
+            key: "description",
+            entityToFilter: "contributor-roles",
+            type: "search",
+            category: "other",
+            icon: "mdi-account-cog-outline",
+            extractFn: (e) => e.description,
+        },
+        {
             // oxjob #2065: what a parent-child relationship between works means.
             key: "description",
             entityToFilter: "relationships",
@@ -3981,6 +4016,16 @@ const facetConfigs = function (entityType) {
             actions: ["column"],
             category: "other",
             icon: "mdi-flask-outline",
+            extractFn: (entity) => entity.display_name,
+        },
+        {
+            key: "display_name",
+            isIdentityColumn: true,
+            entityToFilter: "contributor-roles",
+            type: "search",
+            actions: ["column"],
+            category: "other",
+            icon: "mdi-account-cog-outline",
             extractFn: (entity) => entity.display_name,
         },
         {

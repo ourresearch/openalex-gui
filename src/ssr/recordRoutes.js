@@ -57,6 +57,7 @@ export const RECORD_TYPES = {
     'source-lists': { idRe: SLUG, filterKey: 'primary_location.source.listed_in' },
     'study-designs': { idRe: SLUG, filterKey: 'study_designs.id' },
     relationships: { idRe: SLUG, filterKey: 'parent_works.relationship' },
+    'contributor-roles': { idRe: SLUG, filterKey: 'authorships.contributor_roles.id' },
 };
 for (const [type, prefix] of Object.entries(NATIVE_PREFIX)) {
     RECORD_TYPES[type].idRe = new RegExp(`^${prefix}\\d{1,15}$`, 'i');

@@ -69,19 +69,19 @@ describe("facet picker categories (works)", () => {
 // builder can't silently regress to the 8-entity allowlist or re-introduce the
 // duplicate / dropped / mistyped facet bugs.
 describe("facet picker (all entities — #621)", () => {
-  it("ALL_ENTITY_TYPES covers the full 26 non-works + works vocabulary", () => {
-    // 25 non-works entities + works = 26 browsable entity types.
+  it("ALL_ENTITY_TYPES covers the full 27 non-works + works vocabulary", () => {
+    // 27 non-works entities + works = 28 browsable entity types.
     expect(ALL_ENTITY_TYPES).toContain("works");
     for (const e of [
       "authors", "sources", "publishers", "funders", "institutions", "concepts",
       "keywords", "topics", "subfields", "fields", "domains", "sdgs", "countries",
       "continents", "languages", "types", "source-types", "institution-types",
       "licenses", "oa-statuses", "indexes", "source-lists", "study-designs",
-      "relationships", "locations", "awards",
+      "relationships", "contributor-roles", "locations", "awards",
     ]) {
       expect(ALL_ENTITY_TYPES, `missing entity ${e}`).toContain(e);
     }
-    expect(ALL_ENTITY_TYPES.length).toBe(27);
+    expect(ALL_ENTITY_TYPES.length).toBe(28);
   });
 
   // Every entity the builder can drive must offer at least one buildable filter,
