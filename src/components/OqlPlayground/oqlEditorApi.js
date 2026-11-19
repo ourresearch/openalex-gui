@@ -58,14 +58,32 @@ async function _timed(kind, fn) {
 
 // --- editor endpoints ---------------------------------------------------------
 
+// The API refuses a request line over 8,190 bytes before it reads it, so a query too long
+// for a URL goes as a POST body instead; short ones stay GETs (oxjob #941: a long query in
+// the OQL tab failed GET /validate and Search silently did nothing). Same cut-off as
+// api.getQueryOrders. `params` keep their order; null/undefined/false ones are left out.
+export const EDITOR_URL_MAX = 8000;
+
+export function editorRequest(path, params) {
+  const kept = Object.entries(params).filter(([, v]) => v != null && v !== false);
+  const qs = kept.map(([k, v]) => `&${k}=${encodeURIComponent(v)}`).join("");
+  const url = `${urlBase.api}/${path}?${MAILTO}${qs}`;
+  return url.length > EDITOR_URL_MAX
+    ? { method: "post", url: `${urlBase.api}/${path}?${MAILTO}`, body: Object.fromEntries(kept) }
+    : { method: "get", url };
+}
+
+async function _editorCall(path, params) {
+  const r = editorRequest(path, params);
+  const resp = r.method === "post"
+    ? await axios.post(r.url, r.body, axiosConfig())
+    : await axios.get(r.url, axiosConfig());
+  return resp.data;
+}
+
 // Cursor -> grammar context for autocomplete. `pos` is a code-point offset.
 export async function getParseContext(q, pos) {
-  return _timed("parse-context", async () => {
-    const url = `${urlBase.api}/parse-context?${MAILTO}` +
-      `&q=${encodeURIComponent(q)}&pos=${pos}`;
-    const resp = await axios.get(url, axiosConfig());
-    return resp.data;
-  });
+  return _timed("parse-context", () => _editorCall("parse-context", { q, pos }));
 }
 
 // Every phrase of a statement with its help where it stands, for hover help and click-to-change
@@ -76,9 +94,8 @@ export function getPhrases(q) {
   if (!_phrases.has(q)) {
     if (_phrases.size > 20) _phrases.delete(_phrases.keys().next().value);
     _phrases.set(q, _timed("phrases", async () => {
-      const url = `${urlBase.api}/oql-phrases?${MAILTO}&q=${encodeURIComponent(q)}`;
-      const resp = await axios.get(url, axiosConfig());
-      return Array.isArray(resp.data?.phrases) ? resp.data.phrases : [];
+      const data = await _editorCall("oql-phrases", { q });
+      return Array.isArray(data?.phrases) ? data.phrases : [];
     }).catch(() => {
       _phrases.delete(q);
       return [];
@@ -92,12 +109,8 @@ export function getPhrases(q) {
 // it holds plain words for the assistant (`plain_words: {start, end, text, rest}`, with an
 // OQL_PLAIN_WORDS info diagnostic) or a typo (one OQL_TYPO error with its `replacement`).
 export async function validateOql(q, { plainWords = false } = {}) {
-  return _timed("validate", async () => {
-    const url = `${urlBase.api}/validate?${MAILTO}&q=${encodeURIComponent(q)}` +
-      (plainWords ? "&plain_words=1" : "");
-    const resp = await axios.get(url, axiosConfig());
-    return resp.data;
-  });
+  return _timed("validate", () =>
+    _editorCall("validate", { q, plain_words: plainWords ? 1 : null }));
 }
 
 // Property catalog for an entity: { meta, properties: { <entity>: { <col>: Property } } }.
