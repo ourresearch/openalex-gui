@@ -2,7 +2,7 @@
   <div ref="root" class="nl-chart" :class="{ 'nl-chart--busy': busy }">
     <!-- A plain list of works: chart the set from its own group-bys. -->
     <div v-if="isWorksList" class="nl-chart__row" role="radiogroup" aria-label="Chart the works">
-      <span class="nl-chart__row-label">Chart these works</span>
+      <span class="nl-chart__row-label">{{ sampled ? "Chart every match, not just the sample" : "Chart these works" }}</span>
       <button
         v-for="v in LIST_VIEWS"
         :key="v.id"
@@ -74,7 +74,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch, nextTick 
 import { chartData, plural, capitalize, groupFilterRows } from "./chartData";
 import { CHART, CHART_INFO, chartOptions, defaultMeasure, knownCount } from "./pickChart";
 import { formatValue } from "./chartStyle";
-import { startingSetOqo } from "@/oqlPipeline";
+import { groupBySetOqo } from "@/oqlPipeline";
 
 const props = defineProps({
   oql: { type: String, default: "" },
@@ -118,6 +118,8 @@ const safe = (fn, fallback) => {
 
 const baseData = computed(() => safe(() => chartData(props.resultsObject), null));
 const isWorksList = computed(() => baseData.value?.kind === "list" && baseData.value.rowsEntity === "works" && Boolean(baseData.value.oqo?.get_rows));
+// A sampled list's charts count every match, not the sample (groupBySetOqo; the API can't group a sample, #2033).
+const sampled = computed(() => Boolean(baseData.value?.oqo?.sample));
 // Only a calculation's groups drill (a works list already is the works); `canDrill` is
 // whether the chart drawn has clickable groups (renderChart reports it).
 const drillOn = computed(() => props.drillable && baseData.value?.kind === "groups");
@@ -168,7 +170,7 @@ async function loadListView() {
   const d = baseData.value;
   const view = LIST_VIEWS.find((v) => v.id === listView.value);
   if (!isWorksList.value || !view || typeof window === "undefined") return; // never during server render
-  const oqo = { ...startingSetOqo(d.oqo), group_by: [{ column_id: view.column }] };
+  const oqo = { ...groupBySetOqo(d.oqo), group_by: [{ column_id: view.column }] };
   busy.value = true;
   message.value = "";
   try {

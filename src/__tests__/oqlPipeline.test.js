@@ -20,7 +20,27 @@ import {
   countsLabel,
   isTextMeasure,
   startingSetOqo,
+  groupBySetOqo,
 } from "@/oqlPipeline";
+
+// oxjob #2033: the API refuses a sample with a group by, so the facets and chart views leave it out.
+describe("groupBySetOqo", () => {
+  it("is the starting set without the sample and its seed", () => {
+    const oqo = {
+      get_rows: "works",
+      filter_rows: [{ column_id: "publication_year", value: 2020 }],
+      group_by: [{ column_id: "type" }],
+      sort_by: [{ column_id: "cited_by_count", direction: "desc" }],
+      sample: 500,
+      seed: 42,
+    };
+    expect(groupBySetOqo(oqo)).toEqual({
+      get_rows: "works",
+      filter_rows: [{ column_id: "publication_year", value: 2020 }],
+    });
+    expect(groupBySetOqo(null)).toEqual({});
+  });
+});
 
 // oxjob #1745: the NL page's Works tab lists the works a calculation is computed from.
 describe("startingSetOqo", () => {

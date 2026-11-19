@@ -55,6 +55,14 @@ export function startingSetOqo(oqo) {
   return { ...rest, filter_rows: [...(rest.filter_rows || []), ...limits] };
 }
 
+// What a group-by view of a query counts (the facets, the NL page's chart views): its starting set, before any
+// sample. The API refuses a sample with a group by (oxjob #2033): its groups always counted every match, not the
+// sample, so these views counted the whole starting set all along, as the URL-mode facets always did.
+export function groupBySetOqo(oqo) {
+  const { sample, seed, ...rest } = startingSetOqo(oqo); // eslint-disable-line no-unused-vars
+  return rest;
+}
+
 // Percent measures print with a % sign; everything else is a plain number.
 const PERCENT_MEASURES = new Set(["percent", "percent_of_those"]);
 

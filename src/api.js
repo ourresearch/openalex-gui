@@ -12,7 +12,7 @@ import {collectionMatchType, filterCollectionsForField} from "@/collectionFilter
 import {openAlexSdgs} from "@/sdgs";
 import {isListedInKey, listedInLabel} from "@/listedIn";
 import {getEntityConfig} from "@/entityConfigs";
-import {startingSetOqo} from "@/oqlPipeline";
+import {groupBySetOqo} from "@/oqlPipeline";
 import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
 import store from "@/store";
 import {edgeOn, edgeSupports, edgeRows} from "@/edgeAutocomplete";
@@ -343,8 +343,9 @@ const api = (function () {
         // request param, like all view params.
         // A pipeline query's calculations (#1536) stay out: the widget counts the
         // starting set's works, the same as for any other query, including a split's
-        // listed values (`by institution in (...)`, #1744; startingSetOqo).
-        return { ...startingSetOqo(oqo), group_by: [{ column_id: filterKey }] }
+        // listed values (`by institution in (...)`, #1744; startingSetOqo). A sample stays
+        // out too: the API refuses a sample with a group by (#2033; groupBySetOqo).
+        return { ...groupBySetOqo(oqo), group_by: [{ column_id: filterKey }] }
     }
     const GROUP_BY_PARAMS = { per_page: 200 }
 
