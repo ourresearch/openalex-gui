@@ -878,7 +878,7 @@ function assignFields(node, inherited, source, changes, ctx) {
     if (node.prox) {
       // PubMed "a b"[tiab:~N]: the phrase's words within N words of each other
       const words = node.v.split(/\s+/).filter(Boolean);
-      changes.add('proximity', node.raw, `within ${node.prox} words`, 'OpenAlex counts distance in word moves, so terms in reverse order must be up to 2 words closer');
+      changes.add('proximity', node.raw, `within ${node.prox} words`, 'OpenAlex counts the words between the terms, in either order');
       if (words.length >= 2) {
         return { k: 'near', a: { k: 'term', v: words[0], quoted: false, field: field || TAK }, b: { k: 'term', v: words.slice(1).join(' '), quoted: words.length > 2, field: field || TAK }, n: node.prox, raw: node.raw, field: field || TAK };
       }
@@ -1235,8 +1235,8 @@ function nearText(node, changes) {
   const phrase = node.ordered && n <= 1;
   if (!phrase) {
     const why = node.kind === 'ADJ'
-      ? `Ovid ${raw} allows ${n} word${n > 1 ? 's' : ''} between the terms; OpenAlex counts word moves, so terms in reverse order must be closer`
-      : 'OpenAlex counts distance in word moves, so terms in reverse order must be up to 2 words closer';
+      ? `Ovid ${raw} allows ${n} word${n > 1 ? 's' : ''} between the terms; OpenAlex counts the words between them, in either order`
+      : 'OpenAlex counts the words between the terms, in either order';
     changes.add('proximity', raw, `within ${n} words`, why);
   }
   if (node.ordered && !phrase) {
