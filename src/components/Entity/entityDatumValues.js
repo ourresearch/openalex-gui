@@ -54,3 +54,15 @@ export function stringItems(rawValue, { stripIdPrefix = false } = {}) {
       return String(v);
     });
 }
+
+/**
+ * The CRediT roles to show after an author's name on a work page (oxjob #2075):
+ * the authorship's `contributor_roles` (carried on each author item by the
+ * `authorships.author.id` extractFn), each with an id and a name. [] when the
+ * author has none, and then nothing shows.
+ */
+export function contributorRoleItems(item) {
+  const roles = item?.contributor_roles;
+  if (!Array.isArray(roles)) return [];
+  return roles.filter(r => r?.id && r?.display_name);
+}

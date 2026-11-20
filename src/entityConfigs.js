@@ -42,8 +42,7 @@ const entityConfigs = reactive({
             "primary_location.source.id",
             "parent_works.id",   // oxjob #2065: the works this work is part of (a chapter's book)
             "doi",
-            "authorships.author.id",
-            "authorships.contributor_roles.id",   // oxjob #2075: the CRediT roles its authors played
+            "authorships.author.id",   // each author's CRediT roles show after the name (oxjob #2075)
             "authorships.institutions.lineage",
             "language",
             null,
@@ -877,7 +876,9 @@ const entityConfigs = reactive({
         category: "people-orgs",
         descr: "The part an author played on a work: conceptualization, software, writing and more",
         placeholder: "Search contributor roles",
-        filterKey: "authorships.contributor_roles.id",
+        // No works filter on a role alone (the API has none: roles are read per
+        // authorship), so the page shows the role and its counts, with no works list.
+        filterKey: null,
         hasAutocomplete: false,
         isNative: false,
         rowsToShowOnEntityPage: [

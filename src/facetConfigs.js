@@ -447,12 +447,16 @@ const facetConfigs = function (entityType) {
             column: { render: { kind: "entityList", itemLabelField: "display_name", itemLinkField: "id" } },
             extractFn: (entity) => {
                 return entity.authorships.map(authorship => {
+                    // oxjob #2075: the CRediT roles this author played on the work, shown
+                    // after the name on the work page (EntityDatumRow). Empty for most.
+                    const contributor_roles = authorship.contributor_roles || [];
                     // If we have a full author object, return it with raw_author_name attached
                     if (authorship.author) {
                         return {
                             ...authorship.author,
                             // Include raw_author_name for display on entity pages
-                            raw_author_name: authorship.raw_author_name
+                            raw_author_name: authorship.raw_author_name,
+                            contributor_roles,
                         };
                     }
                     // If we only have raw_author_name, create a pseudo-object
@@ -461,7 +465,8 @@ const facetConfigs = function (entityType) {
                         return {
                             display_name: authorship.raw_author_name,
                             raw_author_name: authorship.raw_author_name,
-                            id: null // No ID means EntityDatumRow won't create a link
+                            id: null, // No ID means EntityDatumRow won't create a link
+                            contributor_roles,
                         };
                     }
                     // No author info at all
@@ -638,28 +643,6 @@ const facetConfigs = function (entityType) {
             // dropped because the config had no extractFn / column.render).
             column: { render: { kind: "stringList" } },
             extractFn: (entity) => entity.corresponding_author_ids || [],
-        },
-        {
-            // oxjob #2075: the CRediT roles the work's authors played, as the publisher
-            // tagged them per author (closed contributor-roles vocabulary). displayName
-            // must equal the registry display_name (label-consistency gate).
-            key: "authorships.contributor_roles.id",
-            entityToSelect: "contributor-roles",
-            entityToFilter: "works",
-            displayName: "contributor role",
-            type: "selectEntity",
-            displayNullAs: "Unknown",
-            category: "author",
-            actions: ["filter", "group_by"],
-            icon: "mdi-account-cog-outline",
-            // Every author's roles, once each (by id), in the order they first appear:
-            // the work page's "Contributor roles" row.
-            extractFn: (entity) => {
-                const seen = new Set();
-                return (entity.authorships || [])
-                    .flatMap((a) => a?.contributor_roles || [])
-                    .filter((role) => role?.id && !seen.has(role.id) && seen.add(role.id));
-            },
         },
         // works: open access
         {

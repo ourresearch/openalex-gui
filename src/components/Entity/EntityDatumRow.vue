@@ -23,6 +23,9 @@
         (e.g. a group author like "WHO Consultation") comes through with no id.
         Render it as text rather than a link that goes nowhere — and crucially,
         don't let it stop its neighbours from linking (oxjob #619).
+        After an author's name come the CRediT roles they played on the work, muted
+        (oxjob #2075): "Jialin Zhou (Conceptualization, Software), …". The roles span
+        has no whitespace between its tags, so nothing gaps inside the brackets.
       -->
       <template v-for="(entityObj, i) in valueEntityLinks" :key="(entityObj?.id || 'unlinked-' + i) + i">
         <router-link
@@ -30,11 +33,21 @@
           :to="filters.entityZoomLink(entityObj.id)"
           class="mr-1 pr-0"
         >
-          {{ entityObj?.raw_author_name || entityObj?.display_name || 'Unknown' }}{{ scorePercent(entityObj) }}{{ i + 1 < valueEntityLinks.length ? ", " : "" }}
+          {{ entityObj?.raw_author_name || entityObj?.display_name || 'Unknown' }}{{ scorePercent(entityObj) }}{{ valueEntityLinkRoles[i].length ? "" : listSeparator(i) }}
         </router-link>
         <span v-else class="mr-1 pr-0">
-          {{ entityObj?.raw_author_name || entityObj?.display_name || 'Unknown' }}{{ i + 1 < valueEntityLinks.length ? ", " : "" }}
+          {{ entityObj?.raw_author_name || entityObj?.display_name || 'Unknown' }}{{ valueEntityLinkRoles[i].length ? "" : listSeparator(i) }}
         </span>
+        <span
+          v-if="valueEntityLinkRoles[i].length"
+          class="contributor-roles text-medium-emphasis mr-1 pr-0"
+        >(<template
+          v-for="(role, j) in valueEntityLinkRoles[i]"
+          :key="role.id"
+        ><router-link
+          :to="filters.entityZoomLink(role.id)"
+          class="contributor-role"
+        >{{ role.display_name }}</router-link>{{ j + 1 < valueEntityLinkRoles[i].length ? ", " : "" }}</template>){{ listSeparator(i) }}</span>
       </template>
     </span>
 
@@ -275,6 +288,11 @@ const INSTITUTION_NARROWER_COUNT = {
 const valueEntityLinks = computed(() => {
   return entityDatumValues.entityLinkItems(rawValue.value);
 });
+// Each linked item's CRediT roles ([] for most; only a work's authors carry them).
+const valueEntityLinkRoles = computed(() =>
+  (valueEntityLinks.value || []).map(entityDatumValues.contributorRoleItems)
+);
+const listSeparator = (i) => (i + 1 < valueEntityLinks.value.length ? ", " : "");
 
 const valueListOfStrings = computed(() => {
   // isId arrays (e.g. authors' observed_orcids) carry full ID URLs; strip them
@@ -393,6 +411,14 @@ a {
   &:hover {
     text-decoration: underline;
   }
+}
+
+// oxjob #2075: an author's CRediT roles read as a quiet aside to the name.
+.contributor-roles {
+  font-size: 0.875em;
+}
+.contributor-role {
+  color: inherit;
 }
 
 .datum-clamp {

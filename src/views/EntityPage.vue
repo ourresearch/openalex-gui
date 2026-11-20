@@ -421,7 +421,7 @@
               :type="myEntityType"
               class="entity-metrics-block mb-3 pb-3"
             />
-            <template v-if="!isComponentEntity">
+            <template v-if="!isComponentEntity && hasWorksFilter">
               <group-by
                 v-for="groupByKey in groupByKeys"
                 :key="groupByKey"
@@ -513,8 +513,13 @@ const myEntityConfig = computed(() => myEntityType.value ? getEntityConfig(myEnt
 // from the details rows. Hide the works list + group-by rail for them.
 const isComponentEntity = computed(() => myEntityConfig.value?.entityClass === 'component');
 
+// An entity with no works filter (contributor roles, oxjob #2075: the API reads a
+// role per authorship, never on its own) has no works list or works group-bys;
+// its page is the details card and the counts.
+const hasWorksFilter = computed(() => !!myEntityConfig.value?.filterKey);
+
 const myWorksFilter = computed(() => {
-  if (!myEntityConfig.value) return null;
+  if (!myEntityConfig.value || !hasWorksFilter.value) return null;
   // For repository sources, use locations.source.id to show all works
   // where this repo appears in any location (not just primary)
   const isRepository = myEntityType.value === 'sources' && entityData.value?.type === 'repository';
@@ -614,7 +619,7 @@ const hasSidebar = computed(() => showEntityPageStats.value && !isComponentEntit
 
 // The works list, under the details card. An award with no funded works has none.
 const showWorksList = computed(() => {
-  if (isComponentEntity.value) return false;
+  if (isComponentEntity.value || !hasWorksFilter.value) return false;
   if (isAward.value) return (entityData.value?.funded_outputs_count || 0) > 0;
   return true;
 });
@@ -799,6 +804,7 @@ async function fetchWorksPage(page) {
   if (myEntityType.value === 'works') return null;
   if (!myEntityConfig.value) return null;
   if (isComponentEntity.value) return null; // no works rollup (oxjob #852)
+  if (!hasWorksFilter.value) return null;
   if (!showEntityPageStats.value) return null;
 
   const filterString = filtersAsUrlStr([myWorksFilter.value]);

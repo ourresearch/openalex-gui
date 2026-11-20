@@ -39,7 +39,10 @@ const filters = {
     const entityType = openalexId.getEntityType(id);
     if (!id || !entityType) { return; }
     const shortId = openalexId.getShortId(id);
-    const filterKey = filterKeyOverride || entityConfigs[entityType].filterKey;
+    const filterKey = filterKeyOverride || entityConfigs[entityType]?.filterKey;
+    // No works filter for this entity (contributor roles, oxjob #2075): the count
+    // shows as plain text.
+    if (!filterKey) { return; }
     const filter = createSimpleFilter(
       "works",
       filterKey,
