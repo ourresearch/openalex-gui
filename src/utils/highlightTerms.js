@@ -11,8 +11,9 @@ const WORD_RUN = /[\p{L}\p{N}]+/gu;
 const NON_WORD_GAP = /^[^\p{L}\p{N}]{0,3}$/u; // "supérieure de Lyon", "Lyon, France": one mark
 const SHORT = 2; // "de", "of", "la": marked only next to another searched word, else French bios light up
 
-// Letters NFD does not split but Elasticsearch's asciifolding does.
-const EXTRA_FOLD = {
+// Letters NFD does not split but Elasticsearch's asciifolding does. Shared with the
+// add-works name matcher (AuthorCuration/nameScripts.js).
+export const EXTRA_FOLD = {
   'ł': 'l', 'ø': 'o', 'ß': 'ss', 'æ': 'ae', 'œ': 'oe', 'đ': 'd', 'ð': 'd', 'þ': 'th',
   'ı': 'i', 'ħ': 'h', 'ŀ': 'l', 'ŧ': 't', 'ŋ': 'n',
 };

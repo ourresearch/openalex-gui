@@ -203,6 +203,7 @@ import {
   MIN_TITLE_SEARCH_WORDS,
   findMatchedAuthorshipCascade,
 } from './addWorksSearch.helpers.js';
+import { hasNonLatinLetters } from './nameScripts.js';
 
 defineOptions({ name: 'AddWorksSearch' });
 
@@ -214,6 +215,12 @@ const props = defineProps({
   authorId: {
     type: String,
     default: '',
+  },
+  // The profile's display_name_alternatives: the matcher's last resort
+  // when the display name itself matches no byline (oxjob #1562).
+  authorNameAlternatives: {
+    type: Array,
+    default: () => [],
   },
 });
 
@@ -342,6 +349,16 @@ function transformWork(work, source) {
   let useIdx;
   if (source === 'name') {
     useIdx = findMatchedAuthorship(work, matchName);
+    // A name typed in a non-Latin script (oxjob #1562): Russian and
+    // Chinese bylines often put the family name first, which the strict
+    // surname-last rule never matches. Allow the cascade's strict and
+    // initials tiers too (each accepted only on a unique hit), never its
+    // any-token overlap. Latin names keep #187's strict gate: the ladder's
+    // widened phrases ("j priem") pull in look-alike co-authors that only
+    // the strict rule keeps out.
+    if (useIdx < 0 && hasNonLatinLetters(matchName)) {
+      useIdx = findMatchedAuthorshipCascade(work, matchName, { maxTier: 3 });
+    }
     if (useIdx < 0) return null;
   } else {
     // oxjob #882: never guess. The old `if (useIdx < 0) useIdx = 0`
@@ -351,7 +368,9 @@ function transformWork(work, source) {
     // cascade tries progressively looser name rules (comma orderings,
     // initials, token overlap), each accepted only on a UNIQUE hit;
     // when it can't decide (-1) we refuse to attach and drop the row.
-    useIdx = findMatchedAuthorshipCascade(work, props.authorName);
+    useIdx = findMatchedAuthorshipCascade(work, props.authorName, {
+      alternatives: props.authorNameAlternatives,
+    });
     if (useIdx < 0) return null;
   }
   const a = work.authorships[useIdx];

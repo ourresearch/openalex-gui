@@ -298,6 +298,8 @@ onBeforeUnmount(() => stopLoadingMessages());
 
 const props = defineProps({
   authorName: String,
+  // display_name_alternatives: the matcher's fallback (oxjob #1562).
+  authorNameAlternatives: { type: Array, default: () => [] },
   authorId: String,
 });
 
@@ -357,7 +359,9 @@ function handleDrop(event) {
 // which assumed comma = family-name-first (the CNRS-076 bug class).
 function findCandidateAuthorships(work) {
   if (!work.authorships || work.authorships.length === 0) return [];
-  const d = findMatchedAuthorshipCascadeDetail(work, props.authorName);
+  const d = findMatchedAuthorshipCascadeDetail(work, props.authorName, {
+    alternatives: props.authorNameAlternatives,
+  });
   const score = d.idx >= 0 ? 1 : 0.6;
   return d.candidateIdxs.map(idx => ({
     idx,

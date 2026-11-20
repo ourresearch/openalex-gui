@@ -2,6 +2,13 @@
 // can be unit-tested without mounting the component (see
 // src/__tests__/addWorksSearch.helpers.test.js).
 
+import {
+  foldName,
+  hasNonLatinLetters,
+  romanizations,
+  spellingKey,
+} from './nameScripts.js';
+
 // English function words that never appear in real personal names. Used to
 // disqualify queries like "the state of oa" from the name-ladder path.
 // Without this, `looksLikePersonName` passes those queries on the 2-4
@@ -21,12 +28,20 @@ const NAME_STOPWORDS = new Set([
 // dropped it on the wrong theory that quoted-phrase scoping made it
 // redundant — restored 2026-05-25 after Kyle / @jason hit false-positive
 // authorships in prod.
+//
+// Letters of every script survive (oxjob #1562): Latin accents fold away
+// as before, but Cyrillic, Greek, CJK and other letters are kept as typed,
+// so a non-Latin name has tokens to search and match on. Before #1562 only
+// a-z survived and a Cyrillic name tokenized to [].
 export function nameTokens(name) {
-  let n = (name || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z, ]/g, '')
+  let n = foldName(name)
+    // Any space (no-break, ideographic) separates words; a full-width
+    // comma (CJK) is a comma.
+    .replace(/\s+/g, ' ')
+    .replace(/，/g, ',')
+    // Modifier letters (ʼ ʻ ˈ, U+02B0-02FF) are apostrophes and accents in
+    // Latin names ("OʼNeill"): drop them like any other punctuation.
+    .replace(/[^\p{L}\p{M}, ]|[\u02b0-\u02ff]/gu, '')
     .replace(/\s+/g, ' ')
     .trim();
   if (n.includes(',')) {
@@ -342,11 +357,11 @@ export function nameTokenVariants(name) {
 
 // The strict rule of `authorshipMatches`, expressed over token arrays so
 // it can be applied to any ordering variant pair.
-function tokensStrictMatch(qT, cT) {
+function tokensStrictMatch(qT, cT, given = givenMatch) {
   if (!qT.length || !cT.length) return false;
   if (qT[qT.length - 1] !== cT[cT.length - 1]) return false;
   if (qT.length === 1) return true;
-  return givenMatch(qT[0], cT[0]);
+  return given(qT[0], cT[0]);
 }
 
 // Tier-3 rule. Position-free within the candidate: the query surname
@@ -354,7 +369,7 @@ function tokensStrictMatch(qT, cT) {
 // remaining query token must full- or initial-match a DISTINCT remaining
 // candidate token. A candidate reduced to only the surname passes (e.g.
 // byline "Lemoine"). Extra unmatched candidate tokens are allowed.
-function tokensInitialsMatch(qT, cT) {
+function tokensInitialsMatch(qT, cT, given = givenMatch) {
   if (!qT.length || !cT.length) return false;
   const surname = qT[qT.length - 1];
   const si = cT.indexOf(surname);
@@ -366,7 +381,7 @@ function tokensInitialsMatch(qT, cT) {
   for (const g of givens) {
     let found = -1;
     for (let i = 0; i < rest.length; i++) {
-      if (!used[i] && givenMatch(g, rest[i])) { found = i; break; }
+      if (!used[i] && given(g, rest[i])) { found = i; break; }
     }
     if (found < 0) return false;
     used[found] = true;
@@ -383,8 +398,8 @@ function tokensOverlapMatch(qT, cT) {
 
 // Returns the index of the ONE authorship the cascade confidently
 // identifies as `queryName`, or -1 (no confident match / ambiguous).
-export function findMatchedAuthorshipCascade(work, queryName) {
-  return findMatchedAuthorshipCascadeDetail(work, queryName).idx;
+export function findMatchedAuthorshipCascade(work, queryName, opts) {
+  return findMatchedAuthorshipCascadeDetail(work, queryName, opts).idx;
 }
 
 // Same as `findMatchedAuthorshipCascade`, but also reports WHICH tier
@@ -394,46 +409,233 @@ export function findMatchedAuthorshipCascade(work, queryName) {
 // single winner for tiers 1-4, ALL tied slots for 'ambiguous' (so a
 // caller with a manual-pick UI — the CV-upload path — can offer exactly
 // those), and [] for 'none'. Also used by #882 corpus-audit tooling.
-export function findMatchedAuthorshipCascadeDetail(work, queryName) {
+//
+// Order of the rules (oxjob #1562 added the `via` ones):
+//   1-3. The #882 strict, comma-order and initials tiers on the names as
+//        written.
+//   2-3, via 'spelling'. The same strict and initials rules across
+//        scripts: a name and a byline of which at least one is not in
+//        Latin letters are compared as romanized `spellingKey`s, with
+//        initials split ("I.A." -> "i a") and, for non-Latin names, the
+//        family name tried first or last. This is what lets "A. S.
+//        Ivanova" find "Иванова Анна Сергеевна". Two Latin names are never
+//        compared this way (the key would merge Liu and Lu).
+//   4.   The #882 any-token overlap on the names as written. It comes after
+//        the spelling tiers so that a shared given name in one script can't
+//        win over a full match in another.
+//   then, via 'alternatives': the profile's other names
+//        (`opts.alternatives`, its display_name_alternatives), only if
+//        everything above found nothing. Each tier is tried across all of
+//        them (strict, initials, then the two spelling tiers; never the
+//        overlap; one-word Latin names skipped) and the first tier that
+//        hits decides: one slot or refuse. This covers scripts with no
+//        romanization here (Chinese, Japanese, Arabic...) and name changes.
+// Every tier after the first is uniqueness-gated. An ambiguous answer is a
+// refusal, never handed to a later rule. `opts.maxTier` (default 4) drops
+// the tiers above it.
+export function findMatchedAuthorshipCascadeDetail(work, queryName, opts) {
+  const { alternatives = [], maxTier = 4 } = opts || {};
   const auths = work.authorships || [];
-  if (!auths.length) return { idx: -1, tier: 'none', candidateIdxs: [] };
   const qVariants = nameTokenVariants(queryName);
-  if (!qVariants.length) return { idx: -1, tier: 'none', candidateIdxs: [] };
+  if (!auths.length || !qVariants.length) return noMatch();
 
   // Tier 1 — today's strict rule, first hit wins.
   const strictIdx = findMatchedAuthorship(work, queryName);
   if (strictIdx >= 0) return { idx: strictIdx, tier: 1, candidateIdxs: [strictIdx] };
 
-  const candVariants = auths.map(a =>
-    nameTokenVariants(a.raw_author_name || a.author?.display_name || '')
-  );
+  const names = auths.map(authorshipName);
+  const candVariants = names.map(nameTokenVariants);
+  const cross = crossScriptKeys(names);
+  const qKeys = cross.keysFor(queryName);
 
-  const tierPredicates = [
+  const r = runGatedTiers(names.length, [
     // Tier 2 — strict rule over every (query, candidate) ordering pair.
-    i => qVariants.some(q =>
-      candVariants[i].some(c => tokensStrictMatch(q, c))
-    ),
+    { tier: 2, pred: i => pairs(qVariants, candVariants[i], tokensStrictMatch) },
     // Tier 3 — initials, position-free (token multiset; ordering variant
     // of the candidate is irrelevant, so use the first).
-    i => candVariants[i].length > 0 && qVariants.some(q =>
-      tokensInitialsMatch(q, candVariants[i][0])
-    ),
+    { tier: 3, pred: i => candVariants[i].length > 0 &&
+      pairs(qVariants, [candVariants[i][0]], tokensInitialsMatch) },
+    ...spellingTiers(qKeys, cross),
     // Tier 4 — any full-token overlap (both sides order-free).
-    i => candVariants[i].length > 0 &&
-      tokensOverlapMatch(qVariants[0], candVariants[i][0]),
-  ];
+    { tier: 4, pred: i => candVariants[i].length > 0 &&
+      tokensOverlapMatch(qVariants[0], candVariants[i][0]) },
+  ].filter(t => t.tier <= maxTier));
+  if (r) return verdict(r);
 
-  for (let t = 0; t < tierPredicates.length; t++) {
-    const pred = tierPredicates[t];
-    const hits = [];
-    for (let i = 0; i < auths.length; i++) {
-      if (pred(i)) hits.push(i);
-    }
-    // 2+ hits at a loose tier: the tier can't tell WHICH slot is the
-    // claimant, and every looser tier is a superset — refuse outright,
-    // but hand back the tied slots for callers with a manual-pick UI.
-    if (hits.length >= 2) return { idx: -1, tier: 'ambiguous', candidateIdxs: hits };
-    if (hits.length === 1) return { idx: hits[0], tier: t + 2, candidateIdxs: hits };
-  }
+  return alternativesVerdict(alternatives, queryName, candVariants, cross);
+}
+
+function noMatch() {
   return { idx: -1, tier: 'none', candidateIdxs: [] };
 }
+
+function authorshipName(a) {
+  return a.raw_author_name || a.author?.display_name || '';
+}
+
+function pairs(qs, cs, rule) {
+  return qs.some(q => cs.some(c => rule(q, c)));
+}
+
+// Run uniqueness-gated tiers in order. Returns the first tier that hit
+// anything as `{ hits, tier, via }` (1 hit = match, 2+ = ambiguous), or
+// null.
+function runGatedTiers(n, tiers) {
+  for (const { tier, via, pred } of tiers) {
+    const hits = [];
+    for (let i = 0; i < n; i++) {
+      if (pred(i)) hits.push(i);
+    }
+    if (hits.length) return { hits, tier, via };
+  }
+  return null;
+}
+
+// 2+ hits at a loose tier: the tier can't tell WHICH slot is the
+// claimant, and every looser tier is a superset — refuse outright, but
+// hand back the tied slots for callers with a manual-pick UI. `via`
+// (#1562's rules only) names the rule that decided.
+function verdict({ hits, tier, via }) {
+  const v = hits.length >= 2
+    ? { idx: -1, tier: 'ambiguous', candidateIdxs: hits }
+    : { idx: hits[0], tier, candidateIdxs: hits };
+  return via ? { ...v, via } : v;
+}
+
+// Spelling keys of a work's bylines, computed only where a cross-script
+// comparison can use them: every byline when the name being matched is
+// non-Latin, else only the non-Latin bylines. A Latin owner looking at a
+// Latin-only work pays nothing here.
+function crossScriptKeys(names) {
+  const nonLatin = names.map(hasNonLatinLetters);
+  const all = [];
+  const some = names.map((n, i) => (nonLatin[i] ? spellingVariants(n) : []));
+  return {
+    n: names.length,
+    keysFor(name) {
+      const latin = !hasNonLatinLetters(name);
+      if (latin && !nonLatin.some(Boolean)) return null;
+      return { keys: spellingVariants(name), latin };
+    },
+    cand(i, latinQuery) {
+      if (latinQuery) return some[i];
+      if (!all[i]) all[i] = spellingVariants(names[i]);
+      return all[i];
+    },
+  };
+}
+
+// The strict and initials rules over spelling keys, across scripts only.
+function spellingTiers(q, cross) {
+  if (!q) return [];
+  const c = i => cross.cand(i, q.latin);
+  return [
+    { tier: 2, via: 'spelling', pred: i => pairs(q.keys, c(i), tokensStrictMatchLoose) },
+    { tier: 3, via: 'spelling', pred: i => pairs(q.keys, c(i), tokensInitialsMatchLoose) },
+  ];
+}
+
+// A reading of an alternative name the matcher may use: its family name
+// (last token) is not a lone initial ("Poedts, S." read literally would
+// make "s" the family name and match any "S. P. Ahlen"), and it is not a
+// lone Latin word ("Smith" names half the field; a one-word name in
+// another script, "张伟", is usually a full name).
+function usableAltReading(tokens, nonLatin) {
+  const family = tokens[tokens.length - 1] || '';
+  if ([...family].length < 2) return false;
+  return tokens.length >= 2 || nonLatin;
+}
+
+// The profile's other names: tier by tier across all of them, the first
+// tier with any hit decides, one slot or refuse.
+function alternativesVerdict(alternatives, queryName, candVariants, cross) {
+  const self = foldName(queryName).trim();
+  const alts = [...new Set(alternatives || [])]
+    .filter(a => a && foldName(a).trim() !== self)
+    .map(a => {
+      const nonLatin = hasNonLatinLetters(a);
+      const q = cross.keysFor(a);
+      return {
+        script: nameTokenVariants(a).filter(v => usableAltReading(v, nonLatin)),
+        q: q && { ...q, keys: q.keys.filter(v => usableAltReading(v, nonLatin)) },
+      };
+    })
+    .filter(a => a.script.length);
+  if (!alts.length) return noMatch();
+  const levels = [
+    { tier: 1, pred: (a, i) => pairs(a.script, candVariants[i], tokensStrictMatch) },
+    { tier: 3, pred: (a, i) => pairs(a.script, candVariants[i], tokensInitialsMatch) },
+    ...[2, 3].map(tier => ({
+      tier,
+      pred: (a, i) => !!a.q && pairs(a.q.keys, cross.cand(i, a.q.latin),
+        tier === 2 ? tokensStrictMatchLoose : tokensInitialsMatchLoose),
+    })),
+  ];
+  for (const { tier, pred } of levels) {
+    const union = new Set();
+    for (const a of alts) {
+      for (let i = 0; i < cross.n; i++) {
+        if (pred(a, i)) union.add(i);
+      }
+    }
+    if (union.size) {
+      const hits = [...union].sort((x, y) => x - y);
+      return verdict({ hits, tier, via: 'alternatives' });
+    }
+  }
+  return noMatch();
+}
+
+// ---------------------------------------------------------------------------
+// Spelling-insensitive name variants (oxjob #1562).
+
+// Co-authors and the profile's own names repeat across every work in a
+// search, so variants are memoized. shortcut: cleared wholesale past
+// 20K names; a real LRU only if dialogs ever see far more distinct names.
+const spellingMemo = new Map();
+
+// Every token list a name can be read as, reduced to spelling keys:
+// both comma readings, every romanization (one scheme per variant, since
+// a real byline uses one scheme throughout), and for names written in a
+// non-Latin script also the first token moved last (Russian, Chinese and
+// other bylines often put the family name first: "Иванова Анна
+// Сергеевна"). Initials joined by dots are split first.
+export function spellingVariants(name) {
+  const key = name || '';
+  let v = spellingMemo.get(key);
+  if (v) return v;
+  const nonLatin = hasNonLatinLetters(key);
+  const lists = [];
+  for (const toks of nameTokenVariants(key.replace(/\./g, '. '))) {
+    const perToken = toks.map(romanizations);
+    const schemes = Math.max(...perToken.map(r => r.length));
+    for (let s = 0; s < schemes; s++) {
+      const keys = perToken
+        .map(r => spellingKey(r[Math.min(s, r.length - 1)]))
+        .filter(Boolean);
+      lists.push(keys);
+      if (nonLatin && keys.length >= 2) lists.push([...keys.slice(1), keys[0]]);
+    }
+  }
+  v = [...new Map(lists.filter(l => l.length).map(l => [l.join(' '), l])).values()];
+  if (spellingMemo.size > 20000) spellingMemo.clear();
+  spellingMemo.set(key, v);
+  return v;
+}
+
+// An initial is one letter of a key, or one of the two-letter keys a
+// single letter romanizes to: Ю/Yu -> "iu", Я/Ya -> "ia", Ξ/X -> "ks",
+// Ψ -> "ps". Never a two-letter name like "Al" or "Bo".
+const TWO_LETTER_INITIALS = new Set(['iu', 'ia', 'ks', 'ps']);
+const isInitialKey = t => t.length === 1 || TWO_LETTER_INITIALS.has(t);
+
+function givenMatchLoose(a, b) {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  if (isInitialKey(a) && a.length < b.length && b.startsWith(a)) return true;
+  if (isInitialKey(b) && b.length < a.length && a.startsWith(b)) return true;
+  return false;
+}
+
+const tokensStrictMatchLoose = (q, c) => tokensStrictMatch(q, c, givenMatchLoose);
+const tokensInitialsMatchLoose = (q, c) => tokensInitialsMatch(q, c, givenMatchLoose);

@@ -360,6 +360,7 @@
                 v-model="worksCuration.searchOpen.value"
                 mode="search"
                 :author-name="entityData.display_name"
+                :author-name-alternatives="entityData.display_name_alternatives || []"
                 :author-id="entityData.id"
                 @add-work="worksCuration.onAddWork"
               />
@@ -367,6 +368,7 @@
                 v-model="worksCuration.cvOpen.value"
                 mode="cv"
                 :author-name="entityData.display_name"
+                :author-name-alternatives="entityData.display_name_alternatives || []"
                 :author-id="entityData.id"
                 @add-work="worksCuration.onAddWork"
               />

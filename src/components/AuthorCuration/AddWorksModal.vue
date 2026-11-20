@@ -13,6 +13,7 @@
       <v-card-text v-if="mode === 'search'" class="pa-0">
         <AddWorksSearch
           :author-name="authorName"
+          :author-name-alternatives="authorNameAlternatives"
           :author-id="authorId"
           @add-work="(p) => $emit('add-work', p)"
           @done="dialogOpen = false"
@@ -25,6 +26,7 @@
       >
         <AddWorksCVUpload
           :author-name="authorName"
+          :author-name-alternatives="authorNameAlternatives"
           :author-id="authorId"
           @add-work="(p) => $emit('add-work', p)"
         />
@@ -44,6 +46,7 @@ const props = defineProps({
   modelValue: { type: Boolean, default: false },
   mode: { type: String, default: 'search' }, // 'search' | 'cv'
   authorName: { type: String, default: '' },
+  authorNameAlternatives: { type: Array, default: () => [] },
   authorId: { type: String, default: '' },
 });
 

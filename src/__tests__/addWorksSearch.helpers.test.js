@@ -656,3 +656,251 @@ describe('findMatchedAuthorshipCascade', () => {
     expect(findMatchedAuthorshipCascade(work, 'L. Lemoine')).toBe(-1);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Bylines in other scripts and spellings (oxjob #1562)
+
+import {
+  spellingVariants,
+} from '../components/AuthorCuration/addWorksSearch.helpers.js';
+import {
+  foldName,
+  hasNonLatinLetters,
+  romanizations,
+  spellingKey,
+} from '../components/AuthorCuration/nameScripts.js';
+
+// Fictional records shaped like real ones.
+// W_CYRILLIC: one authorship, the full Russian name in Cyrillic.
+const W_CYRILLIC = {
+  id: 'W_CYRILLIC',
+  authorships: [mkAuthorship('Иванова Анна Сергеевна')],
+};
+// W_LATIN: the same author on a preprint, Latin bylines, family name first.
+const W_LATIN = {
+  id: 'W_LATIN',
+  authorships: [
+    mkAuthorship('Petrov Ivan, N.'),
+    mkAuthorship('Ivanova Anna, S.'),
+    mkAuthorship('Sidorova Olga, V.'),
+  ],
+};
+
+describe('nameTokens keeps letters of every script', () => {
+  it('keeps Cyrillic, Greek and CJK letters as typed', () => {
+    expect(nameTokens('Иванова Анна Сергеевна'))
+      .toEqual(['иванова', 'анна', 'сергеевна']);
+    // й and Greek accents stay: the API's phrase search does not fold them.
+    expect(nameTokens('Сергей Иванов')).toEqual(['сергей', 'иванов']);
+    expect(nameTokens('Γεώργιος Παπαδόπουλος'))
+      .toEqual(['γεώργιος', 'παπαδόπουλος']);
+    expect(nameTokens('张伟')).toEqual(['张伟']);
+  });
+
+  it('folds Latin letters that NFD leaves alone instead of dropping them', () => {
+    expect(nameTokens('Łukasz Kowalski')).toEqual(['lukasz', 'kowalski']);
+    expect(nameTokens('Nguyễn Đức')).toEqual(['nguyen', 'duc']);
+    expect(nameTokens('Øystein Ørsted')).toEqual(['oystein', 'orsted']);
+  });
+
+  it('drops modifier-letter apostrophes like any punctuation', () => {
+    expect(nameTokens('Desmond OʼNeill')).toEqual(nameTokens('Desmond O’Neill'));
+  });
+
+  it('any space separates words; a full-width comma is a comma', () => {
+    expect(nameTokens('Иванова Анна')).toEqual(['иванова', 'анна']);
+    expect(nameTokens('山田　太郎')).toEqual(['山田', '太郎']);
+    expect(nameTokens('山田，太郎')).toEqual(['太郎', '山田']);
+  });
+
+  it('a Cyrillic name now builds a name-ladder search', () => {
+    const urls = buildSearchUrls('Иванова Анна Сергеевна', 'A123', 'https://api.openalex.org');
+    expect(urls.ladderStep1Url).toContain(
+      encodeURIComponent('"иванова анна сергеевна"')
+    );
+  });
+});
+
+describe('nameScripts', () => {
+  it('foldName strips Latin accents only', () => {
+    expect(foldName('Larivière')).toBe('lariviere');
+    expect(foldName('Йошкар')).toBe('йошкар');
+  });
+
+  it('hasNonLatinLetters', () => {
+    expect(hasNonLatinLetters('A. S. Ivanova')).toBe(false);
+    expect(hasNonLatinLetters('Nguyễn Đức')).toBe(false);
+    // The modifier apostrophe is a letter, but not a non-Latin one.
+    expect(hasNonLatinLetters('Desmond OʼNeill')).toBe(false);
+    expect(hasNonLatinLetters('Иванова')).toBe(true);
+    expect(hasNonLatinLetters('张伟')).toBe(true);
+  });
+
+  it('romanizes Cyrillic under Russian and Ukrainian conventions', () => {
+    expect(romanizations('гаврилова')).toEqual(['gavrilova', 'havrilova']);
+    expect(romanizations('priem')).toEqual(['priem']);
+  });
+
+  it('spellingKey: the common romanizations of one name agree', () => {
+    const keys = ['pokrovskiy', 'pokrovskii', 'pokrovsky', 'pokrovskij', 'pokrovski']
+      .map(spellingKey);
+    expect(new Set(keys).size).toBe(1);
+    expect(spellingKey('yuri')).toBe(spellingKey('iurii'));
+    expect(spellingKey('natalya')).toBe(spellingKey('nataliia'));
+    expect(spellingKey('khabarov')).toBe(spellingKey('habarov'));
+    expect(spellingKey('aleksandr')).toBe(spellingKey('alexandr'));
+    expect(spellingKey('sergeyevich')).toBe(spellingKey('sergeevich'));
+    expect(spellingKey('comoutos')).toBe(spellingKey('komoutos'));
+  });
+
+  it('spellingKey keeps distinct names apart', () => {
+    expect(spellingKey('chang')).not.toBe(spellingKey('kang'));
+    expect(spellingKey('tsai')).not.toBe(spellingKey('kai'));
+    expect(spellingKey('liu')).not.toBe(spellingKey('lu'));
+    expect(spellingKey('tian')).not.toBe(spellingKey('tan'));
+  });
+
+  it('spellingKey keeps the first letter so initials still line up', () => {
+    expect(spellingKey('yuri')[0]).toBe('i');
+    expect(spellingKey('inna')[0]).toBe('i');
+  });
+
+  it('spellingVariants: family-first order tried for non-Latin names only', () => {
+    expect(spellingVariants('Иванова Анна Сергеевна')).toContainEqual(
+      ['ana', 'sergevna', 'ivanova']
+    );
+    expect(spellingVariants('Jason Priem')).toEqual([['iason', 'prem']]);
+    // Joined initials split: "A.S." reads as two initials.
+    expect(spellingVariants('A.S. IVANOVA')).toEqual([['a', 's', 'ivanova']]);
+  });
+});
+
+describe('cascade across scripts (oxjob #1562)', () => {
+  it('"A. S. Ivanova" finds her full Cyrillic byline', () => {
+    expect(findMatchedAuthorshipCascadeDetail(W_CYRILLIC, 'A. S. Ivanova'))
+      .toEqual({ idx: 0, tier: 2, candidateIdxs: [0], via: 'spelling' });
+  });
+
+  it('and the other way round: a Cyrillic profile name finds her Latin byline', () => {
+    expect(findMatchedAuthorshipCascade(W_LATIN, 'Иванова Анна Сергеевна'))
+      .toBe(1);
+  });
+
+  it('a Cyrillic profile name still matches its own Cyrillic byline exactly', () => {
+    expect(findMatchedAuthorshipCascadeDetail(W_CYRILLIC, 'Иванова Анна Сергеевна'))
+      .toEqual({ idx: 0, tier: 1, candidateIdxs: [0] });
+  });
+
+  it('a full match in another script beats a shared given name in the same one', () => {
+    const work = mkWork('Анна Петрова', 'A. S. Ivanova');
+    expect(findMatchedAuthorshipCascade(work, 'Иванова Анна Сергеевна')).toBe(1);
+  });
+
+  it('Greek, Ukrainian and Russian initials', () => {
+    expect(findMatchedAuthorshipCascade(
+      mkWork('Nikos Georgiou', 'Χρήστος Παπαδόπουλος'), 'Hristos Papadopoulos'
+    )).toBe(1);
+    expect(findMatchedAuthorshipCascade(
+      mkWork('Χαράλαμπος Ευαγγέλου'), 'Haralambos Evangelou'
+    )).toBe(0);
+    // Greek κ written as c.
+    expect(findMatchedAuthorshipCascade(
+      mkWork('Παπαστεργίου , Μαρίνα', 'Κομούτος , Νικόλαος'), 'Nikolaos Comoutos'
+    )).toBe(1);
+    expect(findMatchedAuthorshipCascade(
+      mkWork('Григорій Шевченко'), 'Hryhorii Shevchenko'
+    )).toBe(0);
+    expect(findMatchedAuthorshipCascade(
+      mkWork('Petrov P.', 'Ю. А. Иванов'), 'Yuri Ivanov'
+    )).toBe(1);
+  });
+
+  it('two Latin names are never compared by spelling key', () => {
+    expect(findMatchedAuthorshipCascade(
+      mkWork('Ivanov A.', 'Pokrovsky D.'), 'Dmitriy Pokrovskiy'
+    )).toBe(-1);
+    expect(findMatchedAuthorshipCascade(mkWork('Hao Lu'), 'Wei Liu')).toBe(-1);
+    expect(findMatchedAuthorshipCascade(mkWork('Bob Smyth'), 'Alice Smith')).toBe(-1);
+  });
+
+  it('a two-letter given name is not an initial', () => {
+    expect(findMatchedAuthorshipCascade(mkWork('Алиса Смит'), 'Al Smith')).toBe(-1);
+  });
+
+  it('never overrides an answer the exact cascade gives', () => {
+    // The same person listed twice, in English and Russian: the exact
+    // cascade picks the Latin seat, as it did before #1562.
+    const doubled = mkWork('Ivanova Anna S.', 'Иванова Анна Сергеевна');
+    expect(findMatchedAuthorshipCascadeDetail(doubled, 'A. S. Ivanova'))
+      .toEqual({ idx: 0, tier: 3, candidateIdxs: [0] });
+    // An ambiguous exact answer stays a refusal.
+    const twoLemoines = mkWork('Bob Lemoine', 'Ann Lemoine', 'Лемуан Л.');
+    expect(findMatchedAuthorshipCascadeDetail(twoLemoines, 'Laureline Lemoine').tier)
+      .toBe('ambiguous');
+  });
+
+  it('refuses when two slots match across scripts', () => {
+    const work = mkWork('Иванов И.', 'Иванов И. П.');
+    const d = findMatchedAuthorshipCascadeDetail(work, 'Ivan Ivanov');
+    expect(d).toEqual({ idx: -1, tier: 'ambiguous', candidateIdxs: [0, 1], via: 'spelling' });
+  });
+
+  it('never matches across scripts on a shared word alone', () => {
+    expect(findMatchedAuthorshipCascade(W_CYRILLIC, 'Anna Smirnova')).toBe(-1);
+    const work = mkWork('Пётр Иванов', 'Anna Ivanova-Smirnova');
+    expect(findMatchedAuthorshipCascade(work, 'Anna Ivanova', { maxTier: 3 })).toBe(-1);
+  });
+
+  it('nothing in common is still none', () => {
+    expect(findMatchedAuthorshipCascadeDetail(W_CYRILLIC, 'Jason Priem'))
+      .toEqual({ idx: -1, tier: 'none', candidateIdxs: [] });
+  });
+});
+
+describe('cascade falls back to the profile\'s other names (oxjob #1562)', () => {
+  it('matches a Chinese byline through display_name_alternatives', () => {
+    const work = mkWork('李娜', '张伟');
+    expect(findMatchedAuthorshipCascade(work, 'Wei Zhang')).toBe(-1);
+    expect(findMatchedAuthorshipCascadeDetail(work, 'Wei Zhang', {
+      alternatives: ['Wei Zhang', 'Zhang Wei', '张伟'],
+    })).toEqual({ idx: 1, tier: 1, candidateIdxs: [1], via: 'alternatives' });
+  });
+
+  it('matches a former name', () => {
+    const work = mkWork('A. Coauthor', 'M. Smith');
+    expect(findMatchedAuthorshipCascade(work, 'Mary Doe')).toBe(-1);
+    expect(findMatchedAuthorshipCascade(work, 'Mary Doe', {
+      alternatives: ['M. Doe', 'Mary Smith'],
+    })).toBe(1);
+  });
+
+  it('refuses when the other names point at two different slots', () => {
+    const work = mkWork('张伟', '李娜');
+    const d = findMatchedAuthorshipCascadeDetail(work, 'Wei Zhang', {
+      alternatives: ['张伟', '李娜'],
+    });
+    expect(d).toEqual({ idx: -1, tier: 'ambiguous', candidateIdxs: [0, 1], via: 'alternatives' });
+  });
+
+  it('skips one-word Latin names and initials read as family names', () => {
+    const work = mkWork('Bob Smith', 'S. P. Ahlen');
+    expect(findMatchedAuthorshipCascade(work, 'Stefan Poe', {
+      alternatives: ['Smith', 'Poe, S.'],
+    })).toBe(-1);
+  });
+
+  it('never uses the any-token overlap for other names', () => {
+    // "Anna Petrova" shares only the given name with an alternative.
+    const work = mkWork('Anna Petrova', '王芳');
+    expect(findMatchedAuthorshipCascade(work, 'Wei Zhang', {
+      alternatives: ['Anna Ivanova'],
+    })).toBe(-1);
+  });
+
+  it('is not consulted when the display name already decided', () => {
+    const work = mkWork('Jason Priem', 'Heather Piwowar');
+    expect(findMatchedAuthorshipCascade(work, 'Jason Priem', {
+      alternatives: ['Heather Piwowar'],
+    })).toBe(0);
+  });
+});
