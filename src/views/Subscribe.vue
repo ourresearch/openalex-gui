@@ -62,8 +62,8 @@
         your data in OpenAlex, your open-data strategy or how you'd like to use OpenAlex, and to take
         your grant list.
       </p>
-      <h3 class="subsection-header">Past issues</h3>
-      <p v-if="issuesState === 'loading'" class="section-body">Loading past issues…</p>
+      <h3 class="subsection-header">Past issues and funder posts</h3>
+      <p v-if="issuesState === 'loading'" class="section-body">Loading…</p>
       <ul v-else-if="issues.length" class="section-list issue-list">
         <li v-for="issue in issues" :key="issue.id">
           <a :href="issue.link" target="_blank" rel="noopener">{{ issue.title }}</a>
