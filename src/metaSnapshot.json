@@ -1,7 +1,7 @@
 {
  "version": "24.3.0",
- "fingerprint": "3bc3791ce6382765b263e6eebd12b58f7c0151a1b0a7f6c082e1c337ad506e50",
- "generatedAt": "2026-11-19T03:52:56.848Z",
+ "fingerprint": "9c2ca338a570d52db7cd50f228c6759a6d4d64657cf3c251fb3e6e36c611400b",
+ "generatedAt": "2026-11-20T16:58:09.160Z",
  "entities": {
   "authors": {
    "displayName": "authors",
@@ -342,7 +342,6 @@
    "to_created_date": "to created date",
    "to_updated_date": "to updated date",
    "updated_date": "updated date",
-   "works_api_url": "works api url",
    "works_count": "works count"
   },
   "countries": {
@@ -972,7 +971,6 @@
    "authorships.affiliations.institution_ids": "affiliation institution",
    "authorships.author.id": "author",
    "authorships.author.orcid": "ORCID",
-   "authorships.contributor_roles.id": "contributor role",
    "authorships.countries": "country",
    "authorships.institutions.continent": "continent",
    "authorships.institutions.country_code": "institution country",
