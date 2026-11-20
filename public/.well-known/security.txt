@@ -1,5 +1,6 @@
 # OpenAlex, Unpaywall and Unsub: how to report a security vulnerability.
 # Policy, testing guidelines and published advisories: https://help.openalex.org/security/
+Contact: mailto:security@openalex.org
 Contact: https://help.openalex.org/security/
 Expires: 2027-11-01T00:00:00.000Z
 Preferred-Languages: en
