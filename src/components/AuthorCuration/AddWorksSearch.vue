@@ -202,6 +202,7 @@ import {
   mergeSortPreflight,
   MIN_TITLE_SEARCH_WORDS,
   findMatchedAuthorshipCascade,
+  findNameRowMatch,
 } from './addWorksSearch.helpers.js';
 import { hasNonLatinLetters } from './nameScripts.js';
 
@@ -348,17 +349,15 @@ function transformWork(work, source) {
   if (!work.authorships?.length) return null;
   let useIdx;
   if (source === 'name') {
-    useIdx = findMatchedAuthorship(work, matchName);
-    // A name typed in a non-Latin script (oxjob #1562): Russian and
-    // Chinese bylines often put the family name first, which the strict
-    // surname-last rule never matches. Allow the cascade's strict and
-    // initials tiers too (each accepted only on a unique hit), never its
-    // any-token overlap. Latin names keep #187's strict gate: the ladder's
-    // widened phrases ("j priem") pull in look-alike co-authors that only
-    // the strict rule keeps out.
-    if (useIdx < 0 && hasNonLatinLetters(matchName)) {
-      useIdx = findMatchedAuthorshipCascade(work, matchName, { maxTier: 3 });
-    }
+    // A name typed in a non-Latin script (oxjob #1562) has no reliable
+    // word order (Russian puts the family name first, the patronymic
+    // last), so it gets an order-free gate that still needs every byline
+    // word to be one of the typed words. Latin names keep #187's strict
+    // gate: the ladder's widened phrases ("j priem") pull in look-alike
+    // co-authors that only the strict rule keeps out.
+    useIdx = hasNonLatinLetters(matchName)
+      ? findNameRowMatch(work, matchName)
+      : findMatchedAuthorship(work, matchName);
     if (useIdx < 0) return null;
   } else {
     // oxjob #882: never guess. The old `if (useIdx < 0) useIdx = 0`

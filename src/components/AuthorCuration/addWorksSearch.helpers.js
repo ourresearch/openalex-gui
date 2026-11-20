@@ -431,10 +431,9 @@ export function findMatchedAuthorshipCascade(work, queryName, opts) {
 //        hits decides: one slot or refuse. This covers scripts with no
 //        romanization here (Chinese, Japanese, Arabic...) and name changes.
 // Every tier after the first is uniqueness-gated. An ambiguous answer is a
-// refusal, never handed to a later rule. `opts.maxTier` (default 4) drops
-// the tiers above it.
+// refusal, never handed to a later rule.
 export function findMatchedAuthorshipCascadeDetail(work, queryName, opts) {
-  const { alternatives = [], maxTier = 4 } = opts || {};
+  const { alternatives = [] } = opts || {};
   const auths = work.authorships || [];
   const qVariants = nameTokenVariants(queryName);
   if (!auths.length || !qVariants.length) return noMatch();
@@ -459,7 +458,7 @@ export function findMatchedAuthorshipCascadeDetail(work, queryName, opts) {
     // Tier 4 — any full-token overlap (both sides order-free).
     { tier: 4, pred: i => candVariants[i].length > 0 &&
       tokensOverlapMatch(qVariants[0], candVariants[i][0]) },
-  ].filter(t => t.tier <= maxTier));
+  ]);
   if (r) return verdict(r);
 
   return alternativesVerdict(alternatives, queryName, candVariants, cross);
@@ -639,3 +638,54 @@ function givenMatchLoose(a, b) {
 
 const tokensStrictMatchLoose = (q, c) => tokensStrictMatch(q, c, givenMatchLoose);
 const tokensInitialsMatchLoose = (q, c) => tokensInitialsMatch(q, c, givenMatchLoose);
+
+// ---------------------------------------------------------------------------
+// Name-search gate for a name typed in a non-Latin script (oxjob #1562).
+//
+// The #187 strict rule reads the last word as the family name. Russian
+// full names put the family name first and the patronymic last, so that
+// rule would let a typed "Иванова Анна Сергеевна" (a made-up name) accept
+// any "Иванова <anyone> Сергеевна". Here word order says nothing: every
+// word of the byline must be one of the typed words, in full or as its
+// initial, with at least one full word in common; the byline may leave
+// typed words out ("Иванова А.С."). Compared as written and, across scripts, as spelling
+// keys. Returns the one matching slot, or -1 (none, or more than one).
+export function findNameRowMatch(work, queryName) {
+  const q = nameTokens((queryName || '').replace(/\./g, '. '));
+  const qKeys = spellingVariants(queryName);
+  const hits = [];
+  (work.authorships || []).forEach((a, i) => {
+    const name = authorshipName(a);
+    const c = nameTokens(name.replace(/\./g, '. '));
+    if (bylineWithinName(c, q, givenMatch) ||
+      pairs(qKeys, spellingVariants(name), (qk, ck) => bylineWithinName(ck, qk, givenMatchLoose))) {
+      hits.push(i);
+    }
+  });
+  return hits.length === 1 ? hits[0] : -1;
+}
+
+// Each byline word pairs with a distinct typed word (full words first,
+// then initials); at least one pair is a full word of 2+ letters; a
+// one-word byline only answers a one-word name. Repeated byline words
+// count once: some records give the name twice, in two scripts.
+function bylineWithinName(bylineWords, typed, given) {
+  const byline = [...new Set(bylineWords)];
+  if (!byline.length || !typed.length) return false;
+  if (byline.length === 1 && typed.length > 1) return false;
+  const used = new Array(typed.length).fill(false);
+  let full = 0;
+  const rest = [];
+  for (const b of byline) {
+    const j = typed.findIndex((t, k) => !used[k] && t === b);
+    if (j < 0) { rest.push(b); continue; }
+    used[j] = true;
+    if ([...b].length >= 2) full++;
+  }
+  for (const b of rest) {
+    const j = typed.findIndex((t, k) => !used[k] && given(t, b));
+    if (j < 0) return false;
+    used[j] = true;
+  }
+  return full > 0;
+}

@@ -847,8 +847,6 @@ describe('cascade across scripts (oxjob #1562)', () => {
 
   it('never matches across scripts on a shared word alone', () => {
     expect(findMatchedAuthorshipCascade(W_CYRILLIC, 'Anna Smirnova')).toBe(-1);
-    const work = mkWork('Пётр Иванов', 'Anna Ivanova-Smirnova');
-    expect(findMatchedAuthorshipCascade(work, 'Anna Ivanova', { maxTier: 3 })).toBe(-1);
   });
 
   it('nothing in common is still none', () => {
@@ -902,5 +900,42 @@ describe('cascade falls back to the profile\'s other names (oxjob #1562)', () =>
     expect(findMatchedAuthorshipCascade(work, 'Jason Priem', {
       alternatives: ['Heather Piwowar'],
     })).toBe(0);
+  });
+});
+
+import { findNameRowMatch } from '../components/AuthorCuration/addWorksSearch.helpers.js';
+
+describe('findNameRowMatch: name search typed in a non-Latin script (oxjob #1562)', () => {
+  const q = 'Иванова Анна Сергеевна';
+
+  it('keeps her bylines in any word order, initials included', () => {
+    expect(findNameRowMatch(mkWork('Петров П.', 'Иванова Анна Сергеевна'), q)).toBe(1);
+    expect(findNameRowMatch(mkWork('Анна Сергеевна Иванова'), q)).toBe(0);
+    expect(findNameRowMatch(mkWork('Иванова А.С.'), q)).toBe(0);
+    expect(findNameRowMatch(mkWork('Иванова, Анна'), q)).toBe(0);
+  });
+
+  it('drops a namesake who shares the family name and patronymic', () => {
+    // The strict surname-last rule reads "Сергеевна" as the family name
+    // and would keep all of these.
+    expect(findNameRowMatch(mkWork('Иванова Ирина Сергеевна'), q)).toBe(-1);
+    expect(findNameRowMatch(mkWork('Иванова, Елена Сергеевна'), q)).toBe(-1);
+    expect(findMatchedAuthorship(mkWork('Иванова Ирина Сергеевна'), q)).toBe(0);
+  });
+
+  it('keeps a byline given in both scripts', () => {
+    expect(findNameRowMatch(
+      mkWork('Ivanova, Anna Sergeevna (Иванова, Анна Сергеевна)'), q
+    )).toBe(0);
+  });
+
+  it('needs a full word in common and no extra words', () => {
+    expect(findNameRowMatch(mkWork('И. А. С.'), q)).toBe(-1);
+    expect(findNameRowMatch(mkWork('Иванова Анна Петровна'), q)).toBe(-1);
+    expect(findNameRowMatch(mkWork('Иванова'), q)).toBe(-1);
+  });
+
+  it('refuses two matching slots', () => {
+    expect(findNameRowMatch(mkWork('Иванова А.', 'Иванова А. С.'), q)).toBe(-1);
   });
 });
