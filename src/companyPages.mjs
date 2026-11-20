@@ -75,6 +75,10 @@ export const COMPANY_PAGES = {
     title: 'OpenAlex Users Meeting: Paris, 20–21 October 2026',
     description: 'The first in-person OpenAlex users meeting: a day of community talks at CNRS, then a day of talks and breakout groups with the OpenAlex team at Le Totem. Registration closed.',
   },
+  '/subscribe': {
+    title: 'Subscribe',
+    description: 'Get OpenAlex news by email: every blog post, or the monthly funder newsletter for research funders. Sign up, or read past issues.',
+  },
   '/jobs': {
     title: 'Jobs',
     description: "Open roles at OpenAlex, the small nonprofit team building a free and open catalog of the world's research. Full-time and remote.",
