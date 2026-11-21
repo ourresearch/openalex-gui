@@ -63,10 +63,10 @@
       >
         xpac
       </v-btn>
-      <!-- AI-author switch pill (oxjob #2437): shows the switch is on, as the xpac pill
-           does; click opens the kebab, where the switch lives. -->
+      <!-- AI-authors pill (oxjob #2437): shows a filtering choice is on, as the xpac
+           pill does; click opens the kebab, where the control lives. -->
       <v-btn
-        v-if="showAiAuthorSwitches && aiAuthorsCurrentMode"
+        v-if="aiAuthorsPillLabel"
         variant="tonal"
         color="grey-darken-2"
         class="text-none xpac-pill mr-1"
@@ -74,7 +74,7 @@
         rounded
         @click="kebabOpen = true"
       >
-        {{ aiAuthorsCurrentMode === 'only' ? 'AI authors only' : 'No AI authors' }}
+        {{ aiAuthorsPillLabel }}
       </v-btn>
 
       <!-- The single-row ⋮ kebab: holds every former row-2 option. -->
@@ -178,30 +178,23 @@
               />
             </template>
           </v-list-item>
-          <!-- AI authors (oxjob #2437): two switches, at most one on. They set the
-               works filter authorships.author.type:software-agent (only) or
-               :!software-agent (exclude); on a results page only, where a filter
-               applies. -->
-          <template v-if="showAiAuthorSwitches">
+          <!-- AI authors (oxjob #2437): one pick-one group (checkmarks, like Boolean /
+               Semantic above): All works, Only works with known AI authors
+               (authorships.author.type:software-agent) or No known AI authors
+               (:!software-agent). Results pages only, where a filter applies. -->
+          <template v-if="showAiAuthorsControl">
             <v-divider class="my-1" />
+            <v-list-subheader>AI authors</v-list-subheader>
             <v-list-item
-              v-for="(mode, key) in AI_AUTHORS_MODES"
-              :key="key"
-              :data-ai-authors="key"
-              @click="setAiAuthors(key)"
+              v-for="choice in AI_AUTHORS_CHOICES"
+              :key="choice.mode || 'all'"
+              :data-ai-authors="choice.mode || 'all'"
+              @click="setAiAuthors(choice.mode)"
             >
-              <v-list-item-title>{{ mode.label }}</v-list-item-title>
-              <v-list-item-subtitle class="menu-subtitle">{{ mode.hint }}</v-list-item-subtitle>
+              <v-list-item-title>{{ choice.label }}</v-list-item-title>
+              <v-list-item-subtitle v-if="choice.hint" class="menu-subtitle">{{ choice.hint }}</v-list-item-subtitle>
               <template #append>
-                <v-switch
-                  :model-value="aiAuthorsCurrentMode === key"
-                  class="kebab-switch ml-3"
-                  density="compact"
-                  color="grey-darken-4"
-                  hide-details
-                  inset
-                  readonly
-                />
+                <v-icon v-if="aiAuthorsCurrentMode === choice.mode" class="check-icon">mdi-check</v-icon>
               </template>
             </v-list-item>
           </template>
@@ -457,7 +450,7 @@ import { translateSearch } from '@/dbSearchTranslate';
 import { rememberTranslation } from '@/dbSearchNotes';
 import { entityCounts, worksCoreCount, compactCount } from '@/entityCounts';
 import { getShortId } from '@/openalexId';
-import { AI_AUTHORS_MODES, aiAuthorsMode, filtersWithAiAuthorsMode, nextAiAuthorsMode } from '@/authorType';
+import { AI_AUTHORS_CHOICES, aiAuthorsMode, aiAuthorsPill, filtersWithAiAuthorsMode } from '@/authorType';
 import EntitySelectorButton from '@/components/EntitySelectorButton.vue';
 
 const props = defineProps({
@@ -751,17 +744,19 @@ function toggleXpac() {
   });
 }
 
-// "Only AI authors" / "Exclude AI authors" switches (oxjob #2437): read from and
-// written to the works filter, like a chip edit (url.pushNewFilters keeps ?oql= routes
-// in OQL). Results pages only: on the home page there is no query to filter yet.
-const showAiAuthorSwitches = computed(() =>
+// AI-authors control (oxjob #2437): All works / Only works with known AI authors / No
+// known AI authors. Read from the works filter (a URL carrying either value shows its
+// choice) and written to it like a chip edit (url.pushNewFilters keeps ?oql= routes in
+// OQL). Results pages only: on the home page there is no query to filter yet.
+const showAiAuthorsControl = computed(() =>
   isWorksEntity.value && ['Serp', 'OqlQuery'].includes(route.name));
 const currentWorksFilters = () => filtersFromUrlStr('works', url.chipFilterStr(route));
 const aiAuthorsCurrentMode = computed(() =>
-  showAiAuthorSwitches.value ? aiAuthorsMode(currentWorksFilters()) : null);
+  showAiAuthorsControl.value ? aiAuthorsMode(currentWorksFilters()) : null);
+const aiAuthorsPillLabel = computed(() => aiAuthorsPill(aiAuthorsCurrentMode.value));
 
-function setAiAuthors(clicked) {
-  const mode = nextAiAuthorsMode(aiAuthorsCurrentMode.value, clicked);
+function setAiAuthors(mode) {
+  if (mode === aiAuthorsCurrentMode.value) return;
   url.pushNewFilters(filtersWithAiAuthorsMode('works', currentWorksFilters(), mode), 'works');
 }
 

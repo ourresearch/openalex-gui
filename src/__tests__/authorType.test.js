@@ -1,7 +1,7 @@
 // oxjob #2437 — author type (human, organization, software-agent; null = not stated):
-// the works and authors facets, the author-types entity, the works SERP's
-// "Only AI authors" / "Exclude AI authors" switches, and the "AI" tag beside a
-// software-agent author on the work page.
+// the works and authors facets, the author-types entity, the works SERP's AI-authors
+// control (All works / Only works with known AI authors / No known AI authors), and the
+// "AI" tag beside a software-agent author on the work page.
 import { describe, it, expect, vi } from "vitest";
 import { createSSRApp, h } from "vue";
 import { renderToString } from "@vue/server-renderer";
@@ -10,13 +10,13 @@ import { getEntityConfig } from "@/entityConfigs";
 import { filtersFromUrlStr, filtersAsUrlStr } from "@/filterConfigs";
 import * as openalexId from "@/openalexId";
 import { parseRecordPath, worksListPlan, RECORD_TYPES } from "@/ssr/recordRoutes";
-import { basicCanRepresent, withoutSwitchFilters } from "@/components/Filter/basicFilterMode";
+import { basicCanRepresent, withoutSearchBoxControlFilters } from "@/components/Filter/basicFilterMode";
 import {
-  AI_AUTHORS_MODES,
+  AI_AUTHORS_CHOICES,
   aiAuthorsMode,
+  aiAuthorsPill,
   authorTypeTag,
   filtersWithAiAuthorsMode,
-  nextAiAuthorsMode,
 } from "@/authorType";
 
 // The real filters and url modules pull in the router and store; the row needs only these few.
@@ -103,45 +103,57 @@ describe("author-types entity", () => {
   });
 });
 
-describe("Only AI authors / Exclude AI authors switches", () => {
-  it("are labelled as the website says, with no Human switch", () => {
-    expect(Object.keys(AI_AUTHORS_MODES)).toEqual(["only", "exclude"]);
-    expect(AI_AUTHORS_MODES.only.label).toBe("Only AI authors");
-    expect(AI_AUTHORS_MODES.exclude.label).toBe("Exclude AI authors");
+describe("AI-authors control: All works / Only works with known AI authors / No known AI authors", () => {
+  it("is one choice of three, labelled 'known AI authors', with no Human choice", () => {
+    expect(AI_AUTHORS_CHOICES.map((c) => c.mode)).toEqual([null, "only", "exclude"]);
+    expect(AI_AUTHORS_CHOICES.map((c) => c.label)).toEqual([
+      "All works", "Only works with known AI authors", "No known AI authors",
+    ]);
+    for (const c of AI_AUTHORS_CHOICES.slice(1)) {
+      expect(`${c.label} ${c.hint} ${c.pill}`.toLowerCase()).toContain("known");
+    }
+    expect(aiAuthorsPill("only")).toBe("Known AI authors only");
+    expect(aiAuthorsPill("exclude")).toBe("No known AI authors");
+    expect(aiAuthorsPill(null)).toBeNull();
   });
 
-  it("turning one on sets the filter; the other replaces it; clicking it again turns it off", () => {
+  it("each choice replaces the last; All works removes the filter", () => {
     const base = works("publication_year:2025");
-    const only = filtersWithAiAuthorsMode("works", base, nextAiAuthorsMode(null, "only"));
+    const only = filtersWithAiAuthorsMode("works", base, "only");
     expect(asUrl(only)).toBe("publication_year:2025,authorships.author.type:software-agent");
     expect(aiAuthorsMode(only)).toBe("only");
 
-    const exclude = filtersWithAiAuthorsMode("works", only, nextAiAuthorsMode("only", "exclude"));
+    const exclude = filtersWithAiAuthorsMode("works", only, "exclude");
     expect(asUrl(exclude)).toBe("publication_year:2025,authorships.author.type:!software-agent");
     expect(aiAuthorsMode(exclude)).toBe("exclude");
 
-    const off = filtersWithAiAuthorsMode("works", exclude, nextAiAuthorsMode("exclude", "exclude"));
-    expect(asUrl(off)).toBe("publication_year:2025");
-    expect(aiAuthorsMode(off)).toBeNull();
+    const all = filtersWithAiAuthorsMode("works", exclude, null);
+    expect(asUrl(all)).toBe("publication_year:2025");
+    expect(aiAuthorsMode(all)).toBeNull();
+    // never both values at once
+    expect(asUrl(filtersWithAiAuthorsMode("works", works("authorships.author.type:software-agent,authorships.author.type:!software-agent"), "only")))
+      .toBe("authorships.author.type:software-agent");
   });
 
-  it("read the switch state from a URL, any id form", () => {
+  it("a URL that already carries either value shows its choice, any id form", () => {
     expect(aiAuthorsMode(works("authorships.author.type:software-agent"))).toBe("only");
     expect(aiAuthorsMode(works("authorships.author.type:!software-agent"))).toBe("exclude");
     expect(aiAuthorsMode(works("authorships.author.type:author-types/software-agent"))).toBe("only");
+    expect(aiAuthorsMode(works("authorships.author.type:!author-types/software-agent"))).toBe("exclude");
     expect(aiAuthorsMode(works("type:article"))).toBeNull();
-    // another type, or software-agent in an OR list, is a plain filter the switches leave alone
+    expect(aiAuthorsMode([])).toBeNull();
+    // another type, or software-agent in an OR list, is a plain filter the control leaves alone
     expect(aiAuthorsMode(works("authorships.author.type:organization"))).toBeNull();
     expect(aiAuthorsMode(works("authorships.author.type:organization|software-agent"))).toBeNull();
     const kept = filtersWithAiAuthorsMode("works", works("authorships.author.type:organization"), "exclude");
     expect(asUrl(kept)).toBe("authorships.author.type:organization,authorships.author.type:!software-agent");
   });
 
-  it("the switch's filter is no chip, so Exclude AI authors keeps the basic bar", () => {
+  it("its filter is no chip, so No known AI authors keeps the basic bar", () => {
     const filters = works("publication_year:2025,authorships.author.type:!software-agent");
-    expect(withoutSwitchFilters(filters).map((f) => f.key)).toEqual(["publication_year"]);
+    expect(withoutSearchBoxControlFilters(filters).map((f) => f.key)).toEqual(["publication_year"]);
     expect(basicCanRepresent("works", filters)).toBe(true);
-    // a negated author type that the switches don't own still needs advanced
+    // a negated author type that the control doesn't own still needs advanced
     expect(basicCanRepresent("works", works("authorships.author.type:!organization"))).toBe(false);
   });
 });
