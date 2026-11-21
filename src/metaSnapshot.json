@@ -3,6 +3,10 @@
  "fingerprint": "ec696ea527b9bf1d2793725e0806008fa596658ad23c0f83999b8bba0c3da2ce",
  "generatedAt": "2026-11-23T03:20:34.209Z",
  "entities": {
+  "author-types": {
+   "displayName": "author types",
+   "displayNameSingular": "author type"
+  },
   "authors": {
    "displayName": "authors",
    "displayNameSingular": "author"
@@ -121,6 +125,24 @@
   }
  },
  "properties": {
+  "author-types": {
+   "collection": "collection",
+   "created_date": "created date",
+   "description": "description",
+   "display_name": "name",
+   "display_name.search": "display name",
+   "from_created_date": "from created date",
+   "from_updated_date": "from updated date",
+   "id": "id",
+   "relevance_score": "relevance score",
+   "standard_terms": "standard terms",
+   "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
+   "updated_date": "updated date",
+   "works_api_url": "works api url",
+   "works_count": "works count"
+  },
   "authors": {
    "affiliations": "affiliations",
    "affiliations.institution.country_code": "affiliation institution country",
@@ -177,6 +199,7 @@
    "topics.field.id": "field",
    "topics.id": "topic",
    "topics.subfield.id": "subfield",
+   "type": "author type",
    "updated_date": "updated date",
    "works_api_url": "works api url",
    "works_count": "works count",
@@ -994,6 +1017,7 @@
    "authorships.affiliations.institution_ids": "affiliation institution",
    "authorships.author.id": "author",
    "authorships.author.orcid": "ORCID",
+   "authorships.author.type": "author type",
    "authorships.countries": "country",
    "authorships.institutions.continent": "continent",
    "authorships.institutions.country_code": "institution country",
@@ -1214,6 +1238,9 @@
   }
  },
  "aliases": {
+  "author-types": {
+   "default.search": "text.search"
+  },
   "authors": {
    "openalex": "ids.openalex",
    "openalex_id": "ids.openalex",
