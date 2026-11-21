@@ -4751,9 +4751,13 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-map-marker-outline",
         },
+        // oxjob #2238: these concept filters are unlisted in the server's /properties,
+        // so the /meta snapshot has no label for them and the picker showed the raw
+        // key. Authored labels equal the registry display_name (label-consistency gate).
         {
             key: "summary_stats.h_index",
             entityToFilter: "concepts",
+            displayName: "h-index",
             type: "range",
             category: "citation",
             actions: ["filter",],
@@ -4763,6 +4767,7 @@ const facetConfigs = function (entityType) {
         {
             key: "summary_stats.i10_index",
             entityToFilter: "concepts",
+            displayName: "i10 index",
             type: "range",
             category: "citation",
             actions: ["filter",],
@@ -4772,6 +4777,7 @@ const facetConfigs = function (entityType) {
         {
             key: "summary_stats.2yr_mean_citedness",
             entityToFilter: "concepts",
+            displayName: "2-year mean citedness",
             type: "range",
             category: "citation",
             actions: ["filter",],
