@@ -803,6 +803,20 @@ const facetConfigs = function (entityType) {
             icon: "mdi-file-tree-outline",
             extractFn: (entity) => (entity.parent_works || []).map((p) => p.relationship),
         },
+        // The same filter under its new name (oxjob #2481): the /link-types vocabulary, which the
+        // API serves beside /relationships until the cutover. Values are the same keys, so it
+        // selects from the relationships vocabulary the site already loads.
+        {
+            key: "parent_works.link_type",
+            entityToFilter: "works",
+            entityToSelect: "relationships",
+            displayName: "link type to parent work",
+            type: "selectEntity",
+            category: "other",
+            actions: ["filter", "group_by",],
+            icon: "mdi-file-tree-outline",
+            extractFn: (entity) => (entity.parent_works || []).map((p) => p.link_type ?? p.relationship),
+        },
         {
             key: "has_parent_work",
             entityToFilter: "works",
@@ -1461,6 +1475,20 @@ const facetConfigs = function (entityType) {
             icon: "mdi-format-quote-close",
             column: { render: { kind: "number" } },
             extractFn: (entity) => entity.cited_by_count,
+        },
+        // The works that review this work: peer, preprint and book reviews (oxjob #2481). The API
+        // counts a work with no stored value as 0.
+        {
+            key: "reviewed_by_count",
+            entityToFilter: "works",
+            displayName: "reviewed by count",
+            type: "range",
+            category: "citation",
+            actions: ["filter", "sort", "column",],
+            actionsPopular: [],
+            icon: "mdi-comment-check-outline",
+            column: { render: { kind: "number" }, export: { path: "reviewed_by_count" } },
+            extractFn: (entity) => entity.reviewed_by_count,
         },
         {
             key: "referenced_works_count",
