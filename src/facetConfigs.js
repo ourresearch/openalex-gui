@@ -187,6 +187,10 @@ const facetCategories = {
         "citation",
         "other",
     ],
+    "author-types": [
+        "citation",
+        "other",
+    ],
     keywords: [
         "citation",
         "other",
@@ -643,6 +647,27 @@ const facetConfigs = function (entityType) {
             // dropped because the config had no extractFn / column.render).
             column: { render: { kind: "stringList" } },
             extractFn: (entity) => entity.corresponding_author_ids || [],
+        },
+        {
+            // oxjob #2437: the type of the work's authors (human, organization,
+            // software-agent; the author-types vocabulary). Null on most authors: not
+            // stated. Negated (`!software-agent`) it keeps the works with no declared
+            // software-agent author; the works SERP's "Only AI authors" / "Exclude AI
+            // authors" switches set exactly that (src/authorType.js). displayName must
+            // equal the registry display_name (label-consistency gate).
+            key: "authorships.author.type",
+            entityToSelect: "author-types",
+            entityToFilter: "works",
+            displayName: "author type",
+            type: "selectEntity",
+            displayNullAs: "Not stated",
+            category: "author",
+            actions: ["filter", "group_by"],
+            icon: "mdi-account-question-outline",
+            // Each stated type once, in byline order.
+            extractFn: (entity) => [...new Set((entity.authorships || [])
+                .map((a) => a?.author?.type)
+                .filter(Boolean))],
         },
         // works: open access
         {
@@ -1599,6 +1624,22 @@ const facetConfigs = function (entityType) {
             category: "other",
             icon: "mdi-account-outline",
             extractFn: (entity) => entity.display_name,
+        },
+        {
+            // oxjob #2437: human, organization or software-agent (the author-types
+            // vocabulary); null on most profiles (not stated). displayName must equal the
+            // registry display_name (label-consistency gate).
+            key: "type",
+            entityToFilter: "authors",
+            entityToSelect: "author-types",
+            displayName: "author type",
+            type: "selectEntity",
+            displayNullAs: "Not stated",
+            category: "other",
+            actions: ["filter", "group_by"],
+            actionsPopular: [],
+            icon: "mdi-account-question-outline",
+            extractFn: (e) => e.type,
         },
         {
             key: "affiliations.institution.id",
@@ -3776,6 +3817,15 @@ const facetConfigs = function (entityType) {
             extractFn: (e) => e.description,
         },
         {
+            // oxjob #2437: what an author type means.
+            key: "description",
+            entityToFilter: "author-types",
+            type: "search",
+            category: "other",
+            icon: "mdi-account-question-outline",
+            extractFn: (e) => e.description,
+        },
+        {
             // oxjob #1312: the PubMed publication types mapped into this design.
             // Entity-page row only; not a filter.
             key: "pubmed_publication_types",
@@ -4019,6 +4069,16 @@ const facetConfigs = function (entityType) {
             actions: ["column"],
             category: "other",
             icon: "mdi-file-tree-outline",
+            extractFn: (entity) => entity.display_name,
+        },
+        {
+            key: "display_name",
+            isIdentityColumn: true,
+            entityToFilter: "author-types",
+            type: "search",
+            actions: ["column"],
+            category: "other",
+            icon: "mdi-account-question-outline",
             extractFn: (entity) => entity.display_name,
         },
         {
@@ -4797,8 +4857,8 @@ const facetConfigs = function (entityType) {
         .map(c => c.name)
         // #294: exclude 'locations' too — /locations has no works_count/cited_by_count
         // field, so the injected filter+sort chips 400. oxjob #2065: /relationships
-        // has works_count but no cited_by_count.
-        .filter(name => name !== 'works' && name !== 'awards' && name !== 'locations' && name !== 'relationships')
+        // has works_count but no cited_by_count; so has /author-types (oxjob #2437).
+        .filter(name => !['works', 'awards', 'locations', 'relationships', 'author-types'].includes(name))
         .map(name => {
             return {
                 key: "cited_by_count",

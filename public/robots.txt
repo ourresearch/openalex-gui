@@ -36,6 +36,7 @@ Disallow: /source-lists?
 Disallow: /study-designs?
 Disallow: /relationships?
 Disallow: /contributor-roles?
+Disallow: /author-types?
 Disallow: /locations?
 Disallow: /q?
 Disallow: /admin

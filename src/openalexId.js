@@ -70,6 +70,7 @@ const ALL_ENTITY_TYPES = [
     'study-designs',
     'relationships',
     'contributor-roles',
+    'author-types',
     'locations',
 ];
 

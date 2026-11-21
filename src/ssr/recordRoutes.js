@@ -59,6 +59,7 @@ export const RECORD_TYPES = {
     relationships: { idRe: SLUG, filterKey: 'parent_works.relationship' },
     // No works filter on a role alone (oxjob #2075): the page has no works list.
     'contributor-roles': { idRe: SLUG, filterKey: null },
+    'author-types': { idRe: SLUG, filterKey: 'authorships.author.type' },
 };
 for (const [type, prefix] of Object.entries(NATIVE_PREFIX)) {
     RECORD_TYPES[type].idRe = new RegExp(`^${prefix}\\d{1,15}$`, 'i');
