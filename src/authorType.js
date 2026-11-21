@@ -3,10 +3,12 @@
 // uses on the website:
 //   - a small tag beside an author whose type is software-agent (work page authors
 //     row, author page header);
-//   - the works SERP's "Only AI authors" / "Exclude AI authors" switches, which set
-//     `authorships.author.type:software-agent` or `:!software-agent` (works with no
-//     declared software-agent author). There is no Human switch: human is mostly
-//     null, so "only humans" would hide nearly everything.
+//   - the works SERP's AI-authors control: one choice of three, "All works", "Only
+//     works with known AI authors" (`authorships.author.type:software-agent`) or "No
+//     known AI authors" (`:!software-agent`, works with no declared software-agent
+//     author). "Known", because only authors a source or rule typed are caught. There
+//     is no Human choice: human is mostly null, so "only humans" would hide nearly
+//     everything.
 import { createSimpleFilter } from "@/filterConfigs";
 
 export const AUTHOR_TYPE_FILTER_KEY = "authorships.author.type";
@@ -25,12 +27,32 @@ export function authorTypeTag(author) {
   return { label: "AI", title: "Software agent", href: `/author-types/${SOFTWARE_AGENT}` };
 }
 
-export const AI_AUTHORS_MODES = {
-  only: { label: "Only AI authors", hint: "Works with an author stated to be a software agent", isNegated: false },
-  exclude: { label: "Exclude AI authors", hint: "Leave out works with an author stated to be a software agent", isNegated: true },
-};
+// The control's three choices, in menu order. `mode` null = no filter.
+export const AI_AUTHORS_CHOICES = [
+  { mode: null, label: "All works", pill: null },
+  {
+    mode: "only",
+    label: "Only works with known AI authors",
+    hint: "An author is known to be a software agent",
+    pill: "Known AI authors only",
+    isNegated: false,
+  },
+  {
+    mode: "exclude",
+    label: "No known AI authors",
+    hint: "Leaves out works with an author known to be a software agent",
+    pill: "No known AI authors",
+    isNegated: true,
+  },
+];
+const choiceFor = (mode) => AI_AUTHORS_CHOICES.find((c) => c.mode === mode) || null;
 
-// A filter the switches own: the author-type key with software-agent as its one value.
+// The pill shown beside the search box while a filtering choice is on, or null.
+export function aiAuthorsPill(mode) {
+  return choiceFor(mode)?.pill || null;
+}
+
+// A filter the control owns: the author-type key with software-agent as its one value.
 export function isAiAuthorsFilter(filter) {
   if (filter?.key !== AUTHOR_TYPE_FILTER_KEY) return false;
   const options = String(filter.value ?? "").split(/[|+]/);
@@ -44,15 +66,11 @@ export function aiAuthorsMode(filters) {
   return owned[owned.length - 1].isNegated ? "exclude" : "only";
 }
 
-// The filters with the switches set to `mode` ("only", "exclude" or null = off): any
-// filter the switches own is dropped and the new one, if any, goes last.
+// The filters with the control set to `mode` ("only", "exclude" or null = All works):
+// any filter the control owns is dropped and the new one, if any, goes last.
 export function filtersWithAiAuthorsMode(entityType, filters, mode) {
   const kept = (filters || []).filter((f) => !isAiAuthorsFilter(f));
-  if (!AI_AUTHORS_MODES[mode]) return kept;
-  return [...kept, createSimpleFilter(entityType, AUTHOR_TYPE_FILTER_KEY, SOFTWARE_AGENT, AI_AUTHORS_MODES[mode].isNegated)];
-}
-
-// Clicking a switch: on turns the other off; clicking the one that is on turns it off.
-export function nextAiAuthorsMode(current, clicked) {
-  return current === clicked ? null : clicked;
+  const choice = choiceFor(mode);
+  if (!choice?.mode) return kept;
+  return [...kept, createSimpleFilter(entityType, AUTHOR_TYPE_FILTER_KEY, SOFTWARE_AGENT, choice.isNegated)];
 }
