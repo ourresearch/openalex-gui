@@ -26,11 +26,12 @@ export function facetTypeToChipType(facetConfig) {
 //   - no clause is negated unless it's a boolean (only the boolean chip shows a
 //     NOT state; entity/year/range chips would render a negation as positive).
 // `filters` are filter objects from filtersFromUrlStr (have .key + .isNegated).
-// The "Only / Exclude AI authors" switches' filter (oxjob #2437) is no chip: the
-// search box's options menu shows and sets it, so it never forces advanced.
+// The AI-authors control's filter (oxjob #2437: "Only works with known AI authors" /
+// "No known AI authors") is no chip: the search box's options menu shows and sets it,
+// so it never forces advanced.
 export function basicCanRepresent(entityType, filters) {
   const seenKeys = new Set();
-  for (const f of withoutSwitchFilters(filters)) {
+  for (const f of withoutSearchBoxControlFilters(filters)) {
     const chipType = facetTypeToChipType(getFacetConfig(entityType, f.key));
     if (!chipType) return false;                          // no chip for this field
     if (f.isNegated && chipType !== 'boolean') return false; // un-showable negation
@@ -40,8 +41,8 @@ export function basicCanRepresent(entityType, filters) {
   return true;
 }
 
-// The filters the basic bar shows as chips: all but the ones a search-box switch owns.
-export function withoutSwitchFilters(filters) {
+// The filters the basic bar shows as chips: all but the one the search box's AI-authors control owns.
+export function withoutSearchBoxControlFilters(filters) {
   return (filters || []).filter((f) => !isAiAuthorsFilter(f));
 }
 

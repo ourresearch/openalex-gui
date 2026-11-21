@@ -653,8 +653,8 @@ const facetConfigs = function (entityType) {
             // oxjob #2437: the type of the work's authors (human, organization,
             // software-agent; the author-types vocabulary). Null on most authors: not
             // stated. Negated (`!software-agent`) it keeps the works with no declared
-            // software-agent author; the works SERP's "Only AI authors" / "Exclude AI
-            // authors" switches set exactly that (src/authorType.js). displayName must
+            // software-agent author; the works SERP's AI-authors control ("Only works with
+            // known AI authors" / "No known AI authors") sets these (src/authorType.js). displayName must
             // equal the registry display_name (label-consistency gate).
             key: "authorships.author.type",
             entityToSelect: "author-types",
