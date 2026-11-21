@@ -33,11 +33,21 @@
           :to="filters.entityZoomLink(entityObj.id)"
           class="mr-1 pr-0"
         >
-          {{ entityObj?.raw_author_name || entityObj?.display_name || 'Unknown' }}{{ scorePercent(entityObj) }}{{ valueEntityLinkRoles[i].length ? "" : listSeparator(i) }}
+          {{ entityObj?.raw_author_name || entityObj?.display_name || 'Unknown' }}{{ scorePercent(entityObj) }}{{ valueEntityLinkRoles[i].length || valueEntityLinkTags[i] ? "" : listSeparator(i) }}
         </router-link>
         <span v-else class="mr-1 pr-0">
-          {{ entityObj?.raw_author_name || entityObj?.display_name || 'Unknown' }}{{ valueEntityLinkRoles[i].length ? "" : listSeparator(i) }}
+          {{ entityObj?.raw_author_name || entityObj?.display_name || 'Unknown' }}{{ valueEntityLinkRoles[i].length || valueEntityLinkTags[i] ? "" : listSeparator(i) }}
         </span>
+        <!-- oxjob #2437: a small "AI" tag after an author stated to be a software agent. -->
+        <span
+          v-if="valueEntityLinkTags[i]"
+          class="author-type-tag-wrap mr-1 pr-0"
+        ><router-link
+          :to="valueEntityLinkTags[i].href"
+          class="author-type-tag"
+          :title="valueEntityLinkTags[i].title"
+          :aria-label="valueEntityLinkTags[i].title"
+        >{{ valueEntityLinkTags[i].label }}</router-link>{{ valueEntityLinkRoles[i].length ? "" : listSeparator(i) }}</span>
         <span
           v-if="valueEntityLinkRoles[i].length"
           class="contributor-roles text-medium-emphasis mr-1 pr-0"
@@ -158,6 +168,7 @@ import { url } from '@/url';
 import { getFacetConfig } from '@/facetConfigUtils';
 import * as openalexId from '@/openalexId';
 import * as entityDatumValues from '@/components/Entity/entityDatumValues';
+import { authorTypeTag } from '@/authorType';
 
 defineOptions({ name: 'EntityDatumRow' });
 
@@ -292,6 +303,12 @@ const valueEntityLinks = computed(() => {
 const valueEntityLinkRoles = computed(() =>
   (valueEntityLinks.value || []).map(entityDatumValues.contributorRoleItems)
 );
+// The author-type tag after each of a work's authors ("AI" for a software agent; null
+// for the rest, who look as before). Only the authors row carries authorships (oxjob #2437).
+const valueEntityLinkTags = computed(() =>
+  (valueEntityLinks.value || []).map((item) =>
+    (props.filterKey === 'authorships.author.id' ? authorTypeTag(item) : null))
+);
 const listSeparator = (i) => (i + 1 < valueEntityLinks.value.length ? ", " : "");
 
 const valueListOfStrings = computed(() => {
@@ -419,6 +436,25 @@ a {
 }
 .contributor-role {
   color: inherit;
+}
+
+// oxjob #2437: the "AI" tag after a software-agent author, small and muted.
+.author-type-tag {
+  display: inline-block;
+  font-size: 0.7em;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  padding: 0 0.4em;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  vertical-align: 0.15em;
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
 }
 
 .datum-clamp {

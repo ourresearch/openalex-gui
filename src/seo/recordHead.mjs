@@ -30,7 +30,7 @@ const SINGULAR = {
   'source-types': 'source type', 'institution-types': 'institution type', licenses: 'license',
   'oa-statuses': 'open access status', indexes: 'index', 'source-lists': 'source list',
   'study-designs': 'study design', relationships: 'relationship',
-  'contributor-roles': 'contributor role', locations: 'location',
+  'contributor-roles': 'contributor role', 'author-types': 'author type', locations: 'location',
 };
 
 const INSTITUTION_TYPES = {
