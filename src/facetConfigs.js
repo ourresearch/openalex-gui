@@ -3184,6 +3184,32 @@ const facetConfigs = function (entityType) {
             icon: "mdi-tag-outline",
             extractFn: (entity) => entity.primary_topic?.domain,
         },
+        // oxjob #2238: awards carry keywords and SDGs and the API filters on both; the
+        // OQL words "keyword" and "SDG" parse on awards, so the website facets them too
+        // (elastic-api's curated-core parity gate).
+        {
+            key: "keywords.id",
+            entityToFilter: "awards",
+            entityToSelect: "keywords",
+            type: "selectEntity",
+            isManyOptions: true,
+            category: "aboutness",
+            actions: ["filter", "group_by"],
+            actionsPopular: [],
+            icon: "mdi-tag-outline",
+            extractFn: (entity) => entity.keywords,
+        },
+        {
+            key: "sustainable_development_goals.id",
+            entityToFilter: "awards",
+            entityToSelect: "sdgs",
+            type: "selectEntity",
+            category: "aboutness",
+            actions: ["filter", "group_by"],
+            actionsPopular: [],
+            icon: "mdi-sprout-outline",
+            extractFn: (entity) => entity.sustainable_development_goals,
+        },
         {
             key: "institution_awarded.lineage",
             entityToFilter: "awards",
@@ -4633,6 +4659,20 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-map-marker-outline",
         },
+        // oxjob #2238: the API filters institutions and sources by is_global_south (from
+        // their country), but the record has no such key, so read it off country_code.
+        {
+            key: "is_global_south",
+            entityToFilter: "institutions",
+            type: "boolean",
+            actions: ["filter", "group_by"],
+            actionsPopular: [],
+            category: "geo",
+            booleanValues: ["Global North", "Global South"],
+            icon: "mdi-earth",
+            extractFn: (e) => (e?.country_code
+                ? globalSouthCountryCodes.has(e.country_code.toUpperCase()) : null),
+        },
         {
             key: "host_organization",
             entityToFilter: "sources",
@@ -4674,6 +4714,18 @@ const facetConfigs = function (entityType) {
             actions: ["filter",],
             actionsPopular: [],
             icon: "mdi-map-marker-outline",
+        },
+        {
+            key: "is_global_south",
+            entityToFilter: "sources",
+            type: "boolean",
+            actions: ["filter", "group_by"],
+            actionsPopular: [],
+            category: "geo",
+            booleanValues: ["Global North", "Global South"],
+            icon: "mdi-earth",
+            extractFn: (e) => (e?.country_code
+                ? globalSouthCountryCodes.has(e.country_code.toUpperCase()) : null),
         },
         {
             key: "continent",
