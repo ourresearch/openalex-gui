@@ -1,4 +1,5 @@
 import { getFacetConfig } from '@/facetConfigUtils';
+import { isAiAuthorsFilter } from '@/authorType';
 
 // Map a facet config to the basic-view chip type it renders as, or null when the
 // field has no chip in the basic view. Single source of truth shared by
@@ -25,9 +26,11 @@ export function facetTypeToChipType(facetConfig) {
 //   - no clause is negated unless it's a boolean (only the boolean chip shows a
 //     NOT state; entity/year/range chips would render a negation as positive).
 // `filters` are filter objects from filtersFromUrlStr (have .key + .isNegated).
+// The "Only / Exclude AI authors" switches' filter (oxjob #2437) is no chip: the
+// search box's options menu shows and sets it, so it never forces advanced.
 export function basicCanRepresent(entityType, filters) {
   const seenKeys = new Set();
-  for (const f of filters || []) {
+  for (const f of withoutSwitchFilters(filters)) {
     const chipType = facetTypeToChipType(getFacetConfig(entityType, f.key));
     if (!chipType) return false;                          // no chip for this field
     if (f.isNegated && chipType !== 'boolean') return false; // un-showable negation
@@ -35,6 +38,11 @@ export function basicCanRepresent(entityType, filters) {
     seenKeys.add(f.key);
   }
   return true;
+}
+
+// The filters the basic bar shows as chips: all but the ones a search-box switch owns.
+export function withoutSwitchFilters(filters) {
+  return (filters || []).filter((f) => !isAiAuthorsFilter(f));
 }
 
 // --- Default chip sets (#440 r10) ---------------------------------------------
@@ -126,6 +134,7 @@ export const defaultChipsByEntity = {
   "study-designs": [],
   relationships: [],
   "contributor-roles": [],
+  "author-types": [],
   // Component entity (oxjob #852): the repository-manager audit set — filter
   // to your source, then slice by version / license / OA.
   locations: [

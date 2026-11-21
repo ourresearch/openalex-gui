@@ -37,7 +37,7 @@ import NoviceFilterDialog from '@/components/NoviceFilterDialog.vue';
 import { url } from '@/url';
 import { filtersFromUrlStr } from '@/filterConfigs';
 import { getFacetConfig, facetsByCategory } from '@/facetConfigUtils';
-import { facetTypeToChipType, defaultChipsByEntity, semanticDefaultChipConfigs } from '@/components/Filter/basicFilterMode';
+import { facetTypeToChipType, defaultChipsByEntity, semanticDefaultChipConfigs, withoutSwitchFilters } from '@/components/Filter/basicFilterMode';
 
 defineOptions({ name: 'NoviceFilterChips' });
 
@@ -68,8 +68,9 @@ const DEFAULT_KEYS = computed(() => new Set(defaultChipConfigs.value.map(c => c.
 // chipFilterStr returns the settled response's canonical filter once it has
 // landed, falling back to route.query.filter while in flight. Reading the
 // reactive store inside this computed keeps chips in sync as results settle.
+// The search box's "Only / Exclude AI authors" switch shows its own filter (oxjob #2437).
 const allUrlFilters = computed(() => {
-  return filtersFromUrlStr(entityType.value, url.chipFilterStr(route));
+  return withoutSwitchFilters(filtersFromUrlStr(entityType.value, url.chipFilterStr(route)));
 });
 
 const activeKeys = computed(() => {

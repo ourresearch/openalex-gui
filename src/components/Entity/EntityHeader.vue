@@ -89,6 +89,12 @@
         <v-icon size="x-small" variant="plain">{{ myEntityConfig.icon }}</v-icon>
         {{ filters.capitalize(myEntityConfig.displayNameSingular) }}
       </div>
+      <!-- oxjob #2437: an author stated to be a software agent says so beside the type. -->
+      <router-link
+        v-if="authorTag"
+        :to="authorTag.href"
+        class="author-type-tag ml-2"
+      >{{ authorTag.title }}</router-link>
 
       <!-- Status that belongs next to the type, not among the actions (#1508:
            a collection's Private / Shared by link). -->
@@ -182,6 +188,7 @@ import { getEntityConfig } from '@/entityConfigs';
 import { createSimpleFilter, filtersAsUrlStr } from '@/filterConfigs';
 import { api } from '@/api';
 import * as openalexId from '@/openalexId';
+import { authorTypeTag } from '@/authorType';
 
 import LinkEntityRolesList from '@/components/LinkEntityRolesList.vue';
 import WorkLinkouts from '@/components/WorkLinkouts.vue';
@@ -259,6 +266,7 @@ const normalizedId = computed(() => openalexId.normalizeId(id.value));
 const isNative = computed(() => openalexId.isNativeEntityType(myEntityType.value));
 const myEntityType = computed(() => props.entityType || openalexId.getEntityType(id.value));
 const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
+const authorTag = computed(() => (myEntityType.value === 'authors' ? authorTypeTag(props.entityData) : null));
 
 // Collections feature: the Add to collection button is gated on the entity
 // being a collectible type (EntityCollectionsRow handles its own auth gate; the
@@ -364,6 +372,18 @@ h1.entity-title {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
+}
+// oxjob #2437: "Software agent" beside the Author type indicator, small and muted.
+.author-type-tag {
+  font-size: 0.8em;
+  font-weight: 500;
+  line-height: 1.5;
+  padding: 0 0.45em;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  color: inherit;
+  text-decoration: none;
   white-space: nowrap;
 }
 .back-btn {

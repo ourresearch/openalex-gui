@@ -856,6 +856,35 @@ const entityConfigs = reactive({
         ],
         metricsToShowOnEntityPage: ["works_count"],
     },
+    // oxjob #2437: what kind of agent an author is (closed vocabulary of three: human,
+    // organization, software-agent). Null on most authors (not stated). works_count =
+    // works with at least one author of that type. No cited_by_count.
+    "author-types": {
+        icon: "mdi-account-question-outline",
+        name: "author-types",
+        entityType: "author-types",
+        nameSingular: "author type",
+        // authored identity, as relationships: the /meta catalog agrees
+        displayName: "author types",
+        displayNameSingular: "author type",
+        exportMode: "client",
+        exportColumns: [
+            { key: "id", label: "ID" },
+            { key: "display_name", label: "Name" },
+            { key: "description", label: "Description" },
+            { key: "works_count", label: "Works Count" },
+        ],
+        category: "people-orgs",
+        descr: "What kind of agent an author is: human, organization or software agent",
+        placeholder: "Search author types",
+        filterKey: "authorships.author.type",
+        hasAutocomplete: false,
+        isNative: false,
+        rowsToShowOnEntityPage: [
+            "description",
+        ],
+        metricsToShowOnEntityPage: ["works_count"],
+    },
     // oxjob #2075: the CRediT contributor roles (credit.niso.org), the part an author
     // played on a work, as the publisher tagged it per author (closed vocabulary of 14).
     "contributor-roles": {

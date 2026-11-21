@@ -278,7 +278,7 @@ import { url } from '@/url';
 import { pickOql } from '@/oqlForm';
 import filters from '@/filters';
 import { filtersFromUrlStr } from '@/filterConfigs';
-import { basicCanRepresent, chipSlotCount } from '@/components/Filter/basicFilterMode';
+import { basicCanRepresent, chipSlotCount, withoutSwitchFilters } from '@/components/Filter/basicFilterMode';
 import { entityConfigs } from '@/entityConfigs';
 import { facetConfigs } from '@/facetConfigs';
 
@@ -736,8 +736,9 @@ const basicRepresentable = computed(() => {
   // wrap, ever). More active filters than slots → force advanced, disable
   // Basic. (basicCanRepresent already rejects duplicate keys, so filters.length
   // is the active-chip count whenever it returns true.)
+  // The "Only / Exclude AI authors" switch's filter takes no chip slot (oxjob #2437).
   return basicCanRepresent(entityType.value, filters)
-    && filters.length <= chipSlotCount(entityType.value, isSemanticSearch.value);
+    && withoutSwitchFilters(filters).length <= chipSlotCount(entityType.value, isSemanticSearch.value);
 });
 
 // ---- grid representability (#523: builder ⇄ OQL gate) ----------------------
