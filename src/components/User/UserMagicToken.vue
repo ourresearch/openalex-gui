@@ -80,6 +80,7 @@ import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import { sanitizeLoginToken, sanitizeRedirectPath } from '@/util';
 import { useTurnstile } from '@/composables/useTurnstile';
+import { copy as claimWords } from '@/components/Entity/claimCopy.js';
 
 defineOptions({
   name: 'MagicToken'
@@ -138,6 +139,14 @@ async function tokenForActivation() {
 
 function welcomeSnackbar(loginData) {
   const userName = store.getters['user/userName'];
+  // The click finished a sign-up with ORCID and linked the iD (oxjob #2538).
+  if (loginData?.orcid_linked) {
+    return `${claimWords.orcidSignIn.welcome} ${claimWords.orcidSignIn.linked}`;
+  }
+  // Opened in another browser than the ORCID sign-in, so the iD wasn't linked.
+  if (loginData?.orcid_not_linked) {
+    return `${claimWords.orcidSignIn.welcome} ${claimWords.orcidSignIn.notLinked}`;
+  }
   if (loginData?.key_activated) {
     return 'Your API key is active: it now has $1 a day of free usage.';
   }
@@ -181,6 +190,12 @@ const doLogin = async () => {
     status.value = 'done';
 
     store.commit('snackbar', welcomeSnackbar(loginData));
+    // As after linking in Settings (#1475): claim the profile that carries the just-linked iD, in the background.
+    if (loginData?.orcid_linked) {
+      store.dispatch('user/claimOrcidProfile')
+        .then((claimed) => claimed && store.dispatch('user/pollClaim', { timeoutMs: 120000 }))
+        .catch((e) => console.error('Claiming the ORCID profile failed:', e));
+    }
 
     // Brief delay to show success state, then redirect
     setTimeout(() => {

@@ -75,6 +75,37 @@ export const copy = {
     linkedAndClaiming: (authorId) => `Your ORCID is linked. We are claiming your author profile, ${authorId}.`,
     claimFailed: (message) => `Your ORCID is linked, but we could not claim your author profile. ${message}`,
     backToSettings: 'Back to Settings',
+    // A code whose state this browser didn't save (orcidAuth.js, #2538).
+    notStartedHere: "This ORCID sign-in didn't start in this browser, so we didn't use it. Please try again.",
+    cancelled: 'ORCID sign-in was cancelled.',
+    logInFirst: 'Log in to link your ORCID.',
+    otherAccount: 'You started linking your ORCID from another OpenAlex account, so we did not link it to this one. Please try again.',
+  },
+  // Log in and sign up with ORCID (#2538). Every account has an email, so a
+  // sign-up asks for one unless ORCID shows a verified one; no explanation.
+  orcidSignIn: {
+    logIn: 'Log in with ORCID',
+    signUp: 'Sign up with ORCID',
+    or: 'or',
+    signingIn: 'Logging in with ORCID…',
+    noAccountTitle: 'No OpenAlex account uses this ORCID iD yet',
+    finishTitle: 'Finish signing up',
+    askEmail: 'Enter your email to finish.',
+    sendLink: 'Send link',
+    checkEmailTitle: 'Check your email',
+    checkEmail: (email) => `We sent a link to ${email}. Click it to finish signing up.`,
+    emailInUse: 'An account already uses this email. Log in with it, then link your ORCID in Settings.',
+    sendLoginLink: 'Send me a login link',
+    loginLinkSent: (email) => `We sent a login link to ${email}.`,
+    haveAccount: 'Have an account? Log in with your email, then link your ORCID in Settings.',
+    logInWithEmail: 'Log in with email',
+    notEnabled: 'Your ORCID is linked to an account that logs in by email. Log in with your email.',
+    failed: 'We could not log you in with ORCID. Please try again.',
+    welcome: 'Welcome to OpenAlex!',
+    welcomeBack: (name) => (name ? `Welcome back, ${name}!` : 'Welcome back!'),
+    linked: 'Your ORCID is linked: you can log in with ORCID from now on.',
+    // The link was opened in another browser than the ORCID sign-in, so the iD wasn't linked (#2538).
+    notLinked: 'To log in with ORCID, link it in Settings.',
   },
   // Settings → Profile (#1475). Unset, a row says what it does; set, its
   // description is the value (the iD, the author id) and the button undoes it.
@@ -82,6 +113,7 @@ export const copy = {
     label: 'ORCID',
     notLinked: 'Link your ORCID iD to your OpenAlex account.',
     linkButton: 'Link ORCID',   // short: the right side of the row has one fixed width
+    canLogIn: 'You can log in with ORCID.',
     linkedBadge: 'Linked',
     copy: 'Copy iD',
     open: 'Open on ORCID',
@@ -179,17 +211,17 @@ export function sameOrcid(a, b) {
   return !!bareOrcid(a) && bareOrcid(a) === bareOrcid(b);
 }
 
-// ORCID accepts one registered redirect (/orcid-callback), so `state` says where
-// the user started: 'settings' (link only) or an author id (link, then claim).
-export const ORCID_STATE_SETTINGS = 'settings';
-
-export function orcidAuthorizeUrl({ clientId = ORCID_CLIENT_ID, origin, authorId, state }) {
+// ORCID accepts one registered redirect (/orcid-callback). `state` is the
+// one-time value orcidAuth.js saved for this trip (oxjob #2538); start trips
+// there, never with a bare URL.
+export function orcidAuthorizeUrl({ clientId = ORCID_CLIENT_ID, origin, state }) {
+  if (!state) throw new Error('orcidAuthorizeUrl needs a state: start ORCID trips with orcidAuth.js');
   const params = new URLSearchParams({
     client_id: clientId,
     response_type: 'code',
     scope: '/authenticate',
     redirect_uri: `${origin}/orcid-callback`,
-    state: state || shortId(authorId).toUpperCase(),
+    state,
   });
   return `${ORCID_AUTHORIZE_URL}?${params.toString()}`;
 }
@@ -203,13 +235,4 @@ export function orcidAutoClaim({ authorId, claim, profileIds }) {
   if (!target || authorId) return null;
   if (claim && claim.decision === 'pending' && shortId(claim.author_id) === shortId(target)) return null;
   return shortId(target).toUpperCase();
-}
-
-// Where /orcid-callback goes after linking, from the `state` ORCID sends back.
-//   {flow: 'claim', authorId: 'A123'} | {flow: 'settings'}
-// Anything that isn't an author id links the iD and returns to Settings.
-export function orcidCallbackFlow(state) {
-  const s = String(state || '').trim();
-  if (/^A\d+$/i.test(s)) return { flow: 'claim', authorId: s.toUpperCase() };
-  return { flow: 'settings' };
 }

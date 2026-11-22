@@ -48,6 +48,7 @@
         <p class="text-body-2 mb-4">
           Enter your email and we'll send you a link to log in.
         </p>
+        <OrcidSignInButton flow="login" size="default" :redirect="route.query.redirect || route.fullPath" />
         <form @submit.prevent="submit">
           <v-text-field
             variant="solo-filled"
@@ -92,6 +93,7 @@
 import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
+import OrcidSignInButton from '@/components/Orcid/OrcidSignInButton.vue';
 
 defineOptions({
   name: 'UserLogin'

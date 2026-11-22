@@ -133,7 +133,7 @@
             </div>
             <div v-if="orcidOffer" class="claim-option">
               <p>{{ copy.orcid.body(profileOrcid) }}</p>
-              <v-btn size="small" rounded variant="outlined" color="primary" :href="orcidUrl">
+              <v-btn size="small" rounded variant="outlined" color="primary" @click="goToOrcid">
                 <OrcidIcon :size="14" class="mr-2" />{{ copy.orcid.button }}
               </v-btn>
             </div>
@@ -161,7 +161,7 @@
             <div v-if="orcidOffer" class="claim-option">
               <div class="font-weight-bold mb-1">{{ copy.orcid.title }}</div>
               <p>{{ copy.orcid.body(profileOrcid) }}</p>
-              <v-btn size="small" rounded variant="outlined" color="primary" :href="orcidUrl">
+              <v-btn size="small" rounded variant="outlined" color="primary" @click="goToOrcid">
                 <OrcidIcon :size="14" class="mr-2" />{{ copy.orcid.button }}
               </v-btn>
             </div>
@@ -243,7 +243,8 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { urlBase, axiosConfig } from '@/apiConfig.js';
-import { copy, reasonText, claimView, orcidAuthorizeUrl, sameOrcid, bareOrcid, shortId, ORCID_CLIENT_ID, showFastestFix } from './claimCopy.js';
+import { copy, reasonText, claimView, sameOrcid, bareOrcid, shortId, ORCID_CLIENT_ID, showFastestFix } from './claimCopy.js';
+import { startOrcidTrip } from '@/components/Orcid/orcidAuth.js';
 import OrcidIcon from '@/components/Orcid/OrcidIcon.vue';
 
 defineOptions({ name: 'EntityHeaderClaimProfileButton' });
@@ -286,10 +287,10 @@ const reason = computed(() => reasonText(userClaim.value?.feedback_code, {
   link: userClaim.value?.feedback_link,
 }));
 const orcidOffer = computed(() => !!ORCID_CLIENT_ID && !!profileOrcid.value && !orcidMatch.value);
-const orcidUrl = computed(() => orcidAuthorizeUrl({
-  origin: window.location.origin,
-  authorId: props.authorId,
-}));
+// Link the ORCID, then claim this profile (oxjob #1466); the trip is checked on return (orcidAuth.js, #2538).
+const goToOrcid = () => startOrcidTrip({
+  flow: 'claim', authorId: shortId(props.authorId).toUpperCase(), userId: store.getters['user/userId'],
+});
 
 const isLoginPromptDialogOpen = ref(false);
 const isEvidenceDialogOpen = ref(false);

@@ -46,6 +46,7 @@
         <p class="text-body-2 mb-4">
           Signing up for an OpenAlex account lets you create alerts and save searches.
         </p>
+        <OrcidSignInButton flow="signup" size="default" :redirect="route.query.redirect || route.fullPath" />
         <form @submit.prevent="submit">
           <v-text-field
             variant="solo-filled"
@@ -130,6 +131,7 @@ import { ref, computed, watch, nextTick } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import { useTurnstile } from '@/composables/useTurnstile';
+import OrcidSignInButton from '@/components/Orcid/OrcidSignInButton.vue';
 
 defineOptions({ name: 'UserSignup' });
 

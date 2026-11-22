@@ -184,7 +184,9 @@ export const routes = [
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken, meta: {chrome: 'bare'}},
     {path: '/verify-email', name: 'VerifyEmail', component: UserVerifyEmail, meta: {chrome: 'bare'}},
     // ORCID sign-in return for profile claims (oxjob #1466).
-    {path: '/orcid-callback', name: 'OrcidCallback', component: () => import('@/views/OrcidCallback.vue'), meta: {requiresAuth: true}},
+    // Public: log in and sign up with ORCID return here signed out (oxjob #2538); the page itself asks a signed-out
+    // person to log in before linking from Settings or a claim.
+    {path: '/orcid-callback', name: 'OrcidCallback', component: () => import('@/views/OrcidCallback.vue')},
     // Legacy route - redirect old password reset links to login
     {path: '/reset-password', redirect: { name: 'Login' }},
 

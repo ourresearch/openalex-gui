@@ -7,6 +7,7 @@ import {sanitizeRedirectPath} from "@/util";
 import {bootUser, readUserCache, writeUserCache, clearUserCache, apiKeyFromToken} from "@/store/userBoot";
 import {searchQueryKey, savedSearchQueryKey} from "@/savedSearchIdentity";
 import {orcidAutoClaim} from "@/components/Entity/claimCopy.js";
+import {signupKeys} from "@/components/Orcid/orcidAuth.js";
 import {magicLoginConfig} from "@/store/magicLoginConfig.js";
 
 import shortUuid from 'short-uuid';
@@ -47,6 +48,7 @@ export function signedOutUser() {
         claim: null,
         claimEligibility: null,  // 'instant' | 'review' (users-api /users/me)
         verifiedOrcid: null,     // ORCID iD proven by ORCID sign-in (#1466)
+        canLogInWithOrcid: false, // this account can log in with that iD (#2538)
         savedSearches: [],
         // True once /saved-search has returned at least once this session
         // (oxjob #860: the list loads in the background after /users/me, so an
@@ -154,6 +156,7 @@ export default {
             state.claim = apiResp.claim || null
             state.claimEligibility = apiResp.claim_eligibility || null
             state.verifiedOrcid = apiResp.verified_orcid || null
+            state.canLogInWithOrcid = !!apiResp.can_log_in_with_orcid
         },
         setEmails(state, emails) {
             state.emails = emails || []
@@ -251,11 +254,11 @@ export default {
         // Turnstile token (oxjob #1697); users-api ignores it for every other login.
         async loginWithMagicToken({commit, dispatch}, payload) {
             const {token: magicToken, turnstileToken} = typeof payload === "string" ? {token: payload} : payload
-            const resp = await axios.post(
-                apiBaseUrl + "/users/magic-login",
-                turnstileToken ? {token: magicToken, turnstile_token: turnstileToken} : {token: magicToken},
-                magicLoginConfig()
-            )
+            const body = turnstileToken ? {token: magicToken, turnstile_token: turnstileToken} : {token: magicToken}
+            // A sign-up with ORCID links the iD only in the browser that signed in to ORCID: send its key (#2538).
+            const orcidKeys = signupKeys()
+            if (orcidKeys.length) body.orcid_browser_keys = orcidKeys
+            const resp = await axios.post(apiBaseUrl + "/users/magic-login", body, magicLoginConfig())
             // oxjob #290: store the api_key as the universal auth credential
             // (was the JWT access_token). users-api accepts api_key on the same
             // Bearer header, and unlike the JWT it survives the Cloudflare proxy
@@ -301,6 +304,11 @@ export default {
             // dev the backend skips the check when TURNSTILE_SECRET is unset.
             if (signupObj.turnstileToken) {
                 body.turnstile_token = signupObj.turnstileToken
+            }
+            // Sign-up with ORCID (#2538): the emailed link also links this iD, when opened in this browser.
+            if (signupObj.orcidToken) {
+                body.orcid_token = signupObj.orcidToken
+                body.orcid_browser_key_hash = signupObj.orcidBrowserKeyHash
             }
             // Add localhost port for local development
             if (window.location.hostname === 'localhost') {
@@ -505,6 +513,23 @@ export default {
             if (!authorId) return null
             await dispatch("setAuthorId", {authorId, evidence: ""})
             return {authorId}
+        },
+
+        // Log in with ORCID (#2538). Signed in: {api_key, user}. No account uses the iD: {no_account, orcid,
+        // name, email, orcid_token}; the sign-up form sends the token with an email (requestSignupEmail).
+        async loginWithOrcid({commit, dispatch}, {code, redirectUri}) {
+            const resp = await axios.post(
+                apiBaseUrl + "/users/orcid-login",
+                {code, redirect_uri: redirectUri},
+            )
+            if (!resp.data.api_key) return resp.data
+            commit("setToken", resp.data.api_key)
+            try {
+                await dispatch("fetchUser")
+            } catch (e) {
+                console.error("Logged in, but loading the profile failed:", e)
+            }
+            return resp.data
         },
 
         async unlinkOrcid({dispatch}) {
@@ -933,6 +958,7 @@ export default {
             state.claim && state.claim.decision === 'needs_evidence' ? state.claim : null,
         claimEligibility: (state) => state.claimEligibility,
         verifiedOrcid: (state) => state.verifiedOrcid,
+        canLogInWithOrcid: (state) => state.canLogInWithOrcid,
         hasAnyClaim: (state) => !!(state.authorId || (state.claim && state.claim.decision === 'pending')),
         apiKey: (state) => state.apiKey,
         userSavedSearches: (state) => state.savedSearches,

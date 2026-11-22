@@ -3,6 +3,7 @@
     <!-- Linked: the description is the iD itself -->
     <template v-if="linkedOrcid" #description>
       <OrcidIdLink :orcid="linkedOrcid" />
+      <div v-if="canLogIn" class="text-medium-emphasis">{{ words.canLogIn }}</div>
     </template>
 
     <!-- Not linked: one button to orcid.org and back. Linked: "✓ Linked" and a
@@ -21,7 +22,7 @@
       :busy="busy"
       @remove="unlink"
     >
-      <v-btn :href="linkUrl" variant="outlined" rounded size="small" block>
+      <v-btn variant="outlined" @click="startOrcidTrip({ flow: 'settings', userId: store.getters['user/userId'] })" rounded size="small" block>
         <OrcidIcon :size="16" class="mr-2" />
         {{ words.linkButton }}
       </v-btn>
@@ -37,7 +38,8 @@ import SettingsRow from '@/components/Settings/SettingsRow.vue';
 import SettingsValueActions from '@/components/Settings/SettingsValueActions.vue';
 import OrcidIcon from './OrcidIcon.vue';
 import OrcidIdLink from './OrcidIdLink.vue';
-import { copy, orcidAuthorizeUrl, ORCID_STATE_SETTINGS } from '@/components/Entity/claimCopy.js';
+import { copy } from '@/components/Entity/claimCopy.js';
+import { startOrcidTrip } from './orcidAuth.js';
 
 defineOptions({ name: 'OrcidSettingsRow' });
 
@@ -45,10 +47,7 @@ const store = useStore();
 const words = copy.orcidSettings;
 
 const linkedOrcid = computed(() => store.getters['user/verifiedOrcid']);
-const linkUrl = computed(() => orcidAuthorizeUrl({
-  origin: window.location.origin,
-  state: ORCID_STATE_SETTINGS,
-}));
+const canLogIn = computed(() => store.getters['user/canLogInWithOrcid']);
 
 const busy = ref(false);
 

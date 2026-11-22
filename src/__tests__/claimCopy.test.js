@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  copy, reasonText, claimView, showFastestFix, orcidAuthorizeUrl, orcidCallbackFlow, orcidAutoClaim, bareOrcid, sameOrcid,
-  ORCID_STATE_SETTINGS,
+  copy, reasonText, claimView, showFastestFix, orcidAuthorizeUrl, orcidAutoClaim, bareOrcid, sameOrcid,
 } from '@/components/Entity/claimCopy.js';
 
 describe('claim copy (oxjob #1466)', () => {
@@ -37,10 +36,12 @@ describe('claim copy (oxjob #1466)', () => {
   });
 
   it('builds the ORCID authorize URL', () => {
-    const u = new URL(orcidAuthorizeUrl({ clientId: 'APP-X', origin: 'https://openalex.org', authorId: 'https://openalex.org/a5023888391' }));
+    const u = new URL(orcidAuthorizeUrl({ clientId: 'APP-X', origin: 'https://openalex.org', state: 'abc123' }));
     expect(u.searchParams.get('scope')).toBe('/authenticate');
     expect(u.searchParams.get('redirect_uri')).toBe('https://openalex.org/orcid-callback');
-    expect(u.searchParams.get('state')).toBe('A5023888391');
+    expect(u.searchParams.get('state')).toBe('abc123');
+    // Every trip carries a one-time state (orcidAuth.js, #2538); a bare URL is a bug.
+    expect(() => orcidAuthorizeUrl({ origin: 'https://openalex.org' })).toThrow();
   });
 
   it('shows the one-click ORCID screen when the linked iD is on the profile (#1475)', () => {
@@ -48,16 +49,6 @@ describe('claim copy (oxjob #1466)', () => {
     // A university email still wins; an answered claim still shows its answer.
     expect(claimView({ claim: null, eligibility: 'instant', authorId: 'A1', orcidMatch: true })).toBe('instant');
     expect(claimView({ claim: { decision: 'pending', author_id: 'A1' }, eligibility: 'review', authorId: 'A1', orcidMatch: true })).toBe('checking');
-  });
-
-  it('routes /orcid-callback by state (#1475)', () => {
-    expect(orcidCallbackFlow('A5023888391')).toEqual({ flow: 'claim', authorId: 'A5023888391' });
-    expect(orcidCallbackFlow('a12')).toEqual({ flow: 'claim', authorId: 'A12' });
-    expect(orcidCallbackFlow(ORCID_STATE_SETTINGS)).toEqual({ flow: 'settings' });
-    expect(orcidCallbackFlow(undefined)).toEqual({ flow: 'settings' });
-    expect(orcidCallbackFlow('A12; drop')).toEqual({ flow: 'settings' });
-    const u = new URL(orcidAuthorizeUrl({ clientId: 'APP-X', origin: 'https://openalex.org', state: ORCID_STATE_SETTINGS }));
-    expect(u.searchParams.get('state')).toBe('settings');
   });
 
   it('compares ORCID iDs in any shape', () => {

@@ -39,6 +39,7 @@
           </v-alert>
 
           <v-card flat class="pa-6" :loading="isLoading" :disabled="isLoading">
+            <OrcidSignInButton flow="login" :redirect="$route.query.redirect" />
             <form @submit.prevent="submit">
               <v-text-field
                 variant="outlined"
@@ -84,6 +85,7 @@ import { useStore } from 'vuex';
 import { useRouter, useRoute } from 'vue-router';
 import { useHead } from '@unhead/vue';
 import { sanitizeRedirectPath } from '@/util';
+import OrcidSignInButton from '@/components/Orcid/OrcidSignInButton.vue';
 
 defineOptions({ name: 'LoginPage' });
 
