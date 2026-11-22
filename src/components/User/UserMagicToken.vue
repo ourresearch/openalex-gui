@@ -48,7 +48,7 @@
       <p class="text-body-2 text-medium-emphasis mb-8">
         {{ isActivation
           ? 'This link has expired or has already been used. Log in to see your key, or ask your assistant to request it again.'
-          : 'This link has expired or has already been used. Login links last 15 minutes for security — request a fresh one to continue.' }}
+          : 'This link has expired, was already used, or a newer one was sent. Login links work once and last 24 hours. Use the link in your newest email, or request a fresh one.' }}
       </p>
       <v-btn
         color="primary"

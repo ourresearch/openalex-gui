@@ -15,7 +15,7 @@
           We sent a login link to <strong>{{ magicLinkEmail }}</strong>
         </p>
         <p class="text-body-2 text-medium-emphasis mt-2">
-          Click the link in the email to log in. The link expires in 15 minutes.
+          Click the link in the email to log in. The link works once and expires in 24 hours.
         </p>
         <p class="text-body-2 text-medium-emphasis mt-2">
           Don't see it? Check your spam folder.
