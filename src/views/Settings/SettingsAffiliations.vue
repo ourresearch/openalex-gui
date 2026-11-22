@@ -52,8 +52,10 @@
               :style="item.raw.status !== 'active' ? 'opacity: 0.55; font-style: italic;' : ''"
               class="institution-item"
             >
-              <template v-slot:append v-if="item.raw.status !== 'active'">
-                <v-chip size="x-small" color="grey" variant="outlined" class="ml-2">{{ item.raw.status }}</v-chip>
+              <template v-slot:append v-if="item.raw.status !== 'active' || item.raw.related">
+                <v-chip v-if="item.raw.related" size="x-small" color="primary" variant="outlined" class="ml-2"
+                  title="ROR lists this organization as related to yours. Strings linked here count for it, not for your institution.">related</v-chip>
+                <v-chip v-if="item.raw.status !== 'active'" size="x-small" color="grey" variant="outlined" class="ml-2">{{ item.raw.status }}</v-chip>
               </template>
             </v-list-item>
           </template>
@@ -216,6 +218,24 @@ async function fetchReseedIds(institutionId) {
     .map(assoc => normalizeInstitutionId(assoc.id));
 }
 
+// Organizations ROR lists as related to the org's institution (a university's
+// affiliated hospitals, say) that no other member curates. users-api decides
+// which, by the same rule that gates POST /curations (oxjob #2260). Only the
+// related organization itself is offered, never what lies under it: a related
+// organization can be a whole university. Any failure keeps the own-tree list.
+async function fetchRelated() {
+  try {
+    const res = await axios.get(
+      `${urlBase.userApi}/organizations/${organizationId.value}/related-institutions`,
+      axiosConfig({ userAuth: true })
+    );
+    return res.data.results || [];
+  } catch (err) {
+    console.warn('Related institutions unavailable:', err);
+    return [];
+  }
+}
+
 async function fetchDescendants(institutionId) {
   try {
     const found = await fetchByLineage([institutionId]);
@@ -248,17 +268,28 @@ async function fetchDescendants(institutionId) {
       }
     }
 
+    for (const inst of await fetchRelated()) {
+      const id = normalizeInstitutionId(inst.id);
+      if (!seen.has(id)) {
+        seen.add(id);
+        found.push({ ...inst, related: true });
+      }
+    }
+
     const mapped = found.map(inst => ({
       id: inst.id,
       display_name: inst.display_name,
       status: inst.status || 'active',
+      related: !!inst.related,
     }));
-    // Sort: main institution first, then the rest alphabetically
+    // Sort: main institution first, then its own tree, then related
+    // organizations, each alphabetically
     mapped.sort((a, b) => {
       const aIsMain = normalizeInstitutionId(a.id) === myInstitutionId.value;
       const bIsMain = normalizeInstitutionId(b.id) === myInstitutionId.value;
       if (aIsMain) return -1;
       if (bIsMain) return 1;
+      if (a.related !== b.related) return a.related ? 1 : -1;
       return a.display_name.localeCompare(b.display_name);
     });
     institutionOptions.value = mapped;
