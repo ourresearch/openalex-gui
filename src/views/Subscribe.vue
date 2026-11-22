@@ -62,7 +62,7 @@
         your data in OpenAlex, your open-data strategy or how you'd like to use OpenAlex, and to take
         your grant list.
       </p>
-      <h3 class="subsection-header">Past issues and funder posts</h3>
+      <h3 class="subsection-header">Past issues</h3>
       <p v-if="issuesState === 'loading'" class="section-body">Loading…</p>
       <ul v-else-if="issues.length" class="section-list issue-list">
         <li v-for="issue in issues" :key="issue.id">
@@ -72,11 +72,21 @@
       </ul>
       <p v-else-if="issuesState === 'error'" class="section-body">
         Every issue is also posted on
-        <a :href="FUNDER_ARCHIVE_URL" target="_blank" rel="noopener">our blog</a>.
+        <a :href="ISSUE_ARCHIVE_URL" target="_blank" rel="noopener">our blog</a>.
       </p>
       <p v-else class="section-body">
         The first issue goes out at the end of November 2026. Every issue will be listed here.
       </p>
+
+      <template v-if="funderPosts.length">
+        <h3 class="subsection-header">Related blog posts</h3>
+        <ul class="section-list issue-list">
+          <li v-for="post in funderPosts" :key="post.id">
+            <a :href="post.link" target="_blank" rel="noopener">{{ post.title }}</a>
+            <span class="issue-date">{{ post.date }}</span>
+          </li>
+        </ul>
+      </template>
     </static-section>
 
     <static-section id="blog" title="Blog">
@@ -97,9 +107,11 @@ import StaticSection from '@/components/StaticPage/StaticSection.vue';
 defineOptions({ name: 'SubscribePage' });
 
 const BLOG = 'https://blog.openalex.org';
-// The funder newsletter is a filter on the blog: its archive is the posts tagged or categorised with this slug.
+// Each newsletter issue is a WordPress page under the page `funder-newsletter` (blog.openalex.org/funder-newsletter/<month>/),
+// so issues stay out of the blog's post list and feed. Funder-relevant blog posts carry the category or tag
+// `funder-newsletter` and are listed as related posts.
 const FUNDER_SLUG = 'funder-newsletter';
-const FUNDER_ARCHIVE_URL = BLOG;
+const ISSUE_ARCHIVE_URL = `${BLOG}/${FUNDER_SLUG}/`;
 
 // `value` is the checkbox option text in the Google Form, so it must match the form exactly.
 const LISTS = [
@@ -172,29 +184,37 @@ function reset() {
 }
 
 const issues = ref([]);
+const funderPosts = ref([]);
 const issuesState = ref('loading');
+
+const toItem = p => ({
+  id: p.id,
+  link: p.link,
+  title: decodeEntities(p.title.rendered),
+  date: new Date(p.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }),
+});
 
 async function loadIssues() {
   try {
-    // Funder posts carry the category or the tag `funder-newsletter` (either works).
-    const lookup = kind => fetch(`${BLOG}/wp-json/wp/v2/${kind}?slug=${FUNDER_SLUG}&_fields=id`).then(r => r.json());
-    const [cats, tags] = await Promise.all([lookup('categories'), lookup('tags')]);
+    const getJson = path => fetch(`${BLOG}/wp-json/wp/v2/${path}`).then(r => r.json());
+    const [parentPages, funderCats, funderTags] = await Promise.all([
+      getJson(`pages?slug=${FUNDER_SLUG}&_fields=id`),
+      getJson(`categories?slug=${FUNDER_SLUG}&_fields=id`),
+      getJson(`tags?slug=${FUNDER_SLUG}&_fields=id`),
+    ]);
     const filters = [
-      cats.length && `categories=${cats[0].id}`,
-      tags.length && `tags=${tags[0].id}`,
+      funderCats.length && `categories=${funderCats[0].id}`,
+      funderTags.length && `tags=${funderTags[0].id}`,
     ].filter(Boolean);
-    if (!filters.length) {
-      issuesState.value = 'empty';
-      return;
-    }
-    const query = filters.join('&') + (filters.length > 1 ? '&tax_relation=OR' : '');
-    const posts = await fetch(`${BLOG}/wp-json/wp/v2/posts?${query}&per_page=100&_fields=id,date,link,title`).then(r => r.json());
-    issues.value = posts.map(p => ({
-      id: p.id,
-      link: p.link,
-      title: decodeEntities(p.title.rendered),
-      date: new Date(p.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }),
-    }));
+    const fields = '_fields=id,date,link,title';
+    const [issuePages, related] = await Promise.all([
+      parentPages.length ? getJson(`pages?parent=${parentPages[0].id}&orderby=date&order=desc&per_page=100&${fields}`) : [],
+      filters.length
+        ? getJson(`posts?${filters.join('&')}${filters.length > 1 ? '&tax_relation=OR' : ''}&per_page=100&${fields}`)
+        : [],
+    ]);
+    issues.value = issuePages.map(toItem);
+    funderPosts.value = related.map(toItem);
     issuesState.value = issues.value.length ? 'loaded' : 'empty';
   } catch {
     issuesState.value = 'error';
