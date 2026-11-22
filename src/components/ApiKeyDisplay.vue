@@ -42,10 +42,11 @@
       <v-card-text class="pa-6">
         <div class="text-h6 font-weight-bold mb-3">Rotate API key?</div>
         <div class="text-body-2 text-medium-emphasis mb-4">
-          This replaces your API key with a new one. To avoid downtime, you can
-          keep the old key working for a while —
-          <a href="https://help.openalex.org/api/authentication/#rotating-your-key"
-             target="_blank" rel="noopener">learn more</a>.
+          This revokes your API key and gives you a new one. If the key leaked,
+          keep <strong>Immediately</strong>: the old key stops working within about
+          two minutes. Otherwise you can keep it working for a while to avoid downtime
+          (<a href="https://help.openalex.org/api/authentication/#rotating-your-key"
+             target="_blank" rel="noopener">learn more</a>).
         </div>
         <v-select
           v-model="selectedGrace"

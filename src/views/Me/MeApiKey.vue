@@ -20,10 +20,13 @@
     </v-alert>
 
     <SettingsSection title="Your API Key">
-      <SettingsRow
-        label="API Key"
-        description="Use this key to authenticate API requests and get higher rate limits"
-      >
+      <!-- Users whose key leaked looked here for "revoke" or "regenerate" and didn't see that Rotate is it (oxjob #2522). -->
+      <SettingsRow label="API Key">
+        <template #description>
+          Use this key to authenticate API requests and get higher rate limits.
+          Key exposed? Click <strong>Rotate</strong> to revoke it and get a new one
+          (<a href="https://help.openalex.org/api/authentication/#rotating-your-key" target="_blank" rel="noopener">how it works</a>).
+        </template>
         <ApiKeyDisplay
           v-if="apiKey"
           :api-key="apiKey"
