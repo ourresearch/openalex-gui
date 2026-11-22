@@ -1426,6 +1426,35 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.is_pulled,
             column: { export: { path: "is_pulled" } },
         },
+        // oxjob #2264: the notices that retracted, withdrew or removed a work, in `pull_notice_works`
+        // [{id, display_name, link_type}]. The filter on a notice's id lists the works it pulled. Like
+        // is_pulled, either filter brings pulled works back (the API redirects to include_pulled=true).
+        // Each displayName must equal the registry display_name (elastic-api label-consistency gate).
+        {
+            key: "pull_notice_works.id",
+            entityToFilter: "works",
+            entityToSelect: "works",
+            displayName: "pull notice",
+            type: "selectEntity",
+            isManyOptions: true,
+            category: "other",
+            actions: ["filter", "group_by",],
+            icon: "mdi-close-octagon-outline",
+            extractFn: (entity) => entity.pull_notice_works,
+        },
+        // The kind of notice: retraction, withdrawal or removal (link types). It selects from the
+        // relationships vocabulary the site already loads, which holds the same keys.
+        {
+            key: "pull_notice_works.link_type",
+            entityToFilter: "works",
+            entityToSelect: "relationships",
+            displayName: "pull notice link type",
+            type: "selectEntity",
+            category: "other",
+            actions: ["filter", "group_by",],
+            icon: "mdi-close-octagon-outline",
+            extractFn: (entity) => (entity.pull_notice_works || []).map((p) => p.link_type),
+        },
         {
             key: "language",
             entityToSelect: "languages",

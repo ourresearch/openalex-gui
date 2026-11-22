@@ -1,19 +1,23 @@
 <template>
   <div>
     <!-- Retraction banner — sits ABOVE the title so the user can't miss it
-         before forming an impression of the work. Only shown when the
-         publisher's retraction flag is set on a work. OpenAlex doesn't carry
-         retraction date/reason yet (the field is a bare boolean), so the
-         banner just states the fact. -->
+         before forming an impression of the work. Shown when the publisher's
+         retraction flag is set on a work, or when the work lists the notices
+         that retracted, withdrew or removed it (pull_notice_works, oxjob #2264):
+         one line per notice, oldest first, linking to the notice. -->
     <v-alert
-      v-if="myEntityType === 'works' && entityData?.is_retracted"
+      v-if="myEntityType === 'works' && (entityData?.is_retracted || pullNotices.length)"
       type="error"
       variant="tonal"
       density="compact"
       icon="mdi-alert-octagon"
       class="mb-3"
     >
-      This work has been retracted.
+      <div v-if="entityData?.is_retracted">This work has been retracted.</div>
+      <div v-for="notice in pullNotices" :key="notice.id">
+        {{ pullNoticeLabel(notice.link_type) }}:
+        <router-link :to="filters.entityZoomLink(notice.id)">{{ notice.display_name || notice.id }}</router-link>
+      </div>
     </v-alert>
 
     <!-- Page-level actions, one hierarchy everywhere (#1507): the primary action
@@ -279,6 +283,13 @@ onMounted(() => {
 
 function onBackClick() {
   router.back();
+}
+
+// The notices that pulled this work (oxjob #2264), labeled by their link type.
+const pullNotices = computed(() => props.entityData?.pull_notice_works || []);
+const PULL_NOTICE_LABELS = { retraction: 'Retraction notice', withdrawal: 'Withdrawal notice', removal: 'Removal notice' };
+function pullNoticeLabel(linkType) {
+  return PULL_NOTICE_LABELS[linkType] || 'Notice';
 }
 
 const titleClass = computed(() => {
