@@ -1,7 +1,7 @@
 {
- "version": "24.7.0",
- "fingerprint": "ec696ea527b9bf1d2793725e0806008fa596658ad23c0f83999b8bba0c3da2ce",
- "generatedAt": "2026-11-23T03:20:34.209Z",
+ "version": "24.9.0",
+ "fingerprint": "82957d8c59759bce8a8adad57914903af868a06c0cd649a69f22173af900c900",
+ "generatedAt": "2026-11-23T14:41:54.428Z",
  "entities": {
   "author-types": {
    "displayName": "author types",
@@ -1201,6 +1201,9 @@
    "primary_topic.subfield.id": "subfield",
    "publication_date": "date",
    "publication_year": "year",
+   "pull_notice_works": "pull notice works",
+   "pull_notice_works.id": "pull notice",
+   "pull_notice_works.link_type": "pull notice link type",
    "raw_affiliation_strings": "exact raw affiliation",
    "raw_affiliation_strings.search.exact": "raw affiliation",
    "raw_author_name.search": "byline",
