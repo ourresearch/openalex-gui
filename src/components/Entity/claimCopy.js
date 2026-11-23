@@ -93,7 +93,8 @@ export const copy = {
     askEmail: 'Enter your email to finish.',
     sendLink: 'Send link',
     checkEmailTitle: 'Check your email',
-    checkEmail: (email) => `We sent a link to ${email}. Click it to finish signing up.`,
+    // The link links the iD only in this browser (#2538): in the first day 1 in 5 opened it in another one.
+    checkEmail: (email) => `We sent a link to ${email}. Open it here, in this browser, to finish signing up and link your ORCID iD.`,
     emailInUse: 'An account already uses this email. Log in with it, then link your ORCID in Settings.',
     sendLoginLink: 'Send me a login link',
     loginLinkSent: (email) => `We sent a login link to ${email}.`,
@@ -104,8 +105,12 @@ export const copy = {
     welcome: 'Welcome to OpenAlex!',
     welcomeBack: (name) => (name ? `Welcome back, ${name}!` : 'Welcome back!'),
     linked: 'Your ORCID is linked: you can log in with ORCID from now on.',
-    // The link was opened in another browser than the ORCID sign-in, so the iD wasn't linked (#2538).
-    notLinked: 'To log in with ORCID, link it in Settings.',
+    // The link was opened in another browser than the ORCID sign-in, so the iD wasn't linked (#2538). The link page
+    // offers the Settings link trip right there; a snackbar pointing to Settings got 0 of 96 to do it.
+    notLinkedTitle: 'One more step: link your ORCID',
+    notLinked: "You opened the link in a different browser from the one you signed up in, so your ORCID iD isn't linked yet. Link it now to log in with ORCID.",
+    linkNow: 'Link ORCID',
+    notNow: 'Not now',
   },
   // Settings → Profile (#1475). Unset, a row says what it does; set, its
   // description is the value (the iD, the author id) and the button undoes it.

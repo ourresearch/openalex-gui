@@ -62,6 +62,18 @@
       </v-btn>
     </v-card>
 
+    <!-- Signed up with ORCID, but this isn't the browser that signed in to ORCID, so the iD wasn't linked (#2538):
+         offer the Settings link trip here, where they are, instead of a snackbar pointing to Settings. -->
+    <v-card v-else-if="status === 'link_orcid'" class="magic-card text-center" width="400" rounded="xl" elevation="0">
+      <v-icon size="28" color="success" class="mb-4">mdi-check-circle-outline</v-icon>
+      <h1 class="text-h6 font-weight-medium mb-2">{{ claimWords.orcidSignIn.notLinkedTitle }}</h1>
+      <p class="text-body-2 text-medium-emphasis mb-8">{{ claimWords.orcidSignIn.notLinked }}</p>
+      <v-btn color="primary" variant="flat" rounded="lg" size="large" block @click="linkOrcidHere">
+        {{ claimWords.orcidSignIn.linkNow }}
+      </v-btn>
+      <v-btn variant="text" rounded="lg" class="mt-2" @click="goOn">{{ claimWords.orcidSignIn.notNow }}</v-btn>
+    </v-card>
+
     <!-- Success state (brief, before redirect) -->
     <v-card v-else-if="status === 'done'" class="magic-card text-center" width="400" rounded="xl" elevation="0">
       <v-icon size="28" color="success" class="mb-4">mdi-check-circle-outline</v-icon>
@@ -81,6 +93,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { sanitizeLoginToken, sanitizeRedirectPath } from '@/util';
 import { useTurnstile } from '@/composables/useTurnstile';
 import { copy as claimWords } from '@/components/Entity/claimCopy.js';
+import { startOrcidTrip } from '@/components/Orcid/orcidAuth.js';
 
 defineOptions({
   name: 'MagicToken'
@@ -143,9 +156,9 @@ function welcomeSnackbar(loginData) {
   if (loginData?.orcid_linked) {
     return `${claimWords.orcidSignIn.welcome} ${claimWords.orcidSignIn.linked}`;
   }
-  // Opened in another browser than the ORCID sign-in, so the iD wasn't linked.
+  // Opened in another browser than the ORCID sign-in, so the iD wasn't linked: the page says the rest.
   if (loginData?.orcid_not_linked) {
-    return `${claimWords.orcidSignIn.welcome} ${claimWords.orcidSignIn.notLinked}`;
+    return claimWords.orcidSignIn.welcome;
   }
   if (loginData?.key_activated) {
     return 'Your API key is active: it now has $1 a day of free usage.';
@@ -172,6 +185,29 @@ const status = ref('ready');
 
 const loginWithMagicToken = (token) => store.dispatch('user/loginWithMagicToken', token);
 
+// The answer to this click's login, read by goOn() after it.
+let lastLogin = null;
+
+// Where the person goes after the click. Invitees go to their new org's profile, everyone else home, unless an
+// explicit redirect survived the round trip through email. That value is attacker-reachable, so validate it before
+// navigating (oxjob #855); an invalid one falls back to the same default.
+function goOn() {
+  const fallback = lastLogin?.invitation_accepted ? '/settings/org-profile'
+    : lastLogin?.key_activated ? '/settings/api-key' : '/';
+  router.push(sanitizeRedirectPath(route.query.redirect, fallback));
+}
+
+// The Settings link trip (orcid.org and back); on return the iD is linked and its profile claimed, as in Settings.
+// The profile load after the login can fail (the store lets it); then Settings has the same button.
+function linkOrcidHere() {
+  const userId = store.getters['user/userId'];
+  if (!userId) {
+    router.push({ name: 'settings-profile', hash: '#orcid' });
+    return;
+  }
+  startOrcidTrip({ flow: 'settings', userId });
+}
+
 const goToLogin = () => {
   // Carry the destination onto the retry: a user whose link expired shouldn't
   // lose where they were headed just because they took too long (oxjob #855).
@@ -187,9 +223,14 @@ const doLogin = async () => {
     // Some mail gateways append a stray char (e.g. a quote) to the link's
     // URL; strip anything outside the base64url token alphabet (#8891).
     const loginData = await loginWithMagicToken({token: sanitizeLoginToken(route.params.token), turnstileToken: checkToken});
-    status.value = 'done';
-
+    lastLogin = loginData;
     store.commit('snackbar', welcomeSnackbar(loginData));
+    // Signed in, but the iD wasn't linked: stay here and offer to link it (no redirect until they choose).
+    if (loginData?.orcid_not_linked) {
+      status.value = 'link_orcid';
+      return;
+    }
+    status.value = 'done';
     // As after linking in Settings (#1475): claim the profile that carries the just-linked iD, in the background.
     if (loginData?.orcid_linked) {
       store.dispatch('user/claimOrcidProfile')
@@ -198,15 +239,7 @@ const doLogin = async () => {
     }
 
     // Brief delay to show success state, then redirect
-    setTimeout(() => {
-      // Send invitees to their new org's profile; everyone else to home —
-      // unless an explicit redirect survived the round trip through email.
-      // That value is attacker-reachable, so validate before navigating
-      // (oxjob #855); an invalid one falls back to the same default as before.
-      const fallback = loginData?.invitation_accepted ? '/settings/org-profile'
-        : loginData?.key_activated ? '/settings/api-key' : '/';
-      router.push(sanitizeRedirectPath(route.query.redirect, fallback));
-    }, 500);
+    setTimeout(goOn, 500);
   } catch (e) {
     console.error('Magic link login failed:', e);
 
