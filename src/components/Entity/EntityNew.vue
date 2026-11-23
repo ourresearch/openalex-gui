@@ -18,6 +18,13 @@
           <v-icon size="x-small" class="ml-1">mdi-open-in-new</v-icon>
         </a>
       </div>
+      <!-- #2540: "N reviews" and the list, from the review links. -->
+      <work-reviews
+        v-else-if="filterKey === 'reviews'"
+        :key="'data-reviews-' + data.id"
+        :work="data"
+        class="px-4 pb-1"
+      />
       <entity-datum-row
         v-else
         :key="'data-'+filterKey"
@@ -41,12 +48,15 @@
 
 
 <script setup>
-import { computed } from 'vue';
+import { computed, defineAsyncComponent } from 'vue';
 import { getEntityConfig } from '@/entityConfigs';
 import { getFacetConfig } from '@/facetConfigUtils';
 import EntityDatumRow from '@/components/Entity/EntityDatumRow.vue';
 import * as openalexId from '@/openalexId';
 import { bareDoi } from '@/seo/recordHead.mjs';
+import { hasReviews } from '@/workReviews';
+// Loaded on demand: only works with reviews render it (about 1.3M of them).
+const WorkReviews = defineAsyncComponent(() => import('@/components/Entity/WorkReviews.vue'));
 
 defineOptions({ name: 'EntityNew' });
 
@@ -62,6 +72,7 @@ const myEntityConfig = computed(() => type.value ? getEntityConfig(type.value) :
 const hasData = (filterKey) => {
   if (filterKey === null) return true; // Dividers are handled separately
   if (filterKey === 'doi' && type.value === 'works') return !!doi.value;
+  if (filterKey === 'reviews') return type.value === 'works' && hasReviews(props.data);
   const facetConfig = getFacetConfig(type.value, filterKey);
   if (!facetConfig?.extractFn) return false;
   try {

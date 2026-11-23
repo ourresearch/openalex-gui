@@ -45,6 +45,7 @@ const entityConfigs = reactive({
             "authorships.author.id",   // each author's CRediT roles show after the name (oxjob #2075)
             "authorships.institutions.lineage",
             "language",
+            "reviews",   // oxjob #2540: "N reviews" and the list, from the review links (WorkReviews.vue)
             null,
             "primary_topic.id",
             "primary_topic.subfield.id",
