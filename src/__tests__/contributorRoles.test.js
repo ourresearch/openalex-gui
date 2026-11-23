@@ -9,7 +9,7 @@ import { getFacetConfig } from "@/facetConfigUtils";
 import { getEntityConfig } from "@/entityConfigs";
 import * as openalexId from "@/openalexId";
 import { parseRecordPath, worksListPlan, RECORD_TYPES } from "@/ssr/recordRoutes";
-import { contributorRoleItems } from "@/components/Entity/entityDatumValues";
+import { contributorRoleItems, entityLinkItems } from "@/components/Entity/entityDatumValues";
 
 // The real filters and url modules pull in the router and store; the row needs
 // only these few.
@@ -94,6 +94,22 @@ describe("contributor roles on the work page", () => {
     expect(html).toMatch(/<a href="\/contributor-roles\/writing-original-draft" class="contributor-role"/);
     // the roles sit in their own muted span; an author with none gets no span
     expect(html.match(/class="contributor-roles/g)).toHaveLength(2);
+  });
+
+  it("a byline with no linked author still shows each name's roles", async () => {
+    const EDITOR = { id: "https://openalex.org/contributor-roles/editor", display_name: "Editor" };
+    const book = {
+      id: "https://openalex.org/W4301958211",
+      authorships: [
+        { author: { id: null, display_name: "Daniel Kahneman" }, raw_author_name: "Daniel Kahneman", contributor_roles: [EDITOR] },
+        { author: { id: null, display_name: "Paul Slovic" }, raw_author_name: "Paul Slovic", contributor_roles: [EDITOR] },
+      ],
+    };
+    const html = await renderAuthorsRow(book);
+    expect(text(html)).toBe("Authors: Daniel Kahneman(Editor), Paul Slovic(Editor)");
+    expect(html).toMatch(/<a href="\/contributor-roles\/editor" class="contributor-role"/);
+    // an unlinked byline with no roles stays plain text, as before
+    expect(entityLinkItems([{ id: null, display_name: "A" }, { id: null, display_name: "B" }])).toBeNull();
   });
 
   it("a work with no roles renders the authors exactly as before", async () => {

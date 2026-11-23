@@ -26,7 +26,10 @@ export function entityLinkItems(rawValue) {
   if (!Array.isArray(rawValue)) return null;
   const validItems = rawValue.filter(o => o);
   // `some`, not `every`: one unlinkable member doesn't make the list unlinkable.
-  if (validItems.length > 0 && validItems.some(o => o?.id)) return validItems;
+  // An author whose name carries roles counts too, profile or not: a book whose whole
+  // byline is editors added from Crossref, none with an author id yet (oxjob #2075 D11),
+  // must still show "(Editor)" after each name rather than fall back to plain strings.
+  if (validItems.length > 0 && validItems.some(o => o?.id || contributorRoleItems(o).length)) return validItems;
   return null;
 }
 
