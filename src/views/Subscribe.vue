@@ -1,5 +1,5 @@
 <template>
-  <static-page title="Subscribe" :sections="sections">
+  <static-page title="Get updates" :sections="sections">
     <template #intro>
       Get OpenAlex news by email. Choose what you'd like to receive.
     </template>
@@ -33,10 +33,10 @@
 
         <v-btn type="submit" color="primary" size="large" rounded="pill" variant="flat" :loading="submitState === 'sending'">
           <v-icon start>mdi-email-outline</v-icon>
-          Subscribe
+          Sign me up
         </v-btn>
         <div class="fine-print">
-          We use your email only to send what you chose. Unsubscribe any time by replying to any email.
+          We use your email only to send what you chose. Stop any time by replying to any email.
           See our <router-link to="/privacy">privacy policy</router-link>.
         </div>
         <div v-if="submitState === 'error'" class="form-error">
@@ -47,9 +47,9 @@
 
       <div v-else class="signup-done">
         <p class="section-body">
-          <strong>You're subscribed.</strong> We'll send {{ chosenNames }} to {{ email }}.
+          <strong>You're signed up.</strong> We'll send {{ chosenNames }} to {{ email }}.
         </p>
-        <v-btn variant="outlined" rounded="pill" @click="reset">Subscribe another address</v-btn>
+        <v-btn variant="outlined" rounded="pill" @click="reset">Sign up another address</v-btn>
       </div>
     </static-section>
 
@@ -143,7 +143,7 @@ const sections = [
 ];
 
 const route = useRoute();
-// /subscribe?list=funders (and /funder-newsletter) preselects one list.
+// /updates?list=funders (and /funder-newsletter, /subscribe?list=funders) preselects one list.
 const preselected = LISTS.some(l => l.id === route.query.list) ? [route.query.list] : [];
 
 const formRef = ref(null);

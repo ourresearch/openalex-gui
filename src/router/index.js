@@ -495,8 +495,10 @@ export const routes = [
     {path: '/events', name: 'Events', component: () => import('@/views/Events.vue'), meta: {chrome: 'site'}},
     {path: '/events/funders2026', name: 'Funders2026', component: Funders2026Page, meta: {chrome: 'site'}},
     {path: '/events/paris2026', name: 'Paris2026', component: Paris2026Page, meta: {chrome: 'site'}},
-    {path: '/subscribe', name: 'Subscribe', component: () => import('@/views/Subscribe.vue'), meta: {chrome: 'site'}},
-    {path: '/funder-newsletter', redirect: {path: '/subscribe', query: {list: 'funders'}}},
+    {path: '/updates', name: 'Updates', component: () => import('@/views/Subscribe.vue'), meta: {chrome: 'site'}},
+    // 'Subscribe' reads as paying for access, so the page is 'Get updates'; old /subscribe links keep working.
+    {path: '/subscribe', redirect: to => ({path: '/updates', query: to.query, hash: to.hash})},
+    {path: '/funder-newsletter', redirect: {path: '/updates', query: {list: 'funders'}}},
     // /discover (vector search, né /find) DELETED in oxjob #778 (2026-08-13): its
     // backing API (api.openalex.org/discover/works/*) was gone — the page had been
     // silently broken in prod — and nothing linked to it.
