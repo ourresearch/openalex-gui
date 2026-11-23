@@ -1,7 +1,7 @@
 {
- "version": "24.3.0",
- "fingerprint": "9c2ca338a570d52db7cd50f228c6759a6d4d64657cf3c251fb3e6e36c611400b",
- "generatedAt": "2026-11-20T16:58:09.160Z",
+ "version": "24.7.0",
+ "fingerprint": "ec696ea527b9bf1d2793725e0806008fa596658ad23c0f83999b8bba0c3da2ce",
+ "generatedAt": "2026-11-23T03:20:34.209Z",
  "entities": {
   "authors": {
    "displayName": "authors",
@@ -62,6 +62,10 @@
   "licenses": {
    "displayName": "licenses",
    "displayNameSingular": "license"
+  },
+  "link-types": {
+   "displayName": "link types",
+   "displayNameSingular": "link type"
   },
   "locations": {
    "displayName": "locations",
@@ -338,6 +342,7 @@
    "id": "id",
    "ids": "ids",
    "relevance_score": "relevance score",
+   "standard_terms": "standard terms",
    "text.search": "text",
    "to_created_date": "to created date",
    "to_updated_date": "to updated date",
@@ -615,6 +620,24 @@
    "to_updated_date": "to updated date",
    "updated_date": "updated date",
    "url": "url",
+   "works_api_url": "works api url",
+   "works_count": "works count"
+  },
+  "link-types": {
+   "collection": "collection",
+   "created_date": "created date",
+   "description": "description",
+   "display_name": "name",
+   "display_name.search": "display name",
+   "from_created_date": "from created date",
+   "from_updated_date": "from updated date",
+   "id": "id",
+   "relevance_score": "relevance score",
+   "standard_terms": "standard terms",
+   "text.search": "text",
+   "to_created_date": "to created date",
+   "to_updated_date": "to updated date",
+   "updated_date": "updated date",
    "works_api_url": "works api url",
    "works_count": "works count"
   },
@@ -1049,6 +1072,7 @@
    "funders.id": "funder",
    "fwci": "FWCI",
    "has_abstract": "has abstract",
+   "has_arxiv": "has arXiv ID",
    "has_content": "has content",
    "has_content.grobid_xml": "has content grobid xml",
    "has_content.pdf": "PDF-linked",
@@ -1067,6 +1091,7 @@
    "has_references": "has references",
    "id": "id",
    "ids": "ids",
+   "ids.arxiv": "arXiv ID",
    "ids.mag": "MAG ID",
    "ids.openalex": "OpenAlex ID",
    "ids.pmcid": "PMCID",
@@ -1117,6 +1142,7 @@
    "open_access.oa_status": "open access status",
    "parent_works": "parent works",
    "parent_works.id": "parent work",
+   "parent_works.link_type": "link type to parent work",
    "parent_works.relationship": "relationship to parent work",
    "primary_location": "primary location",
    "primary_location.is_accepted": "primary accepted",
@@ -1161,6 +1187,7 @@
    "relevance_score": "relevance score",
    "repository": "repository",
    "rerank_score": "rerank score",
+   "reviewed_by_count": "reviewed by count",
    "semantic.search": "semantic",
    "sources": "sources",
    "study_designs": "study designs",
@@ -1244,6 +1271,9 @@
   "licenses": {
    "default.search": "text.search"
   },
+  "link-types": {
+   "default.search": "text.search"
+  },
   "locations": {
    "default.search": "text.search"
   },
@@ -1306,6 +1336,7 @@
    "title.search.exact": "display_name.search.exact",
    "default.search": "fulltext.search",
    "default.search.exact": "fulltext.search.exact",
+   "arxiv": "ids.arxiv",
    "mag": "ids.mag",
    "openalex": "ids.openalex",
    "openalex_id": "ids.openalex",
