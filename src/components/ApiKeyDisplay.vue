@@ -1,6 +1,18 @@
 <template>
   <div v-if="apiKey" class="api-key-block">
+    <!-- The key used to be reachable only through the clipboard: when a browser refused the write, Copy gave
+         nothing and Rotate revoked the old key and showed the new one nowhere (oxjob #2321). Hidden by
+         default for screen sharing; Show reveals it, and a refused copy reveals it on its own. -->
+    <code v-if="revealed" class="api-key-code" data-test="api-key-value">{{ apiKey }}</code>
     <div class="api-key-actions">
+      <v-btn
+        variant="text"
+        size="small"
+        :prepend-icon="revealed ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
+        @click="revealed = !revealed"
+      >
+        {{ revealed ? 'Hide' : 'Show' }}
+      </v-btn>
       <v-btn
         variant="text"
         size="small"
@@ -102,6 +114,7 @@ const props = defineProps({
 });
 
 const store = useStore();
+const revealed = ref(false);
 const rotateDialogOpen = ref(false);
 const rotateLoading = ref(false);
 const expireLoading = ref(false);
@@ -133,7 +146,8 @@ async function copyToClipboard() {
     store.commit('snackbar', 'API key copied to clipboard');
   } catch (err) {
     console.error('Failed to copy:', err);
-    store.commit('snackbar', 'Failed to copy API key');
+    revealed.value = true;
+    store.commit('snackbar', "Your browser didn't allow copying. Your key is shown: select it and copy it.");
   }
 }
 
@@ -149,7 +163,9 @@ async function rotateKey() {
       await navigator.clipboard.writeText(newKey);
       store.commit('snackbar', `API key rotated and copied to clipboard${graceNote}`);
     } catch {
-      store.commit('snackbar', `API key rotated${graceNote}`);
+      // The old key is already revoked: never leave the new one unseen (oxjob #2321).
+      revealed.value = true;
+      store.commit('snackbar', `API key rotated${graceNote}. Your new key is shown: select it and copy it.`);
     }
   } catch (e) {
     console.error('Failed to rotate API key:', e);
@@ -178,6 +194,12 @@ async function expireNow() {
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
+}
+.api-key-code {
+  font-family: monospace;
+  font-size: 0.875rem;
+  user-select: all;
+  word-break: break-all;
 }
 .api-key-actions {
   display: inline-flex;
