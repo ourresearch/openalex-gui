@@ -50,7 +50,8 @@
         </div>
       </v-alert>
 
-      <v-btn type="submit" block size="large" color="primary" variant="flat" rounded class="mt-4" :disabled="!canSubmit">
+      <v-btn type="submit" block size="large" color="primary" variant="flat" rounded class="mt-4" :disabled="!canSubmit"
+             :loading="turnstileChecking">
         {{ words.sendLink }}
       </v-btn>
     </form>
@@ -84,7 +85,8 @@ const props = defineProps({
 
 const store = useStore();
 const words = copy.orcidSignIn;
-const { turnstileEl, turnstileToken, turnstileError, mountTurnstile, resetTurnstile } = useTurnstile();
+// A click waits for the invisible check (turnstileChecking) with the card still enabled (#2318).
+const { turnstileEl, turnstileError, turnstileChecking, mountTurnstile, sendWithToken } = useTurnstile();
 
 const name = ref(props.offer.name || '');
 const email = ref(props.offer.email || '');
@@ -94,7 +96,7 @@ const sentTo = ref('');
 const loginLinkSentTo = ref('');
 
 const typedEmail = computed(() => email.value.trim());
-const canSubmit = computed(() => !loading.value && !!name.value.trim() && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(typedEmail.value));
+const canSubmit = computed(() => !loading.value && !turnstileChecking.value && !!name.value.trim() && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(typedEmail.value));
 
 onMounted(() => mountTurnstile());
 
@@ -102,9 +104,8 @@ function showError(err) {
   const body = err?.response?.data || {};
   if (err?.response?.status === 409 && body.code === 'email_in_use') {
     emailInUse.value = true;
-  } else if ((body.code || '').startsWith('turnstile_')) {
-    turnstileError.value = body.message || 'Please complete the check and try again.';
-    resetTurnstile();
+  } else if (err?.turnstileMessage) {
+    turnstileError.value = err.turnstileMessage;
   } else {
     store.commit('snackbar', body.message || 'Something went wrong. Please try again.');
   }
@@ -112,17 +113,18 @@ function showError(err) {
 
 async function submit() {
   if (!canSubmit.value) return;
-  loading.value = true;
   emailInUse.value = false;
-  turnstileError.value = '';
   try {
-    await store.dispatch('user/requestSignupEmail', {
-      email: typedEmail.value,
-      displayName: name.value.trim(),
-      turnstileToken: turnstileToken.value,
-      orcidToken: props.offer.orcid_token,
-      orcidBrowserKeyHash: await newSignupKeyHash(),
-      redirect: props.redirect,
+    await sendWithToken(async (turnstileToken) => {
+      loading.value = true;
+      return store.dispatch('user/requestSignupEmail', {
+        email: typedEmail.value,
+        displayName: name.value.trim(),
+        turnstileToken,
+        orcidToken: props.offer.orcid_token,
+        orcidBrowserKeyHash: await newSignupKeyHash(),
+        redirect: props.redirect,
+      });
     });
     sentTo.value = typedEmail.value;
   } catch (err) {

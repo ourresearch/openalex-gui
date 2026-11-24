@@ -81,6 +81,7 @@
                 block
                 size="large"
                 :disabled="isFormDisabled"
+                :loading="turnstileChecking"
                 color="primary"
                 variant="flat"
                 class="mt-6"
@@ -131,7 +132,9 @@ const magicLinkSent = ref(false);
 const magicLinkEmail = ref('');
 
 // Cloudflare Turnstile (oxjob #252 Phase 4).
-const { turnstileEl, turnstileToken, turnstileError, mountTurnstile, resetTurnstile } = useTurnstile();
+// A click waits for the invisible check (turnstileChecking) with the card still enabled, so a challenge Cloudflare
+// shows stays clickable (#2318).
+const { turnstileEl, turnstileError, turnstileChecking, mountTurnstile, sendWithToken } = useTurnstile();
 
 // Check if email is a common personal email provider
 const isPersonalEmail = computed(() => {
@@ -176,30 +179,28 @@ const resetForm = () => {
 };
 
 const submit = async () => {
-  if (isFormDisabled.value) return;
-  isLoading.value = true;
+  if (isFormDisabled.value || turnstileChecking.value) return;
   isEmailAlreadyInUse.value = false;
-  turnstileError.value = '';
 
   try {
-    await store.dispatch('user/requestSignupEmail', {
-      email: email.value,
-      displayName: name.value,
-      turnstileToken: turnstileToken.value,
-      // Carry the destination into the emailed link so a user who signs up
-      // mid-task lands back where they started (oxjob #855).
-      redirect: route.query.redirect,
+    await sendWithToken((turnstileToken) => {
+      isLoading.value = true;
+      return store.dispatch('user/requestSignupEmail', {
+        email: email.value,
+        displayName: name.value,
+        turnstileToken,
+        // Carry the destination into the emailed link so a user who signs up
+        // mid-task lands back where they started (oxjob #855).
+        redirect: route.query.redirect,
+      });
     });
     magicLinkEmail.value = email.value;
     magicLinkSent.value = true;
   } catch (e) {
-    const code = e.response?.data?.code;
     if (e.response?.status === 409) {
       isEmailAlreadyInUse.value = true;
-    } else if (code && code.startsWith('turnstile_')) {
-      turnstileError.value = e.response?.data?.message
-        || 'CAPTCHA verification failed. Please try again.';
-      resetTurnstile();
+    } else if (e.turnstileMessage) {
+      turnstileError.value = e.turnstileMessage;
     } else if ((e.response?.status === 400 || e.response?.status === 429)
                && e.response?.data?.message) {
       // 400: email-validation rejection (no_tld / reserved / disposable / no_mx / syntax)

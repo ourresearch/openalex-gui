@@ -26,6 +26,7 @@
         rounded="lg"
         size="large"
         block
+        :loading="turnstileChecking"
         @click="doLogin"
       >
         {{ copy.button }}
@@ -134,21 +135,14 @@ const copy = computed(() => {
 
 // Turnstile renders on every link page: users-api asks for it only when this click activates an agent's key, and
 // a plain login link can be that click too. It's invisible, and an ordinary login never waits for it.
-const { turnstileEl, turnstileToken, mountTurnstile, resetTurnstile } = useTurnstile();
+// An activation click waits for it (up to 15 s, with the card still up so a challenge Cloudflare shows stays
+// clickable; #2318: 5 s refused people whose check was still running).
+const { turnstileEl, turnstileChecking, mountTurnstile, sendWithToken } = useTurnstile();
 const checkMessage = ref('');
+// Whether this click waits for the check's token: an activation always; a plain login link only after users-api
+// asked for it (that click can approve an agent's key).
+const needsCheck = ref(isActivation.value);
 onMounted(() => { mountTurnstile(); });
-
-function turnstileTokenNow() {
-  return turnstileToken.value || '';
-}
-
-async function tokenForActivation() {
-  // Give the invisible check up to ~5 s to finish before sending the click on.
-  for (let i = 0; i < 50 && !turnstileToken.value; i++) {
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  return turnstileToken.value;
-}
 
 function welcomeSnackbar(loginData) {
   const userName = store.getters['user/userName'];
@@ -216,13 +210,15 @@ const goToLogin = () => {
 };
 
 const doLogin = async () => {
+  if (turnstileChecking.value) return;
   checkMessage.value = '';
-  const checkToken = isActivation.value ? await tokenForActivation() : turnstileTokenNow();
-  status.value = 'loading';
   try {
-    // Some mail gateways append a stray char (e.g. a quote) to the link's
-    // URL; strip anything outside the base64url token alphabet (#8891).
-    const loginData = await loginWithMagicToken({token: sanitizeLoginToken(route.params.token), turnstileToken: checkToken});
+    const loginData = await sendWithToken((turnstileToken) => {
+      status.value = 'loading';
+      // Some mail gateways append a stray char (e.g. a quote) to the link's
+      // URL; strip anything outside the base64url token alphabet (#8891).
+      return loginWithMagicToken({token: sanitizeLoginToken(route.params.token), turnstileToken});
+    }, { wait: needsCheck.value });
     lastLogin = loginData;
     store.commit('snackbar', welcomeSnackbar(loginData));
     // Signed in, but the iD wasn't linked: stay here and offer to link it (no redirect until they choose).
@@ -244,15 +240,10 @@ const doLogin = async () => {
     console.error('Magic link login failed:', e);
 
     // The human check didn't pass (or hadn't finished): the link is still good, so let them try again.
-    const code = e?.response?.data?.code || '';
-    if (code.startsWith('turnstile_')) {
-      checkMessage.value = e.response.data.message || 'Please complete the check and try again.';
+    if (e.turnstileMessage) {
+      checkMessage.value = e.turnstileMessage;
+      needsCheck.value = true;
       status.value = 'ready';
-      try {
-        resetTurnstile();
-      } catch (resetError) {
-        console.error('Turnstile reset failed:', resetError);
-      }
       return;
     }
 
