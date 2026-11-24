@@ -81,6 +81,8 @@ const listedInLabels = {
     "sinta-s6": "SINTA (Indonesia), S6",
     "tci-1": "TCI (Thailand), Tier 1",
     "tci-2": "TCI (Thailand), Tier 2",
+    // Canadian scholarly journals, Coalition Publica (Borealis doi:10.5683/SP4/YBWVYC; ZD 27313, oxjob #1205, 2026-11-24)
+    "canadian-journals": "Canadian scholarly journals (Coalition Publica)",
 };
 
 const isListedInKey = (filterKey) =>
