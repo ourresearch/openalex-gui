@@ -1959,6 +1959,19 @@ const facetConfigs = function (entityType) {
             icon: "mdi-magnify",
         },
         {
+            // Words in the name of who runs the source: its publisher, or the
+            // institution behind a repository ("university" finds university
+            // presses and university repositories). Label from the API catalog
+            // ("host organization name"). oxjob #2398
+            key: "host_organization_name.search",
+            entityToFilter: "sources",
+            type: "search",
+            actions: ["filter",],
+            actionsPopular: [],
+            category: "search",
+            icon: "mdi-magnify",
+        },
+        {
             key: "display_name",
             isIdentityColumn: true,
             entityToFilter: "sources",

@@ -1,7 +1,7 @@
 {
- "version": "24.9.0",
- "fingerprint": "82957d8c59759bce8a8adad57914903af868a06c0cd649a69f22173af900c900",
- "generatedAt": "2026-11-23T14:41:54.428Z",
+ "version": "24.10.0",
+ "fingerprint": "bcd5dad07dc3793652f61fd43bd604e28fb9fb843d6ccd1cc986b46db278da0a",
+ "generatedAt": "2026-11-25T06:12:53.616Z",
  "entities": {
   "author-types": {
    "displayName": "author types",
@@ -856,6 +856,7 @@
    "host_organization.id": "host organization",
    "host_organization_lineage": "host organization lineage",
    "host_organization_name": "host organization name",
+   "host_organization_name.search": "host organization name",
    "id": "id",
    "ids": "ids",
    "ids.mag": "MAG ID",
