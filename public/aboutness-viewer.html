@@ -273,6 +273,16 @@ async function loadTree() {
     if (n.level === "subfield") n.children.sort((a, b) => b.works - a.works);
     for (const c of n.children) { n.works += c.works; n.topics += c.topics; n.keywords += c.keywords; }
   })(root);
+  // a subfield can hold no topics (1502 Bioengineering and 3614 Radiological and Ultrasound Technology since the
+  // 6 Nov re-parenting): it has nothing to draw and no angle, and as the first subfield of the first field it left the
+  // whole Physical Sciences domain without one, so every view in it drew blank (oxjob #2420). Leave empty groups out.
+  const drop = n => { nodes.delete(n.id); n.children.forEach(drop); };
+  (function prune(n) {
+    if (n.level === "topic") return;
+    for (const c of n.children) if (!c.topics) drop(c);
+    n.children = n.children.filter(c => c.topics);
+    n.children.forEach(prune);
+  })(root);
   // angles: one equal slot per topic, with gaps between groups
   const leaves = [];
   (function walk(n) { if (n.level === "topic") leaves.push(n); else n.children.forEach(walk); })(root);
